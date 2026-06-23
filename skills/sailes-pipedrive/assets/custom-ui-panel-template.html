@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>__NAZWA__ — Custom UI panel</title>
+<!--
+  SZABLON Custom UI panelu Pipedrive (iframe w karcie deala/osoby/org).
+  Kopiuj do public/pd-ui/<nazwa>.html. Co podmienić:
+    1. <title>, .ptitle, ikonę
+    2. MOCK + funkcję render() — własne dane i layout
+    3. ACL_ENDPOINT — '/api/pd-panel/<nazwa>/acl' (albo usuń enforceAcl, jeśli dane jawne)
+    4. realne dane: po init pobierz id deala z query i zawołaj swój backend z X-Pipedrive-Token
+  Niezmienne (nie ruszaj bez powodu): init tylko gdy ?id, SDK z /vendor/, RESIZE 100–750/800,
+  motyw przez data-theme + USER_SETTINGS_CHANGE, token przez GET_SIGNED_TOKEN (fallback ?token=).
+-->
+<style>
+  :root{
+    --bg:#ffffff; --ink:#1b1f29; --ink2:#3c4250; --muted:#8b909c; --label:#6b7280;
+    --border:#e6e8ec; --border2:#eef0f3; --row:#f7f8fa; --rowhead:#f1f3f7;
+    --link:#2a7de1; --green:#1f9d57; --green-d:#137a41; --accent:#6b3fa0;
+    --y-bg:#fff3d6; --y-tx:#9a6b00; --b-bg:#e4effb; --b-tx:#1d5fb0; --g-bg:#eceef1; --g-tx:#5a6072;
+    --shadow:0 1px 2px rgba(20,24,33,.05),0 4px 14px rgba(20,24,33,.05);
+  }
+  html[data-theme="dark"]{
+    --bg:#15171c; --ink:#e7e9ee; --ink2:#c4c8d2; --muted:#8a909c; --label:#9aa0ab;
+    --border:#2a2e37; --border2:#23262e; --row:#1c1f26; --rowhead:#222630;
+    --link:#5aa2f0; --green:#3bbd77; --green-d:#3bbd77; --accent:#6b3fa0;
+    --y-bg:#3a3010; --y-tx:#e7c065; --b-bg:#16273c; --b-tx:#7bb0ef; --g-bg:#262a33; --g-tx:#aeb4bf;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:transparent;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;font-size:13.5px;line-height:1.45}
+  .wrap{max-width:560px;margin:0 auto;padding:8px}
+  .panel{background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+  .phead{display:flex;align-items:center;gap:9px;padding:12px 14px;border-bottom:1px solid var(--border2);
+    background:linear-gradient(180deg,rgba(107,63,160,.06),transparent)}
+  .pico{width:18px;height:18px;border-radius:5px;background:linear-gradient(135deg,#7b3fb0,#4a1f73);flex:0 0 auto}
+  .ptitle{font-weight:700;font-size:13px;letter-spacing:.3px;text-transform:uppercase;color:var(--ink)}
+  .pcount{font-size:11px;font-weight:700;color:#fff;background:var(--green);padding:1px 8px;border-radius:10px}
+  .pright{margin-left:auto;display:flex;gap:6px;color:var(--muted);font-size:12px}
+  .pbtn{cursor:pointer;border:1px solid var(--border);border-radius:7px;background:var(--bg);padding:3px 8px;color:var(--ink2);font-size:12px;user-select:none}
+  .pbtn:hover{background:var(--row)}
+  .body{padding:12px 14px}
+  .row{display:flex;justify-content:space-between;gap:10px;padding:4px 0;font-size:12.5px}
+  .row .k{color:var(--label)} .row .v{font-weight:600}
+  .badge{font-size:10px;font-weight:700;letter-spacing:.3px;padding:2px 8px;border-radius:5px;text-transform:uppercase}
+  .badge.y{background:var(--y-bg);color:var(--y-tx)} .badge.b{background:var(--b-bg);color:var(--b-tx)} .badge.g{background:var(--g-bg);color:var(--g-tx)}
+  a.link{color:var(--link);text-decoration:none;font-weight:600}
+  .mono{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel">
+    <div class="phead">
+      <span class="pico"></span>
+      <span class="ptitle">__NAZWA__</span>
+      <span class="pcount" id="count"></span>
+      <span class="pright"><span class="pbtn" id="refresh">Odśwież</span></span>
+    </div>
+    <div class="body" id="content"></div>
+  </div>
+</div>
+
+<script>
+// ─── 1) DANE (mock — żeby panel działał też w gołej przeglądarce jako podgląd) ───
+// Docelowo: po init pobierz realne dane ze swojego backendu (z X-Pipedrive-Token).
+let DATA = [
+  { id: 1, header: 'Przykładowy rekord', status: { c:'y', t:'MOCK' }, kwota: '12 345,00 zł' },
+];
+
+const esc = (s)=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+// ─── 2) RENDER — podmień na własny layout ───
+function render(){
+  document.getElementById('count').textContent = DATA.length + ' szt.';
+  document.getElementById('content').innerHTML = DATA.map(d=>`
+    <div class="row"><span class="k">${esc(d.header)}</span>
+      <span class="badge ${d.status.c}">${esc(d.status.t)}</span></div>
+    <div class="row"><span class="k">Kwota</span><span class="v mono">${esc(d.kwota)}</span></div>
+  `).join('');
+  scheduleResize();
+}
+
+// ─── Pipedrive Apps SDK: init + resize + theme + token + ACL ───
+const ACL_ENDPOINT = '/api/pd-panel/__nazwa__/acl';   // ⟵ ustaw albo usuń enforceAcl()
+function loadScript(src){return new Promise((ok,err)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=err;document.head.appendChild(s);});}
+let sdk=null, resizeT=null, hidden=false;
+
+// SDK akceptuje wysokość tylko z zakresu 100–750 px — klamrujemy każdą wartość.
+async function setHeight(h){
+  try{
+    const cmd = window.AppExtensionsSDK?.Command?.RESIZE;
+    if(sdk?.execute && cmd){
+      const hh = Math.min(750, Math.max(100, Math.round(h) || 100));
+      await sdk.execute(cmd, { width: 800, height: hh });
+    }
+  }catch(e){ console.warn('resize failed', e); }
+}
+async function resizeNow(){ if(!hidden) await setHeight(document.documentElement.scrollHeight); }
+function scheduleResize(){ clearTimeout(resizeT); resizeT=setTimeout(resizeNow, 80); }
+
+// Ukryj panel dla nieuprawnionego usera.
+function hidePanel(){ hidden=true; document.querySelector('.wrap').innerHTML=''; document.documentElement.style.background='transparent'; setHeight(1); }
+
+// Sygnowany token: z SDK, fallback z ?token= w URL.
+async function getToken(){
+  let token = new URLSearchParams(location.search).get('token') || '';
+  try{
+    const cmd = window.AppExtensionsSDK?.Command?.GET_SIGNED_TOKEN;
+    if(sdk?.execute && cmd){ const p = await sdk.execute(cmd); if(p?.token) token = p.token; }
+  }catch(e){ /* zostaje token z URL */ }
+  return token;
+}
+
+// Gating: brak tokenu (przeglądarka) → podgląd; serwer mówi {allowed:false} → ukryj.
+async function enforceAcl(){
+  const token = await getToken();
+  if(!token) return true;
+  try{
+    const r = await fetch(ACL_ENDPOINT, { headers: { 'X-Pipedrive-Token': token } });
+    const j = await r.json();
+    if(!j.allowed){ hidePanel(); return false; }
+  }catch(e){ /* błąd sieci → nie ukrywamy */ }
+  return true;
+}
+
+// (opcjonalnie) toast po zapisie:
+async function snackbar(message){
+  try{ const cmd = window.AppExtensionsSDK?.Command?.SHOW_SNACKBAR; if(sdk?.execute && cmd) await sdk.execute(cmd, { message }); }catch(e){}
+}
+
+async function initPipedrive(){
+  const q = new URLSearchParams(location.search);
+  if(!q.has('id')) return; // poza Pipedrive — sam podgląd na danych mock
+  try{
+    await loadScript('/vendor/app-extensions-sdk.umd.js');
+    if(!window.AppExtensionsSDK) return;
+    sdk = await new window.AppExtensionsSDK().initialize();
+    const theme = sdk.userSettings?.theme;
+    if(theme) document.documentElement.setAttribute('data-theme', theme);
+    const ev = window.AppExtensionsSDK?.Event?.USER_SETTINGS_CHANGE;
+    if(ev && sdk.listen) sdk.listen(ev, ({data})=>{ if(data?.theme) document.documentElement.setAttribute('data-theme', data.theme); scheduleResize(); });
+    if(!(await enforceAcl())) return; // nieuprawniony → ukryte
+    // TODO: realne dane — np. const dealId = q.get('id');
+    //   const r = await fetch(`/api/pd-panel/__nazwa__/data?dealId=${dealId}`, { headers:{'X-Pipedrive-Token': await getToken()} });
+    //   DATA = (await r.json()).data; render();
+    await resizeNow();
+  }catch(e){ console.warn('SDK init skipped', e); }
+}
+
+// dark mode fallback poza Pipedrive
+if(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches && !new URLSearchParams(location.search).has('id')){
+  document.documentElement.setAttribute('data-theme','dark');
+}
+
+document.getElementById('refresh')?.addEventListener('click', render);
+render();
+new ResizeObserver(()=>scheduleResize()).observe(document.body);
+initPipedrive();
+</script>
+</body>
+</html>

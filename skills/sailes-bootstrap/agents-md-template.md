@@ -1,0 +1,111 @@
+# AGENTS.md Skeleton — for an Empty Repo
+
+Generate this at repo root when bootstrapping a new agentic-first project (Case B). Keep it **concise** — only what the agent can't infer from code (Anthropic guidance: bloated memory files get ignored). Adapt to the chosen stack; delete rows that don't apply. Pair it with `CLAUDE.md` containing only `@AGENTS.md`.
+
+Also scaffold (see `skeleton.md` for the full monorepo layout):
+- `CLAUDE.md` → single line: `@AGENTS.md`
+- pnpm monorepo: `apps/web` + `apps/worker` (worker mandatory) + `packages/{db,auth,ui,files,integrations,jobs,testing,observability}` (email/reporting optional)
+- `.ai/specs/` (+ short `AGENTS.md`: naming `{YYYY-MM-DD}-{kebab-title}.md`)
+- `.ai/skills/` — carry over `discovery` + `spec-writing` patterns
+- `.ai/checklists/` — security.md, testing.md, deployment.md, webhook.md, email.md, reporting.md
+- `.ai/adr/template.md` — architectural decision records
+
+---
+
+```markdown
+# Agents Guidelines
+
+> Single source of truth for how agents work in this repo. CLAUDE.md imports this via @AGENTS.md.
+
+## Before Writing Code
+1. Run discovery (needs/scope) → then bootstrap (methodology + stack) → then spec.
+2. Check `.ai/specs/` for an existing spec on the area you're touching.
+3. Enter plan mode for non-trivial tasks (3+ steps or an architectural decision).
+4. Spec-first for non-trivial work: `.ai/specs/{YYYY-MM-DD}-{kebab-title}.md`. Implement integration tests in the same change.
+
+## Stack
+- Runtime/pkg: Node Active LTS (24) + pnpm monorepo (apps/web + apps/worker)
+- Language: TypeScript strict, end-to-end
+- UI: React + Tailwind CSS + shadcn/ui + React Hook Form + Zod
+- Framework: Next.js (App Router) — RSC, Server Actions, Route Handlers (auth, webhook intake)
+- DB: Railway Postgres + Drizzle (default; Prisma = plan B, Kysely = specialist). Migrations committed + reviewed; seeds for local/dev.
+- Auth: Better Auth (email/pw + Google login). Google login = login only, NOT Gmail access.
+- Worker: apps/worker MANDATORY — webhook processing, syncs, email send, reports/exports, file processing, retry, long jobs, workflows.
+- Jobs/queue: pick tier per project — DB-jobs+Railway cron → BullMQ+Redis → Inngest/Trigger.dev (sequences/waits) → Temporal.
+- Webhooks: intake only (verify signature → validate → persist to webhook_events → idempotency key → 202); worker does the business work.
+- Storage: Railway Buckets (S3-compatible). Files private, signed URLs, metadata in Postgres, access log. R2/S3 for stronger compliance.
+- Observability: structured logs + request-id + job/webhook/audit logs; Sentry + PostHog for production.
+- Hosting: Railway (web + worker + Postgres + Buckets), envs local/dev/prod.
+<!-- See the project-bootstrap skill's stack-baseline.md + modules-catalog.md for rationale, optional-module levels, and when to deviate. -->
+
+## Tenancy
+- Default: single-tenant (one client). Do NOT force organizationId everywhere.
+- Multi-tenant (multiple firms): organization model + organizationId on every client-data table + isolation tests + org-scoped permissions.
+
+## Architecture (Critical Rules)
+- Don't build advanced/optional modules by default — activate per the project's module manifest.
+- apps/worker always present; webhooks ALWAYS async intake → worker.
+- Integrations are adapters (ports & adapters): each external system = its own adapter; required tables: integration_accounts, external_object_links, webhook_events, sync_runs, idempotency_keys.
+- Modular boundaries: link across modules by FK ID + fetch; no cross-module direct DB/ORM access.
+
+## Data & Security  (see .ai/checklists/security.md — mandatory for production)
+- Auth required by default; permission checks (RBAC) on every data-mutating action.
+- Validate all inputs with Zod at every boundary; derive types via z.infer. No `any`.
+- Parameterized queries only (use the ORM; never string-build SQL).
+- Signed webhook/API secrets + idempotency keys on integration intake.
+- Files: private by default, signed URLs, access control BEFORE URL, file access log.
+- Audit log for critical actions. Secrets in env only; never logged, never committed.
+- Sensitive data → encryption-at-rest where required; multi-tenant → filter organizationId in every scoped query incl. EXISTS/subqueries.
+
+## Verification (every task)
+- RED test first: write or identify a failing test before implementation.
+- End every task with a check you run: lint, typecheck, unit/integration, Playwright E2E for user-critical flows. Show the output — never fake a pass.
+- Self-contained tests: create own fixtures, clean up, no dependence on seed data.
+- Adversarial review: a fresh-context reviewer checks the diff vs the plan before "done".
+
+## Conventions
+- DB tables/columns: snake_case, tables plural. JS/TS identifiers: camelCase. UUID PKs.
+- Common columns: id, created_at, updated_at, deleted_at (+ organization_id if multi-tenant).
+- No hardcoded user-facing strings. No inline comments — self-documenting code.
+
+## Key Commands
+- `pnpm install` · `pnpm dev` · `pnpm build`
+- `pnpm test` (unit, fast inner loop) · `pnpm test:e2e` (Playwright)
+- `pnpm lint` · `pnpm typecheck`
+- `pnpm db:generate` / `db:migrate` / `db:push` (Drizzle; push for prototyping)
+
+## Git Workflow
+- Branch per feature off up-to-date default: `git switch -c feat/<kebab-desc>` (prefixes: feat/ fix/ chore/ refactor/ docs/ spec/). One feature = one branch = one PR.
+- Small, focused, present-tense commits (conventional: feat:/fix:/chore:); each leaves the app working. Stage what you touched — no blind `git add -A`. Reference the spec/issue.
+- Merge via PR into default; rebase your branch on latest default first, resolve conflicts locally, re-run tests; delete branch after merge.
+- Rollback by blast radius: `git restore` (uncommitted) → `git reset --soft HEAD~1` (keep changes) → `git revert <sha>` (shared/pushed). `git stash` to park WIP. Parallel work → separate branch or `git worktree`.
+
+## PR Workflow
+- Ready PR carries `review`. Pipeline labels mutually exclusive (review / changes-requested / qa / merge-queue); category labels additive (bug/feature/refactor/security/docs).
+- Adversarial review (fresh context) before marking ready. Keep the taxonomy minimal for a small app; grow only when throughput needs it.
+
+## Lessons
+- After a correction or a recurring bug, append to `.ai/lessons.md`: Context / Problem / Rule / Applies-to. This is the repo's durable memory — read it before non-trivial work.
+
+## Hard Safety Rules
+- NEVER commit/push without explicit human instruction.
+- NEVER `git reset --hard` / `git push --force` / force-push or rebase a shared branch without explicit confirmation.
+- NEVER commit directly to main/default for feature work; NEVER commit secrets/.env/build artifacts.
+- NEVER auto-deploy to production; NEVER run production migrations without approval.
+- NEVER change auth/security without the security checklist.
+- NEVER log sensitive data; NEVER treat Google login as Gmail access.
+- NEVER delete tests or bypass typecheck. Don't change architecture without an ADR.
+- NEVER edit a migration that may already be applied — add a new one.
+- After two failed attempts with the same approach: stop, describe what you learned, reformulate.
+
+## Task Router
+<!-- Grow this as the codebase grows: map task type → the guide/module/skill that covers it. -->
+| Task | Guide |
+|------|-------|
+| New module / CRUD | (reference module path) |
+| Webhook integration | packages/integrations + .ai/checklists/webhook.md |
+| Background job / workflow | apps/worker + packages/jobs |
+| Auth / RBAC | packages/auth |
+| Files | packages/files |
+| Email / Reporting (optional) | packages/email · packages/reporting + checklists |
+```
