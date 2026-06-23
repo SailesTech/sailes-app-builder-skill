@@ -64,8 +64,14 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 ## Verification (every task)
 - RED test first: write or identify a failing test before implementation.
 - End every task with a check you run: lint, typecheck, unit/integration, Playwright E2E for user-critical flows. Show the output — never fake a pass.
+- **Behavior before diff:** verify by driving the real running system (e2e flow / curl the live endpoint / click the UI / generate the real artifact) and observing behavior — THEN read code. Green build/lint ≠ proof.
 - Self-contained tests: create own fixtures, clean up, no dependence on seed data.
 - Adversarial review: a fresh-context reviewer checks the diff vs the plan before "done".
+
+## Agent Teams (non-trivial work)
+- 3+ steps / BE+FE / API contract / architecture → run as a team, not solo. Roles in `~/.claude/agents/`: `team-lead` (plan/integrate, never bulk-codes), `explorer` (read-only recon), `designer` (UX spec), `be-dev`/`fe-dev`, `checker` (independent review), `qa` (real-flow e2e proof).
+- Order: explorer → designer → BE contract → fe-dev → checker → qa. One task per worker; workers escalate scope to lead; workers never commit/push.
+- Enable teammates: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/settings.json`. Solo is fine when the diff fits one sentence.
 
 ## Conventions
 - DB tables/columns: snake_case, tables plural. JS/TS identifiers: camelCase. UUID PKs.

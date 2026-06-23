@@ -30,7 +30,7 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 1. **Plan the step** — restate what it changes and the check that will prove it. Identify the RED test first (write or name a failing test before the code — `superpowers:test-driven-development`).
 2. **Implement** — minimal change that satisfies the step. Logic in services, validation at the boundary (Zod), thin controllers, no `any`. Honor the repo's `AGENTS.md` rules + Task Router guides for the area.
 3. **Test** — unit for logic, integration for every affected API path, E2E for user-critical flows (per the spec's integration coverage). Self-contained tests; never fake a pass.
-4. **Verify** — run the check; paste the evidence (command + output / screenshot). "Looks done" is the failure mode.
+4. **Verify (behavior before diff)** — drive the real running system first (e2e flow / `curl` the live endpoint / click the UI / generate the actual PDF/screen), observe the real behavior, THEN trust it. Paste the evidence (command + output / screenshot). A green build/lint is not proof; "looks done" is the failure mode.
 5. **Commit** — one focused commit per step (roughly 1:1 step↔commit), message references the spec. The app is working after every step.
 6. **Track** — tick the step in the spec's **Progress** section (and the run log if used). New unknown surfaced → stop, resolve via `sailes-spec` (re-gate), don't guess.
 

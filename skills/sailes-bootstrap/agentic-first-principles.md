@@ -27,6 +27,7 @@ This is the load-bearing principle the rest serve. Read it first.
 
 - **Every task ends with a check the agent runs** — test suite, build exit code, linter, typecheck, or a screenshot diff. "Looks done" is the failure mode.
 - **Show evidence, don't assert.** Paste the command + its output, the passing test, the screenshot. Reviewing evidence is faster than re-running it.
+- **Behavior before diff.** To verify a fix/feature, FIRST drive the real running system — run the e2e flow, `curl` the live endpoint, click through the UI, generate the actual artifact (PDF/screen) — and observe the *real behavior*. THEN read code. A green build/lint is not proof; don't trust the diff, trust the running system. (This is `qa`'s deliverable; it never fakes a pass.)
 - **Explore → plan → code → commit.** Separate research/planning from implementation to avoid solving the wrong problem. Use plan mode for multi-file or unfamiliar work; skip it only when the diff fits in one sentence.
 - **Tight feedback loops.** Correct early; after two failed corrections, reset context and re-prompt with what you learned rather than piling on.
 - **Self-contained, deterministic tests.** Tests create their own fixtures (prefer API fixtures), clean up after themselves, and don't depend on seed/demo data. An agent must be able to run them autonomously and must never fake a pass.
@@ -71,6 +72,23 @@ CLAUDE.md/AGENTS.md rules are *advisory*. For guarantees, enforce in config + CI
 
 *Source: Anthropic best-practices "Add an adversarial review step".*
 
+## C2. Agent teams — how non-trivial work is delegated
+
+Non-trivial tasks (3+ steps, BE+FE, an API contract, an architecture change) run as a **team**, not solo. Role definitions live globally in `~/.claude/agents/`:
+
+| Role | Model | Does |
+|---|---|---|
+| `team-lead` | opus | plan · decompose · integrate · final verdict; never bulk-codes solo |
+| `explorer` | haiku | read-only recon, `file:line` findings, no final code |
+| `designer` | sonnet | UX/UI spec from design tokens, not feature code |
+| `be-dev` / `fe-dev` | sonnet | implement per spec / per design |
+| `checker` | sonnet | independent read-only review → APPROVE / NITS / CHANGES-REQUIRED |
+| `qa` | sonnet | real-flow e2e proof + screenshots; never fakes a pass |
+
+- **Order:** `explorer → designer → BE contract finalized → fe-dev → checker → qa`. One task per worker; workers escalate scope questions to `team-lead`; **workers never commit or push.**
+- **Delegation mechanism:** enable teams with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/settings.json`; the lead hands tasks to teammates (one task each) and integrates the results.
+- **Scale down:** solo is fine when the diff fits one sentence. Don't convene a team for a typo.
+
 ## D. Context hygiene ✅
 
 - **Delegate wide reads to subagents** — they explore in a separate context and report a summary, keeping the main conversation clean.
@@ -90,6 +108,7 @@ CLAUDE.md/AGENTS.md rules are *advisory*. For guarantees, enforce in config + CI
 - **Mock HTTP without rewriting app code:** **MSW** for HTTP/WebSocket/GraphQL mocking (Vitest itself recommends it).
 - **Real integration tests:** **Testcontainers** — spin up a real throwaway Postgres in a container so the agent runs realistic tests without hand-gluing an environment. One of the highest-value agentic-first pieces.
 - **e2e where behavior matters:** **Playwright** — auto-waiting, isolated browser contexts, retries, and a **trace viewer** that gives *evidence* on failure (not just a stack trace). Property-based tests for invariant-heavy logic.
+- **Real-flow e2e as proof (not unit):** stand up the *running* stack, then exercise the real user/business flow end-to-end — Playwright for UI, `curl`+`jq` (or a script) against the live API for backend — with seeded fixtures, and **assert on the observed behavior/response, not on code**. Self-contained: seed in setup, clean up in teardown; never point at prod or live-tenant data. This is `qa`'s deliverable and the concrete form of "behavior before diff" (§A).
 - **Preview-first delivery:** each PR gets its own deploy URL (+ DB branch where available) so e2e runs against a realistic preview, not localhost-only. Strong agent-testability signal.
 - **Deterministic, cached builds:** monorepo with a task runner (Turborepo/pnpm workspaces) when multi-package; single repo otherwise. Reproducible installs (committed lockfile).
 - **Agentic docs interop:** root **AGENTS.md** is the shared layer (Codex reads it first; Copilot supports it), **CLAUDE.md imports `@AGENTS.md`** for Claude Code, `.github/copilot-instructions.md` for Copilot. One source of truth, multiple tools.
