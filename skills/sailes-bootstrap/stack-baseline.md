@@ -42,7 +42,7 @@ Environments:   local / dev / prod (staging only for larger/riskier projects)
 |---|---|---|---|
 | Runtime / pkg | Node Active LTS (24) · **pnpm** monorepo | 🟡 | LTS for prod; workspaces make local linking explicit; ready for worker/integrations from day one. |
 | Language | TypeScript **strict** end-to-end | 🟡 | One language UI+API+worker; best agent + type-safety story. |
-| Framework | **Next.js App Router** | 🟡 | RSC + Server Actions + Route Handlers (auth, webhook intake). Generates AGENTS.md/CLAUDE.md. |
+| Framework | **Next.js App Router** (default) — or **SPA (Vite+React) + standalone API** variant | 🟡 | Next.js when front is/may be public or web is the only backend consumer. Switch to the SPA+API variant for login-only UI with multiple backend consumers / independent deploy / very heavy async backend — see **Frontend architecture** below. |
 | UI | **Tailwind + shadcn/ui + React Hook Form + Zod** | 🟡 | "open code" components in-repo (agent-editable); forms validated by Zod; domain logic OUT of UI. |
 | DB | **Railway Postgres** | 🟡 | Single Postgres, migrations in repo + reviewed, seeds local/dev, test DB for integration tests. |
 | ORM | **Drizzle** (default) | 🟡 | TS-first, Postgres-first, explicit schema/query → great for reports, integrations, audit logs, and agent comprehension. Plan B / specialist below. |
@@ -56,6 +56,39 @@ Environments:   local / dev / prod (staging only for larger/riskier projects)
 | Feature flags | DB-based (`feature_flags`, `user_feature_flags`) | 🟡 | No LaunchDarkly/Statsig for custom apps; managed only for larger SaaS. |
 | Observability | structured logs + request-id + job/webhook/audit logs; **Sentry + PostHog** (prod) | 🟡 | OTel / external log drain (Better Stack/Axiom/Logtail) as extension. |
 | Testing | Vitest · MSW · Testcontainers · Playwright | 🟡 | Determinism + evidence-on-failure; real tests, no faked passes. |
+
+---
+
+## Frontend architecture — two first-class shapes (pick by triggers, not by default)
+
+Both are supported. Present as a decision card; the choice goes in the Decisions Ledger (deviation from default → ADR).
+
+### A) Next.js fullstack (DEFAULT)
+
+Front + backend in one app: RSC/SSR, Route Handlers, Server Actions, middleware. Worker still separate (`apps/worker`).
+
+- **Choose when:** the frontend is or may become **public / needs SEO**; **the web app is the only backend consumer**; and the backend fits inside Next + one worker.
+- ✅ One codebase, one origin (no CORS), native shared types, BetterAuth+Next well-trodden, least glue.
+- ⚠️ Wasted SSR for a login-only tool; other API consumers (n8n, FHIR, mobile) would have to go through a Next route layer that's coupled to the UI deploy.
+
+### B) SPA (Vite + React) + standalone API (NAMED VARIANT)
+
+`apps/web` = Vite/React SPA (panels behind login) · `apps/api` = standalone API · `apps/worker` = async work. Shared types via `packages/contracts`.
+
+- **Choose when ANY of:**
+  - **Login-only UI, no public pages / SEO** (SSR atut is wasted), AND one or more of:
+  - **Multiple backend consumers** (web SPA + n8n + FHIR + CRM + mobile / 3rd-party) → the API must stand alone.
+  - **Independent deploy/scale** of front vs back required (webhooks/sync must not break on a UI deploy).
+  - **Very heavy / async backend** (long syncs, queues, file-merging, many integrations) where the request-API is a thin layer over a worker.
+- **Request-API engine** is its own decision card: **Fastify** (schema/Zod validation first-class, fast, great logging — good default for API-first) · **Hono** (ultralight, excellent types, edge-ready) · **Express** (largest ecosystem, manual validation/types). Pick by developer-fit + needs; record it.
+- ✅ Clean dumb-client ↔ one backend with all server/integration logic; independent deploys; API serves many consumers; maps to a split FE/BE team.
+- ⚠️ Two builds; **CORS + auth-bridge** (SPA↔API cross-origin cookies, CSRF) must be solved explicitly (BetterAuth same-site/proxy); **reclaim end-to-end types with `packages/contracts`** (Zod/TypeBox) + generated OpenAPI client — don't lose them.
+
+### C) Hybrid (Next front + separate API)
+
+Only when you genuinely need **both** SSR *and* a standalone API. Usually the worst cost/benefit (most processes, duplicated auth/types). Justify in an ADR.
+
+> **Embedded-in-a-platform** surfaces (e.g. a panel inside Pipedrive) are a separate artifact regardless of A/B/C — SPA/vanilla + that platform's SDK. See `sailes-pipedrive`.
 
 ---
 

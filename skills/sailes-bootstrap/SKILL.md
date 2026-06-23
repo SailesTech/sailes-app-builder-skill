@@ -68,7 +68,7 @@ Commit to these for the session (full rationale + citations in `agentic-first-pr
 ## Step 4 — Stack decision (recommend or validate)
 
 Open `stack-baseline.md` (the researched default; verified Jun 2026) + `modules-catalog.md` (optional modules with levels).
-- **Empty repo:** the baseline (Railway · Postgres · Railway Buckets · Drizzle · Better Auth · Next.js+shadcn · pnpm monorepo · mandatory worker · async webhooks · Sentry/PostHog for prod) is your **recommendation, not a decree**. Present the consequential layers as **decision cards** — at minimum **ORM** (Drizzle vs Prisma vs Kysely), **Auth** (Better Auth vs Clerk vs email/pw), **Hosting** (Railway vs Vercel+Neon), and any **tenancy** / **sync-depth** / **workflow-engine** fork — each with ✅/⚠️ and a reasoned recommendation, then let the user choose. Layers with no realistic alternative for this profile (TypeScript, Next.js App Router, pnpm) can be stated as recommended defaults with a one-line why and an open invitation to override. Record every choice in the brief's **Decisions Ledger**.
+- **Empty repo:** the baseline (Railway · Postgres · Railway Buckets · Drizzle · Better Auth · Next.js+shadcn · pnpm monorepo · mandatory worker · async webhooks · Sentry/PostHog for prod) is your **recommendation, not a decree**. Present the consequential layers as **decision cards** — at minimum **frontend architecture** (Next.js fullstack vs SPA+standalone-API — see `stack-baseline.md` Frontend architecture + the Stack-shaping axes S1–S8 in `decision-engine.md`), **request-API engine** if split (Fastify vs Hono vs Express), **ORM** (Drizzle vs Prisma vs Kysely), **Auth** (Better Auth vs Clerk vs email/pw), **Hosting** (Railway vs Vercel+Neon), and any **tenancy** / **sync-depth** / **workflow-engine** fork — each with ✅/⚠️ and a reasoned recommendation, then let the user choose. Only TypeScript + pnpm are stated as flat defaults; **the framework shape is NOT pre-decided** — it follows from the business axes (public-vs-login, number of API consumers, independent deploy, backend heaviness) AND developer-fit (`developer-fit.md`: who builds it, framework familiarity, preference). A stated developer preference is a first-class input, weighed openly; a hard requirement that overrides it → ADR. Record every choice in the brief's **Decisions Ledger**.
 - **Existing repo:** validate the platform's stack against the work's needs; flag gaps (the user decides whether to fill them).
 
 **Do NOT recommend from stale memory** — defaults drift (Redis-by-reflex, deprecated auth libs, Prisma/Drizzle hand-waving). Use the researched file. **And do NOT collapse a decision card into a silent default** — the researched baseline tells you what to *recommend*, not what to decide for the user.
@@ -99,7 +99,7 @@ All green → hand to the spec phase: the local `.ai/skills/spec-writing/` you j
 | Stack | **validate** platform vs needs | **recommend** baseline | **document existing** (validate mode) |
 | Output | wired-in plan honoring rules | foundation + baseline stack | methodology layer over real stack |
 
-Reference files: `stack-baseline.md` · `modules-catalog.md` · `decision-engine.md` · `security-checklist.md` · `skeleton.md` · `agentic-first-principles.md` · `agents-md-template.md` · `spec-writing-template.md` (generated into new repos) · `adopt-existing-repo.md` (Case C procedure) · `repo-done-checklist.md` (verify artifacts before handoff — Step 5).
+Reference files: `stack-baseline.md` (incl. Frontend architecture variants) · `modules-catalog.md` · `decision-engine.md` (classification + Stack-shaping axes S1–S8) · `developer-fit.md` (who-builds-it as a stack input) · `security-checklist.md` · `skeleton.md` · `agentic-first-principles.md` · `agents-md-template.md` · `spec-writing-template.md` (generated into new repos) · `adopt-existing-repo.md` (Case C procedure) · `repo-done-checklist.md` (verify artifacts before handoff — Step 5).
 
 ## Common Mistakes
 
@@ -127,6 +127,8 @@ Reference files: `stack-baseline.md` · `modules-catalog.md` · `decision-engine
 - Empty repo and you're scaffolding code before any AGENTS.md/`.ai/` exists.
 - You named a queue/auth/ORM/storage without checking `stack-baseline.md`.
 - **You locked an ORM/auth/hosting/tenancy choice and the user never chose it from a decision card** (it's a silent baseline). STOP — present options + pros/cons + recommendation, let them pick, log it in the Decisions Ledger.
+- **You defaulted to Next.js fullstack without weighing the Stack-shaping axes** (public-vs-login? how many backend consumers? independent deploy? backend heaviness?). The framework shape is a decision card, not a given — a login-only tool with many API consumers (n8n/FHIR/CRM) signals SPA + standalone API.
+- **You never asked who builds it / their familiarity / preference** (`developer-fit.md`). That's a first-class input. If a stated preference exists and you ignored it — or let it silently override a hard requirement — STOP.
 - A production app and you haven't walked `security-checklist.md`.
 - You're about to write feature code with no RED test and no verification check.
 - You're about to say "bootstrap done" / hand off to spec, but haven't run `repo-done-checklist.md` and seen all-green output (AGENTS.md, `.ai/skills/`, git, design artifact present).

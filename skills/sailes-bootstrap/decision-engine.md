@@ -29,6 +29,42 @@ Do NOT recommend a full architecture up front. **Classify the project first**, t
 20. Extra compliance/security requirements?            → R2/S3, encryption, residency
 ```
 
+## Stack-shaping axes (choose the SHAPE, not just the modules)
+
+The questions above decide *which modules* are on. These decide the **shape of the stack** — fullstack-Next vs SPA+standalone-API, the request-API engine, hosting class. Ask them as decision cards too; the default (Next.js fullstack) is a *recommendation*, not a given. Lead with the ones that flip the shape.
+
+```text
+S1. Public pages / SEO, or entirely behind login?      → public/SEO ⇒ SSR (Next.js) | login-only ⇒ SPA is allowed
+S2. Who consumes the backend?                           → only web ⇒ fullstack OK | web + n8n/FHIR/CRM/mobile/3rd-party ⇒ standalone API
+S3. Must front & back deploy/scale independently?       → yes (webhooks/sync can't break on UI deploy) ⇒ separated SPA + API
+S4. How heavy/async is the backend?                     → long syncs, queues, file-merging, many integrations ⇒ worker-centric; request-API stays thin
+S5. Load / concurrency / realtime?                      → high-throughput or websockets/SSE ⇒ affects queue tier + hosting
+S6. Interop standard imposed (FHIR, EDI, HL7…)?         → yes ⇒ mapping layer + dedicated libs; influences API shape
+S7. Embedded in another platform (iframe/panel)?        → yes ⇒ SPA + that platform's SDK as a separate artifact (see sailes-pipedrive)
+S8. Compliance / data class?                            → regulated/sensitive ⇒ hosting, storage (object-lock), audit, encryption
+```
+
+These resolve into a **stack-shape decision** — see `stack-baseline.md`:
+- **Default — Next.js fullstack** when the front is (or may become) public/SEO, the web app is the only backend consumer, and the backend fits inside Next + one worker.
+- **Variant — SPA (Vite+React) + standalone API** when login-only UI **and** (multiple backend consumers **or** independent deploy needed **or** very heavy/async backend). The API engine is itself a decision card (Fastify / Hono / Express — see baseline).
+- **Hybrid (Next + separate API)** only when you genuinely need both SSR *and* a standalone API — usually the worst cost/benefit; justify in an ADR.
+
+## Developer-fit axes (who builds it is a real input — see `developer-fit.md`)
+
+The objectively-best stack the team can't operate loses to a good stack they know. Weigh these alongside the business axes:
+
+```text
+D1. Who builds it? (in-house / contractor / agency / AI-agent)      → how much magic-vs-explicitness, CI from day 1
+D2. Team familiarity per layer (framework, ORM, API engine)?        → prefer known unless a hard requirement overrides
+D3. Solo or split FE/BE team?                                       → solo ⇒ fewer moving parts | split ⇒ separation fits
+D4. Domain/integration experience (Pipedrive, FHIR, …)?            → build on strengths
+D5. Tolerance for "glue" (CORS, shared types, two deploys)?         → low ⇒ fullstack | accepted-for-independence ⇒ split
+D6. Type-ergonomics preference (end-to-end types)?                  → keep via shared contracts package regardless of split
+D7. Deadline vs long-term maintenance?                             → short ⇒ fewest parts | product ⇒ invest in structure
+```
+
+**Rule:** developer preference is a **legitimate decision factor**, recorded in the Decisions Ledger. But when a preference collides with a hard business/compliance requirement, the **requirement wins and the deviation is captured in an ADR** (e.g. "dev prefers Express, but API-first validation for medical data → Fastify; ADR-XXX"). Never let preference silently override a requirement, and never let the baseline silently override a justified preference.
+
 ## Tenancy gate (most important fork)
 
 **Default = single-tenant** (custom app for one firm). Do NOT force `organizationId` everywhere if only one company will ever use it. Single-tenant ≠ weak security — even one-firm apps hold protectable data.
@@ -68,4 +104,4 @@ security checklist← Q7/Q19 = sensitive/production (mandatory)
 
 ## Output of this phase
 
-A short **module manifest** for the project: which modules are ON, tenancy mode, email/reporting levels, workflow tier, and the security gate (prototype vs production). This feeds the skeleton (`skeleton.md`) and the spec.
+A short **module manifest** for the project: which modules are ON, tenancy mode, email/reporting levels, workflow tier, and the security gate (prototype vs production) — **plus the stack shape** (fullstack-Next vs SPA+standalone-API vs hybrid), the request-API engine, and the developer-fit notes. Every architectural and stack-shape choice + any preference-vs-requirement override is recorded in the brief's **Decisions Ledger** (overrides → ADR). This feeds the skeleton (`skeleton.md`), the stack decision (`stack-baseline.md`), and the spec.
