@@ -31,6 +31,13 @@ This is the load-bearing principle the rest serve. Read it first.
 - **Tight feedback loops.** Correct early; after two failed corrections, reset context and re-prompt with what you learned rather than piling on.
 - **Self-contained, deterministic tests.** Tests create their own fixtures (prefer API fixtures), clean up after themselves, and don't depend on seed/demo data. An agent must be able to run them autonomously and must never fake a pass.
 
+**Workflow orchestration (how to run a task):**
+- **Spec-first for non-trivial work** (3+ steps or an architectural decision): check `.ai/specs/` (live) before coding; write/extend a spec. Skip for small fixes.
+- **Use subagents liberally** to keep the main context clean — offload research and parallel analysis; one task per subagent.
+- **Self-improvement after corrections** — append a lesson to `.ai/lessons.md` (or the relevant AGENTS.md) so the same mistake can't recur.
+- **Staff-engineer bar** — before calling it done, ask "would a staff engineer approve this?" For non-trivial changes, pause once: "is there a more elegant way?"
+- **Autonomous bug-fixing** — given a bug + logs/errors, just fix the root cause; no hand-holding, no temporary patches.
+
 *Source: https://code.claude.com/docs/en/best-practices*
 
 ## B. Security-by-default guardrails
@@ -104,6 +111,7 @@ The agent must work git predictably and safely. Generate these as the repo's git
 ## H. Institutional memory & hard gates (tooling that survives context resets)
 
 - **Lessons file (`.ai/lessons.md`).** After a correction or a recurring bug, append a lesson: **Context / Problem / Rule / Applies-to**. This is the repo's durable memory so the same mistake isn't repeated across sessions. AGENTS.md carries a rule: "after a correction, record a lesson here."
+- **Run log (`.ai/runs/`).** For long or multi-step work, keep a per-run note (`.ai/runs/{YYYY-MM-DD}-{slug}.md`): goal, steps done, decisions, what's left. Makes work **resumable** across context resets and reviewable after the fact. Create it the first time a task is long enough to need it (don't pre-seed empty).
 - **Pre-commit hooks (husky or equivalent).** Run lint + typecheck (+ format/i18n where relevant) before every commit — deterministic gate the agent can't skip. Optionally block writes to migrations or secrets. (Anthropic: hooks > advisory rules for must-happen-every-time actions.)
 - **CI pipeline file (`.github/workflows/ci.yml`).** Small hard gates in order: **lint → typecheck → unit → integration → e2e (on preview) → security scan**. Reusable across packages; this is "verifiable done" enforced by the platform, not the agent's judgment.
 - **PR workflow (scale to the project).** PR-based review with a lightweight label taxonomy: pipeline labels (e.g. `review`, `changes-requested`, `qa`, `merge-queue`) mutually exclusive; category labels (`bug`/`feature`/`refactor`/`security`/`docs`) additive. A ready PR carries `review`. For a small custom app, keep it minimal (review → merge-queue); only grow the taxonomy when the team/throughput needs it. Adversarial review (Section C) happens before a PR is marked ready.

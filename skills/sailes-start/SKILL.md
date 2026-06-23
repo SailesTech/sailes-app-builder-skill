@@ -79,9 +79,13 @@ For any app with a UI, a deliberate design direction + persisted artifact (`desi
 - Invoke that local skill to write the spec to `.ai/specs/{YYYY-MM-DD}-{kebab-title}.md`. If — and only if — no local skill exists (bootstrap was skipped), self-write the spec per the conventions bootstrap defined.
 - **Gate:** spec approved before any implementation.
 
-### Then — Implementation (out of scope for this skill)
+### Then — Implementation (skill-backed)
 
-Hand off to implementation. Per the project's team workflow, the agent team starts *here*, not during the pipeline above. This orchestrator's job ends when the spec is approved.
+Once the spec is approved, implementation has its own skills (the agent team starts here):
+- **`sailes-pre-implement`** — analyze the approved spec for readiness (BC impact, risks, gaps) → readiness report; fix the spec first if NOT-READY.
+- **`sailes-implement`** — execute the spec phase by phase: RED test → implement → verify with evidence → commit per step → adversarial review gate → mark spec `implemented` + `git mv` to `.ai/specs/implemented/`.
+
+This orchestrator's job ends when the spec is approved; it hands to these.
 
 ## Hard rules
 

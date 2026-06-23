@@ -15,8 +15,10 @@ sailes-start  (thin orchestrator: shows the map, routes A/B/C, gates each phase)
    │                                 (AGENTS.md/CLAUDE.md/README/.ai/ · git init · verify on disk)
    │     └─ Phase 2.5  sailes-design → deliberate visual direction + persisted design artifact
    │
-   └─ Phase 3  sailes-spec (local .ai/skills/spec-writing/ if present, else global) → approved spec
-                                     → handoff to implementation (agent team starts here)
+   ├─ Phase 3  sailes-spec (local .ai/skills/spec-writing/ if present, else global) → approved spec
+   │
+   └─ Implementation (agent team starts here):
+        sailes-pre-implement (readiness: BC/risk/gaps) → sailes-implement (build phase-by-phase, verifiably)
 ```
 
 Each skill is **independently callable** — use `sailes-discovery` alone for a scope interview, `sailes-design` alone for a UI direction, etc. `sailes-start` just sequences them with hard gates.
@@ -27,9 +29,11 @@ Each skill is **independently callable** — use `sailes-discovery` alone for a 
 |---|---|---|
 | **sailes-start** | End-to-end orchestrator. Shows the phase map, picks Route A (new) / B (feature) / C (adopt), gates every boundary. | `SKILL.md` |
 | **sailes-discovery** | The interview before the spec. Pulls full intent into a structured Brief. **Must** chain into bootstrap on greenfield (never stop at the spec). | `SKILL.md`, `brief-template.md` |
-| **sailes-bootstrap** | Stack + architecture + agentic-first methodology. Generates/validates the repo standard; runs the design gate; **verifies artifacts on disk** before handoff. | `SKILL.md`, `decision-engine.md`, `stack-baseline.md`, `modules-catalog.md`, `skeleton.md`, `agents-md-template.md`, `agentic-first-principles.md`, `security-checklist.md`, `spec-writing-template.md`, `adopt-existing-repo.md`, `repo-done-checklist.md` |
+| **sailes-bootstrap** | Stack + architecture + agentic-first methodology. Generates/validates the repo standard; runs the design gate; **verifies artifacts on disk** before handoff. | `SKILL.md`, `decision-engine.md`, `stack-baseline.md`, `modules-catalog.md`, `skeleton.md`, `agents-md-template.md`, `agentic-first-principles.md`, `security-checklist.md`, `spec-writing-template.md`, `adopt-existing-repo.md`, `repo-done-checklist.md`, `developer-fit.md`, `backlog-template.md` |
 | **sailes-design** | The frontend/visual design phase. Deliberate direction (palette/type/layout/**signature**) + anti-AI-default check + a11y/interaction discipline → persisted design artifact. | `SKILL.md`, `design-judgment.md`, `ux-rules.md` |
 | **sailes-spec** | Phase 3 spec writer/reviewer. Skeleton → Open Questions gate → data model / API-UI / integration coverage / security / phasing / non-goals. Global fallback when a repo has no local `.ai/skills/spec-writing/` (which bootstrap generates from `sailes-bootstrap/spec-writing-template.md`, the mirror of this skill). | `SKILL.md` |
+| **sailes-pre-implement** | Spec readiness analysis before coding: BC impact, risks, gaps → readiness report. | `SKILL.md` |
+| **sailes-implement** | Execute an approved spec phase by phase: RED test → verify with evidence → commit per step → review gate → mark implemented. | `SKILL.md` |
 | **sailes-pipedrive** | Domain integration reference (not part of the core pipeline): how to build Pipedrive app extensions — JSON panel, custom UI iframe, floating window, manifest/OAuth, signed-JWT auth, ACL, API proxy. Real Sailes patterns. | `SKILL.md`, `references/*`, `assets/custom-ui-panel-template.html` |
 
 ## Core invariants (why this exists)
@@ -38,7 +42,9 @@ Each skill is **independently callable** — use `sailes-discovery` alone for a 
 2. **Done = verified on disk**, not asserted. `repo-done-checklist.md` proves AGENTS.md / `.ai/` / git / design artifact exist.
 3. **A UI app always gets a real design phase** with a persisted artifact.
 4. **The developer owns the key decisions.** Discovery shows trade-offs and minimizes autonomous AI choices — conscious development *with* AI, not the reverse.
-5. **No premature `lessons.md`** on a fresh repo — it appears on the first real lesson during implementation.
+5. **Full `.ai/` structure from day one, but idempotent** — a new repo gets the complete structure (specs + implemented/ + archived/, checklists, adr, skills, backlog.md, lessons.md header); never overwrite an existing `.ai/` artifact — add only what's missing, follow the repo's convention.
+6. **Spec lifecycle** — specs carry a status and move root → implemented/ → archived/ (`git mv`); deferred ideas land in `.ai/backlog.md`.
+7. **Developer owns the vision; AI interrogates and illuminates, never decides** — the foundational principle (agentic-first-principles §0).
 
 ## Working on the skills (TDD-for-skills)
 

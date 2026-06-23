@@ -5,10 +5,14 @@ Generate this at repo root when bootstrapping a new agentic-first project (Case 
 Also scaffold (see `skeleton.md` for the full monorepo layout):
 - `CLAUDE.md` → single line: `@AGENTS.md`
 - pnpm monorepo: `apps/web` + `apps/worker` (worker mandatory) + `packages/{db,auth,ui,files,integrations,jobs,testing,observability}` (email/reporting optional)
-- `.ai/specs/` (+ short `AGENTS.md`: naming `{YYYY-MM-DD}-{kebab-title}.md`)
+- `.ai/specs/` (+ `implemented/` + `archived/`; short `AGENTS.md`: naming `{YYYY-MM-DD}-{kebab-title}.md`, Status field, folder lifecycle)
 - `.ai/skills/` — carry over `discovery` + `spec-writing` patterns
 - `.ai/checklists/` — security.md, testing.md, deployment.md, webhook.md, email.md, reporting.md
 - `.ai/adr/template.md` — architectural decision records
+- `.ai/backlog.md` — deferred ideas / later phases / tech debt (header-only to start)
+- `.ai/lessons.md` — institutional memory (header-only; filled on first correction)
+- `.ai/runs/` — per-session run log for long/resumable work (created when first used)
+- (idempotent: never overwrite an existing `.ai/` artifact; add only what's missing)
 
 ---
 
@@ -99,7 +103,9 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 - After two failed attempts with the same approach: stop, describe what you learned, reformulate.
 
 ## Task Router
-<!-- Grow this as the codebase grows: map task type → the guide/module/skill that covers it. -->
+<!-- Grow this as the codebase grows: map task type → the guide/module/skill that covers it.
+     A task often maps to MULTIPLE rows — read ALL matching guides before starting; they hold the
+     imports, patterns, and constraints you need. Add a per-package AGENTS.md and route to it here. -->
 | Task | Guide |
 |------|-------|
 | New module / CRUD | (reference module path) |
@@ -108,4 +114,8 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 | Auth / RBAC | packages/auth |
 | Files | packages/files |
 | Email / Reporting (optional) | packages/email · packages/reporting + checklists |
+| Write / update a spec | .ai/skills/spec-writing (or global sailes-spec) |
+| Analyze a spec before coding (BC/risk/readiness) | sailes-pre-implement |
+| Implement a spec / its phases | sailes-implement |
+| Review a change (architecture/security/quality) | .ai/skills/code-review (or /code-review) |
 ```
