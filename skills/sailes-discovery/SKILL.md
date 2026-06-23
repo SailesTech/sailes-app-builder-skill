@@ -140,13 +140,13 @@ Write the structured brief (see `brief-template.md` for both formats). It is the
 
 **Greenfield (new project / empty or near-empty repo):**
 1. The brief is confirmed → **you MUST now invoke the `sailes-bootstrap` skill**, carrying the brief in. Bootstrap is what generates the methodology skeleton + locks the stack + (via its design gate) drives the `sailes-design` phase. Do NOT write the spec yourself and stop — that skips the entire repo standard.
-2. Bootstrap then hands to spec-writing (local skill it generated, or self-write), then implementation.
+2. Bootstrap then hands to the spec phase (the local `.ai/skills/spec-writing/` it generated, else the global `sailes-spec` skill), then implementation.
 3. If you are tempted to "just write the spec to `.ai/specs/` and finish" on a greenfield project — **STOP. That is the bug.** Invoke `sailes-bootstrap`.
 
 **Brownfield (change to an existing app):**
 - **Local `spec-writing` skill exists** (e.g. `.ai/skills/spec-writing/`): hand the brief to it — invoke that skill / follow its workflow to turn the brief into a full spec. Do NOT re-implement spec conventions; that skill owns naming, phasing, compliance.
 - **Existing repo without methodology** (real code, no `AGENTS.md`/`.ai/`): still invoke `sailes-bootstrap` (Case C — adopt) before spec, so the methodology layer gets added.
-- **No local spec skill and methodology already handled**: discovery writes the brief itself to `.ai/specs/{YYYY-MM-DD}-{title}.md` (or `docs/specs/` if that's the repo's convention), structured as: TLDR, decisions, data model sketch, phases/steps, risks, non-goals.
+- **No local spec skill** (and bootstrap not being run for a small change): **invoke the global `sailes-spec` skill** to write the spec in the standard (skeleton → Open Questions gate → phased, testable spec). Do NOT free-hand the spec — that loses the methodology. `sailes-spec` is the fallback whenever no local copy exists.
 
 **Then, and only then**, move to implementation. Per the project's team workflow, the agent team (TeamCreate + roles) starts at *implementation*, not during elicitation — discovery is a solo interview. (See the repo's `feedback-start-with-team` memory if present.)
 

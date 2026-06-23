@@ -87,7 +87,7 @@ Methodology absorbed/established ✓, module manifest set ✓, stack locked ✓,
 
 **Before handing off, run the verification block in `repo-done-checklist.md` and show the output.** Do not claim bootstrap is done or proceed to spec/implementation while any `MISS` line remains — "I created the files" is not evidence; the `find`/`git log` output is. This check is what catches the silent failure where AGENTS.md / `.ai/skills/` / git / the design artifact were never actually written.
 
-All green → hand to spec-writing (local skill or self-write), then implementation. The agent team starts at *implementation*, not here.
+All green → hand to the spec phase: the local `.ai/skills/spec-writing/` you just generated (preferred — tuned to the locked stack), else the global `sailes-spec` skill. Then implementation. The agent team starts at *implementation*, not here.
 
 ## Quick Reference
 

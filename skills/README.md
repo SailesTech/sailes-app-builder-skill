@@ -15,7 +15,7 @@ sailes-start  (thin orchestrator: shows the map, routes A/B/C, gates each phase)
    │                                 (AGENTS.md/CLAUDE.md/README/.ai/ · git init · verify on disk)
    │     └─ Phase 2.5  sailes-design → deliberate visual direction + persisted design artifact
    │
-   └─ Phase 3  spec-writing (local, generated into the target repo) → approved spec
+   └─ Phase 3  sailes-spec (local .ai/skills/spec-writing/ if present, else global) → approved spec
                                      → handoff to implementation (agent team starts here)
 ```
 
@@ -29,6 +29,7 @@ Each skill is **independently callable** — use `sailes-discovery` alone for a 
 | **sailes-discovery** | The interview before the spec. Pulls full intent into a structured Brief. **Must** chain into bootstrap on greenfield (never stop at the spec). | `SKILL.md`, `brief-template.md` |
 | **sailes-bootstrap** | Stack + architecture + agentic-first methodology. Generates/validates the repo standard; runs the design gate; **verifies artifacts on disk** before handoff. | `SKILL.md`, `decision-engine.md`, `stack-baseline.md`, `modules-catalog.md`, `skeleton.md`, `agents-md-template.md`, `agentic-first-principles.md`, `security-checklist.md`, `spec-writing-template.md`, `adopt-existing-repo.md`, `repo-done-checklist.md` |
 | **sailes-design** | The frontend/visual design phase. Deliberate direction (palette/type/layout/**signature**) + anti-AI-default check + a11y/interaction discipline → persisted design artifact. | `SKILL.md`, `design-judgment.md`, `ux-rules.md` |
+| **sailes-spec** | Phase 3 spec writer/reviewer. Skeleton → Open Questions gate → data model / API-UI / integration coverage / security / phasing / non-goals. Global fallback when a repo has no local `.ai/skills/spec-writing/` (which bootstrap generates from `sailes-bootstrap/spec-writing-template.md`, the mirror of this skill). | `SKILL.md` |
 | **sailes-pipedrive** | Domain integration reference (not part of the core pipeline): how to build Pipedrive app extensions — JSON panel, custom UI iframe, floating window, manifest/OAuth, signed-JWT auth, ACL, API proxy. Real Sailes patterns. | `SKILL.md`, `references/*`, `assets/custom-ui-panel-template.html` |
 
 ## Core invariants (why this exists)

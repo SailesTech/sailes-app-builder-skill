@@ -70,7 +70,7 @@ Detect from context (empty dir / "nowa aplikacja" → A; existing repo with AGEN
 
 For any app with a UI, a deliberate design direction + persisted artifact (`design-system/MASTER.md` or `.ai/specs/ui-spec.md`) is produced here — this is the phase whose absence reads as "no real frontend project." Backend-only work skips it explicitly.
 
-### Phase 3 — Spec  →  invoke the local `spec-writing` skill
+### Phase 3 — Spec  →  invoke `sailes-spec` (local copy if present, else the global skill)
 
 - **By this point a local `spec-writing` skill always exists** at `.ai/skills/spec-writing/SKILL.md`:
   - Route A (new repo): Phase 2 **generated** it (from sailes-bootstrap's `spec-writing-template.md`).
@@ -103,7 +103,7 @@ Hand off to implementation. Per the project's team workflow, the agent team star
 | 2 | `sailes-bootstrap` | Case B (generate) | Case A (absorb+validate) | Case C (adapt over existing) | manifest+stack+methodology |
 | 2.5 | `sailes-design` | direction + artifact | direction (if UI) | direction (if UI) | design artifact on disk |
 | — | (verify) | `repo-done-checklist.md` | additive artifacts | additive artifacts | all-green, no MISS |
-| 3 | `spec-writing` | local (generated) | local (existing) | local (generated, real stack) | spec approved |
+| 3 | `sailes-spec` (or local) | local (generated) | local (existing) | local (generated, real stack) | spec approved |
 | → | (implementation) | team starts | team starts | team starts | — |
 
 ## Common Mistakes

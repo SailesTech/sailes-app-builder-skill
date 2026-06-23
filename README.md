@@ -35,6 +35,7 @@ Claude Code loads skills from `~/.claude/skills/<name>/SKILL.md` (global) — th
 | **sailes-discovery** | The interview before the spec. Pulls full intent into a structured Brief; every key decision is the user's (decision cards with pros/cons); deep business + existing-infrastructure probing. |
 | **sailes-bootstrap** | Stack + architecture + agentic-first methodology. Generates/validates the repo standard (AGENTS.md, `.ai/`, git), runs the design gate, **verifies artifacts on disk** before handoff. |
 | **sailes-design** | The frontend/visual design phase. Deliberate direction (palette/type/layout/signature) + anti-AI-default check + a11y discipline → a persisted design artifact. |
+| **sailes-spec** | Turns the brief into a phased, testable spec (skeleton → Open Questions gate → data model / API-UI / integration coverage / security / non-goals). Used when a repo has no local `.ai/skills/spec-writing/`; bootstrap generates a local copy for new repos. |
 | **sailes-pipedrive** | Reference for building Pipedrive app extensions (JSON panel, custom UI iframe, floating window, manifest/OAuth, signed-JWT auth, ACL, API proxy). A domain sibling, not part of the core pipeline. |
 
 Full pipeline diagram, invariants, and per-skill file lists: see **[`skills/README.md`](skills/README.md)**.
@@ -43,7 +44,7 @@ Full pipeline diagram, invariants, and per-skill file lists: see **[`skills/READ
 
 ```
 sailes-start → sailes-discovery (Brief) → sailes-bootstrap (repo standard + stack)
-            → sailes-design (design artifact) → spec-writing (generated, local) → implementation
+            → sailes-design (design artifact) → sailes-spec (local copy if present) → implementation
 ```
 
 Each skill is **independently callable** — invoke `sailes-discovery` alone for a scope interview, `sailes-design` alone for a UI direction, etc. `sailes-start` just sequences them with hard gates.

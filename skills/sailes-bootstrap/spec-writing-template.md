@@ -4,6 +4,8 @@ This is the content `project-bootstrap` Case B writes into a NEW repo at `.ai/sk
 
 When generating: write the fenced block below to `.ai/skills/spec-writing/SKILL.md` in the new repo (without this wrapper text).
 
+> This template MIRRORS the global **`sailes-spec`** skill (the master). Keep them aligned: if you change the workflow/sections/checklist, change both. The generated local copy wins in-repo (tuned to the locked stack); `sailes-spec` is the fallback when no local copy exists.
+
 ---
 
 ```markdown
