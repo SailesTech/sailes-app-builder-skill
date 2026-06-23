@@ -22,7 +22,7 @@ Every item MUST exist on disk. The manifest decides *optional packages*, never t
 | **git initialized + first commit** | A repo with 0 commits is not a working repo. |
 | **design artifact** (`design-system/MASTER.md` OR `.ai/specs/ui-spec.md`) | The design phase ran (see `sailes-design`). Missing = the "no frontend project" failure. |
 
-**Do NOT create `lessons.md` on a greenfield repo.** It is institutional memory of *corrections*; a brand-new repo has no lessons yet. It appears the first time a real lesson is learned during implementation. (Pre-seeding it is a known anti-pattern — it reads as "memory exists" when it's empty.)
+**Generate the full `.ai/` structure** — including `specs/` (+ `implemented/`, `archived/`), `backlog.md`, and `lessons.md` (header-only; filled on the first real lesson). Present from day one so the convention is visible. **Idempotent:** if any `.ai/` artifact already exists in the repo, do NOT overwrite it — add only what is missing, follow the repo's existing convention.
 
 ## Verification block (run it, paste the output)
 
@@ -45,8 +45,10 @@ grep -q "@AGENTS.md" "$ROOT/CLAUDE.md" 2>/dev/null && echo "OK   CLAUDE.md → @
 echo "== git =="
 git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 && echo "OK   git initialized" || echo "MISS git init"
 echo "first commit: $(git -C "$ROOT" rev-list --all --count 2>/dev/null || echo 0) commit(s)"
-echo "== anti-pattern check =="
-[ -e "$ROOT/.ai/lessons.md" ] && echo "WARN lessons.md exists on a fresh repo — should be absent until first real lesson" || echo "OK   no premature lessons.md"
+echo "== full .ai/ structure (idempotent: pre-existing files are fine, never overwritten) =="
+for f in .ai/specs .ai/specs/implemented .ai/specs/archived .ai/backlog.md .ai/lessons.md; do
+  [ -e "$ROOT/$f" ] && echo "OK   $f" || echo "MISS $f (scaffold it; do not overwrite if it appears later)"
+done
 ```
 
 **Any `MISS` line means bootstrap is NOT done.** Fix it, re-run, then proceed. Do not hand off to spec-writing or implementation with outstanding `MISS` lines.

@@ -20,8 +20,8 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 
 ## Workflow
 
-1. **Load context** — the confirmed Brief (from discovery) + the module manifest & stack (from bootstrap). Check `.ai/specs/` for an existing spec on this area; extend it instead of duplicating.
-2. **Initialize** — create `.ai/specs/{YYYY-MM-DD}-{kebab-title}.md`.
+1. **Load context** — the confirmed Brief (from discovery) + the module manifest & stack (from bootstrap). Check `.ai/specs/` (live) and `.ai/specs/implemented/` (shipped). Extend a live spec; never reopen an implemented one (write a new spec that `Supersedes:` it).
+2. **Initialize** — create `.ai/specs/{YYYY-MM-DD}-{kebab-title}.md` with a `Status: draft` line.
 3. **Skeleton first** — write TLDR + 2-3 key sections only. Do NOT write the full spec in one pass.
    - Scan for **critical unknowns** — decisions where a wrong assumption forces a rewrite (data model, tenancy, integration contract, source-of-truth).
    - If any exist, add a numbered **Open Questions** block (Q1, Q2, …) right after the TLDR, one per line, answerable (binary/multiple-choice where possible).
@@ -30,7 +30,11 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 5. **Design** — data model, API surface, UI surface, module boundaries, integration/webhook contracts, jobs/workflows.
 6. **Phasing** — break into **Phases** (stories) and **Steps** (testable tasks). Each step should leave the app working.
 7. **Integration coverage** — list every affected API path and key UI path; each gets a test in the same change.
-8. **Review** — apply the checklist below.
+8. **Review** — apply the checklist below; set `Status: approved` on sign-off.
+
+## Spec lifecycle
+
+`Status: draft | approved | in-progress | implemented | superseded`. Folders mark state: `.ai/specs/` = live; `.ai/specs/implemented/` = shipped; `.ai/specs/archived/` = abandoned/superseded. When a feature ships → `Status: implemented` + `git mv` to `implemented/`. When replaced → old gets `Status: superseded` + `Superseded-by:`, `git mv` to `archived/`; new gets `Supersedes:`. Root = the only live set. **Create** for new module / significant feature / multi-file architecture change; **skip** for typos, one-file refactors, small bug fixes.
 
 ## Required sections
 

@@ -26,10 +26,12 @@ repo/
     email/        (opt)   # only if Email module activated (level-based)
     reporting/    (opt)   # only if Reporting module activated (level-based)
 
-  .ai/
-    # NOTE: do NOT create lessons.md on a fresh repo — it appears on the first real
-    #       lesson during implementation (Context/Problem/Rule/Applies-to). Pre-seeding it is an anti-pattern.
-    specs/
+  .ai/                    # generate the FULL structure on a new repo. IDEMPOTENT: if any of these
+                          #   already exist in the repo, do NOT overwrite — only add what's missing,
+                          #   and follow the repo's existing convention if it differs. (Pattern: Open-Mercato .ai/.)
+    specs/                # live specs (draft/approved/in-progress)
+      implemented/        #   shipped & deployed specs (git mv here when done)
+      archived/           #   abandoned / superseded specs (kept for history)
       ui-spec.md          # design artifact (or design-system/MASTER.md) — from sailes-design; required for UI apps
     checklists/
       security.md  testing.md  deployment.md  webhook.md  email.md  reporting.md
@@ -39,6 +41,8 @@ repo/
     skills/
       spec-writing/SKILL.md   # ALWAYS generated (from spec-writing-template.md) — Phase 3 depends on it
       discovery/SKILL.md       # carried over if useful
+    backlog.md            # deferred ideas / future features / tech debt (non-goals land here, not lost). See modules-catalog / discovery.
+    lessons.md            # institutional memory: Context/Problem/Rule/Applies-to. Created with header; filled on first real lesson.
 
   design-system/          # if sailes-design used the Master+Overrides pattern instead of .ai/specs/ui-spec.md
     MASTER.md             #   global source of truth: palette, type, spacing, components

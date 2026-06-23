@@ -98,7 +98,7 @@ Walk all of these. Skip an item only if the user explicitly defers it.
 - **Data & compliance** — PII? GDPR/HIPAA/PCI? Data residency? Encryption/audit needs?
 - **Integrations** — payments, auth providers, email, telematics, 3rd-party APIs?
 - **Success metrics & timeline** — what does "done/successful" look like? Hard deadlines?
-- **Non-goals** — what we explicitly are NOT building (controls scope creep).
+- **Non-goals** — what we explicitly are NOT building (controls scope creep). **Anything deferred-but-worth-keeping (a later-phase idea, a "not now") goes into `.ai/backlog.md`** so it survives — don't let it die inside one brief's non-goals list. (Bootstrap generates `.ai/backlog.md`; if absent, note the items for it.)
 
 ### Brownfield checklist (Task Brief)
 

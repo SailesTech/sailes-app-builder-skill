@@ -61,7 +61,7 @@ Commit to these for the session (full rationale + citations in `agentic-first-pr
 - **Case B:** propose + generate (after a quick confirm) the skeleton from `skeleton.md` and `agents-md-template.md`: `AGENTS.md` (concise), `CLAUDE.md`→`@AGENTS.md`, `README.md`, `.ai/{skills,checklists,adr}`, the pnpm monorepo with `apps/web` + `apps/worker`. Keep `AGENTS.md` concise — bloated memory files get ignored.
   - **Always generate a local `spec-writing` skill** at `.ai/skills/spec-writing/SKILL.md` from `spec-writing-template.md` (stack-agnostic, tuned to the locked stack). A new repo has no spec skill otherwise — Phase 3 of the pipeline depends on it existing. Adapt its `## Stack conventions` block to whatever stack the project locked.
   - Also carry over the `sailes-discovery` skill pattern into `.ai/skills/` if useful for future work.
-  - **Do NOT create `.ai/lessons.md` on a fresh repo.** It is memory of corrections; a new repo has none yet. It appears the first time a real lesson is learned during implementation. Pre-seeding it is an anti-pattern (reads as "memory exists" when empty).
+  - **Generate the FULL `.ai/` structure** (specs/ + implemented/ + archived/, checklists, adr, skills, `backlog.md` from `backlog-template.md`, `lessons.md` with a header). `lessons.md` and `backlog.md` start as header-only files (filled during implementation) — present from day one so the convention is visible. **Idempotent rule: if any `.ai/` artifact already exists in the repo, do NOT overwrite it — add only what's missing and follow the repo's existing convention.** (Trust the filesystem.)
   - **`git init` + a first commit are part of generation, not optional.** A repo with 0 commits is not set up. Commit the skeleton.
 - **Case C:** follow `adopt-existing-repo.md` — reverse-engineer the existing conventions, generate `AGENTS.md`/`CLAUDE.md`/`.ai/` + the local `spec-writing` skill **filled with the REAL stack & commands** (not the baseline), record an ADR of the existing stack + gaps, and verify nothing broke using the repo's own test/build. Additive only — never modify running code.
 
@@ -99,7 +99,7 @@ All green → hand to the spec phase: the local `.ai/skills/spec-writing/` you j
 | Stack | **validate** platform vs needs | **recommend** baseline | **document existing** (validate mode) |
 | Output | wired-in plan honoring rules | foundation + baseline stack | methodology layer over real stack |
 
-Reference files: `stack-baseline.md` (incl. Frontend architecture variants) · `modules-catalog.md` · `decision-engine.md` (classification + Stack-shaping axes S1–S8) · `developer-fit.md` (who-builds-it as a stack input) · `security-checklist.md` · `skeleton.md` · `agentic-first-principles.md` · `agents-md-template.md` · `spec-writing-template.md` (generated into new repos) · `adopt-existing-repo.md` (Case C procedure) · `repo-done-checklist.md` (verify artifacts before handoff — Step 5).
+Reference files: `stack-baseline.md` (incl. Frontend architecture variants) · `modules-catalog.md` · `decision-engine.md` (classification + Stack-shaping axes S1–S8) · `developer-fit.md` (who-builds-it as a stack input) · `backlog-template.md` (deferred-ideas file, generated into `.ai/backlog.md`) · `security-checklist.md` · `skeleton.md` · `agentic-first-principles.md` · `agents-md-template.md` · `spec-writing-template.md` (generated into new repos) · `adopt-existing-repo.md` (Case C procedure) · `repo-done-checklist.md` (verify artifacts before handoff — Step 5).
 
 ## Common Mistakes
 
@@ -118,7 +118,7 @@ Reference files: `stack-baseline.md` (incl. Frontend architecture variants) · `
 | Case C: rewriting working code to adopt methodology | Methodology adoption is docs + config only; never modify running code. |
 | Claiming "done" without verifying artifacts on disk | Run `repo-done-checklist.md`; show the `find`/`git log` output. "I created them" ≠ evidence. |
 | Skipping a real design phase (UI work with no visual direction) | Invoke `sailes-design` (Step 4.5); a design artifact must exist before spec/impl. |
-| Pre-creating `lessons.md` on a fresh repo | Don't. It appears on the first real lesson during implementation. |
+| Overwriting an existing `.ai/` artifact when scaffolding | Idempotent: never overwrite; add only what's missing, follow the repo's existing convention. |
 | No git / 0 commits after "setup" | `git init` + commit the skeleton is part of Case B generation. |
 
 ## Red Flags — STOP
@@ -133,4 +133,5 @@ Reference files: `stack-baseline.md` (incl. Frontend architecture variants) · `
 - You're about to write feature code with no RED test and no verification check.
 - You're about to say "bootstrap done" / hand off to spec, but haven't run `repo-done-checklist.md` and seen all-green output (AGENTS.md, `.ai/skills/`, git, design artifact present).
 - The app has a UI and no design artifact exists (`sailes-design` never ran).
-- You created `.ai/lessons.md` on a brand-new repo.
+- You overwrote an existing `.ai/` file (lessons/backlog/specs/convention) instead of leaving it and adding only what's missing.
+- A new repo and the `.ai/` structure is incomplete (missing `specs/implemented`, `specs/archived`, `backlog.md`, or `lessons.md` header).

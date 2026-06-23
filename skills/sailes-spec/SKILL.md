@@ -28,8 +28,8 @@ A repo built with `sailes-bootstrap` has a **local** spec-writing skill at `.ai/
 
 ## Workflow
 
-1. **Load context** — the confirmed Brief + the module manifest & locked stack (from bootstrap, if present) + the brief's **Decisions Ledger**. Check `.ai/specs/` for an existing spec on this area; **extend it, don't duplicate.**
-2. **Initialize** — create `.ai/specs/{YYYY-MM-DD}-{kebab-title}.md` (or the repo's specs convention).
+1. **Load context** — the confirmed Brief + the module manifest & locked stack (from bootstrap, if present) + the brief's **Decisions Ledger**. Check `.ai/specs/` **and `.ai/specs/implemented/`** for an existing spec on this area. If a **live** spec (root, not implemented/archived) covers it → **extend it, don't duplicate.** If only an **implemented** one exists → write a new spec that references it (`Supersedes:`), don't reopen shipped history.
+2. **Initialize** — create `.ai/specs/{YYYY-MM-DD}-{kebab-title}.md` (or the repo's specs convention) with a **`Status:` line** (see Spec lifecycle below) set to `draft`.
 3. **Skeleton first** — write TLDR + 2-3 key sections only. Do NOT write the full spec yet.
    - Scan for **critical unknowns** — decisions where a wrong assumption forces a rewrite (data model, tenancy, integration contract, source-of-truth, file/volume strategy).
    - Add a numbered **Open Questions** block (Q1, Q2, …) right after the TLDR — one per line, answerable (binary/multiple-choice where possible). For anything that's a real fork, present it the way `sailes-discovery` does: options with ✅/⚠️ + a recommendation, the user chooses.
@@ -38,7 +38,41 @@ A repo built with `sailes-bootstrap` has a **local** spec-writing skill at `.ai/
 5. **Design** — data model, API surface, UI surface, module boundaries, integration/webhook contracts, jobs/workflows.
 6. **Phasing** — break into **Phases** (stories) and **Steps** (testable tasks). Each step leaves the app working.
 7. **Integration coverage** — list every affected API path and key UI path; each gets a test in the same change.
-8. **Review** — apply the checklist below before calling the spec done.
+8. **Review** — apply the checklist below; set `Status: approved` when the user signs off, before implementation starts.
+
+## Spec lifecycle (status + folders — so 50 specs don't become an undifferentiated pile)
+
+Two mechanisms, both required. (Pattern proven in Open-Mercato `.ai/specs/`.)
+
+**1. A `Status:` line** near the top of every spec:
+
+```
+Status: draft | approved | in-progress | implemented | superseded
+```
+
+- `draft` — being written / Open Questions open.
+- `approved` — signed off, ready to implement (the gate before coding).
+- `in-progress` — implementation underway.
+- `implemented` — all phases shipped & verified.
+- `superseded` — replaced by a newer spec (add `Superseded-by: <path>`).
+
+**2. Folders mark the lifecycle (move the file, don't just flip a label):**
+
+- `.ai/specs/` (root) — **live**: draft / approved / in-progress.
+- `.ai/specs/implemented/` — fully shipped & deployed.
+- `.ai/specs/archived/` — abandoned or superseded (keep for history).
+
+**Rules:**
+- When all phases are complete and the feature is deployed → set `Status: implemented` and **`git mv` the file to `.ai/specs/implemented/`** (git mv preserves history). Update cross-references.
+- When a new spec replaces an old one → new spec gets `Supersedes: <old path>`; old spec gets `Status: superseded` + `Superseded-by:` and is `git mv`'d to `.ai/specs/archived/`.
+- An agent scanning specs treats **root = the only live set**; `implemented/` and `archived/` are history, read-only context.
+- **Idempotent:** if the repo already has its own specs lifecycle convention, follow it — don't impose this one over a different existing scheme.
+
+## Create / update / skip triggers
+
+- **Create** a spec for: a new module, a significant feature, or an architecture change touching multiple files.
+- **Update** an existing live spec when: APIs, data models, workflows, permissions, or cross-module behavior change.
+- **Skip** specs for: small bug fixes, typo-only edits, isolated one-file refactors with no behavior change. (Don't manufacture a spec for a one-liner.)
 
 ## Required sections
 
@@ -52,7 +86,7 @@ A repo built with `sailes-bootstrap` has a **local** spec-writing skill at `.ai/
 - **Security** — auth + permission checks, Zod validation, signed secrets, audit log, file access control; mark which security-checklist items apply.
 - **Phasing & Steps** — stories → testable steps.
 - **Integration Coverage** — affected API + UI paths, each with a test.
-- **Non-Goals** — what we explicitly are NOT building.
+- **Non-Goals** — what we explicitly are NOT building. Push deferred-but-worth-keeping items (later phases, tech debt) to `.ai/backlog.md` so they aren't lost in this one spec.
 
 ## Stack conventions (use the repo's locked stack; below is the baseline default)
 
