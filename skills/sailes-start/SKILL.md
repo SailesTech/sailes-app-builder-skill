@@ -60,7 +60,7 @@ Detect from context (empty dir / "nowa aplikacja" → A; existing repo with AGEN
 ### Phase 2 — Bootstrap  →  invoke the `sailes-bootstrap` skill
 
 - Carries the confirmed Brief in. Runs its decision-engine (classify → module manifest), establishes/absorbs the agentic-first methodology, and locks the stack.
-- Route A → Case B: **generate** the repo skeleton + `AGENTS.md`/`CLAUDE.md`/`README.md`/`.ai/` + baseline stack + working system, **git init + first commit**. (Do NOT pre-create `lessons.md`.)
+- Route A → Case B: **generate** the repo skeleton + `AGENTS.md`/`CLAUDE.md`/`README.md`/`.ai/` (full structure incl. `lessons.md`/`backlog.md` as header-only, idempotent — never overwrite existing) + baseline stack + working system, **git init + first commit**.
 - Route B → Case A: **absorb** the repo's methodology + **validate** the stack for the change.
 - Route C → Case C: **reverse-engineer** existing conventions, **document the existing stack** (validate mode), and **add** the methodology layer additively — never touching running code. (`adopt-existing-repo.md`.)
 - Bootstrap includes its **Step 4.5 design gate** (invokes `sailes-design`) for any UI work, and its **Step 5 artifact verification** (`repo-done-checklist.md`).
@@ -91,7 +91,7 @@ This orchestrator's job ends when the spec is approved; it hands to these.
 
 - **Always show the map first.** Never dive into Phase 1 without telling the user the whole flow and gating plan.
 - **Always route before Phase 1.** Greenfield vs brownfield is the first question; it picks the variant of every downstream skill.
-- **Never skip a phase or a gate.** Brief → manifest+stack → spec → implementation. Each boundary needs explicit user confirmation.
+- **Never skip a phase or a gate** when this orchestrator is driving (new project, or adopting a repo without methodology): Brief → manifest+stack → spec → implementation, each boundary confirmed. (Exception: a *small brownfield change* in a repo that already has methodology may go discovery → spec directly — that's `sailes-discovery`'s brownfield handoff, used when you're NOT running the full pipeline.)
 - **Never re-implement** discovery/bootstrap/spec logic inline — invoke the skills. This orchestrator is thin by design.
 - **Never jump to code** before the spec is approved.
 - **Never skip the design phase** for a UI app — `sailes-design` runs inside Phase 2 and must leave an artifact on disk.

@@ -51,7 +51,7 @@ Elicitation is "complete" when every applicable checklist item below is either a
    - Is there an `AGENTS.md` / `CLAUDE.md` / `README`? Skim it — it tells you conventions, stack, module system.
    - Is there a `.ai/specs/` (or `docs/specs/`) folder and a `spec-writing` skill? Note it — it decides the handoff (see Step 4).
    - Brownfield only: do a **light** recon (or dispatch one `explorer`/`Explore` agent) to find whether the thing already exists. Surfacing "this is already built" is the single highest-value discovery outcome — it saves the whole task.
-3. State, in one or two lines, what you found. Then begin elicitation. Do NOT propose a data model, module layout, or implementation yet — that anchors on a guess.
+3. State, in one or two lines, what you found. **If you were invoked directly (not via `sailes-start`), also orient the user in one line on where this leads** — e.g. "This is the discovery interview; after we confirm the brief it flows to setup (bootstrap) → design → spec → implementation." Then begin elicitation. Do NOT propose a data model, module layout, or implementation yet — that anchors on a guess.
 
 ## Step 1 — Elicit in adaptive rounds
 
@@ -120,10 +120,13 @@ After the rounds, write back a compact summary of what you heard, grouped by che
 ## Decisions Ledger
 | Decision | Chosen | By | Rejected alternatives (why not) |
 |---|---|---|---|
-| ORM | Drizzle | user | Prisma (less SQL control for sync), Kysely (overkill) |
-| Auth | Better Auth + Google | user | Clerk (paid, external), email/pw (extra UX) |
+| Tenancy | single-tenant | user | multi-tenant (only one firm will use it) |
+| CRM sync depth | one-way (app → CRM) | user | two-way (conflict/maintenance cost) |
+| Investor data source | manual form (MVP) | user | CRM pull (deferred to backlog) |
 | ... | ... | user / **AI-recommended-pending** | ... |
 ```
+
+> Discovery captures **scope/architecture leanings + constraints** (tenancy, sync depth, integration surface, roles). The **stack cards** (ORM, auth, hosting, framework shape) are run in `sailes-bootstrap` Phase 2 — don't run them here; just note any hard constraints the user states.
 
 - Any row still marked **AI-recommended-pending** is a decision the user has NOT yet actively made — you must get an explicit choice before proceeding (it's fine for them to say "go with your recommendation," but they must say it about that specific decision, not a blanket wave).
 - Distinguish genuine **vetoable trivia** (reversible, no cost — list briefly) from **decisions** (in the ledger). Do not mix them.
@@ -157,7 +160,7 @@ Write the structured brief (see `brief-template.md` for both formats). It is the
 | Orient | skim AGENTS/README, note spec tooling | + light recon: does it already exist? |
 | Elicit | business→users/scale→stack→infra→data→integrations→metrics | who/why→scope→acceptance→volume→perms→handoff |
 | Output | Project Brief | Task Brief (+ team dependency plan) |
-| Handoff | spec-writing (or self-write spec) | spec-writing (or self-write), then team |
+| Handoff | **invoke `sailes-bootstrap`** (mandatory chain → generates repo + design + spec) | local spec-writing (or global `sailes-spec`), then team; bootstrap if no methodology |
 
 ## Common Mistakes
 
@@ -171,13 +174,9 @@ Write the structured brief (see `brief-template.md` for both formats). It is the
 | Brownfield: proposing a fix before checking it exists | Recon first — "already built" is the best possible finding. |
 | Spawning the full agent team during elicitation | Discovery is solo. Team starts at implementation. |
 | Re-writing spec conventions when a local spec-writing skill exists | Detect it and hand off; don't duplicate. |
-| **Greenfield: writing the spec and stopping (no AGENTS.md/.ai/ generated)** | **The core failure. After the brief, invoke `sailes-bootstrap` — never end the chain at the spec.** |
-| **Deciding the stack/architecture silently and listing it as an "assumption"** | Each is the user's decision — present a **decision card** (pros/cons + recommendation), put it in the Decisions Ledger, get an explicit choice. |
-| **Inventing a role the user never named (e.g. "Manager")** | Enumerate roles from the user; for each, ask what they do. Never fabricate. |
-| Offering a consequential option (two-way sync, embed-in-CRM) as a bare checkbox | Spell out what it *costs* (conflict resolution, webhooks, maintenance) before they pick. |
-| "We have some infrastructure" accepted at face value | Drill in: which services, existing DB/auth, integrate-reuse-or-replace, constraints. |
 | Naming an integration but not its data model / tier / config | Ask plan/tier, webhooks, custom fields, volume, source-of-truth per field. |
-| Probing business shallowly (just "what problem?") | Also ask why-now, cost-of-problem, who commissioned, what-if-not-built. |
+
+*(In-the-moment STOP signals — silent stack/assumption, invented roles, shallow business/infra probe, greenfield-skips-bootstrap — live in **Red Flags** below; not repeated here.)*
 
 ## Red Flags — STOP and return to elicitation
 

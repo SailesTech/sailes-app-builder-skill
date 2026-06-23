@@ -25,6 +25,8 @@ It is **stack-agnostic in mechanism** but **opinionated in default** (see `stack
 
 ## Step 0 — Detect repo methodology state (cheap)
 
+If you arrived via `sailes-start`, the route (A/B/C) was already chosen there — just confirm it against the filesystem below and proceed; don't re-deliberate. If invoked directly, detect it now.
+
 Inspect: `CLAUDE.md`/`AGENTS.md` (root + per-folder), `.ai/` (specs, skills, checklists, adr), available skills, stack signals (`package.json`, lockfile, framework, ORM, `docker-compose`).
 
 - **Case A — methodology EXISTS** (Open-Mercato, any agents.md repo): read & internalize the contract (root AGENTS.md → Task Router → relevant sub-AGENTS.md → relevant specs). Do NOT scaffold over it. Stack is mostly fixed → your job is *validate* it covers the work + decide *where/how to wire in*. **Trust the filesystem over the prompt** — if told "empty repo" but files exist, surface the discrepancy and do NOT overwrite.
@@ -37,7 +39,7 @@ To distinguish B from C: is there real application code (`package.json` with dep
 
 **Do NOT recommend a full architecture up front.** Walk `decision-engine.md`: ask the classification questions in adaptive rounds of 3-4 (`AskUserQuestion`), leading with the forks that change architecture — **tenancy** (single vs multi-tenant), **source-of-truth** (app-first / CRM-first / hybrid), **integrations/webhooks**, **sensitive data**, **prototype vs production**.
 
-**The user owns every architectural decision; you recommend, they choose.** For each fork that materially shapes cost/scope/lock-in, present it as a **decision card** — options with honest ✅ pros / ⚠️ cons, plus a recommendation *with a reason grounded in their answers and the baseline* — then let them pick. Never apply a baseline choice silently and list it as an "assumption"; that is the failure mode `sailes-discovery` exists to prevent. (See the decision-card format in `sailes-discovery` Step 1.)
+**The user owns every architectural decision; you recommend, they choose** (the foundational principle — see `agentic-first-principles.md` §0). Operationally: for each fork that materially shapes cost/scope/lock-in, present a **decision card** (options + ✅/⚠️ + reasoned recommendation → user picks); never apply a baseline choice silently as an "assumption."
 
 Produce a **module manifest**: which optional modules are ON (email level, reporting level, files, pipedrive, workflow tier, feature flags), tenancy mode, and the security gate. Baseline (core app + mandatory worker + auth + DB + observability + testing) is always on — but even baseline items are stated as *recommended defaults the user can veto*, not silent givens.
 
@@ -47,13 +49,7 @@ Produce a **module manifest**: which optional modules are ON (email level, repor
 
 ## Step 2 — Establish agent working discipline (both cases)
 
-Commit to these for the session (full rationale + citations in `agentic-first-principles.md`):
-- **Verifiable done** — every task ends with a check you run (tests, build, typecheck, Playwright E2E, screenshot diff). Show evidence, don't assert.
-- **RED test first** — write or identify a failing test before implementation.
-- **Explore → plan → code → commit.** Plan non-trivial work; skip only when the diff fits one sentence.
-- **Security-by-default** (`security-checklist.md`) — auth + permission checks by default, Zod validation, tenant scoping, signed secrets, idempotency, audit + file-access logs, secrets in env, no sensitive data in logs.
-- **Adversarial review** — fresh-context reviewer checks the diff vs the plan before "done."
-- **ADR for architecture changes**; never bypass typecheck, delete tests, auto-deploy to prod, or run prod migrations without approval.
+Before the first line of feature code, internalize the working discipline in **`agentic-first-principles.md`** (it's in this skill's folder — read it): especially **§0** (developer owns the vision; AI interrogates, never decides), **§A** (verifiable done — run a check, show evidence, RED test first, behavior-before-diff), **§B** (security-by-default + `security-checklist.md` for production), and **§C** (adversarial fresh-context review before "done"). Commit to these for the session. Never bypass typecheck, delete tests, auto-deploy to prod, or run prod migrations without approval; ADR for architecture changes.
 
 ## Step 3 — Methodology onboarding / generation
 
