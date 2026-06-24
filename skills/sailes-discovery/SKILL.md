@@ -81,6 +81,16 @@ Twój wybór? (możesz wybrać inaczej niż rekomenduję)
 
 Keep pros/cons honest and specific to *their* situation, not generic. The recommendation leans on `sailes-bootstrap`'s researched baseline (`stack-baseline.md`) — but it's a recommendation, and you say so. A consequential option (e.g. "two-way CRM sync", "embed inside the CRM as an extension") must spell out what it *costs* (conflict resolution, webhooks, maintenance) — never let the user pick it blind.
 
+### Decision card quality bar
+
+Use this checklist before sending the card:
+- Each option needs **one concrete upside** and **one concrete cost** that matter in this project.
+- The cost must name the real trade-off: time, lock-in, ops, complexity, latency, data risk, or maintenance.
+- Avoid empty adjectives like "simple", "flexible", or "future-proof" unless you explain what they simplify or protect.
+- If you cannot state a concrete pro and con for an option here, do **not** offer it as a choice yet. Ask a fact-finding question first.
+- The recommendation must cite the user's answers, not just the baseline.
+- If an option only makes sense in a future phase, say so and move it to the backlog instead of presenting it as a current choice.
+
 > The detailed stack/architecture decision cards (Drizzle vs Prisma, Better Auth vs Clerk, Railway vs Vercel+Neon, single- vs multi-tenant, sync depth, durable workflow engine…) are owned by **`sailes-bootstrap`** (Phase 2), which has the researched trade-offs. In discovery, surface the *forks that change scope/architecture* and capture the user's leanings; bootstrap then walks each as a full decision card. Either way: the user decides, with pros/cons in front of them.
 
 ### Greenfield checklist (Project Brief)

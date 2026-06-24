@@ -55,6 +55,7 @@ Detect from context (empty dir / "nowa aplikacja" → A; existing repo with AGEN
 - Route A → greenfield variant (full business/scale/stack/infra elicitation).
 - Route B → brownfield variant (recon "does it already exist?" + precise scope + team handoff).
 - Route C → brownfield variant, light — focus on understanding what the existing app does and the user's goal for the adoption (the heavy lifting is reverse-engineering, which happens in Phase 2).
+- Treat the current repo state as source of truth; do not require 100% textual/structural identity with the latest global process if the repo's workflow has legitimately drifted over time.
 - **Gate:** the user must confirm the Brief before Phase 2. Do not proceed on assumptions.
 
 ### Phase 2 — Bootstrap  →  invoke the `sailes-bootstrap` skill
@@ -62,7 +63,7 @@ Detect from context (empty dir / "nowa aplikacja" → A; existing repo with AGEN
 - Carries the confirmed Brief in. Runs its decision-engine (classify → module manifest), establishes/absorbs the agentic-first methodology, and locks the stack.
 - Route A → Case B: **generate** the repo skeleton + `AGENTS.md`/`CLAUDE.md`/`README.md`/`.ai/` (full structure incl. `lessons.md`/`backlog.md` as header-only, idempotent — never overwrite existing) + baseline stack + working system, **git init + first commit**.
 - Route B → Case A: **absorb** the repo's methodology + **validate** the stack for the change.
-- Route C → Case C: **reverse-engineer** existing conventions, **document the existing stack** (validate mode), and **add** the methodology layer additively — never touching running code. (`adopt-existing-repo.md`.)
+- Route C → Case C: **reverse-engineer** existing conventions, **document the existing stack** (validate mode against the repo's current conventions, not a frozen template), and **add** the methodology layer additively — never touching running code. (`adopt-existing-repo.md`.)
 - Bootstrap includes its **Step 4.5 design gate** (invokes `sailes-design`) for any UI work, and its **Step 5 artifact verification** (`repo-done-checklist.md`).
 - **Gate:** module manifest + stack + methodology + **design artifact** confirmed, and `repo-done-checklist.md` shows all-green (AGENTS.md, `.ai/skills/`, git, design artifact on disk), before Phase 3.
 

@@ -4,6 +4,8 @@ Do NOT recommend a full architecture up front. **Classify the project first**, t
 
 **The user decides; you recommend.** Each question below that resolves into an architectural choice (tenancy, source-of-truth, sync depth, workflow engine, multi-tenant, prototype-vs-production) must be put to the user as a **decision card** — options with honest ✅ pros / ⚠️ cons and a reasoned recommendation — and the chosen value recorded in the brief's **Decisions Ledger**. Never resolve one of these silently from the baseline and surface it later as an "assumption." Pure fact-finding questions (e.g. "do you store sensitive data?") are just questions; the *architectural consequences* you derive from them are still the user's to confirm.
 
+**Decision-card quality bar:** every option must state a concrete upside, a concrete cost, and the real trade-off it introduces in this project. If you cannot name both a believable pro and a believable con, don't present it as a choice yet. Ask a fact-finding question first, or defer the option to backlog/ADR.
+
 ## The classification questions (per project)
 
 ```text

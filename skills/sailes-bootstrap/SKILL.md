@@ -95,7 +95,7 @@ All green → hand to the spec phase: the local `.ai/skills/spec-writing/` you j
 | Stack | **validate** platform vs needs | **recommend** baseline | **document existing** (validate mode) |
 | Output | wired-in plan honoring rules | foundation + baseline stack | methodology layer over real stack |
 
-Reference files: `stack-baseline.md` (incl. Frontend architecture variants) · `modules-catalog.md` · `decision-engine.md` (classification + Stack-shaping axes S1–S8) · `developer-fit.md` (who-builds-it as a stack input) · `backlog-template.md` (deferred-ideas file, generated into `.ai/backlog.md`) · `security-checklist.md` · `skeleton.md` · `agentic-first-principles.md` · `agents-md-template.md` · `spec-writing-template.md` (generated into new repos) · `adopt-existing-repo.md` (Case C procedure) · `repo-done-checklist.md` (verify artifacts before handoff — Step 5).
+Reference files: `stack-baseline.md` (incl. Frontend architecture variants) · `modules-catalog.md` · `decision-engine.md` (classification + Stack-shaping axes S1–S8) · `developer-fit.md` (who-builds-it as a stack input) · `backlog-template.md` (deferred-ideas file, generated into `.ai/backlog.md`) · `security-checklist.md` · `skeleton.md` · `agentic-first-principles.md` · `agents-md-template.md` · `spec-writing-template.md` (generated into new repos) · `adopt-existing-repo.md` (Case C procedure + Step 0 re-adoption compliance audit) · `agent-team-structure.md` (Team Lead / worker roles, gates, run log — the canon for non-trivial work) · `repo-done-checklist.md` (verify artifacts before handoff — Step 5).
 
 ## Common Mistakes
 

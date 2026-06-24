@@ -33,6 +33,7 @@ A repo built with `sailes-bootstrap` has a **local** spec-writing skill at `.ai/
 3. **Skeleton first** — write TLDR + 2-3 key sections only. Do NOT write the full spec yet.
    - Scan for **critical unknowns** — decisions where a wrong assumption forces a rewrite (data model, tenancy, integration contract, source-of-truth, file/volume strategy).
    - Add a numbered **Open Questions** block (Q1, Q2, …) right after the TLDR — one per line, answerable (binary/multiple-choice where possible). For anything that's a real fork, present it the way `sailes-discovery` does: options with ✅/⚠️ + a recommendation, the user chooses.
+   - Apply the same quality bar as discovery: every option needs one concrete upside, one concrete cost, and the real trade-off it introduces. If the pros/cons are weak or generic, ask a fact-finding question instead of pretending it's a real decision.
    - **STOP after the skeleton. Hard gate.** Do not write the rest until the user answers every open question.
 4. **Iterate** — apply answers, remove the Open Questions block. New unknowns surface → re-gate only those.
 5. **Design** — data model, API surface, UI surface, module boundaries, integration/webhook contracts, jobs/workflows.

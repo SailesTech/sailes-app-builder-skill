@@ -47,6 +47,7 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 ## Subagent strategy
 - One task per subagent; offload parallel/independent steps and research to keep main context clean.
 - Read-only recon (`Explore`/`explorer`) for mapping; implementation steps that touch the same files run sequentially (or in worktrees if truly parallel) to avoid conflicts.
+- For non-trivial scope (3+ steps, BE+FE, an API contract, an architecture/data-model change, or anything touching auth/tenancy/security), run it as a **team**: the agent driving `sailes-implement` **acts as `team-lead`** (or delegates to the `team-lead` role if agent-teams mode is on) — there is exactly one lead, the human's single point of contact. Roles, order, gates, **agent lifecycle (spawn per task → release on integration, no idle agents)**, the **fallback when teams mode is off** (same roles as sequential subagents), and the run log are all defined in `sailes-bootstrap/agent-team-structure.md`. Workers never commit or push; the lead integrates and owns the gates (`checker` + `qa`).
 
 ## Quick Reference
 

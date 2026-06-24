@@ -86,8 +86,10 @@ Non-trivial tasks (3+ steps, BE+FE, an API contract, an architecture change) run
 | `qa` | sonnet | real-flow e2e proof + screenshots; never fakes a pass |
 
 - **Order:** `explorer → designer → BE contract finalized → fe-dev → checker → qa`. One task per worker; workers escalate scope questions to `team-lead`; **workers never commit or push.**
-- **Delegation mechanism:** enable teams with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/settings.json`; the lead hands tasks to teammates (one task each) and integrates the results.
+- **Delegation mechanism:** enable teams with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/settings.json`; the lead hands tasks to teammates (one task each), integrates the results, and **releases each teammate once its task is integrated** (no idle agents). **If the flag is off**, the same roles/order/gates run as sequential scoped subagents — the model doesn't depend on the flag.
 - **Scale down:** solo is fine when the diff fits one sentence. Don't convene a team for a typo.
+
+The full canon — how the lead loads context, decomposes, assigns, integrates, and runs the gates; the per-role "never" list; and the exact team-vs-solo boundary — lives in [`agent-team-structure.md`](./agent-team-structure.md). Read it before running any non-trivial task as a team.
 
 ## D. Context hygiene ✅
 

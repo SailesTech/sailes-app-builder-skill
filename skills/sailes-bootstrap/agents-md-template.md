@@ -71,7 +71,9 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 ## Agent Teams (non-trivial work)
 - 3+ steps / BE+FE / API contract / architecture → run as a team, not solo. Roles in `~/.claude/agents/`: `team-lead` (plan/integrate, never bulk-codes), `explorer` (read-only recon), `designer` (UX spec), `be-dev`/`fe-dev`, `checker` (independent review), `qa` (real-flow e2e proof).
 - Order: explorer → designer → BE contract → fe-dev → checker → qa. One task per worker; workers escalate scope to lead; workers never commit/push.
-- Enable teammates: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/settings.json`. Solo is fine when the diff fits one sentence.
+- **Lifecycle:** the lead spawns one worker per ready task and **releases it once its result is integrated** — no idle agents kept alive. On **CHANGES-REQUIRED**, re-spawn a fresh worker with clean scope, don't reuse a stale one. Record per task in the run log who was spawned / what they returned / the gate verdict / whether released — so after a context reset the lead rebuilds *which agents are still active* and releases orphans. Exactly one lead = the human's single point of contact.
+- Enable teammates: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/settings.json`. **Without it**, the same roles/order/gates run as sequential scoped subagents (the model doesn't depend on the flag) — read-only roles (`explorer`/`checker`/`qa`) map to read-only subagents; same-file tasks run sequentially. Solo is fine when the diff fits one sentence.
+- The rules above are self-contained for day-to-day work. For the full rationale (per-role "never" list, who-is-lead detail, fallback notes), load the global `sailes-bootstrap` skill — its `agent-team-structure.md` is the canon. (It is a globally-installed skill, not a file in this repo.)
 
 ## Conventions
 - DB tables/columns: snake_case, tables plural. JS/TS identifiers: camelCase. UUID PKs.

@@ -61,5 +61,6 @@ The list differs — you are *validating* or *adding additively*, not generating
 - an ADR recording the existing stack + gaps (Case C)
 - the existing test/build still green (you changed docs+config only)
 - a design artifact for any UI work in scope (see `sailes-design`)
+- The repo's current conventions are documented as they exist now; minor drift from the newest global process is acceptable if it is described in the docs/ADR instead of being treated as a mismatch.
 
 Never force the baseline monorepo onto a populated repo. Verify the *additive* artifacts exist and that nothing running was modified.

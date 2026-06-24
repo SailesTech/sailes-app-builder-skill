@@ -59,7 +59,7 @@ List concrete failure scenarios: **scenario · severity · affected area · miti
 ```
 
 - **NOT-READY / READY-WITH-FIXES** → the fixes go back into the spec (via `sailes-spec`) before implementation. Don't start coding around a known gap.
-- **READY** → hand to `sailes-implement`.
+- **READY** → hand to `sailes-implement`. For non-trivial scope this is where the **agent team** starts: the driving agent acts as `team-lead` and runs roles/order/gates/lifecycle per `sailes-bootstrap/agent-team-structure.md` (spawn one worker per task, release on integration; `checker` + `qa` gates; workers never commit/push).
 
 ## Quick Reference
 

@@ -1,0 +1,79 @@
+# Agent Team Structure — how the Team Lead runs non-trivial work
+
+The canonical definition of the agent team: roles, who calls whom, the gates, and when to convene a team vs. go solo. Other skills (`sailes-implement`, `sailes-pre-implement`, `agentic-first-principles.md` §C2) point here instead of restating it.
+
+## When a team — and when not
+
+Convene a team when the task is **non-trivial**: 3+ steps, BE+FE together, a new/changed API contract, an architecture or data-model change, or anything touching auth/tenancy/security.
+
+Go **solo** when the change fits one sentence and one file — a typo, a copy fix, a single guard, a config bump. Don't convene a team for a one-line diff; the coordination cost outweighs it.
+
+In between (a small, single-surface feature), the lead may do it solo but still runs the **review gate** (`checker`) and **behavior proof** (`qa`) before calling it done. The gate scales down; it never disappears.
+
+## Roles
+
+Role definitions live globally in `~/.claude/agents/`. The lead is the single point of contact for the human.
+
+| Role | Model | Does | Never |
+|---|---|---|---|
+| `team-lead` | opus | plan · decompose into one-task units · assign · integrate results · final verdict; reads Task Router + `.ai/lessons.md` before planning | bulk-codes the feature solo on a large task; lets a worker decide a **key** decision |
+| `explorer` | haiku | read-only recon → `file:line` findings, contract shapes, prop/value maps | propose final code; review quality |
+| `designer` | sonnet | UX/UI spec from design tokens (layout, states, responsive) | write feature code |
+| `be-dev` / `fe-dev` | sonnet | implement exactly the approved scope, per spec / per design | commit, push, or expand scope |
+| `checker` | sonnet | independent read-only review of the diff vs. spec → APPROVE / NITS / CHANGES-REQUIRED | grade on reasoning instead of result; touch code |
+| `qa` | sonnet | real-flow e2e proof + screenshots; behavior before diff | fake a pass when stack/creds are missing |
+
+## Order of work (the pipeline)
+
+```
+explorer → designer → BE contract finalized → fe-dev → checker → qa
+```
+
+- **`explorer` first** maps the affected code so the lead plans against reality, not assumption.
+- **BE contract is finalized before `fe-dev` starts** — the frontend builds against a frozen shape, not a moving target.
+- **`checker` and `qa` are both gates, not formalities.** CHANGES-REQUIRED loops back to the relevant dev; a faked or skipped `qa` is not a pass.
+- Not every task needs every role. A backend-only change skips `designer`/`fe-dev`. The **order among the roles you do use** is preserved.
+
+## How the lead actually runs it
+
+1. **Load context before planning** — Task Router guides for the touched areas + `.ai/lessons.md` (institutional memory). Planning without these repeats known mistakes.
+2. **Decompose into one-task units.** Each worker gets exactly one task with explicit scope and the contract/spec it implements against. One task per worker keeps reviews tractable and scope honest.
+3. **Assign and integrate.** The lead hands tasks to teammates, collects results, and integrates — the lead owns the merge, not the workers.
+4. **Escalation is upward only.** A worker that hits a scope question or a **key decision** (stack, contract shape, data-model, auth, roles) stops and escalates to the lead; the lead escalates to the human. Workers never silently decide a key decision or widen scope.
+5. **Workers never commit or push.** Integration, commit, and PR are the lead's job, after the gates pass.
+6. **Run log.** The lead records what was assigned, what each worker returned, and the gate verdicts — so a context reset can resume without re-deriving the plan.
+
+## Agent lifecycle — spawn one task, release when done
+
+A worker is **single-task and disposable**: it exists to do its one assigned task and nothing more. The lead manages the lifecycle explicitly — it does not leave idle agents alive.
+
+1. **Spawn on demand.** Create a worker when its task in the pipeline is actually ready (e.g. don't spawn `fe-dev` before the BE contract is frozen). One task = one worker.
+2. **Integrate, then release.** As soon as a worker returns its result and the lead has integrated it, the lead **closes that worker** — it does not keep finished agents around "in case". A worker whose task is APPROVED by `checker` is done; release it.
+3. **Re-spawn fresh, don't reuse.** If a CHANGES-REQUIRED loop sends work back, the lead spawns a fresh worker (or re-tasks with a clean, explicit scope) rather than carrying a stale, context-heavy agent forward. Fresh context = honest review and no scope drift.
+4. **Never hold idle agents.** At any moment, only agents with an active assigned task should be alive. Idle workers waste context and blur ownership.
+5. **Run log survives resets.** The lead records, per task: who was spawned, what they returned, the gate verdict, and whether they were released. After a context reset the lead reconstructs *which agents are still active* from the run log instead of re-deriving it — and releases any orphaned ones.
+
+This lifecycle is the concrete form of "one task per worker": agents are spawned for a task and retired with it, not maintained as a standing pool.
+
+## Delegation mechanism
+
+Enable teams with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/settings.json`. The lead hands one task to each teammate, integrates the results, and releases each teammate once its task is integrated (see lifecycle above). Read-only recon (`explorer`/`Explore`) runs in a separate context and reports a summary, keeping the lead's conversation clean.
+
+**Who is the lead.** When `sailes-implement` runs a non-trivial spec, the driving agent **acts as `team-lead`** (or delegates to the `team-lead` role if teams are enabled). Either way there is exactly one lead — the single point of contact for the human — who owns planning, assignment, integration, the gates, and the run log.
+
+## Fallback — when agent-teams mode is unavailable
+
+`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` is experimental and may be off or unsupported. The team **model does not depend on the flag** — only the delegation *mechanism* does. Without it, the same structure runs through ordinary subagents:
+
+- The driving agent **is** the lead and stays the single point of contact.
+- Each "worker" becomes a **scoped subagent task** (one task, one subagent) dispatched in the same order — `explorer → designer → BE contract → fe-dev → checker → qa`. Read-only roles (`explorer`, `checker`, `qa`) map cleanly to read-only subagents.
+- The lifecycle still holds: spawn a subagent for one task, take its result, drop it; don't reuse a stale subagent across stages. Subagents that touch the same files run **sequentially** (or in worktrees) to avoid conflicts.
+- The gates (`checker` review, `qa` behavior proof) and "workers never commit/push" are **unchanged** — they're properties of the process, not the flag.
+
+So the answer to "will this work without the experimental mode?" is **yes** — degraded to sequential subagents, but with the same roles, order, gates, and lifecycle.
+
+## The hard lines
+
+- **The human owns every key decision; the lead owns coordination; workers own only their one task.** A worker never makes a key decision.
+- **No gate is optional.** Scale the team down for small work, but `checker` (review) and `qa` (behavior proof) still run.
+- **Behavior before diff.** Done means the running system was observed doing the thing — not that the build is green. (`qa`'s deliverable.)
