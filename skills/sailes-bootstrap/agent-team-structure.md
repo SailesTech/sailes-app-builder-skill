@@ -33,22 +33,45 @@ explorer → designer → BE contract finalized → fe-dev → checker → qa
 - **BE contract is finalized before `fe-dev` starts** — the frontend builds against a frozen shape, not a moving target.
 - **`checker` and `qa` are both gates, not formalities.** CHANGES-REQUIRED loops back to the relevant dev; a faked or skipped `qa` is not a pass.
 - Not every task needs every role. A backend-only change skips `designer`/`fe-dev`. The **order among the roles you do use** is preserved.
+- **Dropping a role is provisional, not final.** If a later decision introduces a surface you'd skipped — e.g. a perf constraint forces an async-download UX, so a backend-only task suddenly needs a UI flow — **reinstate the dropped role** (`designer` here) and re-freeze the contract before `fe-dev`. Don't push a new UX surface through without the design pass just because the original plan skipped it.
 
 ## How the lead actually runs it
 
 1. **Load context before planning** — Task Router guides for the touched areas + `.ai/lessons.md` (institutional memory). Planning without these repeats known mistakes.
-2. **Decompose into one-task units.** Each worker gets exactly one task with explicit scope and the contract/spec it implements against. One task per worker keeps reviews tractable and scope honest.
+2. **Decompose into one-task units.** Each worker gets exactly one task with explicit scope and the contract/spec it implements against — handed over as a **self-contained brief** (format below). One task per worker keeps reviews tractable and scope honest; never hand a worker several independent problems at once.
 3. **Assign and integrate.** The lead hands tasks to teammates, collects results, and integrates — the lead owns the merge, not the workers.
 4. **Escalation is upward only.** A worker that hits a scope question or a **key decision** (stack, contract shape, data-model, auth, roles) stops and escalates to the lead; the lead escalates to the human. Workers never silently decide a key decision or widen scope.
+   - **Where the lead's authority ends.** The lead *assembles and freezes* the contract from decisions the spec/brief already settled — that's coordination, the lead's job. But when freezing it requires a **new** architectural or UX choice the spec didn't settle (e.g. "50k-row export: synchronous streamed download vs. async job + emailed link" — which also decides whether a new UI surface and a `designer` pass are needed), that is a **key decision**: the lead escalates it to the human, gets the answer, *then* freezes. The lead never silently picks the architecture just because it's mid-pipeline.
 5. **Workers never commit or push.** Integration, commit, and PR are the lead's job, after the gates pass.
 6. **Run log.** The lead records what was assigned, what each worker returned, and the gate verdicts — so a context reset can resume without re-deriving the plan.
+
+## Worker brief — the self-contained handover
+
+A worker has no shared memory with the lead beyond what the brief contains. "Explicit scope" means a brief that stands alone — the worker should never have to guess product intent or hunt for the contract. Minimal format:
+
+```markdown
+You are `ROLE` on team `TEAM`, under `team-lead`.
+Branch `…` is already checked out. Do not switch branches. Do not commit. Do not push.
+
+Task:        claim Task #N, mark it in_progress.
+Goal:        one precise outcome.
+Files:       exact paths to inspect / edit.
+Contract:    request/response/types/events/DB fields other slices depend on.
+Constraints: no new `any`; validation at the boundary; design tokens only;
+             backward-compatible public contract; no destructive commands.
+Reference:   the module/component/pattern to imitate.
+Verification: exact commands to run + the e2e requirement.
+Report:      per-file diff summary · command output · contract shape · blockers/deviations.
+```
+
+Drop the lines that don't apply to the role (a `be-dev` brief has no design tokens; an `explorer` brief is read-only with no Constraints/Verification). The non-negotiables in every brief: **one goal, the contract it must honor, the verification commands, and "do not commit/push."**
 
 ## Agent lifecycle — spawn one task, release when done
 
 A worker is **single-task and disposable**: it exists to do its one assigned task and nothing more. The lead manages the lifecycle explicitly — it does not leave idle agents alive.
 
 1. **Spawn on demand.** Create a worker when its task in the pipeline is actually ready (e.g. don't spawn `fe-dev` before the BE contract is frozen). One task = one worker.
-2. **Integrate, then release.** As soon as a worker returns its result and the lead has integrated it, the lead **closes that worker** — it does not keep finished agents around "in case". A worker whose task is APPROVED by `checker` is done; release it.
+2. **Integrate, then release.** As soon as a worker returns its result and the lead has integrated it, the lead **closes that worker** — it does not keep finished agents around "in case". A worker whose task is APPROVED by `checker` is done; release it. *What "release" means operationally:* with a scoped subagent it's automatic — the subagent returns its result and ends. With a live teammate (flag on) the lead stops addressing it and tears it down (e.g. `TaskStop`) so it is not re-tasked; the lead's job is the **decision** to release on integration — actually reclaiming the agent's resources is the runtime's.
 3. **Re-spawn fresh, don't reuse.** If a CHANGES-REQUIRED loop sends work back, the lead spawns a fresh worker (or re-tasks with a clean, explicit scope) rather than carrying a stale, context-heavy agent forward. Fresh context = honest review and no scope drift.
 4. **Never hold idle agents.** At any moment, only agents with an active assigned task should be alive. Idle workers waste context and blur ownership.
 5. **Run log survives resets.** The lead records, per task: who was spawned, what they returned, the gate verdict, and whether they were released. After a context reset the lead reconstructs *which agents are still active* from the run log instead of re-deriving it — and releases any orphaned ones.

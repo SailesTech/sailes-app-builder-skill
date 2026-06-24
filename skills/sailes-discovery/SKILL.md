@@ -120,7 +120,7 @@ Walk all of these. Skip an item only if the user explicitly defers it.
 - **Permissions & tenancy** — which feature/role gates it? Org/tenant scoping?
 - **Surface & placement** — which page/route/module? New UI element or extend existing?
 - **Constraints & non-goals** — what NOT to touch; backward-compat surfaces; performance limits.
-- **Team handoff** — which agent roles realize it (explorer → designer → be-dev → fe-dev → checker → qa) and in what dependency order? **The user explicitly wants the spec to be ready for the team — always produce this.**
+- **Team handoff** — which agent roles realize it (explorer → designer → be-dev → fe-dev → checker → qa) and in what dependency order? The implementation gate is that the **BE contract is finalized before `fe-dev` starts** (the canonical pipeline order; see `sailes-bootstrap/agent-team-structure.md`). **The user explicitly wants the spec to be ready for the team — always produce this.**
 
 ## Step 2 — Reflect & confirm (with an explicit Decisions Ledger)
 

@@ -112,7 +112,7 @@ The brief is the single artifact discovery produces. Pick the format by variant.
 
 ## Team Handoff Plan
 - Dependency order: explorer → designer → be-dev → fe-dev → checker → qa
-  (drop roles that don't apply; note what each must do)
+  (drop roles that don't apply; note what each must do. Gate: BE contract finalized before fe-dev starts.)
 - explorer:
 - designer: {if UI}
 - be-dev:
