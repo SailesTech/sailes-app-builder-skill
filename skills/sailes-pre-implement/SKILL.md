@@ -59,7 +59,7 @@ List concrete failure scenarios: **scenario · severity · affected area · miti
 ```
 
 - **NOT-READY / READY-WITH-FIXES** → the fixes go back into the spec (via `sailes-spec`) before implementation. Don't start coding around a known gap.
-- **READY** → hand to `sailes-implement`. For non-trivial scope this is where the **agent team** starts: the driving agent acts as `team-lead` and runs roles/order/gates/lifecycle per `sailes-bootstrap/agent-team-structure.md` (spawn one worker per task, release on integration; `checker` + `qa` gates; workers never commit/push).
+- **READY** → if the spec touches the DB (new/changed tables, columns, indexes, migrations), route through **`sailes-database`** first — it turns the approved data model into safe, expand/contract migrations and decides the remaining 🔀 schema forks (key type, jsonb/column, tenancy, soft-delete) via decision cards. Carry these BC findings into it; don't re-derive them. Then hand to `sailes-implement`. For non-trivial scope this is where the **agent team** starts: the driving agent acts as `team-lead` and runs roles/order/gates/lifecycle per `sailes-bootstrap/agent-team-structure.md` (spawn one worker per task, release on integration; `checker` + `qa` gates; workers never commit/push).
 
 ## Quick Reference
 

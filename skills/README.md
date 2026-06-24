@@ -18,7 +18,9 @@ sailes-start  (thin orchestrator: shows the map, routes A/B/C, gates each phase)
    ├─ Phase 3  sailes-spec (local .ai/skills/spec-writing/ if present, else global) → approved spec
    │
    └─ Implementation (agent team starts here):
-        sailes-pre-implement (readiness: BC/risk/gaps) → sailes-implement (build phase-by-phase, verifiably)
+        sailes-pre-implement (readiness: BC/risk/gaps)
+          → sailes-database (schema design + safe migrations; runs when the spec touches the DB)
+          → sailes-implement (build phase-by-phase, verifiably)
 ```
 
 Each skill is **independently callable** — use `sailes-discovery` alone for a scope interview, `sailes-design` alone for a UI direction, etc. `sailes-start` just sequences them with hard gates.
@@ -33,6 +35,7 @@ Each skill is **independently callable** — use `sailes-discovery` alone for a 
 | **sailes-design** | The frontend/visual design phase. Deliberate direction (palette/type/layout/**signature**) + anti-AI-default check + a11y/interaction discipline → persisted design artifact. | `SKILL.md`, `design-judgment.md`, `ux-rules.md` |
 | **sailes-spec** | Phase 3 spec writer/reviewer. Skeleton → Open Questions gate → data model / API-UI / integration coverage / security / phasing / non-goals. Global fallback when a repo has no local `.ai/skills/spec-writing/` (which bootstrap generates from `sailes-bootstrap/spec-writing-template.md`, the mirror of this skill). | `SKILL.md` |
 | **sailes-pre-implement** | Spec readiness analysis before coding: BC impact, risks, gaps → readiness report. | `SKILL.md` |
+| **sailes-database** | Schema design + safe PostgreSQL migrations when the spec touches the DB. Separates 🔒 hard rules (data types, migration safety) from 🔀 decisions (key type, jsonb-vs-column, tenancy/RLS, soft-delete, tooling) presented as decision cards; writes expand/contract-safe migrations verified before any prod run. | `SKILL.md`, `db-compendium.md`, `decision-cards.md`, `migration-safety-checklist.md`, `migration-drizzle.md`, `migration-prisma.md`, `migration-sql-first.md` |
 | **sailes-implement** | Execute an approved spec phase by phase: RED test → verify with evidence → commit per step → review gate → mark implemented. | `SKILL.md` |
 | **sailes-pipedrive** | Domain integration reference (not part of the core pipeline): how to build Pipedrive app extensions — JSON panel, custom UI iframe, floating window, manifest/OAuth, signed-JWT auth, ACL, API proxy. Real Sailes patterns. | `SKILL.md`, `references/*`, `assets/custom-ui-panel-template.html` |
 
