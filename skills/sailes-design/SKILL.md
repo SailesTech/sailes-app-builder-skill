@@ -51,6 +51,37 @@ If the `ui-ux-pro-max` skill/CLI is installed, you may seed the direction with i
 `python3 .../ui-ux-pro-max/scripts/search.py "<product> <industry> <keywords>" --design-system -p "<Project>"`
 Treat its output as **input to your judgment**, not the final answer — still run the anti-AI-default critique and the discipline rules. It is web/app-UI oriented and mobile-biased in places; for B2B web take the palette/type/UX rules, drop the mobile-only items that don't apply.
 
+## Render and self-verify — the physical-integrity gate (MANDATORY for every UI)
+
+The most damaging design failures are not "wrong taste" — they are **physical defects**: a control clipped/cut off, a field that doesn't resize, badges of mismatched width, content overflowing its container, an element invisible or off-canvas, an unintended scrollbar, two elements overlapping, a button you can't fully click. **A human should never be the one to catch these.** The reason a design phase exists is to produce a layout that is correct *by construction* per good practices. So design and its verification are **screenshot/visualization-driven, never code-only**.
+
+Two non-negotiable steps:
+
+1. **Render before you hand off.** Build a visualization of what you're designing — a Playwright screenshot of the rendered component/page (or the prototype's own render) — and LOOK at the actual pixels. Reading your own CSS/JSX is not seeing the layout. This is a normal step in the loop, not an afterthought. (A picture is worth 1000 tokens.)
+
+2. **Pass the physical-integrity gate on that render** before it reaches the human. Categorical checks — pass/fail, not opinion:
+   - **Nothing clipped or cut off** — no text, icon, or control truncated by its cell/container.
+   - **Nothing invisible or off-canvas** — every intended element is on screen and within bounds.
+   - **No unintended overflow / scroll** — content fits its container; horizontal scroll only where deliberately specified (verify at the target widths).
+   - **Nothing overlapping** — no element sits on top of another it shouldn't.
+   - **Every interactive control fully visible, sized, and operable** — buttons/inputs/icons have their full hit area, not a sliver.
+   - **Responsive elements actually resize** — fields/columns that must flex do flex across target widths (e.g. 1280 / 1366 / 1440 for a 14″ laptop), not freeze at a fixed px and float or clip.
+
+   A render failing ANY of these is a **defect to fix**, never a variant to present. Don't ask the human to choose between a broken layout and a less-broken one — fix it, re-render, re-check.
+
+This gate runs on EVERY UI design output (invented or reference-matched). The reference-match rules below are a special case layered on top of it.
+
+## Matching an existing reference (prototype / screenshot)
+
+When the task is "make it look like X" (a designer's prototype, a screenshot, an existing page) rather than inventing a direction, the failure mode is different: you translate the reference by READING its code and verify against a convenient stub, never SEEING either side. That produces endless "looks done → rejected" loops.
+
+Hard rules for reference-match work:
+- **Render the reference to an image first.** Open the prototype (HTML/Figma export/screenshot) and look at the actual pixels — open prototype HTML in a headless browser and screenshot it. Reading its CSS is NOT seeing its layout.
+- **Capture the REAL target surface the user sees** — for an authenticated app, the real logged-in page (real login, real route), NOT only a deterministic dev/mock route. The dev stub often omits the app shell (sidebar, banners, read-only/agent states) that changes the whole proportion. This is the "real-time case first" rule extended from debugging to design.
+- **Visual-diff every iteration on the real surface.** Put reference and current side by side; re-check on the real page after each change, not the stub.
+- **Measure before instructing.** Translate vague feedback ("left side too wide") into a measured target from the reference (column widths, ratios, e.g. "650:660 ≈ 50/50") — don't guess the opposite extreme. State the number in the spec.
+- The persisted artifact still applies: capture the matched proportions/tokens in the ui-spec so the match is reproducible.
+
 ## Quick Reference
 
 | Step | Output |
@@ -59,6 +90,7 @@ Treat its output as **input to your judgment**, not the final answer — still r
 | Token plan | color / type / layout / **signature** |
 | Anti-default critique | each free axis justified, defaults revised |
 | Discipline pass | a11y + states + responsive + tokens |
+| **Render + integrity gate** | **screenshot the result; nothing clipped/overflowing/invisible/overlapping/non-responsive** |
 | Persist | `design-system/MASTER.md` or `.ai/specs/ui-spec.md` |
 
 Reference files: `design-judgment.md` (taste, signature, anti-AI-default), `ux-rules.md` (condensed accessibility/interaction/responsive/forms checklist).
@@ -74,6 +106,12 @@ Reference files: `design-judgment.md` (taste, signature, anti-AI-default), `ux-r
 | Skipping states (only "default") | Specify hover/press/disabled/loading/empty/error. |
 | Copying ui-ux-pro-max output verbatim | It's input to judgment, not the answer; strip mobile-only rules for B2B web. |
 | No artifact on disk | The gate is the file. No file = design phase didn't happen. |
+| Handing off a design you only read as code, never rendered | Render it to a screenshot and LOOK before handoff. Reading JSX/CSS ≠ seeing layout. |
+| Presenting a render with something clipped/overflowing/invisible/overlapping | That's a defect, not a variant. Fix → re-render → re-check. Never make the human catch it. |
+| Fields that must resize frozen at fixed px (float/clip on a 14″ laptop) | Verify responsive behavior at 1280/1366/1440; flex with min/max, not a hard px. |
+| Matching a reference by reading its CSS | Render the reference AND the real page to images; visual-diff. Reading code ≠ seeing layout. |
+| Verifying a visual change on a dev/mock route | Verify on the REAL authenticated surface the user sees (app shell changes proportions). |
+| Guessing the opposite extreme on vague feedback | Measure the reference's proportions/widths first; instruct to the measured target. |
 
 ## Red Flags — STOP
 
@@ -82,3 +120,7 @@ Reference files: `design-judgment.md` (taste, signature, anti-AI-default), `ux-r
 - You can't name the signature element.
 - You specified colors as raw hex inside components instead of tokens.
 - No accessibility pass (contrast, focus, keyboard, reduced-motion).
+- You're about to hand off / present a design you have only read as code, never rendered to an image and looked at.
+- Your render has anything clipped, cut off, invisible, off-canvas, overflowing, overlapping, or non-resizing — and you're about to show it anyway.
+- You're matching a reference but haven't rendered it (and the real target page) to images and compared them.
+- You're iterating on a visual fix against a dev/mock route while the user looks at the real authenticated page.
