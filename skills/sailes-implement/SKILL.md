@@ -18,7 +18,7 @@ description: Use to implement an approved, ready spec (or specific phases of it)
 **Do NOT use when:** no approved spec (write one — `sailes-spec`); spec is NOT-READY (fix it first); a trivial one-liner (just do it).
 
 ## Pre-flight
-1. Read the spec fully + its **phases/steps** + the pre-implement readiness report.
+1. Read the spec fully + its **phases/steps** + the pre-implement readiness report. Read **`.ai/STATE.md` + `.ai/lessons.md`** (project memory) — start from what's already verified and what's known to fail; don't re-derive it.
 2. Confirm `Status: approved`; set it to `in-progress`.
 3. For long/multi-step work (>~5 commits), open a **run log** `.ai/runs/{YYYY-MM-DD}-{slug}.md`: goal, phase list, decisions, what's left — so the work is resumable across context resets.
 4. Branch off; never implement on the default branch.
@@ -30,9 +30,11 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 1. **Plan the step** — restate what it changes and the check that will prove it. Identify the RED test first (write or name a failing test before the code — `superpowers:test-driven-development`).
 2. **Implement** — minimal change that satisfies the step. Logic in services, validation at the boundary (Zod), thin controllers, no `any`. Honor the repo's `AGENTS.md` rules + Task Router guides for the area.
 3. **Test** — unit for logic, integration for every affected API path, E2E for user-critical flows (per the spec's integration coverage). Self-contained tests; never fake a pass.
-4. **Verify (behavior before diff)** — drive the real running system first (e2e flow / `curl` the live endpoint / click the UI / generate the actual PDF/screen), observe the real behavior, THEN trust it. Paste the evidence (command + output / screenshot). A green build/lint is not proof; "looks done" is the failure mode.
+4. **Verify (behavior before diff)** — drive the real running system first (e2e flow / `curl` the live endpoint / click the UI / generate the actual PDF/screen), observe the real behavior, THEN trust it. Paste the evidence (command + output / screenshot). A green build/lint is not proof; "looks done" is the failure mode. **UI-touching steps get vision-verify:** compare the fresh screenshot against the design artifact and the previous accepted screenshot in `.ai/screens/` (canon: `sailes-bootstrap/agent-team-structure.md`, Gate isolation).
 5. **Commit** — one focused commit per step (roughly 1:1 step↔commit), message references the spec. The app is working after every step.
 6. **Track** — tick the step in the spec's **Progress** section (and the run log if used). New unknown surfaced → stop, resolve via `sailes-spec` (re-gate), don't guess.
+
+**Phase gate (binary stop condition).** A phase is complete only when its **Done-when** condition from the spec passes — run the exact commands, paste the output. "Looks complete" is not a phase gate. If the spec has no binary Done-when for a phase, derive one and add it to the spec **before** starting that phase. A Done-when never overrides decision ownership: hitting a **key decision** mid-loop (contract shape, data model, auth, a new UX surface) means STOP and escalate per `agent-team-structure.md` — never push through it to satisfy the goal.
 
 ## Review gate (before "done")
 - **Adversarial review in a fresh context** — a reviewer subagent / `checker` reads the diff against the spec + the code-review checklist (correctness, contracts, security, scope creep, tests present). (`sailes-bootstrap/agentic-first-principles.md` §C.)
@@ -41,7 +43,8 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 ## On completion
 - All phases shipped + verified → set spec `Status: implemented` and `git mv` it to `.ai/specs/implemented/` (preserve history); update cross-references.
 - Push deferred follow-ups / tech debt discovered during build to `.ai/backlog.md` (don't lose them).
-- Record any correction-worthy lesson in `.ai/lessons.md` (Context/Problem/Rule/Applies-to).
+- Record any correction-worthy lesson in `.ai/lessons.md` (Context/Problem/Rule/Applies-to); check lessons for **promotion candidates** (recurring → AGENTS.md/Task Router rule).
+- **Update `.ai/STATE.md` (write before walking away):** move what this run proved into Verified facts (with evidence), record unresolved problems in Open failures, set Last session. Do this **also when a session is interrupted mid-spec** — it's what makes the work resumable.
 - Hand off per the repo's PR workflow (label `review`).
 
 ## Subagent strategy
@@ -53,10 +56,11 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 
 | Stage | Gate |
 |---|---|
-| Pre-flight | spec approved + READY; status→in-progress; run log if long; branch |
+| Pre-flight | spec approved + READY; STATE.md + lessons.md read; status→in-progress; run log if long; branch |
 | Per step | RED test → implement → test → verify (evidence) → commit → track |
-| Review | adversarial fresh-context review vs spec + checklist |
-| Done | status→implemented + git mv to implemented/; backlog + lessons updated |
+| Per phase | **Done-when passes** — exact commands run, output pasted |
+| Review | adversarial fresh-context review vs spec + checklist (checker sees diff + rubric only) |
+| Done | status→implemented + git mv to implemented/; backlog + lessons + **STATE.md** updated |
 
 ## Red Flags — STOP
 
@@ -66,3 +70,5 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 - You hit an unknown and guessed instead of re-gating the spec.
 - Spec shipped but never moved to `implemented/`; backlog/lessons not updated.
 - No adversarial review before marking done.
+- You declared a phase complete without running its **Done-when** commands (or the phase never had one).
+- A session ended — completed or interrupted — without updating `.ai/STATE.md`.

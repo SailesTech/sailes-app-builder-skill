@@ -66,7 +66,7 @@ CLAUDE.md/AGENTS.md rules are *advisory*. For guarantees, enforce in config + CI
 
 ## C. Adversarial review before "done" ✅
 
-- A **fresh-context reviewer** (subagent / dedicated checker) sees only the diff + the criteria, not the reasoning that produced it — so it grades on result.
+- A **fresh-context reviewer** (subagent / dedicated checker) sees only the diff + the criteria, not the reasoning that produced it — so it grades on result. Operationally: the **Gate isolation** rules in [`agent-team-structure.md`](./agent-team-structure.md) — the lead never forwards the maker's report/self-assessment to the reviewer.
 - Prompt it to **report gaps that affect correctness or stated requirements**, not style preferences (a gap-hunting reviewer always finds *something*; don't over-engineer chasing it).
 - The implementing session receives gaps directly and fixes + re-reviews without manual copy-paste.
 
@@ -132,6 +132,8 @@ The agent must work git predictably and safely. Generate these as the repo's git
 ## H. Institutional memory & hard gates (tooling that survives context resets)
 
 - **Lessons file (`.ai/lessons.md`).** After a correction or a recurring bug, append a lesson: **Context / Problem / Rule / Applies-to**. This is the repo's durable memory so the same mistake isn't repeated across sessions. AGENTS.md carries a rule: "after a correction, record a lesson here."
+- **State file (`.ai/STATE.md`) — the project's session memory.** Five sections: **Verified facts** (each with the evidence that proved it) / **General rules** (distilled) / **Open failures** (unresolved + best diagnosis) / **Lessons learned** (pointers into lessons.md) / **Last session** (where work stopped + next step). Two iron rules: **read at session start** (before non-trivial work) and **write before walking away** (every session — completed or interrupted — ends with the update). Division of labor: lessons.md holds *portable rules*; STATE.md holds *this project's facts* and the resume pointer.
+- **Promotion rule (memory must compound).** Appended-only memory decays into noise; it compounds only if it moves up: a lesson that recurs → a rule in AGENTS.md / Task Router; a pattern recurring across projects → a global-skill candidate. Review lessons.md + STATE.md for promotion candidates when closing a spec.
 - **Run log (`.ai/runs/`).** For long or multi-step work, keep a per-run note (`.ai/runs/{YYYY-MM-DD}-{slug}.md`): goal, steps done, decisions, what's left. Makes work **resumable** across context resets and reviewable after the fact. Create it the first time a task is long enough to need it (don't pre-seed empty).
 - **Pre-commit hooks (husky or equivalent).** Run lint + typecheck (+ format/i18n where relevant) before every commit — deterministic gate the agent can't skip. Optionally block writes to migrations or secrets. (Anthropic: hooks > advisory rules for must-happen-every-time actions.)
 - **CI pipeline file (`.github/workflows/ci.yml`).** Small hard gates in order: **lint → typecheck → unit → integration → e2e (on preview) → security scan**. Reusable across packages; this is "verifiable done" enforced by the platform, not the agent's judgment.

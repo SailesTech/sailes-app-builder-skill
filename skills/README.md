@@ -48,6 +48,7 @@ Each skill is **independently callable** — use `sailes-discovery` alone for a 
 5. **Full `.ai/` structure from day one, but idempotent** — a new repo gets the complete structure (specs + implemented/ + archived/, checklists, adr, skills, backlog.md, lessons.md header); never overwrite an existing `.ai/` artifact — add only what's missing, follow the repo's convention.
 6. **Spec lifecycle** — specs carry a status and move root → implemented/ → archived/ (`git mv`); deferred ideas land in `.ai/backlog.md`.
 7. **Developer owns the vision; AI interrogates and illuminates, never decides** — the foundational principle (agentic-first-principles §0).
+8. **Memory compounds, or it decays.** `.ai/STATE.md` (verified facts / open failures / last session) is read at session start and written before walking away; every spec phase carries a binary `Done-when`; gates see the artifact + rubric, never the maker's narrative; recurring lessons get promoted (repo rule → AGENTS.md/Task Router; cross-project pattern → skill candidate).
 
 ## Working on the skills (TDD-for-skills)
 
