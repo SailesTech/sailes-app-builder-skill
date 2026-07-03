@@ -1,6 +1,6 @@
 ---
 name: sailes-design
-description: Use when a project (new or existing) needs a real frontend/visual design phase BEFORE building UI — to produce a deliberate design direction and a persisted design artifact, not deferred guesswork. Triggers — "zaprojektuj UI", "jak ma wyglądać", "design", "frontend", "interfejs", entering Step 4.5 of sailes-bootstrap, or any time UI is about to be built with no design-system/MASTER.md or ui-spec on disk. Covers palette, typography, layout, interaction states, accessibility, and the anti-AI-default check. Stops "no real frontend project was made".
+description: Use when a project (new or existing) needs a real frontend/visual design phase BEFORE building UI — to produce a deliberate design direction and a persisted design artifact, not deferred guesswork. Triggers — "zaprojektuj UI", "jak ma wyglądać", "design", "frontend", "interfejs", entering Step 4.5 of sailes-bootstrap, or any time UI is about to be built with no design-system/MASTER.md or ui-spec on disk. Covers palette, typography, layout, interaction states, accessibility, the anti-AI-default check, and a premium-craft finish pass (making the app look expensive, not just correct). Also triggers on "premium", "wygląda tanio", "make it look premium/high-end". Stops "no real frontend project was made".
 ---
 
 # Sailes Design — the design phase that must happen before UI
@@ -11,9 +11,10 @@ description: Use when a project (new or existing) needs a real frontend/visual d
 
 **Core principle:** A UI without a design phase defaults to one of the generic "AI looks" (warm-cream + serif + terracotta; near-black + one acid accent; broadsheet hairline grid). Those are defaults, not choices. Your value here is making choices *specific to this brief* and writing them down.
 
-Two layers, both required:
+Three layers, all required:
 1. **Taste / direction** (judgment) — palette, type pairing, layout concept, the one **signature element**, and an explicit anti-AI-default check. See `design-judgment.md`.
 2. **Discipline / rules** (verifiable) — accessibility, interaction states, responsive, tokens-not-hex. See `ux-rules.md`.
+3. **Premium craft** (finish) — the last 15% that separates *correct* from *expensive*: color depth, layered elevation, typographic refinement, motion choreography, and the "premium tells" pass. See `premium-craft.md`. Correct-but-cheap is the most common failure once taste and discipline are in place; this layer closes it.
 
 ## When to Use / When NOT to
 
@@ -42,8 +43,9 @@ Either way the artifact is the gate: feature prose with no design direction does
 2. **Draft a compact token plan** (see `design-judgment.md`): Color (4–6 named hex), Type (display + body + optional utility, deliberate pairing), Layout (one-sentence concept + ASCII wireframe), **Signature** (the one memorable element that embodies the brief).
 3. **Anti-AI-default critique (required).** For each axis the brief left free, ask: "would I produce this for almost any similar brief?" If yes, it's a default — revise and say what changed and why. If the brief *pins* a direction, follow it exactly (the brief's words win).
 4. **Apply the discipline rules** (`ux-rules.md`): accessibility (contrast 4.5:1, focus, keyboard, reduced-motion), interaction states (hover/press/disabled/loading/empty/error), responsive breakpoints, semantic tokens (no raw hex in components), one primary CTA per screen, no emoji as icons.
-5. **Persist** the artifact (MASTER.md or ui-spec.md), tuned to the locked stack (Tailwind/shadcn → token names map to that). Confirm with the user.
-6. If you also build, derive every color/type decision from the artifact, then critique the result (screenshot if possible — a picture is worth 1000 tokens).
+5. **Premium-craft pass (required for any stakeholder/customer-facing UI)** (`premium-craft.md`): bake color depth (tinted neutrals, no pure #000/#fff), a layered elevation scale, typographic refinement (modular scale, size-dependent tracking, tabular figures), motion choreography, and finish details into the artifact's tokens — then run the "premium tells" pass/fail checklist. Retune shadcn defaults; don't ship them stock. Correct-but-cheap fails here, not at the human's desk.
+6. **Persist** the artifact (MASTER.md or ui-spec.md), tuned to the locked stack (Tailwind/shadcn → token names map to that). Confirm with the user.
+7. If you also build, derive every color/type decision from the artifact, then critique the result (screenshot if possible — a picture is worth 1000 tokens).
 
 ## Optional: ui-ux-pro-max design engine
 
@@ -90,10 +92,11 @@ Hard rules for reference-match work:
 | Token plan | color / type / layout / **signature** |
 | Anti-default critique | each free axis justified, defaults revised |
 | Discipline pass | a11y + states + responsive + tokens |
+| **Premium-craft pass** | **color depth + layered elevation + type refinement + motion choreography + finish; "premium tells" pass/fail; shadcn retuned** |
 | **Render + integrity gate** | **screenshot the result; nothing clipped/overflowing/invisible/overlapping/non-responsive** |
 | Persist | `design-system/MASTER.md` or `.ai/specs/ui-spec.md` |
 
-Reference files: `design-judgment.md` (taste, signature, anti-AI-default), `ux-rules.md` (condensed accessibility/interaction/responsive/forms checklist).
+Reference files: `design-judgment.md` (taste, signature, anti-AI-default), `ux-rules.md` (condensed accessibility/interaction/responsive/forms checklist), `premium-craft.md` (the "feels expensive" finish layer + premium-tells checklist, tuned to Tailwind v4/oklch + shadcn).
 
 ## Common Mistakes
 
@@ -106,6 +109,9 @@ Reference files: `design-judgment.md` (taste, signature, anti-AI-default), `ux-r
 | Skipping states (only "default") | Specify hover/press/disabled/loading/empty/error. |
 | Copying ui-ux-pro-max output verbatim | It's input to judgment, not the answer; strip mobile-only rules for B2B web. |
 | No artifact on disk | The gate is the file. No file = design phase didn't happen. |
+| Correct but cheap-looking (a11y + states pass, still reads as an internal tool) | Run the premium-craft pass (`premium-craft.md`): tint the neutrals, layer the shadows, refine the type, retune shadcn. Correctness is the floor, not the finish. |
+| Pure #000/#fff, flat grey cards, single-layer black shadow everywhere | The top color/elevation tells. Tinted near-black/near-white, tonal elevation steps, multi-layer hue-tinted shadows on one scale. |
+| Shipping stock shadcn defaults | The default look is itself a tell. Retune palette/radius/shadow/ring so it doesn't read as stock. |
 | Handing off a design you only read as code, never rendered | Render it to a screenshot and LOOK before handoff. Reading JSX/CSS ≠ seeing layout. |
 | Presenting a render with something clipped/overflowing/invisible/overlapping | That's a defect, not a variant. Fix → re-render → re-check. Never make the human catch it. |
 | Fields that must resize frozen at fixed px (float/clip on a 14″ laptop) | Verify responsive behavior at 1280/1366/1440; flex with min/max, not a hard px. |
@@ -117,6 +123,8 @@ Reference files: `design-judgment.md` (taste, signature, anti-AI-default), `ux-r
 
 - You're writing UI code and there's no `design-system/MASTER.md` / `.ai/specs/ui-spec.md`.
 - Your palette/type would fit almost any brief (a default, not a choice).
+- The UI is correct (a11y + states pass) but reads as cheap/internal-tool — you skipped the premium-craft pass.
+- Pure `#000`/`#fff` anywhere, untinted grey cards, a single-layer black shadow on everything, or stock un-retuned shadcn.
 - You can't name the signature element.
 - You specified colors as raw hex inside components instead of tokens.
 - No accessibility pass (contrast, focus, keyboard, reduced-motion).
