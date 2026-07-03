@@ -29,12 +29,13 @@ For each element below, classify it **PRESENT** (exists and matches the current 
 | 7 | **agent-team structure** | working discipline reflects the current team model — see [`agent-team-structure.md`](./agent-team-structure.md) (lead/worker roles, gates, run log) | document it; this is commonly MISSING on repos adopted before the team model existed |
 | 8 | guardrails | verifiable-done via THEIR commands, RED-test-first, adversarial review, behavior-before-diff (`agentic-first-principles.md`) | add as a gap list, not a code rewrite |
 | 9 | Git/PR workflow + lessons | `AGENTS.md` Git/PR sections + `.ai/lessons.md` present; CI/hooks aligned to REAL commands | align/add additively |
+| 10 | **loop hygiene / session memory** | `.ai/STATE.md` present (five sections, read-at-start + write-before-walking-away in AGENTS.md); live specs' phases carry a binary `Done-when`; gate isolation known (checker sees diff+spec+checklist only, never the maker's narrative) | scaffold STATE.md header + AGENTS.md rules; flag live specs without `Done-when`; document gate isolation |
 
 ```bash
 ROOT="$(pwd)"
 echo "== methodology elements (PRESENT / MISSING — DRIFTED needs a human read) =="
 for f in AGENTS.md CLAUDE.md \
-         .ai/backlog.md .ai/lessons.md \
+         .ai/backlog.md .ai/lessons.md .ai/STATE.md \
          .ai/skills/spec-writing/SKILL.md \
          .ai/checklists/security.md .ai/checklists/testing.md .ai/checklists/deployment.md; do
   [ -e "$ROOT/$f" ] && echo "PRESENT $f" || echo "MISSING $f"

@@ -20,8 +20,8 @@ Role definitions live globally in `~/.claude/agents/`. The lead is the single po
 | `explorer` | haiku | read-only recon → `file:line` findings, contract shapes, prop/value maps | propose final code; review quality |
 | `designer` | sonnet | UX/UI spec from design tokens (layout, states, responsive) | write feature code |
 | `be-dev` / `fe-dev` | sonnet | implement exactly the approved scope, per spec / per design | commit, push, or expand scope |
-| `checker` | sonnet | independent read-only review of the diff vs. spec → APPROVE / NITS / CHANGES-REQUIRED | grade on reasoning instead of result; touch code |
-| `qa` | sonnet | real-flow e2e proof + screenshots; behavior before diff | fake a pass when stack/creds are missing |
+| `checker` | sonnet | independent read-only review of the diff vs. spec → APPROVE / NITS / CHANGES-REQUIRED; input = diff + spec + checklist ONLY (see Gate isolation) | grade on reasoning instead of result; read the maker's narrative; touch code |
+| `qa` | sonnet | real-flow e2e proof + screenshots; behavior before diff; vision-verify vs design artifact + `.ai/screens/` baseline | fake a pass when stack/creds are missing |
 
 ## Order of work (the pipeline)
 
@@ -43,7 +43,16 @@ explorer → designer → BE contract finalized → fe-dev → checker → qa
 4. **Escalation is upward only.** A worker that hits a scope question or a **key decision** (stack, contract shape, data-model, auth, roles) stops and escalates to the lead; the lead escalates to the human. Workers never silently decide a key decision or widen scope.
    - **Where the lead's authority ends.** The lead *assembles and freezes* the contract from decisions the spec/brief already settled — that's coordination, the lead's job. But when freezing it requires a **new** architectural or UX choice the spec didn't settle (e.g. "50k-row export: synchronous streamed download vs. async job + emailed link" — which also decides whether a new UI surface and a `designer` pass are needed), that is a **key decision**: the lead escalates it to the human, gets the answer, *then* freezes. The lead never silently picks the architecture just because it's mid-pipeline.
 5. **Workers never commit or push.** Integration, commit, and PR are the lead's job, after the gates pass.
-6. **Run log.** The lead records what was assigned, what each worker returned, and the gate verdicts — so a context reset can resume without re-deriving the plan.
+6. **Run log.** The lead records what was assigned, what each worker returned, and the gate verdicts — so a context reset can resume without re-deriving the plan. At session end (done or interrupted) the lead also updates `.ai/STATE.md` — **write before walking away**: verified facts with evidence, open failures, Last session pointer.
+
+## Gate isolation — what the gates see (verifier beats self-critique)
+
+A verifier grades honestly only on a clean context. The failure mode this section closes: a reviewer that reads the maker's reasoning inherits the maker's confidence and waves the work through — it grades the story, not the artifact.
+
+- **`checker` receives ONLY: the diff, the spec/contract it implements, and the review checklist.** The lead **never forwards** the worker's report, reasoning, or self-assessment to `checker` — the worker's narrative is input for the lead's *integration*, not for the *review*. If the checker asks "why was this done this way", the answer is the spec, not the worker's story.
+- **`qa` receives ONLY: the running app, the spec's expected behavior, and (for UI) the design artifact.** Not the implementation story, not "what should work now".
+- **Vision-verify (UI):** for every screen the task touched, `qa` compares a fresh screenshot against (a) the design artifact (`.ai/specs/ui-spec.md` or `design-system/MASTER.md`) and (b) the previous accepted screenshot in `.ai/screens/` (visual regression). Mismatch = CHANGES-REQUIRED naming the concrete difference. On APPROVE, the new screenshot replaces the baseline in `.ai/screens/`. A text-only review cannot see a failure that only exists on screen.
+- **Cheap graders for binary checks:** a phase's `Done-when` (exact commands + expected output) may be verified by a lightweight model (haiku) — it's a pass/fail read, not judgment. Judgment review stays with `checker`.
 
 ## Worker brief — the self-contained handover
 

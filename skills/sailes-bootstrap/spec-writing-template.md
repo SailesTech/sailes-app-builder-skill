@@ -28,7 +28,7 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
    - **STOP after the skeleton.** Do not proceed until the user answers all open questions. Hard gate.
 4. **Iterate** — apply answers, remove the Open Questions block. New unknowns surface → re-gate those only.
 5. **Design** — data model, API surface, UI surface, module boundaries, integration/webhook contracts, jobs/workflows.
-6. **Phasing** — break into **Phases** (stories) and **Steps** (testable tasks). Each step should leave the app working.
+6. **Phasing** — break into **Phases** (stories) and **Steps** (testable tasks). Each step should leave the app working. **Every phase carries a `Done-when`** — a binary, machine-checkable completion condition: the exact command(s) to run + the expected outcome (e.g. `pnpm test src/auth → 0 failures`; `curl -s -o /dev/null -w '%{http_code}' -X POST /api/export → 200 + non-empty file`; UI: screenshot of screen X matches the design artifact). "Works correctly" is not a Done-when — if you can't write the check, the phase isn't specified yet.
 7. **Integration coverage** — list every affected API path and key UI path; each gets a test in the same change.
 8. **Review** — apply the checklist below; set `Status: approved` on sign-off.
 
@@ -46,7 +46,7 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 - **Integration / Webhooks** — for each external system: intake (verify→validate→persist→202), idempotency, retry, sync tables.
 - **Jobs / Workflows** — cron vs job vs durable workflow; which tier.
 - **Security** — auth + permission checks, Zod validation, signed secrets, audit log, file access control; mark which security-checklist items apply.
-- **Phasing & Steps** — stories → testable steps.
+- **Phasing & Steps** — stories → testable steps; **every phase has a binary `Done-when`** (exact commands + expected output).
 - **Integration Coverage** — affected API + UI paths, each with a test.
 - **Non-Goals** — what we explicitly are NOT building.
 
@@ -70,6 +70,7 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 - [ ] Webhooks async intake-only; idempotency + retry + dead-letter.
 - [ ] Integration coverage lists every affected API + key UI path, each with a test.
 - [ ] Phases leave the app working; each step is testable.
+- [ ] Every phase has a binary `Done-when` (exact commands + expected result), not a qualitative statement.
 - [ ] Non-goals stated; standard CRUD noise cut.
 - [ ] Canonical primitives used (no reinvented framework substitutes).
 

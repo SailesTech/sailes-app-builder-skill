@@ -22,7 +22,7 @@ Every item MUST exist on disk. The manifest decides *optional packages*, never t
 | **git initialized + first commit** | A repo with 0 commits is not a working repo. |
 | **design artifact** (`design-system/MASTER.md` OR `.ai/specs/ui-spec.md`) | The design phase ran (see `sailes-design`). Missing = the "no frontend project" failure. |
 
-**Generate the full `.ai/` structure** — including `specs/` (+ `implemented/`, `archived/`), `backlog.md`, and `lessons.md` (header-only; filled on the first real lesson). Present from day one so the convention is visible. **Idempotent:** if any `.ai/` artifact already exists in the repo, do NOT overwrite it — add only what is missing, follow the repo's existing convention.
+**Generate the full `.ai/` structure** — including `specs/` (+ `implemented/`, `archived/`), `backlog.md`, `lessons.md` (header-only; filled on the first real lesson), and `STATE.md` (header-only session memory: Verified facts / General rules / Open failures / Lessons learned / Last session). Present from day one so the convention is visible. **Idempotent:** if any `.ai/` artifact already exists in the repo, do NOT overwrite it — add only what is missing, follow the repo's existing convention.
 
 ## Verification block (run it, paste the output)
 
@@ -46,7 +46,7 @@ echo "== git =="
 git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 && echo "OK   git initialized" || echo "MISS git init"
 echo "first commit: $(git -C "$ROOT" rev-list --all --count 2>/dev/null || echo 0) commit(s)"
 echo "== full .ai/ structure (idempotent: pre-existing files are fine, never overwritten) =="
-for f in .ai/specs .ai/specs/implemented .ai/specs/archived .ai/backlog.md .ai/lessons.md; do
+for f in .ai/specs .ai/specs/implemented .ai/specs/archived .ai/backlog.md .ai/lessons.md .ai/STATE.md; do
   [ -e "$ROOT/$f" ] && echo "OK   $f" || echo "MISS $f (scaffold it; do not overwrite if it appears later)"
 done
 ```

@@ -11,7 +11,9 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 - `.ai/adr/template.md` — architectural decision records
 - `.ai/backlog.md` — deferred ideas / later phases / tech debt (header-only to start)
 - `.ai/lessons.md` — institutional memory (header-only; filled on first correction)
+- `.ai/STATE.md` — session memory (header-only, five sections: Verified facts / General rules / Open failures / Lessons learned / Last session)
 - `.ai/runs/` — per-session run log for long/resumable work (created when first used)
+- `.ai/screens/` — latest accepted screenshot per key screen, qa's vision-verify baseline (created when first used)
 - (idempotent: never overwrite an existing `.ai/` artifact; add only what's missing)
 
 ---
@@ -98,6 +100,13 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 
 ## Lessons
 - After a correction or a recurring bug, append to `.ai/lessons.md`: Context / Problem / Rule / Applies-to. This is the repo's durable memory — read it before non-trivial work.
+- **Promotion rule (memory must compound):** a lesson that recurs or generalizes gets promoted upward — repo-wide rule → a line in this AGENTS.md / Task Router; cross-project pattern → candidate for a global skill. Review `.ai/lessons.md` for promotion candidates when closing a spec. A lesson that is only ever appended, never promoted, is noise.
+
+## Session Memory (`.ai/STATE.md`)
+- Five sections: **Verified facts** (checked, each with the command/evidence that proved it) · **General rules** (distilled from this project) · **Open failures** (unresolved problems + best diagnosis so far) · **Lessons learned** (pointers into `.ai/lessons.md`) · **Last session** (where work stopped + the next step).
+- **Read at session start** — before any non-trivial work, read STATE.md + lessons.md; otherwise you re-derive known state and repeat known dead ends.
+- **Write before walking away** — every working session ends by updating STATE.md: promote what you verified into Verified facts, record what's still broken in Open failures, update Last session. A session that ends without this write loses its memory. This applies on interruption too, not just on completion.
+- **Facts vs hypotheses:** an entry enters Verified facts only with evidence attached; everything unproven stays in Open failures. Never let a hypothesis masquerade as a fact.
 
 ## Hard Safety Rules
 - NEVER commit/push without explicit human instruction.

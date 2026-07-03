@@ -37,7 +37,7 @@ A repo built with `sailes-bootstrap` has a **local** spec-writing skill at `.ai/
    - **STOP after the skeleton. Hard gate.** Do not write the rest until the user answers every open question.
 4. **Iterate** — apply answers, remove the Open Questions block. New unknowns surface → re-gate only those.
 5. **Design** — data model, API surface, UI surface, module boundaries, integration/webhook contracts, jobs/workflows.
-6. **Phasing** — break into **Phases** (stories) and **Steps** (testable tasks). Each step leaves the app working.
+6. **Phasing** — break into **Phases** (stories) and **Steps** (testable tasks). Each step leaves the app working. **Every phase carries a `Done-when`** — a binary, machine-checkable completion condition: the exact command(s) to run + the expected outcome (e.g. `pnpm test src/auth → 0 failures`; `curl -s -o /dev/null -w '%{http_code}' -X POST /api/export → 200 + non-empty file`; UI: screenshot of screen X matches the design artifact). "Works correctly" / "is polished" is not a Done-when — if you can't write the check, the phase isn't specified yet.
 7. **Integration coverage** — list every affected API path and key UI path; each gets a test in the same change.
 8. **Review** — apply the checklist below; set `Status: approved` when the user signs off, before implementation starts.
 
@@ -85,7 +85,7 @@ Status: draft | approved | in-progress | implemented | superseded
 - **Integration / Webhooks** — per external system: intake (verify→validate→persist→202), idempotency, retry, sync tables.
 - **Jobs / Workflows** — cron vs job vs durable workflow; which tier.
 - **Security** — auth + permission checks, Zod validation, signed secrets, audit log, file access control; mark which security-checklist items apply.
-- **Phasing & Steps** — stories → testable steps.
+- **Phasing & Steps** — stories → testable steps; **every phase has a binary `Done-when`** (exact commands + expected output).
 - **Integration Coverage** — affected API + UI paths, each with a test.
 - **Non-Goals** — what we explicitly are NOT building. Push deferred-but-worth-keeping items (later phases, tech debt) to `.ai/backlog.md` so they aren't lost in this one spec.
 
@@ -111,6 +111,7 @@ Status: draft | approved | in-progress | implemented | superseded
 - [ ] Webhooks async intake-only; idempotency + retry + dead-letter.
 - [ ] Integration coverage lists every affected API + key UI path, each with a test.
 - [ ] Phases leave the app working; each step is testable.
+- [ ] Every phase has a binary `Done-when` (exact commands + expected result), not a qualitative statement.
 - [ ] Non-goals stated; standard CRUD noise cut.
 - [ ] Canonical primitives used (no reinvented framework substitutes).
 
@@ -136,4 +137,5 @@ Status: draft | approved | in-progress | implemented | superseded
 - You picked the data model / tenancy / integration contract yourself without the user confirming.
 - There's a local `.ai/skills/spec-writing/` and you didn't use it.
 - A phase leaves the app non-working, or a step has no test.
+- A phase's completion is described qualitatively ("improve", "polish", "works well") with no binary `Done-when`.
 - You're about to hand the spec to implementation with unanswered critical unknowns.

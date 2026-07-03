@@ -43,6 +43,9 @@ repo/
       discovery/SKILL.md       # carried over if useful
     backlog.md            # deferred ideas / future features / tech debt (non-goals land here, not lost). See modules-catalog / discovery.
     lessons.md            # institutional memory: Context/Problem/Rule/Applies-to. Created with header; filled on first real lesson.
+    STATE.md              # session memory (header-only): Verified facts / General rules / Open failures /
+                          #   Lessons learned / Last session. Read at session start; written before walking away.
+    screens/              # latest ACCEPTED screenshot per key screen — qa's vision-verify baseline (created when first used)
 
   design-system/          # if sailes-design used the Master+Overrides pattern instead of .ai/specs/ui-spec.md
     MASTER.md             #   global source of truth: palette, type, spacing, components
