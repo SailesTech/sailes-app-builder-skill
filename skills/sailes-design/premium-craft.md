@@ -6,6 +6,8 @@ Pair with `design-judgment.md` (taste) and `ux-rules.md` (discipline). Those two
 
 This layer is **stack-specific to the Sailes baseline**: Tailwind v4 (CSS-first, `oklch()` tokens) + shadcn/ui + React 19. Concrete moves below assume that stack.
 
+Two companions: **`assets/premium-tokens-starter.css`** implements §1–3 + §7 as a ready `@theme` scaffold (two hue knobs) — start there instead of re-deriving ramps by hand. **`premium-ux.md`** is the sibling layer for how the app *behaves* (latency, keyboard, forgiveness) — looks and feel ship together.
+
 ## When this layer applies
 
 - Every app that a human stakeholder or an end customer sees. (Internal cron/worker with no UI: skip.)
