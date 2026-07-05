@@ -1,297 +1,360 @@
-# Agentic-First Next Level — persisted evals, loop mode, parallel fan-out, scheduled compounding
+# Agentic-First Next Level — move truth from prose into the machine
 
 Status: proposal
 Date: 2026-07-05
 
-> Dogfooding note: like the 2026-07-02 loop-engineering spec, this is a skills repo,
-> not an app repo — Data Model / API & UI Surface / Jobs are N/A. Every phase carries
-> a binary **Done-when**, per the framework's own Phase-2 rule.
+> Dogfooding note: skills repo, not an app repo — Data Model / API & UI Surface /
+> Jobs are N/A. Every phase carries a binary **Done-when**.
 >
 > **This is a proposal, not an approved spec.** Per the framework's foundational
-> principle (developer owns key decisions), the Open Questions below must be answered
-> by Marcin before any phase is implemented. Phases are independent — approve any subset.
+> principle, the Open Questions below are Marcin's to answer before any phase is
+> implemented. Phases are independent — approve any subset.
+>
+> Revision note: v1 of this proposal was derived from the loop-engineering roadmap.
+> This v2 is a first-principles rethink. Two v1 items survive on their own merits
+> (dogfooding, persisted evals — Phase 7); v1's loop-mode/BLOCKED-BY-POLICY/routines
+> are deprioritized to the backlog (see "Deprioritized from v1" at the end).
 
 ## TLDR & Context
 
-The 2026-07-02 adoption closed the *memory* gaps (STATE.md, binary Done-when, gate
-isolation, vision-verify, promotion rule). What's still missing is the **top layer of
-the compound stack**: the framework accumulates lessons but has no persisted
-evaluation loop, no autonomous loop harness for the binary gates it now requires, no
-parallel-execution discipline, and no scheduled trigger that makes compounding happen
-when nobody is at the keyboard. This spec proposes six additive phases — all edits to
-existing files plus one new `evals/` directory — that take the framework from
-"remembers" to "self-improves".
+The framework's current strength is **process discipline written as prose that
+agents are instructed to obey**: gates, briefs, escalation rules, checklists. That
+was the right first layer. Its ceiling: an agent follows enforced rules ~always and
+prose rules ~usually — and "usually" compounds badly across hundreds of agent-hours.
+
+The thesis of this spec: **agentic-first means moving truth from prose into the
+machine**, in three moves —
+
+1. **Rules → enforcement.** Every mechanically checkable convention migrates from
+   AGENTS.md prose into lint/types/tests/hooks. Prose keeps only judgment.
+2. **Verification → executable artifacts.** Contracts are typed artifacts, not
+   paragraphs; acceptance criteria are committed failing tests, not command lists;
+   the environment boots in one command with seeded data, or `qa` cannot exist.
+3. **Knowledge → layered, fresh, versioned context.** Docs that lie are worse than
+   no docs; context that doesn't fit is context that isn't read; a standard that
+   can't be upgraded across the portfolio doesn't compound.
 
 ## Problem Statement
 
-Six verified gaps (verified against the repo on 2026-07-05):
+Verified against the repo on 2026-07-05:
 
-1. **The repo doesn't follow its own standard.** The framework prescribes
-   `.ai/STATE.md`, `.ai/backlog.md`, `.ai/lessons.md` and a spec lifecycle
-   (root → `implemented/` → `archived/`), but this repo has none of those files, and
-   the 2026-07-02 spec sits in `.ai/specs/` root with `Status: in-progress` despite
-   all six phases being checked complete. Deferred ideas ("scheduled/cloud routines —
-   candidate for `.ai/backlog.md`") were deferred *into a file that doesn't exist*.
-2. **Skill tests die with the chat.** `skills/README.md` declares TDD-for-skills
-   ("no skill edit without a failing test first"), but the RED/GREEN scenarios live
-   in project memory / conversation — nothing on disk, nothing re-runnable
-   (`grep -rni "eval" skills/` → zero hits outside an OAuth false positive). A skill
-   edit today cannot detect that it *regressed* a behavior a previous edit had fixed.
-   This is the exact "lessons die in chat" failure the framework warns adopters about.
-3. **Binary gates exist, but no loop runs them.** Every spec phase now carries a
-   machine-checkable Done-when — yet `sailes-implement` still prescribes a single
-   linear pass. When a Done-when fails, there is no defined loop shape
-   (fix → re-run → repeat), no iteration cap, and no rule for what gets written to
-   STATE.md when the loop stalls. The known failure mode: the agent "fixes" once,
-   declares progress, and stops at good-enough. (The 2026-07-02 spec explicitly
-   deferred loop harnesses as a non-goal; this phase closes it harness-free.)
-4. **The pipeline is strictly sequential; worktrees appear only in a fallback
-   sentence.** `agent-team-structure.md` orders roles
-   (`explorer → designer → BE → fe-dev → checker → qa`) but never says when the lead
-   may run workers **in parallel**, or that parallel *writing* workers require
-   isolated worktrees. The one mention ("subagents that touch the same files run
-   sequentially (or in worktrees)") is a parenthetical, not a rule. Independent
-   slices of a big spec are serialized for no reason — or worse, parallelized
-   unsafely by an adopter reading the canon literally.
-5. **Model routing has assignments but no failure protocol.** The roles table pins
-   models (opus lead, sonnet workers, haiku recon/graders) but nothing says what
-   happens when a model **refuses or a safety classifier blocks** mid-task. A silent
-   block looks like an ordinary error and burns debugging hours; the canonical
-   pattern (surface the block explicitly, reroute to the fallback tier) is absent.
-6. **Compounding only happens when a human opens a session.** The promotion rule
-   defines the ladder (lesson → AGENTS.md/Task Router → global skill) and says
-   "review candidates when closing a spec" — but nothing triggers a review if no
-   spec closes. There is no scheduled maintenance shape (re-run evals/tests, harvest
-   lessons, propose promotions, digest to the human) either for generated repos or
-   for this framework repo itself.
+1. **Conventions live as prose and only as prose.** `agents-md-template.md` states
+   rules ("no new `any`", "design tokens only", "validation at the boundary") that
+   are all mechanically checkable — yet nothing in the framework says *make the
+   machine enforce them*. `checker` burns judgment capacity re-verifying things a
+   lint rule would catch in milliseconds, and every worker brief re-states
+   constraints the toolchain could make unviolable.
+2. **The frozen BE contract has no prescribed physical form.** The canon freezes
+   the contract before `fe-dev` starts, but doesn't require it to exist as a typed
+   artifact (shared TS types / zod schemas / OpenAPI) that both slices import —
+   so contract drift is a review finding instead of a compile error.
+3. **Session discipline depends on agent goodwill.** "Read STATE.md at session
+   start, write before walking away" is an instruction the agent may skip under
+   context pressure. Claude Code hooks (SessionStart / PreToolUse) and a
+   permissions manifest can make memory-injection and protected-path rules
+   *structural* — the framework doesn't ship either.
+4. **Nothing budgets the inner loop.** Agent productivity is dominated by
+   time-to-verdict: how fast the environment says "wrong". The framework asks for
+   "fast feedback" in principle but never verifies it: no one-command boot with
+   seeded data, no fixture users per RBAC role, no measured check/test latency in
+   `repo-done-checklist.md`. `qa`'s known failure mode ("stack/creds missing") is
+   treated as a qa-behavior rule when it is actually a bootstrap defect.
+5. **The generated architecture isn't parallel-safe.** Nothing in
+   `skeleton.md`/`modules-catalog.md` steers layout away from files that every
+   change must touch (hand-edited barrels, central route/registry files) — the
+   merge-conflict magnets that make concurrent agents collide. Team-level worktree
+   rules (v1 Phase 4) treat the symptom; layout treats the cause.
+6. **Context has no size or freshness discipline.** The generated AGENTS.md grows
+   monotonically (lessons promote *into* it, nothing moves *out*); no rule keeps
+   the root small with per-module docs colocated; nothing detects doc drift
+   (referenced paths/commands that no longer exist). A stale AGENTS.md actively
+   misleads every future agent.
+7. **Skill tests die with the chat + the repo ignores its own standard.**
+   (Carried from v1, still true: no `evals/` on disk; no `.ai/STATE.md`/
+   `backlog.md`/`lessons.md` here; the 2026-07-02 spec is complete but unmoved,
+   `Status: in-progress`.)
+8. **The framework itself has no version.** Generated repos don't record which
+   framework version bootstrapped them; `adopt-existing-repo.md` has no "upgrade"
+   mode. Improvements land in new projects only — the existing portfolio never
+   compounds.
 
 ## Proposed Solution
 
-Six additive phases. Principles preserved throughout: the developer owns key
-decisions (a loop never pushes through an escalation); no dependency on any specific
-harness or tool version (everything works in plain Claude Code; `/goal`, Routines,
-agent-teams remain optional accelerators); idempotent `.ai/` scaffolding; no new
-skills; no benchmark/pricing claims in skill text.
+Eight additive phases in two tracks. Track A moves truth into the machine
+(enforcement, artifacts, environment, layout). Track B makes knowledge compound
+(context, spec-as-tests, evals+dogfooding, versioning).
+
+Principles preserved: developer owns key decisions; no hard dependency on any
+harness feature (hooks/permissions are shipped as templates and marked as the
+enforcement layer *where available* — the prose rule remains as fallback);
+idempotent scaffolding; no new skills.
 
 ## Non-Goals
 
-- **No autonomy expansion.** Loop mode automates *re-checking a binary condition*,
-  not decision-making. Escalation rules unchanged; key decisions still stop the loop.
-- **No runtime/tooling dependency.** No phase may require `/goal`, Outcomes,
-  Routines, CI, or the agent-teams flag to function. Harness-specific notes are
-  clearly marked optional.
-- **No eval framework/runner code.** `evals/` is markdown scenarios executed by a
-  subagent on demand — not a test framework, no package.json scripts, no CI wiring
-  (CI is a backlog candidate).
-- **No new skills, no heavy templates.** The eval scenario template is ~5 fields;
-  the routine template is a short block in existing files.
-- **No retroactive rewriting of shipped history** — Phase 1 moves the implemented
-  spec per lifecycle (`git mv`), it does not edit its content beyond the Status line.
+- **No autonomy expansion.** Enforcement narrows what agents can do wrong; it
+  never widens what they decide.
+- **No CI platform dependency.** Phases reference "a check that runs"; wiring to
+  GitHub Actions etc. is a per-project backlog item.
+- **No custom tooling/plugins built in this pass.** Phase 1 prescribes *using*
+  lint/type machinery (e.g. ESLint `no-restricted-*`, typed contract imports),
+  not authoring a custom plugin; a bespoke rule package is a backlog candidate.
+- **No rewriting of generated repos' history** — upgrade mode (Phase 8) is
+  additive, gated by the human, per the adopt-existing-repo philosophy.
 
 ## Phasing & Steps
 
-### Phase 1 — Dogfooding: the framework repo follows its own standard
+### Track A — move truth into the machine
 
-The cheapest credibility win: everything the skills prescribe for generated repos,
-this repo does itself.
+### Phase 1 — Enforce, don't instruct (the convention ratchet)
 
-- Close the lifecycle on the 2026-07-02 spec: set `Status: implemented`,
-  `git mv` to `.ai/specs/implemented/`.
-- Add `.ai/STATE.md` (the 5-section template) seeded with current verified facts
-  (e.g. install/sync model, the eval gap, the lifecycle catch from this spec).
-- Add `.ai/backlog.md` (from `backlog-template.md`) seeded with the items already
-  deferred in writing: scheduled/cloud routines, CI for evals.
-- Add `.ai/lessons.md` (header per template).
+New section in `agentic-first-principles.md` + edits to `agents-md-template.md`
+and the promotion rule:
+
+- **The ratchet rule:** any convention that can be checked mechanically MUST be
+  enforced mechanically (lint rule, type constraint, test, hook) — and once
+  enforced, the AGENTS.md prose line is **replaced by a one-line pointer** to the
+  enforcement. Prose is reserved for judgment calls machines can't make.
+  Examples of immediately ratchetable rules already in the template: no new
+  `any` (`@typescript-eslint/no-explicit-any` as error), design tokens only
+  (`no-restricted-syntax` on raw color/spacing literals in components),
+  validation at the boundary (zod schema required at route/server-function
+  entry — enforceable by convention test), import direction between modules
+  (`import/no-restricted-paths` or dependency-cruiser).
+- **Promotion rule sharpened** (extends 2026-07-02 Phase 5): a lesson promoted to
+  repo level lands as an *enforced check* whenever checkable — AGENTS.md prose is
+  the fallback, not the default. The promotion ladder becomes:
+  lesson → enforced rule → (only if uncheckable) AGENTS.md prose → skill.
+- **`checker` scope cut:** the review checklist explicitly excludes everything
+  the toolchain enforces — checker verifies judgment (spec fit, naming, design
+  intent, edge cases), not mechanics. Worker briefs shrink accordingly
+  (constraints = "the toolchain is the constraint; here's what it can't see").
+
+**Done-when (binary):**
+```bash
+grep -ci "ratchet" skills/sailes-bootstrap/agentic-first-principles.md   # ≥ 1
+grep -ci "enforced mechanically\|enforce mechanically" skills/sailes-bootstrap/agentic-first-principles.md  # ≥ 1
+grep -ci "pointer to the enforcement\|replaced by a.*pointer" skills/sailes-bootstrap/agents-md-template.md # ≥ 1
+grep -ci "toolchain" skills/sailes-bootstrap/agent-team-structure.md     # ≥ 1
+```
+GREEN subagent test: an agent promoting the lesson "raw hex colors keep appearing
+in components" proposes a lint rule + pointer, not another AGENTS.md paragraph
+(baseline: prose-only promotion).
+
+### Phase 2 — Contract as artifact, not paragraph
+
+- `agent-team-structure.md` ("BE contract finalized" step): *frozen* means a
+  **committed, typed artifact** — shared TS types / zod schemas (or OpenAPI where
+  external) in a location both slices import from. `fe-dev` builds against the
+  import; drift is a compile/type error, not a checker finding. The prose contract
+  in the brief becomes a pointer to the artifact path.
+- `spec-writing-template.md` + `sailes-spec/SKILL.md` (API & UI Surface section):
+  the spec names the contract artifact path(s) it will create/extend.
+- `stack-baseline.md`: note where the shared contract lives in the default stack
+  (e.g. `src/shared/contracts/` with zod schemas inferred to TS types).
+
+**Done-when (binary):**
+```bash
+grep -ci "typed artifact\|contract artifact" skills/sailes-bootstrap/agent-team-structure.md  # ≥ 1
+grep -ci "contract artifact\|typed artifact" skills/sailes-bootstrap/spec-writing-template.md # ≥ 1
+grep -ci "contracts" skills/sailes-bootstrap/stack-baseline.md                                # ≥ 1
+```
+
+### Phase 3 — Harness guardrails: hooks + permissions manifest in the skeleton
+
+Ship structural discipline where the harness supports it (Claude Code today),
+with prose as documented fallback elsewhere:
+
+- `skeleton.md` gains a `.claude/` block for generated repos:
+  - `settings.json` **permissions template** — allow the verify commands
+    (test/lint/typecheck/build/dev) without prompts; deny-by-default the
+    protected surface (`.env*` writes, prod migration/deploy commands,
+    force-push). The "workers never commit/push" rule gets a mechanical backstop.
+  - **SessionStart hook** — inject `.ai/STATE.md` + Task Router pointer into
+    context at session start ("read at session start" stops being a memory test).
+  - **PreToolUse guard** — block edits to protected paths (applied migrations,
+    lockfiles unless task says so, `.ai/specs/implemented/`).
+- `agents-md-template.md`: short "Guardrails" note — what is harness-enforced vs
+  what remains prose, so agents in other harnesses know which rules lost their
+  backstop.
+- `repo-done-checklist.md`: verify `.claude/settings.json` + hooks exist.
+
+**Done-when (binary):**
+```bash
+grep -c "settings.json" skills/sailes-bootstrap/skeleton.md            # ≥ 1
+grep -ci "SessionStart" skills/sailes-bootstrap/skeleton.md            # ≥ 1
+grep -ci "PreToolUse\|protected path" skills/sailes-bootstrap/skeleton.md  # ≥ 1
+grep -c "settings.json" skills/sailes-bootstrap/repo-done-checklist.md # ≥ 1
+```
+
+### Phase 4 — The environment is the agent's real interface (time-to-verdict)
+
+- `repo-done-checklist.md` gains an **Environment block** (all verified, with
+  outputs pasted):
+  - **One-command boot:** clean clone → running app with seeded data in a single
+    documented command.
+  - **Seeded fixtures:** at least one fixture user *per RBAC role* + a realistic
+    minimal dataset — `qa` can always log in and exercise real flows.
+  - **Fast verdict:** a single `check` command (typecheck+lint+unit) with its
+    measured wall time recorded; targeted test invocation documented (run one
+    file/one test, not the world).
+- `skeleton.md`: `seed/` (or `scripts/seed.ts`) + `.env.example` completeness rule
+  (every variable the app reads, with safe defaults or clear placeholders).
+- `agent-team-structure.md` (`qa` role): "stack/creds missing" is reclassified —
+  not a qa judgment call but a **bootstrap defect**: qa reports ENV-DEFECT and the
+  lead escalates; the fix is the seed/boot path, never a skipped proof.
+- `sailes-bootstrap/SKILL.md`: time-to-verdict named as a stack-choice criterion
+  (a stack the agent can't verify fast is a worse stack *for this methodology*).
+
+**Done-when (binary):**
+```bash
+grep -ci "one-command boot\|single command" skills/sailes-bootstrap/repo-done-checklist.md  # ≥ 1
+grep -ci "fixture user" skills/sailes-bootstrap/repo-done-checklist.md   # ≥ 1
+grep -ci "ENV-DEFECT" skills/sailes-bootstrap/agent-team-structure.md    # ≥ 1
+grep -ci "seed" skills/sailes-bootstrap/skeleton.md                      # ≥ 1
+```
+
+### Phase 5 — Parallel-safe layout: design away file contention
+
+New subsection in `agentic-first-principles.md` + notes in `skeleton.md` /
+`modules-catalog.md`. Concurrent agents (and concurrent humans) collide on files
+every change must touch; the fix is architectural, not procedural:
+
+- **No hand-edited aggregation points:** no hand-maintained barrel files
+  (`index.ts` re-export walls), no central hand-edited route/registry/menu file —
+  prefer file-based conventions (file-based routing already in the default
+  stack) and generated aggregations where a registry is unavoidable.
+- **Feature-folder ownership:** a feature's route, components, server functions,
+  schemas, and tests colocate under one folder — one task touches one subtree.
+- **One-owner-per-file heuristic for decomposition:** the lead slices tasks so no
+  two concurrent workers write the same file; if the slicing can't achieve that,
+  the tasks aren't parallel (sequential or worktrees — mechanism per team canon).
+
+**Done-when (binary):**
+```bash
+grep -ci "barrel" skills/sailes-bootstrap/agentic-first-principles.md        # ≥ 1
+grep -ci "parallel-safe\|file contention" skills/sailes-bootstrap/agentic-first-principles.md  # ≥ 1
+grep -ci "colocat" skills/sailes-bootstrap/skeleton.md                       # ≥ 1
+```
+
+### Track B — make knowledge compound
+
+### Phase 6 — Context layering + freshness (docs that lie are worse than none)
+
+- `agents-md-template.md`: **size budget** for the root AGENTS.md (target ≤ ~150
+  lines) — module detail moves to per-module colocated docs
+  (`src/modules/x/AGENTS.md` or README) that the Task Router points to. The root
+  is a map, not an encyclopedia. Lessons that promote into AGENTS.md must displace
+  or merge, not only append (the size budget forces curation).
+- **Freshness check** (in `repo-done-checklist.md` + `adopt-existing-repo.md`
+  audit): every file path and command referenced in AGENTS.md / Task Router must
+  exist / run — a scriptable grep-and-stat pass; failures are doc drift and block
+  "done". (This check is also the seed of any future maintenance routine.)
+
+**Done-when (binary):**
+```bash
+grep -ci "size budget\|150 lines" skills/sailes-bootstrap/agents-md-template.md  # ≥ 1
+grep -ci "freshness" skills/sailes-bootstrap/repo-done-checklist.md              # ≥ 1
+grep -ci "freshness\|doc drift" skills/sailes-bootstrap/adopt-existing-repo.md   # ≥ 1
+```
+
+### Phase 7 — Evals on disk + dogfooding (v1 survivors)
+
+Unchanged in substance from v1, trimmed:
+
+- **Dogfooding:** close the 2026-07-02 spec lifecycle (`Status: implemented`,
+  `git mv` to `implemented/`); add this repo's own `.ai/STATE.md`, `.ai/backlog.md`
+  (seeded with the deprioritized v1 items below), `.ai/lessons.md`.
+- **`evals/`:** persisted, re-runnable regression scenarios for the skills
+  themselves — one markdown scenario per protected behavior (setup for a fresh
+  subagent + binary expected assertion + last-run line); wired into
+  `skills/README.md`'s TDD-for-skills discipline (edit a skill → re-run its
+  evals; new behavior → new eval first). Evals are the persisted form of the
+  RED/GREEN tests this repo already runs but currently loses with the chat.
 
 **Done-when (binary):**
 ```bash
 test -f .ai/specs/implemented/2026-07-02-loop-engineering-adoption.md && echo OK  # OK
-grep -c "Status: implemented" .ai/specs/implemented/2026-07-02-loop-engineering-adoption.md  # 1
 test -f .ai/STATE.md && test -f .ai/backlog.md && test -f .ai/lessons.md && echo OK  # OK
-grep -c "## Verified facts" .ai/STATE.md  # 1
+ls evals/*.md | wc -l                        # ≥ 6 (README + ≥5 scenarios)
+grep -ci "evals/" skills/README.md           # ≥ 1
 ```
 
-### Phase 2 — Persisted eval suite: `evals/` as the framework's regression memory
+### Phase 8 — Version the standard; upgrade the portfolio
 
-Turn TDD-for-skills from a chat-session discipline into an on-disk, re-runnable
-asset. One scenario file per protected behavior (the invariants in
-`skills/README.md` are the seed list), format:
-
-```markdown
-# Eval: <protected behavior, one line>
-Skill under test:  <skill / file>
-Setup:             <what to hand a fresh subagent — task prompt, no extra context>
-Expected (binary): <grep-able assertion on the subagent's output or produced files>
-Failure looks like:<the baseline behavior this eval was written against>
-Last run:          <date · PASS/FAIL · one-line note>
-```
-
-- Create `evals/README.md` (how to run: dispatch each scenario to a **fresh
-  subagent with clean context** — same gate-isolation logic as `checker`; the
-  grader may be a cheap model since assertions are binary).
-- Seed ≥ 5 scenarios from already-battle-tested baselines: spec-template produces
-  per-phase Done-when; lead withholds worker narrative from `checker`; discovery
-  chains into bootstrap on greenfield; `.ai/` scaffolding is idempotent;
-  qa vision-verifies against `.ai/screens/` baseline.
-- Wire the discipline into `skills/README.md` ("Working on the skills"): a skill
-  edit re-runs the evals naming that skill; a new behavior gets a new eval **first**
-  (RED), then the edit (GREEN); `Last run` is updated in the scenario file.
-- Add promotion symmetry: when a lesson is promoted into a skill, add the eval that
-  would catch its regression.
+- Add `FRAMEWORK_VERSION` (single source: a `VERSION` file in this repo, bumped
+  per merged change-set; `install.sh` prints it).
+- `agents-md-template.md`: generated AGENTS.md carries
+  `Framework-Version: <x.y>` in its header.
+- `adopt-existing-repo.md`: new **upgrade mode** — when a repo's stamped version
+  is older than current, diff the standard (what did the framework add/change
+  since x.y — sourced from a `CHANGELOG.md` this repo starts keeping) and apply
+  additively with the same idempotency rules; the human approves the delta.
+- Effect: framework improvements reach *existing* client repos deliberately,
+  instead of only benefiting the next greenfield.
 
 **Done-when (binary):**
 ```bash
-ls evals/*.md | wc -l                       # ≥ 6 (README + 5 scenarios)
-grep -c "Expected (binary)" evals/*.md | grep -vc ":0"  # ≥ 5
-grep -ci "evals/" skills/README.md          # ≥ 1
-```
-GREEN subagent test: a fresh agent asked to "safely edit skill X" consults `evals/`
-and re-runs the matching scenarios (baseline today: nothing on disk to consult).
-
-### Phase 3 — Loop mode: opt-in loop-until-Done-when in `sailes-implement`
-
-The deferred non-goal of 2026-07-02, closed harness-free. A phase whose Done-when
-is binary may be run as an explicit loop:
-
-```
-implement → run Done-when commands → PASS → phase gate as today
-                                   → FAIL → diagnose, fix, re-run
+test -f VERSION && echo OK                                             # OK
+grep -ci "Framework-Version" skills/sailes-bootstrap/agents-md-template.md  # ≥ 1
+grep -ci "upgrade" skills/sailes-bootstrap/adopt-existing-repo.md      # ≥ 2
+test -f CHANGELOG.md && echo OK                                        # OK
 ```
 
-Hard rails (all mandatory, added to `sailes-implement/SKILL.md`):
+## Deprioritized from v1 (→ `.ai/backlog.md` in Phase 7)
 
-- **Iteration cap:** default 5 attempts; on cap → STOP, write the failure +
-  best diagnosis to `.ai/STATE.md` → *Open failures*, escalate to the human.
-  Never silently keep looping.
-- **Key-decision stop is absolute** (already canon — restated in loop terms): if an
-  iteration reveals a contract/data-model/auth/UX choice, the loop stops *even if
-  one more iteration would pass the Done-when*.
-- **Run-log per iteration:** one line each (attempt N: what changed, Done-when
-  result) so a context reset resumes mid-loop.
-- **No goal-gaming:** the loop may fix the code, never weaken the Done-when; a
-  Done-when that proves wrong is escalated, not edited mid-loop.
-- Optional-accelerator note: in harnesses with a goal primitive (e.g. `/goal`), the
-  Done-when commands are the goal condition verbatim — same rails apply.
-
-**Done-when (binary):**
-```bash
-grep -ci "loop mode" skills/sailes-implement/SKILL.md        # ≥ 1
-grep -ci "iteration cap\|max.*iterations\|attempts" skills/sailes-implement/SKILL.md  # ≥ 1
-grep -c "Open failures" skills/sailes-implement/SKILL.md     # ≥ 1
-```
-GREEN subagent test: an agent given a phase with a failing Done-when loops with
-logged attempts and stops at the cap with a STATE.md entry (baseline: single fix
-attempt, then qualitative "made progress" report).
-
-### Phase 4 — Parallel fan-out + worktree discipline in the team canon
-
-`agent-team-structure.md` gets a "Parallel execution" subsection:
-
-- **Read fan-out is free:** multiple read-only `explorer`s may always run in
-  parallel (fan-out-and-synthesize: each maps one area, lead synthesizes).
-- **Write fan-out requires all three:** (a) slices are file-disjoint, (b) the
-  shared contract is frozen first, (c) **each writing worker gets its own
-  worktree** — no exceptions; the lead merges (integration stays the lead's job,
-  merge conflicts are a lead task, never a worker task).
-- **Verifier isolation extends to worktrees:** `checker`/`qa` review from a clean
-  checkout of the integrated result, never from inside a maker's worktree.
-- Pipeline diagram annotated with which stages may fan out (explorer; be-dev+fe-dev
-  only post-freeze on disjoint files) and which are barriers (contract freeze,
-  checker, qa).
-- Mirror one paragraph in `sailes-implement/SKILL.md` (phases whose steps are
-  independent may fan out under the same rules).
-
-**Done-when (binary):**
-```bash
-grep -ci "worktree" skills/sailes-bootstrap/agent-team-structure.md  # ≥ 3
-grep -ci "parallel" skills/sailes-bootstrap/agent-team-structure.md  # ≥ 3
-grep -ci "worktree" skills/sailes-implement/SKILL.md                 # ≥ 1
-```
-
-### Phase 5 — Routing failure protocol: blocked-model fallback is explicit
-
-Small, surgical addition to `agent-team-structure.md` (roles/escalation area):
-
-- A worker whose model **refuses or is blocked by a safety classifier** reports
-  `BLOCKED-BY-POLICY` with the verbatim refusal — it never retries silently,
-  reworder-loops the prompt, or reports a generic failure. (A silent block is
-  indistinguishable from a bug and wastes debugging hours.)
-- The lead reroutes: escalate the subtask to the stronger tier (sonnet→opus) once;
-  still blocked → escalate to the human with the refusal text. Policy blocks are
-  never "worked around" — surfaced and decided by a human.
-- One-line rationale note on the existing model column: strongest tier plans and
-  integrates; mid tier implements; cheap tier does read-only recon and binary
-  grading — pin the *cheapest model that passes the gate*, not the best available.
-
-**Done-when (binary):**
-```bash
-grep -c "BLOCKED-BY-POLICY" skills/sailes-bootstrap/agent-team-structure.md  # ≥ 1
-grep -ci "fallback\|reroute" skills/sailes-bootstrap/agent-team-structure.md # ≥ 1
-```
-
-### Phase 6 — Scheduled compounding: the maintenance routine shape
-
-Compounding must not depend on a human opening a session. Added as *templates and
-backlog entries*, not runtime dependencies:
-
-- `agents-md-template.md`: optional **"Maintenance routine"** block for generated
-  repos — a periodic (scheduled or "first session of the week") pass that:
-  re-runs the test suite + any repo evals; reads `.ai/lessons.md` for
-  promotion candidates per the promotion rule; checks specs vs lifecycle
-  (implemented-but-not-moved — exactly the Phase-1 catch); updates STATE.md;
-  ends with a short digest **to the human** (proposals, never auto-applied —
-  promotions stay human-approved).
-- `backlog-template.md`: seed row for "wire the maintenance routine to a
-  scheduler (cloud routine / cron / CI)" as an explicit later step.
-- This repo's `.ai/backlog.md` (from Phase 1): framework-level routine —
-  periodically harvest `lessons.md` across Sailes project repos → global-skill
-  candidates (the cross-project rung of the promotion ladder).
-
-**Done-when (binary):**
-```bash
-grep -ci "maintenance routine" skills/sailes-bootstrap/agents-md-template.md  # ≥ 1
-grep -ci "routine" skills/sailes-bootstrap/backlog-template.md               # ≥ 1
-grep -ci "harvest" .ai/backlog.md                                            # ≥ 1
-```
+- **Loop mode with iteration cap** — still sound, but Phases 1–4 shrink the need:
+  most loop iterations exist to satisfy checks that enforcement now makes
+  unviolable or the environment surfaces instantly. Revisit after Track A lands.
+- **BLOCKED-BY-POLICY protocol** — real but rare; one paragraph can join the
+  escalation rules whenever `agent-team-structure.md` is next edited.
+- **Scheduled maintenance routine** — valuable, but it needs something to run:
+  Phase 6's freshness check and Phase 7's evals are its future payload. Backlog
+  until both exist.
+- **Team-level worktree fan-out rules** — subsumed: Phase 5 removes the collision
+  cause; the canon's existing fallback sentence covers the mechanism.
 
 ## Open Questions (gate — answer before implementation)
 
-1. **Scope:** all six phases, or a subset? (Recommended minimum: 1+2 — dogfooding
-   and evals are the foundation the rest builds on; 3–6 are independent add-ons.)
-2. **Eval granularity (Phase 2):** one scenario per *invariant* (recommended; maps
-   to `skills/README.md` §invariants) or per *skill*?
-3. **Loop mode default (Phase 3):** opt-in per phase (recommended — the human marks
-   a phase loopable in the spec) or default-on for every phase with a Done-when?
-4. **Iteration cap (Phase 3):** is 5 the right default?
-5. **Parallel write fan-out (Phase 4):** allowed for `be-dev`+`fe-dev` pairs only
-   (recommended, conservative), or any file-disjoint worker set?
-6. **Routine digest channel (Phase 6):** where does the digest land —
-   STATE.md `Last session` only, or also an external channel (Slack/email)?
-   (External channels add a dependency; recommended: STATE.md only for now.)
+1. **Scope:** which phases? Recommended minimum: **1 + 3 + 4** (ratchet,
+   guardrails, environment) — they change what every future agent-hour costs;
+   2 and 5–8 are independent add-ons.
+2. **Ratchet depth (Phase 1):** start with stock lint/type rules only
+   (recommended), or also allow per-repo convention *tests* (e.g. a test that
+   greps for zod at boundaries) where no stock rule exists?
+3. **Permissions strictness (Phase 3):** deny-by-default with an explicit allow
+   list (recommended, matches "workers never commit/push"), or allow-by-default
+   with a deny list for the protected surface?
+4. **Root AGENTS.md budget (Phase 6):** is ~150 lines the right target?
+5. **Versioning grain (Phase 8):** one framework-wide version (recommended) or
+   per-skill versions?
 
 ## Security
 
-N/A at runtime (docs-only changes to skill files). Process note: Phase 5 makes
-policy blocks *more* visible, never bypassed — refusals terminate in a human
-decision by construction.
+Docs/templates-only change to skill files. Net runtime effect of adoption is
+risk-reducing: Phase 3 narrows what agents can touch (deny-listed paths,
+no-prompt surface limited to verify commands); Phase 4 removes the incentive to
+fake qa passes. No secrets are introduced; `.env.example` rule explicitly
+excludes real values.
 
 ## Integration Coverage
 
-- **RED baselines before each phase's edits** (TDD-for-skills, unchanged): Phase 2 —
-  a subagent asked to safely edit a skill has nothing on disk to consult; Phase 3 —
-  an agent with a failing Done-when stops after one fix attempt; Phase 4 — the canon
-  gives no literal parallel/worktree rule; Phase 5 — no defined behavior on a policy
-  block. Record each baseline in the run log before editing.
-- **GREEN re-tests** after edits: the same scenarios must flip; the Phase 2 eval
-  files then *become* the persisted form of these tests.
-- All Done-when blocks above run with output pasted before the PR is opened.
+- **RED baselines before each phase's edits** (TDD-for-skills): Phase 1 — an agent
+  promoting a checkable lesson produces prose, not enforcement; Phase 2 — a lead
+  freezes a contract as brief-text only; Phase 4 — repo-done passes with no seed
+  path and unmeasured check time; Phase 6 — AGENTS.md references are not verified
+  against disk. Record each in the run log before editing.
+- **GREEN re-tests** after edits: same scenarios must flip; Phase 7 then persists
+  them as `evals/` scenarios.
+- All Done-when blocks run with output pasted before the PR opens.
 - After merge: `./install.sh --force` to sync `~/.claude/skills/`.
 
 ## Progress
 
-- [ ] Phase 1 — Dogfooding (lifecycle close, STATE.md, backlog.md, lessons.md)
-- [ ] Phase 2 — Persisted eval suite (`evals/`)
-- [ ] Phase 3 — Loop mode in sailes-implement
-- [ ] Phase 4 — Parallel fan-out + worktree discipline
-- [ ] Phase 5 — Routing failure protocol (BLOCKED-BY-POLICY)
-- [ ] Phase 6 — Scheduled compounding (maintenance routine)
+- [ ] Phase 1 — Enforce, don't instruct (convention ratchet)
+- [ ] Phase 2 — Contract as typed artifact
+- [ ] Phase 3 — Harness guardrails (hooks + permissions)
+- [ ] Phase 4 — Environment / time-to-verdict
+- [ ] Phase 5 — Parallel-safe layout
+- [ ] Phase 6 — Context layering + freshness
+- [ ] Phase 7 — Evals on disk + dogfooding
+- [ ] Phase 8 — Version the standard, upgrade the portfolio
