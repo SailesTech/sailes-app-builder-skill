@@ -33,6 +33,9 @@ if [ ! -d "$SRC" ]; then
   exit 1
 fi
 
+FRAMEWORK_VERSION="$(cat "$REPO_DIR/VERSION" 2>/dev/null || echo unknown)"
+echo "Sailes app-builder framework version: $FRAMEWORK_VERSION"
+
 # Discover the skills to install (every sailes-* dir with a SKILL.md)
 shopt -s nullglob
 SKILLS=()
