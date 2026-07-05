@@ -1,14 +1,17 @@
 # Value Layer — close the lifecycle, prove the quality, compound the business
 
-Status: proposal
+Status: implemented
 Date: 2026-07-05
 
 > Companion to `2026-07-05-agentic-first-next-level.md` (the engineering layer:
 > move truth from prose into the machine). This spec is the **business layer**:
 > the framework currently optimizes how software gets *built*; value for a B2B
 > agency is decided by what happens *around* the build — shipping, running,
-> proving, reusing, pricing. Same rules: proposal status, Open Questions are
-> Marcin's, phases independent, every phase has a binary Done-when.
+> proving, reusing, pricing.
+>
+> **Approved + implemented 2026-07-05** — Marcin delegated the Open Questions; the
+> recommended answers were applied and are recorded in **Decisions** below. All
+> Done-when blocks ran green. Move to `implemented/` after PR merge.
 
 ## TLDR & Context
 
@@ -264,24 +267,21 @@ grep -c "STATUS.md" skills/sailes-bootstrap/agents-md-template.md      # ≥ 1
 grep -c "STATUS.md" skills/sailes-implement/SKILL.md                   # ≥ 1
 ```
 
-## Open Questions (gate — answer before implementation)
+## Decisions (Open Questions closed 2026-07-05 — user delegated to recommendations)
 
-1. **Scope:** which phases? Recommended order by value density: **3 → 1 → 4**
-   (provable RBAC is cheap — the permission map already exists — and is the
-   strongest client-facing differentiator; release closes the riskiest gap;
-   the flywheel compounds forever), then 5, 6, 2, 7.
-2. **Release form (Phase 1):** checklist + gate inside existing skills
-   (recommended — promote to a `sailes-release` skill only if it outgrows one
-   page), or a new skill from day one?
-3. **Error-tracking default (Phase 2):** Sentry as the named default
-   (category: error tracking), or leave fully vendor-neutral?
-4. **Golden library home (Phase 5):** separate `sailes-modules` repo
-   (recommended — versioning + reuse across clients) or a directory here?
-5. **Estimate grain (Phase 6):** hours (recommended — wycena is hourly) or
-   T-shirt sizes? And where does the internal ledger live — this repo's `.ai/`,
-   Notion, or per-project private notes?
-6. **STATUS.md exposure (Phase 7):** committed in the client repo (recommended,
-   zero infra) or exported/shared externally?
+1. **Scope:** all seven phases.
+2. **Release form:** checklist + gate inside existing skills
+   (`sailes-bootstrap/release-checklist.md`, wired into `sailes-implement`
+   On-completion and the pipeline map); promote to a `sailes-release` skill only
+   if it outgrows one page.
+3. **Error-tracking default:** category "error tracking" with **Sentry** as the
+   named default (consistent with the stack baseline's existing Sentry mention).
+4. **Golden library home:** separate Sailes golden-module library repo
+   (versioned; modules ship with tests + per-module docs).
+5. **Estimate grain:** **hours** (wycena is hourly). Ledger location: decided at
+   first use — tracked as a backlog "later phases" row so it's settled with real
+   data, not speculatively.
+6. **STATUS.md exposure:** committed in the client repo (zero infra).
 
 ## Security
 
@@ -305,10 +305,13 @@ by explicit non-goal; Phase 7's STATUS.md contains no secrets, no effort data.
 
 ## Progress
 
-- [ ] Phase 1 — Release gate (checklist, smoke, rollback)
-- [ ] Phase 2 — Ops baseline with teeth (restore test, runbook, alerting)
-- [ ] Phase 3 — Provable RBAC (generated authz matrix tests)
-- [ ] Phase 4 — Defect-escape flywheel (gate autopsy)
-- [ ] Phase 5 — Golden-module library (graduation rule)
-- [ ] Phase 6 — Estimation loop (estimate vs actual → wycena)
-- [ ] Phase 7 — Client-visible STATUS.md
+- [x] Phase 1 — Release gate (checklist, smoke, rollback)
+- [x] Phase 2 — Ops baseline with teeth (restore test, runbook, alerting)
+- [x] Phase 3 — Provable RBAC (generated authz matrix tests)
+- [x] Phase 4 — Defect-escape flywheel (gate autopsy)
+- [x] Phase 5 — Golden-module library (graduation rule)
+- [x] Phase 6 — Estimation loop (estimate vs actual → wycena)
+- [x] Phase 7 — Client-visible STATUS.md
+
+All Done-when blocks ran green on 2026-07-05 (outputs pasted in the session run log).
+Behavioral GREEN re-runs tracked in `evals/` + `.ai/backlog.md`.

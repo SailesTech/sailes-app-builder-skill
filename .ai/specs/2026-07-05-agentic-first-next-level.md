@@ -1,14 +1,15 @@
 # Agentic-First Next Level — move truth from prose into the machine
 
-Status: proposal
+Status: implemented
 Date: 2026-07-05
 
 > Dogfooding note: skills repo, not an app repo — Data Model / API & UI Surface /
 > Jobs are N/A. Every phase carries a binary **Done-when**.
 >
-> **This is a proposal, not an approved spec.** Per the framework's foundational
-> principle, the Open Questions below are Marcin's to answer before any phase is
-> implemented. Phases are independent — approve any subset.
+> **Approved + implemented 2026-07-05** — Marcin delegated the Open Questions
+> ("wprowadź wszystkie zmiany jakie uważasz że dodadzą wartość"); the recommended
+> answers were applied and are recorded in **Decisions** below. All Done-when blocks
+> ran green (output in the session run log). Move to `implemented/` after PR merge.
 >
 > Revision note: v1 of this proposal was derived from the loop-engineering roadmap.
 > This v2 is a first-principles rethink. Two v1 items survive on their own merits
@@ -313,20 +314,16 @@ test -f CHANGELOG.md && echo OK                                        # OK
 - **Team-level worktree fan-out rules** — subsumed: Phase 5 removes the collision
   cause; the canon's existing fallback sentence covers the mechanism.
 
-## Open Questions (gate — answer before implementation)
+## Decisions (Open Questions closed 2026-07-05 — user delegated to recommendations)
 
-1. **Scope:** which phases? Recommended minimum: **1 + 3 + 4** (ratchet,
-   guardrails, environment) — they change what every future agent-hour costs;
-   2 and 5–8 are independent add-ons.
-2. **Ratchet depth (Phase 1):** start with stock lint/type rules only
-   (recommended), or also allow per-repo convention *tests* (e.g. a test that
-   greps for zod at boundaries) where no stock rule exists?
-3. **Permissions strictness (Phase 3):** deny-by-default with an explicit allow
-   list (recommended, matches "workers never commit/push"), or allow-by-default
-   with a deny list for the protected surface?
-4. **Root AGENTS.md budget (Phase 6):** is ~150 lines the right target?
-5. **Versioning grain (Phase 8):** one framework-wide version (recommended) or
-   per-skill versions?
+1. **Scope:** all eight phases.
+2. **Ratchet depth:** stock lint/type rules first, **plus** per-repo convention tests
+   where no stock rule exists (Zod-at-boundary is specified as a convention test).
+3. **Permissions strictness:** verify-commands allowlist + deny on the protected
+   surface (`.env*`, prod migrate/deploy, force-push) — matches "workers never
+   commit/push".
+4. **Root AGENTS.md budget:** ~150 lines, displace-don't-append.
+5. **Versioning grain:** one framework-wide version (`VERSION` = 1.1.0 + `CHANGELOG.md`).
 
 ## Security
 
@@ -350,11 +347,15 @@ excludes real values.
 
 ## Progress
 
-- [ ] Phase 1 — Enforce, don't instruct (convention ratchet)
-- [ ] Phase 2 — Contract as typed artifact
-- [ ] Phase 3 — Harness guardrails (hooks + permissions)
-- [ ] Phase 4 — Environment / time-to-verdict
-- [ ] Phase 5 — Parallel-safe layout
-- [ ] Phase 6 — Context layering + freshness
-- [ ] Phase 7 — Evals on disk + dogfooding
-- [ ] Phase 8 — Version the standard, upgrade the portfolio
+- [x] Phase 1 — Enforce, don't instruct (convention ratchet)
+- [x] Phase 2 — Contract as typed artifact
+- [x] Phase 3 — Harness guardrails (hooks + permissions)
+- [x] Phase 4 — Environment / time-to-verdict
+- [x] Phase 5 — Parallel-safe layout
+- [x] Phase 6 — Context layering + freshness
+- [x] Phase 7 — Evals on disk + dogfooding
+- [x] Phase 8 — Version the standard, upgrade the portfolio
+
+All Done-when blocks ran green on 2026-07-05 (outputs pasted in the session run log).
+Behavioral GREEN re-runs for the new text-level behaviors are tracked in `evals/`
+("pending post-merge" lines) and `.ai/backlog.md` (tech debt row).
