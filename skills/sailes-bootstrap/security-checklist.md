@@ -27,7 +27,8 @@ Security is a hard default, not an option. Any app in this profile may store: na
 [ ] single-tenant: confirmed only one firm will ever use it
 [ ] multi-tenant: organizationId on every client-data table
 [ ] multi-tenant: every scoped query filters by organizationId (incl. inside EXISTS/subqueries/helpers)
-[ ] multi-tenant: tests verify data isolation (no cross-org leakage)
+[ ] multi-tenant: isolation is PROVEN by a generated matrix suite — for every scoped query family,
+    a cross-org denial test (org A's user requests org B's record → deny/404); not "confirmed by reading"
 [ ] multi-tenant: permissions include organization scope
 ```
 
@@ -37,6 +38,10 @@ Security is a hard default, not an option. Any app in this profile may store: na
 [ ] Better Auth configured; email verification enabled for production
 [ ] Google login = login only (NOT Gmail access — that's the Email module, Level 3+)
 [ ] RBAC + permission checks; permission map for larger apps (deals.view, offers.send, files.download, settings.manage, integrations.manage, reports.view, …)
+[ ] the permission map is PROVEN by the generated authz-matrix test suite: every action × every
+    role → asserted allow/deny, plus the anonymous row (every non-public route → deny). The spec
+    declares the matrix (spec-writing template); implementation generates the tests from it.
+    "Every permission in the app has a test asserting it" — provable, regression-proof RBAC.
 [ ] API keys / signed secrets for machine-to-machine + webhooks
 [ ] integration tokens stored securely; refresh handled in worker
 ```

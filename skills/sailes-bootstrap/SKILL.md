@@ -58,6 +58,8 @@ Before the first line of feature code, internalize the working discipline in **`
   - **Always generate a local `spec-writing` skill** at `.ai/skills/spec-writing/SKILL.md` from `spec-writing-template.md` (stack-agnostic, tuned to the locked stack). A new repo has no spec skill otherwise — Phase 3 of the pipeline depends on it existing. Adapt its `## Stack conventions` block to whatever stack the project locked.
   - Also carry over the `sailes-discovery` skill pattern into `.ai/skills/` if useful for future work.
   - **Generate the FULL `.ai/` structure** (specs/ + implemented/ + archived/, checklists, adr, skills, `backlog.md` from `backlog-template.md`, `lessons.md` with a header). `lessons.md` and `backlog.md` start as header-only files (filled during implementation) — present from day one so the convention is visible. **Idempotent rule: if any `.ai/` artifact already exists in the repo, do NOT overwrite it — add only what's missing and follow the repo's existing convention.** (Trust the filesystem.)
+  - Also scaffold the **harness guardrails** (`.claude/settings.json` permissions + SessionStart/PreToolUse hooks) and root `STATUS.md` per `skeleton.md`, and stamp the generated AGENTS.md header with the current **`Framework-Version:`** (from this framework's `VERSION` file) so future adoption passes can compute the upgrade delta.
+  - **Check the golden-module library BEFORE scaffolding any activated module from scratch** — a module already hardened across Sailes projects (see `modules-catalog.md`, graduation rule) is imported/adapted with its tests and per-module docs, not rebuilt at full cost.
   - **`git init` + a first commit are part of generation, not optional.** A repo with 0 commits is not set up. Commit the skeleton.
 - **Case C:** follow `adopt-existing-repo.md` — reverse-engineer the existing conventions, generate `AGENTS.md`/`CLAUDE.md`/`.ai/` + the local `spec-writing` skill **filled with the REAL stack & commands** (not the baseline), record an ADR of the existing stack + gaps, and verify nothing broke using the repo's own test/build. Additive only — never modify running code.
 
@@ -68,6 +70,8 @@ Open `stack-baseline.md` (the researched default; verified Jun 2026) + `modules-
 - **Existing repo:** validate the platform's stack against the work's needs; flag gaps (the user decides whether to fill them).
 
 **Do NOT recommend from stale memory** — defaults drift (Redis-by-reflex, deprecated auth libs, Prisma/Drizzle hand-waving). Use the researched file. **And do NOT collapse a decision card into a silent default** — the researched baseline tells you what to *recommend*, not what to decide for the user.
+
+**Time-to-verdict is a stack-choice criterion.** Agent productivity is dominated by how fast the environment says "wrong" — a stack the agent can't boot with seeded data in one command, or whose check/test cycle is slow, is a *worse stack for this methodology* regardless of its other merits. Weigh it openly on the decision cards (and verify it later via the Environment block in `repo-done-checklist.md`).
 
 ## Step 4.5 — Design gate (MANDATORY for any UI work)
 

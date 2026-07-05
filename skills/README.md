@@ -21,6 +21,9 @@ sailes-start  (thin orchestrator: shows the map, routes A/B/C, gates each phase)
         sailes-pre-implement (readiness: BC/risk/gaps)
           → sailes-database (schema design + safe migrations; runs when the spec touches the DB)
           → sailes-implement (build phase-by-phase, verifiably)
+          → release gate (sailes-bootstrap/release-checklist.md: env parity, migration
+            ordering, post-deploy smoke, rollback plan; first prod launch adds the ops
+            block — tested restore, runbook, alerting)
 ```
 
 Each skill is **independently callable** — use `sailes-discovery` alone for a scope interview, `sailes-design` alone for a UI direction, etc. `sailes-start` just sequences them with hard gates.
@@ -48,10 +51,19 @@ Each skill is **independently callable** — use `sailes-discovery` alone for a 
 5. **Full `.ai/` structure from day one, but idempotent** — a new repo gets the complete structure (specs + implemented/ + archived/, checklists, adr, skills, backlog.md, lessons.md header); never overwrite an existing `.ai/` artifact — add only what's missing, follow the repo's convention.
 6. **Spec lifecycle** — specs carry a status and move root → implemented/ → archived/ (`git mv`); deferred ideas land in `.ai/backlog.md`.
 7. **Developer owns the vision; AI interrogates and illuminates, never decides** — the foundational principle (agentic-first-principles §0).
-8. **Memory compounds, or it decays.** `.ai/STATE.md` (verified facts / open failures / last session) is read at session start and written before walking away; every spec phase carries a binary `Done-when`; gates see the artifact + rubric, never the maker's narrative; recurring lessons get promoted (repo rule → AGENTS.md/Task Router; cross-project pattern → skill candidate).
+8. **Memory compounds, or it decays.** `.ai/STATE.md` (verified facts / open failures / last session) is read at session start and written before walking away; every spec phase carries a binary `Done-when`; gates see the artifact + rubric, never the maker's narrative; recurring lessons get promoted (preferably as an enforced check, else AGENTS.md/Task Router; cross-project pattern → skill candidate).
+9. **Truth moves from prose into the machine (the ratchet).** Any convention that can be checked mechanically is enforced mechanically — lint/types/tests/hooks — and the prose becomes a pointer; the BE contract is a typed artifact both slices import; the permission map is a generated authz-matrix test suite; harness guardrails (`.claude/settings.json` + hooks) back the hard safety rules. Agents follow enforced rules always and prose rules usually — and "usually" compounds badly.
+10. **The lifecycle ends at release + operations, not at "implemented".** Deploying work walks `release-checklist.md` (env parity, migration ordering, scripted post-deploy smoke, rollback plan written pre-deploy); a first production launch requires the ops block (error tracking that alerts a human, /health, a backup with a **tested restore**, uptime check, runbook). Building it is half the deliverable; running it is the other half.
+11. **Failures strengthen gates; successes become assets.** A defect that escapes the gates ships with a gate autopsy (which gate missed it + what check it now gains); a module built twice graduates into the golden-module library (with its tests and docs); per-phase estimate-vs-actual feeds `sailes-wycena` so pricing sharpens with every project.
 
-## Working on the skills (TDD-for-skills)
+## Working on the skills (TDD-for-skills + persisted evals)
 
-These skills are maintained with the `superpowers:writing-skills` discipline: **no skill edit without a failing test first** (baseline a real behavior on a subagent → edit → re-test). See the project memory for the recorded RED/GREEN results.
+These skills are maintained with the `superpowers:writing-skills` discipline: **no skill edit without a failing test first** (baseline a real behavior on a subagent → edit → re-test).
 
-To make an edit active locally after changing it here, re-copy into `~/.claude/skills/` (the active copy), or set up your preferred sync.
+The RED/GREEN scenarios are **persisted in `evals/`** (repo root) so they survive the chat that created them — one markdown scenario per protected behavior: setup for a fresh subagent + a binary expected assertion + a last-run line. The discipline:
+
+- **Editing a skill?** Re-run the `evals/` scenarios that name it (dispatch each to a fresh subagent with clean context — same gate-isolation logic as `checker`; a cheap model may grade, the assertions are binary). Update each scenario's `Last run` line.
+- **Adding a new protected behavior?** Write its eval FIRST (record the RED baseline), then edit, then re-run (GREEN).
+- **Promoting a lesson into a skill?** Add the eval that would catch its regression — promotion and its regression test travel together.
+
+To make an edit active locally after changing it here, re-run `./install.sh --force` (re-copies into `~/.claude/skills/`, the active copy). The framework's current version lives in `VERSION` (changes logged in `CHANGELOG.md`); generated repos carry a `Framework-Version:` stamp so `adopt-existing-repo.md` upgrade mode can compute their delta.

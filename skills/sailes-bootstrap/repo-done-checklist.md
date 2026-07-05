@@ -21,6 +21,8 @@ Every item MUST exist on disk. The manifest decides *optional packages*, never t
 | `.gitignore` | Before the first commit. |
 | **git initialized + first commit** | A repo with 0 commits is not a working repo. |
 | **design artifact** (`design-system/MASTER.md` OR `.ai/specs/ui-spec.md`) | The design phase ran (see `sailes-design`). Missing = the "no frontend project" failure. |
+| `.claude/settings.json` (+ hooks) | Harness guardrails: verify-commands allowlist, protected-path denies, SessionStart STATE.md injection. Structural discipline beats agent goodwill. |
+| `STATUS.md` (root, header-only) | Client-readable progress view exists from day one (filled at phase gates). |
 
 **Generate the full `.ai/` structure** — including `specs/` (+ `implemented/`, `archived/`), `backlog.md`, `lessons.md` (header-only; filled on the first real lesson), and `STATE.md` (header-only session memory: Verified facts / General rules / Open failures / Lessons learned / Last session). Present from day one so the convention is visible. **Idempotent:** if any `.ai/` artifact already exists in the repo, do NOT overwrite it — add only what is missing, follow the repo's existing convention.
 
@@ -49,9 +51,69 @@ echo "== full .ai/ structure (idempotent: pre-existing files are fine, never ove
 for f in .ai/specs .ai/specs/implemented .ai/specs/archived .ai/backlog.md .ai/lessons.md .ai/STATE.md; do
   [ -e "$ROOT/$f" ] && echo "OK   $f" || echo "MISS $f (scaffold it; do not overwrite if it appears later)"
 done
+echo "== harness guardrails + client status =="
+for f in .claude/settings.json STATUS.md; do
+  [ -e "$ROOT/$f" ] && echo "OK   $f" || echo "MISS $f"
+done
 ```
 
 **Any `MISS` line means bootstrap is NOT done.** Fix it, re-run, then proceed. Do not hand off to spec-writing or implementation with outstanding `MISS` lines.
+
+## Environment block — time-to-verdict (verify once the app skeleton runs)
+
+Agent productivity is dominated by how fast and unambiguously the environment says "wrong".
+Verify these with outputs pasted (at bootstrap completion for the skeleton; re-verify when the
+first real feature lands):
+
+```text
+[ ] ONE-COMMAND BOOT: clean clone → running app WITH seeded data via a single documented
+    command (e.g. `pnpm setup && pnpm dev`). Paste the command + proof it serves.
+[ ] FIXTURE USERS: at least one seeded user PER RBAC ROLE (+ realistic minimal dataset) —
+    qa can always log in and exercise real flows. `qa` blocked on creds = ENV-DEFECT, a
+    bootstrap bug, never a skipped proof (see agent-team-structure.md).
+[ ] FAST VERDICT: a single `check` command (typecheck+lint+unit) exists; record its measured
+    wall time. Document how to run ONE test file / ONE test (targeted verdicts, not the world).
+[ ] .env.example COMPLETE: every variable the app reads, with safe defaults or clear
+    placeholders (no real values).
+```
+
+## Freshness check — docs that lie are worse than none
+
+Every file path and command referenced in `AGENTS.md` (incl. the Task Router) must exist / run.
+Scriptable pass — failures are **doc drift** and block "done":
+
+```bash
+# paths referenced in AGENTS.md exist
+grep -oE '[A-Za-z0-9_./-]+\.(md|ts|tsx|json|yml)' AGENTS.md | sort -u | while read -r p; do
+  [ -e "$p" ] || echo "DRIFT: AGENTS.md references missing path $p"
+done
+# commands referenced in Key Commands exist as package scripts
+grep -oE 'pnpm [a-z:-]+' AGENTS.md | sort -u | sed 's/pnpm //' | while read -r s; do
+  grep -q "\"$s\"" package.json || echo "DRIFT: AGENTS.md references missing script $s"
+done
+```
+
+Run it at bootstrap handoff and again whenever closing a spec (it is also the payload of any
+periodic maintenance pass). A `DRIFT` line means the doc is actively misleading future agents.
+
+## Operations block — before PRODUCTION launch (with the release checklist)
+
+Building it is half the deliverable; running it is the other half. Required for a production
+client app (prototype: warn, like the security checklist). All verified with output pasted:
+
+```text
+[ ] ERROR TRACKING wired AND ALERTING A HUMAN CHANNEL (a silent Sentry is decoration).
+    Default category: error tracking (Sentry); prove one test event reached the channel.
+[ ] /health ENDPOINT covering app + DB + worker/queue; returns non-200 when a dependency is down.
+[ ] BACKUPS scheduled AND ONE RESTORE ACTUALLY PERFORMED into a scratch environment — paste
+    the restore output. An untested backup is a hope, not a backup.
+[ ] UPTIME CHECK on the public URL (alerting the same human channel).
+[ ] .ai/runbook.md one-pager filled: where it's deployed, how to see logs, restart, restore,
+    who to call.
+```
+
+This block is also the standardized deliverable of a maintenance contract — "we run it for
+you" as a product, not a favor.
 
 ## Case A / Case C (existing repo)
 

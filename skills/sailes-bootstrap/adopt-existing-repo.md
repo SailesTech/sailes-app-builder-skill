@@ -30,6 +30,8 @@ For each element below, classify it **PRESENT** (exists and matches the current 
 | 8 | guardrails | verifiable-done via THEIR commands, RED-test-first, adversarial review, behavior-before-diff (`agentic-first-principles.md`) | add as a gap list, not a code rewrite |
 | 9 | Git/PR workflow + lessons | `AGENTS.md` Git/PR sections + `.ai/lessons.md` present; CI/hooks aligned to REAL commands | align/add additively |
 | 10 | **loop hygiene / session memory** | `.ai/STATE.md` present (five sections, read-at-start + write-before-walking-away in AGENTS.md); live specs' phases carry a binary `Done-when`; gate isolation known (checker sees diff+spec+checklist only, never the maker's narrative) | scaffold STATE.md header + AGENTS.md rules; flag live specs without `Done-when`; document gate isolation |
+| 11 | **doc freshness** | every path & command referenced in AGENTS.md / Task Router exists / runs (`repo-done-checklist.md` Freshness check) | doc drift — fix the references (or the missing artifact); a doc that lies actively misleads every future agent |
+| 12 | **Framework-Version stamp** | AGENTS.md header carries `Framework-Version:`; compare against the current framework `VERSION` | absent → stamp the current version; older → run **Upgrade mode** below |
 
 ```bash
 ROOT="$(pwd)"
@@ -49,6 +51,22 @@ ls "$ROOT/.ai/adr/"*stack* "$ROOT/.ai/adr/"*ADR-001* 2>/dev/null | head -1 | gre
 ```
 
 A bare `PRESENT`/`MISSING` script can't see DRIFT — element 1, 5, 7, 8 need an actual read against the **current** template, not just an `ls`. So: run the script for presence, then **read** AGENTS.md / checklists / working-discipline against today's templates to catch shape drift. The output of Step 0 is a filled table + a short upgrade plan (the DRIFTED/MISSING rows). Then proceed to the steps below to execute it — additively, never rewriting running code.
+
+### Upgrade mode — when the repo's stamped Framework-Version is older than current
+
+The framework improves between projects; without an upgrade path, improvements only reach the
+*next* greenfield and the existing portfolio never compounds. When row 12 finds an older stamp:
+
+1. Read the framework `CHANGELOG.md` for every version between the repo's stamp and current —
+   that is the **standard delta** (what the methodology added/changed since this repo was
+   bootstrapped or last upgraded).
+2. Turn the delta into an upgrade plan: which template sections, checklists, guardrails, or
+   `.ai/` artifacts this repo is missing or has in an older shape. Same idempotency rules as
+   adoption — **additive only, never overwrite, never touch running code**.
+3. **The human approves the delta** before it is applied (upgrades are a key decision — the
+   repo may have deliberately diverged; documented drift wins over forced alignment).
+4. Apply, re-run the Step 0 audit + the freshness check, update the `Framework-Version:` stamp,
+   and record the upgrade in the repo's `.ai/lessons.md` (or an ADR if the delta was architectural).
 
 ### 1. Detect & refuse to overwrite
 Confirm real app code (`package.json`, `src/`, migrations, tests) and absence of `AGENTS.md`/`.ai/`. Working code wins. Never scaffold over existing source. A methodology-adoption change is **docs + config only** — it must not modify application behavior.
