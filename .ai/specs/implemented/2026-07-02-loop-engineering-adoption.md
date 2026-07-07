@@ -1,6 +1,6 @@
 # Loop-Engineering Adoption — compounding memory, binary gates, verifier isolation
 
-Status: in-progress
+Status: implemented
 Date: 2026-07-02
 
 > Dogfooding note: this repo is a skills repo, not an app repo, so the app-specific

@@ -56,6 +56,7 @@ Environments:   local / dev / prod (staging only for larger/riskier projects)
 | Feature flags | DB-based (`feature_flags`, `user_feature_flags`) | 🟡 | No LaunchDarkly/Statsig for custom apps; managed only for larger SaaS. |
 | Observability | structured logs + request-id + job/webhook/audit logs; **Sentry + PostHog** (prod) | 🟡 | OTel / external log drain (Better Stack/Axiom/Logtail) as extension. |
 | Testing | Vitest · MSW · Testcontainers · Playwright | 🟡 | Determinism + evidence-on-failure; real tests, no faked passes. |
+| Shared contracts | **`packages/contracts`** — Zod schemas + inferred TS types for every API shape | 🟡 | The ONE place web + worker import request/response shapes from. A frozen BE contract = a commit here that `fe-dev` imports; drift becomes a compile error, not a review finding (see `agent-team-structure.md`). |
 
 ---
 

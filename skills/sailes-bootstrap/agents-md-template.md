@@ -1,6 +1,6 @@
 # AGENTS.md Skeleton — for an Empty Repo
 
-Generate this at repo root when bootstrapping a new agentic-first project (Case B). Keep it **concise** — only what the agent can't infer from code (Anthropic guidance: bloated memory files get ignored). Adapt to the chosen stack; delete rows that don't apply. Pair it with `CLAUDE.md` containing only `@AGENTS.md`.
+Generate this at repo root when bootstrapping a new agentic-first project (Case B). Keep it **concise** — only what the agent can't infer from code (Anthropic guidance: bloated memory files get ignored). **Size budget: target ≤ ~150 lines for the root file.** The root is a map, not an encyclopedia — module detail lives in per-module colocated docs (`src/modules/x/AGENTS.md` or README) that the Task Router points to. A rule that promotes into this file must **displace or merge, not only append** — the budget forces curation; and a rule the toolchain enforces is replaced by a one-line pointer to the enforcement, not a paragraph (the ratchet, `agentic-first-principles.md` §B.3). Adapt to the chosen stack; delete rows that don't apply. Pair it with `CLAUDE.md` containing only `@AGENTS.md`.
 
 Also scaffold (see `skeleton.md` for the full monorepo layout):
 - `CLAUDE.md` → single line: `@AGENTS.md`
@@ -14,6 +14,8 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 - `.ai/STATE.md` — session memory (header-only, five sections: Verified facts / General rules / Open failures / Lessons learned / Last session)
 - `.ai/runs/` — per-session run log for long/resumable work (created when first used)
 - `.ai/screens/` — latest accepted screenshot per key screen, qa's vision-verify baseline (created when first used)
+- `STATUS.md` (root) — client-readable progress, derived from live specs (header-only to start; updated at each phase gate — see `sailes-implement`). No effort/pricing data ever.
+- `.claude/settings.json` + hooks — the harness guardrails (permissions allowlist, SessionStart memory injection, PreToolUse protected paths) — see `skeleton.md`
 - (idempotent: never overwrite an existing `.ai/` artifact; add only what's missing)
 
 ---
@@ -22,6 +24,12 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 # Agents Guidelines
 
 > Single source of truth for how agents work in this repo. CLAUDE.md imports this via @AGENTS.md.
+> Framework-Version: <x.y.z — from the sailes framework VERSION file at bootstrap time; used by adopt-existing-repo upgrade mode>
+
+## Enforcement (the ratchet)
+- Rules the toolchain enforces (lint/types/tests/hooks) are NOT restated here — this file lists only judgment rules and pointers. If you can express a rule as a check, add the check and link it here instead of writing prose (`agentic-first-principles.md` §B.3).
+- Enforced in this repo: no `any` (ESLint error) · design tokens only (lint on raw literals) · module import direction (dependency rule) · Zod at boundaries (convention test). <!-- keep this list in sync with the actual config -->
+- Harness guardrails (`.claude/settings.json` + hooks): verify commands run without prompts; protected paths (`.env*`, applied migrations, prod deploy/migrate commands) are blocked; STATE.md is injected at session start. In a harness without hooks, the prose rules below are the fallback — know which rules lost their backstop.
 
 ## Before Writing Code
 1. Run discovery (needs/scope) → then bootstrap (methodology + stack) → then spec.
@@ -37,7 +45,7 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 - DB: Railway Postgres + Drizzle (default; Prisma = plan B, Kysely = specialist). Migrations committed + reviewed; seeds for local/dev.
 - Auth: Better Auth (email/pw + Google login). Google login = login only, NOT Gmail access.
 - Worker: apps/worker MANDATORY — webhook processing, syncs, email send, reports/exports, file processing, retry, long jobs, workflows.
-- Jobs/queue: pick tier per project — DB-jobs+Railway cron → BullMQ+Redis → Inngest/Trigger.dev (sequences/waits) → Temporal.
+- Jobs/queue: pick tier per project — DB-jobs+Railway cron → BullMQ+Redis → Inngest/Trigger.dev (sequences/waits) → Temporal. Durable orchestration + latency speed-up (fan-out/join, retry-from-step, idempotency/audit harness, sync-vs-defer): the `sailes-async` skill.
 - Webhooks: intake only (verify signature → validate → persist to webhook_events → idempotency key → 202); worker does the business work.
 - Storage: Railway Buckets (S3-compatible). Files private, signed URLs, metadata in Postgres, access log. R2/S3 for stronger compliance.
 - Observability: structured logs + request-id + job/webhook/audit logs; Sentry + PostHog for production.
@@ -100,7 +108,11 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 
 ## Lessons
 - After a correction or a recurring bug, append to `.ai/lessons.md`: Context / Problem / Rule / Applies-to. This is the repo's durable memory — read it before non-trivial work.
-- **Promotion rule (memory must compound):** a lesson that recurs or generalizes gets promoted upward — repo-wide rule → a line in this AGENTS.md / Task Router; cross-project pattern → candidate for a global skill. Review `.ai/lessons.md` for promotion candidates when closing a spec. A lesson that is only ever appended, never promoted, is noise.
+- **Promotion rule (memory must compound):** a lesson that recurs or generalizes gets promoted upward — **preferably as an enforced check** (lint rule / convention test / hook — see Enforcement above), else a line in this AGENTS.md / Task Router; cross-project pattern → candidate for a global skill. Review `.ai/lessons.md` for promotion candidates when closing a spec. A lesson that is only ever appended, never promoted, is noise.
+- **Escaped-defect autopsy — the gate autopsy (gates must compound):** an escaped defect found after `checker`+`qa` passed (client, prod, later phase) is a gate failure. The fix ships with an `Escaped-defect:` entry in `.ai/lessons.md`: which gate should have caught it + what check that gate now gains (checklist line / authz-matrix row / lint rule — prefer enforcement). Autopsy entries are priority promotion candidates.
+
+## Client Status (STATUS.md)
+- Root `STATUS.md` is the client-readable progress view, derived from live specs: per feature — phases done/total, the plain-language Done-when result, accepted screenshot for UI phases. Updated at every phase gate (`sailes-implement`). Never contains effort, hours, or pricing data.
 
 ## Session Memory (`.ai/STATE.md`)
 - Five sections: **Verified facts** (checked, each with the command/evidence that proved it) · **General rules** (distilled from this project) · **Open failures** (unresolved problems + best diagnosis so far) · **Lessons learned** (pointers into `.ai/lessons.md`) · **Last session** (where work stopped + the next step).

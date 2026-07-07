@@ -30,7 +30,7 @@ explorer → designer → BE contract finalized → fe-dev → checker → qa
 ```
 
 - **`explorer` first** maps the affected code so the lead plans against reality, not assumption.
-- **BE contract is finalized before `fe-dev` starts** — the frontend builds against a frozen shape, not a moving target.
+- **BE contract is finalized before `fe-dev` starts** — the frontend builds against a frozen shape, not a moving target. **"Frozen" means a committed, typed contract artifact** — shared TS types / Zod schemas (or OpenAPI where the consumer is external) at the repo's shared-contracts location — that both slices *import*. Drift then is a compile/type error, not a review finding. The brief's `Contract:` line points at the artifact path; prose describes intent, the artifact is the truth.
 - **`checker` and `qa` are both gates, not formalities.** CHANGES-REQUIRED loops back to the relevant dev; a faked or skipped `qa` is not a pass.
 - Not every task needs every role. A backend-only change skips `designer`/`fe-dev`. The **order among the roles you do use** is preserved.
 - **Dropping a role is provisional, not final.** If a later decision introduces a surface you'd skipped — e.g. a perf constraint forces an async-download UX, so a backend-only task suddenly needs a UI flow — **reinstate the dropped role** (`designer` here) and re-freeze the contract before `fe-dev`. Don't push a new UX surface through without the design pass just because the original plan skipped it.
@@ -38,7 +38,7 @@ explorer → designer → BE contract finalized → fe-dev → checker → qa
 ## How the lead actually runs it
 
 1. **Load context before planning** — Task Router guides for the touched areas + `.ai/lessons.md` (institutional memory). Planning without these repeats known mistakes.
-2. **Decompose into one-task units.** Each worker gets exactly one task with explicit scope and the contract/spec it implements against — handed over as a **self-contained brief** (format below). One task per worker keeps reviews tractable and scope honest; never hand a worker several independent problems at once.
+2. **Decompose into one-task units.** Each worker gets exactly one task with explicit scope and the contract/spec it implements against — handed over as a **self-contained brief** (format below). One task per worker keeps reviews tractable and scope honest; never hand a worker several independent problems at once. **Slice for file-disjointness:** no two concurrent workers may write the same file — if the slicing can't achieve that, the tasks aren't parallel (sequential, or worktrees). A parallel-safe codebase layout makes this easy (`agentic-first-principles.md` §E).
 3. **Assign and integrate.** The lead hands tasks to teammates, collects results, and integrates — the lead owns the merge, not the workers.
 4. **Escalation is upward only.** A worker that hits a scope question or a **key decision** (stack, contract shape, data-model, auth, roles) stops and escalates to the lead; the lead escalates to the human. Workers never silently decide a key decision or widen scope.
    - **Where the lead's authority ends.** The lead *assembles and freezes* the contract from decisions the spec/brief already settled — that's coordination, the lead's job. But when freezing it requires a **new** architectural or UX choice the spec didn't settle (e.g. "50k-row export: synchronous streamed download vs. async job + emailed link" — which also decides whether a new UI surface and a `designer` pass are needed), that is a **key decision**: the lead escalates it to the human, gets the answer, *then* freezes. The lead never silently picks the architecture just because it's mid-pipeline.
@@ -53,6 +53,8 @@ A verifier grades honestly only on a clean context. The failure mode this sectio
 - **`qa` receives ONLY: the running app, the spec's expected behavior, and (for UI) the design artifact.** Not the implementation story, not "what should work now".
 - **Vision-verify (UI):** for every screen the task touched, `qa` compares a fresh screenshot against (a) the design artifact (`.ai/specs/ui-spec.md` or `design-system/MASTER.md`) and (b) the previous accepted screenshot in `.ai/screens/` (visual regression). Mismatch = CHANGES-REQUIRED naming the concrete difference. On APPROVE, the new screenshot replaces the baseline in `.ai/screens/`. A text-only review cannot see a failure that only exists on screen.
 - **Cheap graders for binary checks:** a phase's `Done-when` (exact commands + expected output) may be verified by a lightweight model (haiku) — it's a pass/fail read, not judgment. Judgment review stays with `checker`.
+- **`checker` never re-checks what the toolchain enforces.** Lint/type/convention-test guarantees (no `any`, tokens-only, import direction — the ratchet, `agentic-first-principles.md` §B.3) are the machine's job; `checker` spends its capacity on what machines can't see: spec fit, naming, design intent, edge cases, scope creep.
+- **ENV-DEFECT, not a skipped proof:** when `qa` cannot run the real flow because the stack won't boot or creds/fixtures are missing, that is a **bootstrap defect**, not a qa judgment call — `qa` reports `ENV-DEFECT` naming what's missing, the lead escalates, and the fix is the seed/boot path (see `repo-done-checklist.md` Environment block). A faked or skipped pass is never the answer to a broken environment.
 
 ## Worker brief — the self-contained handover
 
@@ -66,9 +68,11 @@ Task:        claim Task #N, mark it in_progress.
 Goal:        one precise outcome.
 Files:       exact paths to inspect / edit.
 Contract:    request/response/types/events/DB fields other slices depend on.
-Constraints: no new `any`; validation at the boundary; design tokens only;
+Constraints: the toolchain is the constraint (lint/types/convention tests enforce
+             no-any, tokens-only, import direction); list here ONLY what it can't see —
              backward-compatible public contract; no destructive commands.
-Reference:   the module/component/pattern to imitate.
+Reference:   the module/component/pattern to imitate — a **golden-module** implementation
+             from the Sailes library when one exists (see modules-catalog.md, graduation rule).
 Verification: exact commands to run + the e2e requirement.
 Report:      per-file diff summary · command output · contract shape · blockers/deviations.
 ```

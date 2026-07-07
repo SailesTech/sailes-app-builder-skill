@@ -85,6 +85,7 @@ For any app with a UI, a deliberate design direction + persisted artifact (`desi
 Once the spec is approved, implementation has its own skills (the agent team starts here — roles, order, gates, worker brief, and agent lifecycle are defined in `sailes-bootstrap/agent-team-structure.md`):
 - **`sailes-pre-implement`** — analyze the approved spec for readiness (BC impact, risks, gaps) → readiness report; fix the spec first if NOT-READY.
 - **`sailes-implement`** — execute the spec phase by phase: RED test → implement → verify with evidence → commit per step → adversarial review gate → mark spec `implemented` + `git mv` to `.ai/specs/implemented/`.
+- **Release gate** — deploying work does not end at green tests: `sailes-bootstrap/release-checklist.md` (env parity, migration ordering, post-deploy smoke with output pasted, rollback plan written pre-deploy) + the Operations block in `repo-done-checklist.md` for a first production launch. The human approves the prod step — approval of a completed checklist, not a vibe.
 
 This orchestrator's job ends when the spec is approved; it hands to these.
 

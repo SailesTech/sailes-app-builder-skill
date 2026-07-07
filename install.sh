@@ -33,6 +33,9 @@ if [ ! -d "$SRC" ]; then
   exit 1
 fi
 
+FRAMEWORK_VERSION="$(cat "$REPO_DIR/VERSION" 2>/dev/null || echo unknown)"
+echo "Sailes app-builder framework version: $FRAMEWORK_VERSION"
+
 # Discover the skills to install (every sailes-* dir with a SKILL.md)
 shopt -s nullglob
 SKILLS=()
@@ -66,6 +69,19 @@ for name in "${SKILLS[@]}"; do
     rm -rf "$target"
     cp -R "$SRC/$name" "$target"
     echo "  installed $name"
+  fi
+done
+
+# Ship the framework version marker + changelog alongside the skills, so an installed
+# sailes-bootstrap (adopt-existing-repo "Upgrade mode") can read them from ~/.claude/skills/.
+for meta in VERSION CHANGELOG.md; do
+  if [ -f "$REPO_DIR/$meta" ]; then
+    if [ "$DRY_RUN" = 1 ]; then
+      echo "  would install $meta -> $DEST/$meta"
+    else
+      cp "$REPO_DIR/$meta" "$DEST/$meta"
+      echo "  installed $meta"
+    fi
   fi
 done
 

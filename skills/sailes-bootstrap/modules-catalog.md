@@ -112,10 +112,38 @@ Default: simple DB-based (`feature_flags`, `user_feature_flags`); optionally `ro
 
 ---
 
-## Observability
+## Observability & ops (baseline — with teeth)
 
 Always: structured logs, request-id, job logs, webhook logs, audit logs, error handling.
 Production client app: **Sentry + PostHog** recommended. Extensions: OpenTelemetry, external log drain (Better Stack/Axiom/Logtail), custom metrics.
+
+**The production ops minimum is concrete, not a word** (verified by the Operations block in
+`repo-done-checklist.md` before launch):
+
+```text
+[ ] error tracking wired AND alerting a human channel (a silent Sentry is decoration)
+[ ] /health endpoint covering app + DB + worker/queue (non-200 when a dependency is down)
+[ ] backups scheduled AND one restore actually performed (untested backup = a hope)
+[ ] uptime check on the public URL
+[ ] .ai/runbook.md one-pager: deployed where, logs, restart, restore, who to call
+```
+
+---
+
+## Golden modules — the graduation rule (modules must compound)
+
+This catalog is a menu of *what to build*; the golden-module library is the inventory of *what
+is already hardened*. The rule that connects them:
+
+- **Built ~twice across Sailes projects → extraction candidate.** The lead records it in
+  `.ai/lessons.md` as `Module-candidate: <module> — second build, extract`. Candidates are
+  reviewed like promotion candidates (when closing a spec).
+- **An extracted golden module ships with its proofs**: the code/template, its authz-matrix
+  tests, its seeds/fixtures, and a per-module AGENTS.md — versioned in the Sailes golden-module
+  library (separate repo).
+- **Bootstrap checks the library BEFORE scaffolding a module from scratch** (Step 3/Case B),
+  and worker briefs' `Reference:` line points at the golden implementation when one exists
+  (`agent-team-structure.md`). Rebuilding a hardened module at full cost is the failure mode.
 
 ---
 

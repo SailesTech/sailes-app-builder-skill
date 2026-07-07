@@ -81,11 +81,11 @@ Status: draft | approved | in-progress | implemented | superseded
 - **Problem Statement** — what we're solving.
 - **Proposed Solution** — high-level approach.
 - **Data Model** — tables/columns touched or added (snake_case, UUID PK, timestamps; `organizationId` only if multi-tenant).
-- **API & UI Surface** — routes, server actions, pages, components.
+- **API & UI Surface** — routes, server actions, pages, components. **Name the contract artifact path(s)** this spec creates/extends (shared Zod schemas / TS types both slices import — the frozen-contract artifact, not a prose shape).
 - **Integration / Webhooks** — per external system: intake (verify→validate→persist→202), idempotency, retry, sync tables.
 - **Jobs / Workflows** — cron vs job vs durable workflow; which tier.
-- **Security** — auth + permission checks, Zod validation, signed secrets, audit log, file access control; mark which security-checklist items apply.
-- **Phasing & Steps** — stories → testable steps; **every phase has a binary `Done-when`** (exact commands + expected output).
+- **Security** — auth + permission checks, Zod validation, signed secrets, audit log, file access control; mark which security-checklist items apply. **A spec touching auth/roles declares the permission matrix** — a table of actions × roles → allow/deny — which implementation turns into the generated authz matrix test suite (every action × role asserted, plus the anonymous row).
+- **Phasing & Steps** — stories → testable steps; **every phase has a binary `Done-when`** (exact commands + expected output). Each phase may carry an internal estimate (hours) — closed out against actuals at completion; never client-visible.
 - **Integration Coverage** — affected API + UI paths, each with a test.
 - **Non-Goals** — what we explicitly are NOT building. Push deferred-but-worth-keeping items (later phases, tech debt) to `.ai/backlog.md` so they aren't lost in this one spec.
 
@@ -108,6 +108,7 @@ Status: draft | approved | in-progress | implemented | superseded
 - [ ] Tenancy correct (single vs multi); if multi, isolation tested.
 - [ ] Inputs validated with Zod; no `any`.
 - [ ] Sensitive data: auth + permission checks, audit log, encryption where required.
+- [ ] Auth/roles touched → permission matrix declared (actions × roles → allow/deny); contract artifact path named for any new/changed API shape.
 - [ ] Webhooks async intake-only; idempotency + retry + dead-letter.
 - [ ] Integration coverage lists every affected API + key UI path, each with a test.
 - [ ] Phases leave the app working; each step is testable.
