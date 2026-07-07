@@ -20,6 +20,7 @@ sailes-start  (thin orchestrator: shows the map, routes A/B/C, gates each phase)
    └─ Implementation (agent team starts here):
         sailes-pre-implement (readiness: BC/risk/gaps)
           → sailes-database (schema design + safe migrations; runs when the spec touches the DB)
+          → sailes-async (durable async backend + latency speed-up; runs when the flow is async/slow)
           → sailes-implement (build phase-by-phase, verifiably)
 ```
 
@@ -36,6 +37,7 @@ Each skill is **independently callable** — use `sailes-discovery` alone for a 
 | **sailes-spec** | Phase 3 spec writer/reviewer. Skeleton → Open Questions gate → data model / API-UI / integration coverage / security / phasing / non-goals. Global fallback when a repo has no local `.ai/skills/spec-writing/` (which bootstrap generates from `sailes-bootstrap/spec-writing-template.md`, the mirror of this skill). | `SKILL.md` |
 | **sailes-pre-implement** | Spec readiness analysis before coding: BC impact, risks, gaps → readiness report. | `SKILL.md` |
 | **sailes-database** | Schema design + safe PostgreSQL migrations when the spec touches the DB. Separates 🔒 hard rules (data types, migration safety) from 🔀 decisions (key type, jsonb-vs-column, tenancy/RLS, soft-delete, tooling) presented as decision cards; writes expand/contract-safe migrations verified before any prod run. | `SKILL.md`, `db-compendium.md`, `decision-cards.md`, `migration-safety-checklist.md`, `migration-drizzle.md`, `migration-prisma.md`, `migration-sql-first.md` |
+| **sailes-async** | Durable async orchestration + latency speed-up when a slow/brittle flow (often Make/n8n) must become a fast code-first backend. Thin webhook intake → durable event → parallel lanes; separates 🔒 harness rules (idempotency, audit, alert-on-every-failure, deterministic steps, error-class-aware retry) from 🔀 decisions (build-vs-low-code, engine, self-host, sync-vs-defer) as decision cards; the speed-up recipe (parallel-compute + async write-back) + verify-by-driving. Distilled from the SRF ≤5s build. | `SKILL.md`, `async-compendium.md`, `speedup-recipe.md`, `harness-checklist.md`, `lessons.md` |
 | **sailes-implement** | Execute an approved spec phase by phase: RED test → verify with evidence → commit per step → review gate → mark implemented. | `SKILL.md` |
 | **sailes-pipedrive** | Domain integration reference (not part of the core pipeline): how to build Pipedrive app extensions — JSON panel, custom UI iframe, floating window, manifest/OAuth, signed-JWT auth, ACL, API proxy. Real Sailes patterns. | `SKILL.md`, `references/*`, `assets/custom-ui-panel-template.html` |
 
