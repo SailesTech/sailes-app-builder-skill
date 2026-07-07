@@ -1,0 +1,60 @@
+// Copy to a NEW repo as .claude/settings.json (strip these // comments — JSON has no comments).
+// The Claude Code harness guardrails: the mechanical backstop for the AGENTS.md Hard Safety Rules.
+// Adapt the command patterns to the repo's actual package scripts. Two keys: "permissions" + "hooks".
+//
+// "permissions.allow"  — verify commands run without a prompt (fast inner loop).
+// "permissions.deny"   — the protected surface: secrets, prod migrate/deploy, force-push, applied migrations.
+// "hooks.SessionStart" — inject STATE.md so "read at session start" is enforced, not remembered.
+// "hooks.PreToolUse"   — block edits to protected paths (applied migrations, implemented specs, lockfiles).
+//
+// Hook commands below are illustrative shell one-liners; move non-trivial logic into
+// .claude/hooks/*.sh and call the script here. See Claude Code docs for the hook JSON contract
+// (a PreToolUse hook that prints to stderr and exits non-zero blocks the tool call).
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm test:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(pnpm db:generate:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Edit(./.env)",
+      "Edit(./.env.*)",
+      "Edit(./packages/db/migrations/**)",
+      "Edit(./.ai/specs/implemented/**)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(pnpm db:migrate:prod:*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat .ai/STATE.md 2>/dev/null; echo '--- Task Router: see AGENTS.md ---'"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/guard-protected-paths.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

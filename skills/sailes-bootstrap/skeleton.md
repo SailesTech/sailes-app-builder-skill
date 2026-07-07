@@ -63,17 +63,21 @@ repo/
   .github/
     workflows/ci.yml      # lint → typecheck → unit → integration → e2e → security scan
 
-  .claude/                # harness guardrails — structural discipline, not agent goodwill
-    settings.json         #   permissions: ALLOW the verify commands (test/lint/typecheck/build/dev)
-                          #   without prompts; DENY the protected surface (.env* writes, prod
-                          #   migrate/deploy commands, force-push) — the mechanical backstop for
-                          #   "workers never commit/push" and the Hard Safety Rules
-    hooks:                #   SessionStart → inject .ai/STATE.md + Task Router pointer into context
-                          #   ("read at session start" stops being a memory test);
-                          #   PreToolUse → block edits to protected paths (applied migrations,
-                          #   .ai/specs/implemented/, lockfiles unless the task says so)
-                          #   (harness-optional: in a harness without hooks the AGENTS.md prose
-                          #   rules are the fallback — the Guardrails note there says which)
+  .claude/                # Claude Code harness guardrails — structural discipline, not agent goodwill
+    settings.json         #   ONE JSON file with two keys (copy from sailes-bootstrap/settings-template.json):
+                          #   "permissions" — ALLOW the verify commands (test/lint/typecheck/build/dev)
+                          #     without prompts; DENY the protected surface (.env* reads/writes, prod
+                          #     migrate/deploy commands, force-push) — the mechanical backstop for
+                          #     "workers never commit/push" and the Hard Safety Rules
+                          #   "hooks" — SessionStart injects .ai/STATE.md + Task Router pointer into
+                          #     context ("read at session start" stops being a memory test);
+                          #     PreToolUse blocks edits to protected paths (applied migrations,
+                          #     .ai/specs/implemented/, lockfiles unless the task says so)
+                          #   (hooks reference scripts under .claude/hooks/ below)
+    hooks/                #   hook scripts invoked by settings.json (e.g. session-start.sh,
+                          #   guard-protected-paths.sh) — harness-optional: in a harness without
+                          #   hooks the AGENTS.md prose rules are the fallback (the Guardrails note
+                          #   there says which rules lost their backstop)
 
   AGENTS.md               # concise; see agents-md-template.md (incl. Git Workflow + PR Workflow)
   CLAUDE.md               # → @AGENTS.md

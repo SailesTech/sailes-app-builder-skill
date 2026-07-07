@@ -59,7 +59,9 @@ The framework improves between projects; without an upgrade path, improvements o
 
 1. Read the framework `CHANGELOG.md` for every version between the repo's stamp and current —
    that is the **standard delta** (what the methodology added/changed since this repo was
-   bootstrapped or last upgraded).
+   bootstrapped or last upgraded). `install.sh` ships `VERSION` + `CHANGELOG.md` next to the
+   installed skills, so read `~/.claude/skills/CHANGELOG.md` and `~/.claude/skills/VERSION`
+   (fall back to this framework repo's root copies if you're running from source).
 2. Turn the delta into an upgrade plan: which template sections, checklists, guardrails, or
    `.ai/` artifacts this repo is missing or has in an older shape. Same idempotency rules as
    adoption — **additive only, never overwrite, never touch running code**.

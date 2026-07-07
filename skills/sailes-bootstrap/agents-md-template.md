@@ -1,6 +1,6 @@
 # AGENTS.md Skeleton — for an Empty Repo
 
-Generate this at repo root when bootstrapping a new agentic-first project (Case B). Keep it **concise** — only what the agent can't infer from code (Anthropic guidance: bloated memory files get ignored). **Size budget: target ≤ ~150 lines for the root file.** The root is a map, not an encyclopedia — module detail lives in per-module colocated docs (`src/modules/x/AGENTS.md` or README) that the Task Router points to. A rule that promotes into this file must **displace or merge, not only append** — the budget forces curation; and a rule the toolchain enforces gets a one-line pointer, not a paragraph (the ratchet, `agentic-first-principles.md` §B.3). Adapt to the chosen stack; delete rows that don't apply. Pair it with `CLAUDE.md` containing only `@AGENTS.md`.
+Generate this at repo root when bootstrapping a new agentic-first project (Case B). Keep it **concise** — only what the agent can't infer from code (Anthropic guidance: bloated memory files get ignored). **Size budget: target ≤ ~150 lines for the root file.** The root is a map, not an encyclopedia — module detail lives in per-module colocated docs (`src/modules/x/AGENTS.md` or README) that the Task Router points to. A rule that promotes into this file must **displace or merge, not only append** — the budget forces curation; and a rule the toolchain enforces is replaced by a one-line pointer to the enforcement, not a paragraph (the ratchet, `agentic-first-principles.md` §B.3). Adapt to the chosen stack; delete rows that don't apply. Pair it with `CLAUDE.md` containing only `@AGENTS.md`.
 
 Also scaffold (see `skeleton.md` for the full monorepo layout):
 - `CLAUDE.md` → single line: `@AGENTS.md`
@@ -45,7 +45,7 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 - DB: Railway Postgres + Drizzle (default; Prisma = plan B, Kysely = specialist). Migrations committed + reviewed; seeds for local/dev.
 - Auth: Better Auth (email/pw + Google login). Google login = login only, NOT Gmail access.
 - Worker: apps/worker MANDATORY — webhook processing, syncs, email send, reports/exports, file processing, retry, long jobs, workflows.
-- Jobs/queue: pick tier per project — DB-jobs+Railway cron → BullMQ+Redis → Inngest/Trigger.dev (sequences/waits) → Temporal.
+- Jobs/queue: pick tier per project — DB-jobs+Railway cron → BullMQ+Redis → Inngest/Trigger.dev (sequences/waits) → Temporal. Durable orchestration + latency speed-up (fan-out/join, retry-from-step, idempotency/audit harness, sync-vs-defer): the `sailes-async` skill.
 - Webhooks: intake only (verify signature → validate → persist to webhook_events → idempotency key → 202); worker does the business work.
 - Storage: Railway Buckets (S3-compatible). Files private, signed URLs, metadata in Postgres, access log. R2/S3 for stronger compliance.
 - Observability: structured logs + request-id + job/webhook/audit logs; Sentry + PostHog for production.
@@ -109,7 +109,7 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 ## Lessons
 - After a correction or a recurring bug, append to `.ai/lessons.md`: Context / Problem / Rule / Applies-to. This is the repo's durable memory — read it before non-trivial work.
 - **Promotion rule (memory must compound):** a lesson that recurs or generalizes gets promoted upward — **preferably as an enforced check** (lint rule / convention test / hook — see Enforcement above), else a line in this AGENTS.md / Task Router; cross-project pattern → candidate for a global skill. Review `.ai/lessons.md` for promotion candidates when closing a spec. A lesson that is only ever appended, never promoted, is noise.
-- **Escaped-defect autopsy (gates must compound):** a defect found after `checker`+`qa` passed (client, prod, later phase) is a gate failure. The fix ships with an `Escaped-defect:` entry in `.ai/lessons.md`: which gate should have caught it + what check that gate now gains (checklist line / authz-matrix row / lint rule — prefer enforcement). Autopsy entries are priority promotion candidates.
+- **Escaped-defect autopsy — the gate autopsy (gates must compound):** an escaped defect found after `checker`+`qa` passed (client, prod, later phase) is a gate failure. The fix ships with an `Escaped-defect:` entry in `.ai/lessons.md`: which gate should have caught it + what check that gate now gains (checklist line / authz-matrix row / lint rule — prefer enforcement). Autopsy entries are priority promotion candidates.
 
 ## Client Status (STATUS.md)
 - Root `STATUS.md` is the client-readable progress view, derived from live specs: per feature — phases done/total, the plain-language Done-when result, accepted screenshot for UI phases. Updated at every phase gate (`sailes-implement`). Never contains effort, hours, or pricing data.

@@ -48,6 +48,18 @@ Value layer (`.ai/specs/2026-07-05-value-layer.md`):
 - **Client status**: root `STATUS.md` derived from live specs, updated at phase gates (no
   effort/pricing data).
 
+Reconciliation (2026-07-07, pre-merge — adversarial review of `feat/agentic-first-next`):
+- Two RED Done-when gates fixed (prose/pattern drift): `agents-md-template.md` now literally
+  carries "replaced by a one-line pointer to the enforcement" and "gate autopsy / escaped defect".
+- Versioning loop closed at runtime: `install.sh` now ships `VERSION` + `CHANGELOG.md` into
+  `~/.claude/skills/`; `adopt-existing-repo.md` Upgrade mode reads them there.
+- `.claude/settings.json` is now a real template (`sailes-bootstrap/settings-template.json`);
+  `skeleton.md` fixed the mis-nested `hooks` (a JSON key + `.claude/hooks/` scripts, not a sibling file).
+- Terminology: the Claude Code "harness guardrails" disambiguated from a durable-workflow
+  "hard harness" (see the `sailes-async` skill); bootstrap Jobs/queue now points to `sailes-async`.
+- `package.json` version aligned to `VERSION` (1.1.0); `sailes-wycena` marked as planned where referenced.
+- Still parked as debt (`.ai/backlog.md`): behavioral GREEN re-runs + CI wiring for `evals/`.
+
 ## 1.0.0 — 2026-07-02 · baseline
 
 Everything up to and including the loop-engineering adoption (PR #1): the phased pipeline

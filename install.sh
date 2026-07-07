@@ -72,6 +72,19 @@ for name in "${SKILLS[@]}"; do
   fi
 done
 
+# Ship the framework version marker + changelog alongside the skills, so an installed
+# sailes-bootstrap (adopt-existing-repo "Upgrade mode") can read them from ~/.claude/skills/.
+for meta in VERSION CHANGELOG.md; do
+  if [ -f "$REPO_DIR/$meta" ]; then
+    if [ "$DRY_RUN" = 1 ]; then
+      echo "  would install $meta -> $DEST/$meta"
+    else
+      cp "$REPO_DIR/$meta" "$DEST/$meta"
+      echo "  installed $meta"
+    fi
+  fi
+done
+
 echo
 echo "Done. Restart Claude Code (or start a new session) to pick up the skills."
 echo "Verify with:  ls $DEST"
