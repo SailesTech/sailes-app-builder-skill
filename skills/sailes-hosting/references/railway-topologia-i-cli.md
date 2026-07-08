@@ -15,6 +15,10 @@ railway whoami                 # potwierdź konto
 
 - W środowiskach headless/agentowych logowanie robi człowiek (`railway login`) — token siedzi w
   profilu. Jeśli sesja nie ma tokena, poproś użytkownika o `! railway login`.
+- Sesja `railway login` **wygasa w trakcie** (objaw: `railway status --json` pusto / `Unauthorized`).
+  Dla trwałego użycia agentowego ustaw `RAILWAY_TOKEN` w scope **User/Machine** (`setx RAILWAY_TOKEN
+  <token>`), nie tylko w bieżącej powłoce — procesy potomne dziedziczą tylko env z rejestru
+  (patrz [`monorepo-multi-serwis.md`](monorepo-multi-serwis.md) §8).
 - `railway --help` / `railway <cmd> --help` — CLI bywa aktualizowane, sprawdzaj flagi na miejscu.
 
 ## 2. Podpięcie do projektu (`link`) — NIE-interaktywnie
@@ -51,6 +55,9 @@ Services:     Custom-Overlay-App   (Fastify backend, build z gita)
   W tym repo build leci ze *spłaszczonego* brancha (`apps/*` w root, nie `app/apps/*`) —
   patrz gotcha w [`wdrozenie-logi-gotchas.md`](wdrozenie-logi-gotchas.md).
 - Warstwy są cache'owane → kolejne buildy są szybsze (zwykle 1–2 min).
+- **Monorepo pnpm:** nie zdawaj się na Nixpacks (buduje z `NODE_ENV=production` → pomija devDeps →
+  `tsc: not found`). Commituj `Dockerfile` per app + zmienną serwisu `RAILWAY_DOCKERFILE_PATH` i
+  skasuj `railway.json` → [`monorepo-multi-serwis.md`](monorepo-multi-serwis.md) §1.
 
 ## 5. Start i migracje na starcie
 
@@ -67,6 +74,9 @@ Komenda startowa (`start:prod`) robi **migracje, potem serwer**:
   blokuje start — wtedy wydziel osobny krok „migrate" przed „serve". Na naszej skali: OK jak jest.
 - Kolejność migracja-vs-deploy przy zmianach schematu → `release-checklist.md` (rozszerzaj addytywnie,
   nie destrukcyjnie, żeby stary i nowy kod przeżyły okno deployu).
+- **Uwaga (Dockerfile-only monorepo):** gdy `CMD` to czyste `… start` (bez `drizzle-kit migrate`),
+  migracje NIE lecą na starcie — są ręcznym krokiem po deployu. Nie zakładaj auto-migracji →
+  [`monorepo-multi-serwis.md`](monorepo-multi-serwis.md) §10 (+ pułapka enum w jednej transakcji).
 
 ## 6. `$PORT` i healthcheck
 
@@ -87,6 +97,7 @@ Komenda startowa (`start:prod`) robi **migracje, potem serwer**:
 
 ```bash
 railway status                 # gdzie jestem (project/env/service)
+railway status --json          # GROUND TRUTH: source.branch, build.builder/dockerfilePath, startCommand, configErrors
 railway variables              # wypisz zmienne serwisu
 railway variables --set K=V    # ustaw zmienną (wywoła redeploy)
 railway logs                   # logi bieżącego deploymentu (patrz gotchas: przechwytywanie)

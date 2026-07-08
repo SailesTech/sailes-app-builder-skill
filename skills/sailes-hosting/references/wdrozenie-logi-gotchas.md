@@ -61,7 +61,11 @@ Pełna brama: [`../../sailes-bootstrap/release-checklist.md`](../../sailes-boots
 | Objaw | Przyczyna | Reguła |
 |---|---|---|
 | Pliki znikają po redeploy | efemeryczny FS kontenera | trwałe → Volume albo S3 (patrz `storage-postgres-bucket-volume.md`) |
-| Deploy „nie wchodzi" / buduje stary kod | push w zły branch / zły układ katalogów vs build-branch | `git ls-tree <remote>/<branch>` — sprawdź, co realnie buduje Railway |
+| Deploy „nie wchodzi" / buduje stary kod | push w zły branch / zły układ katalogów vs build-branch | `git ls-tree <remote>/<branch>` — sprawdź, co realnie buduje Railway; w multi-serwis `railway status --json` → `source.branch` |
+| `tsc: not found` na buildzie monorepo | Nixpacks/Railpack buduje z `NODE_ENV=production` → pomija devDeps | Dockerfile per app + `RAILWAY_DOCKERFILE_PATH`, skasuj `railway.json` → [`monorepo-multi-serwis.md`](monorepo-multi-serwis.md) §1 |
+| Serwis `branch: None` buduje `master` zamiast `dev` | nieprzypięty branch źródłowy → Railway bierze default repo | przypnij branch w dashboardzie (CLI `source connect` zepsute); `railway status --json` → `source.branch` → [`monorepo-multi-serwis.md`](monorepo-multi-serwis.md) §3 |
+| Serwis buduje/startuje złą app mimo poprawnego Dockerfile | stała dashboardowa „Config-as-code file path" nadpisuje wszystko (niewidoczna z CLI) | `railway status --json` → `configErrors`; wyczyść pole w dashboardzie → [`monorepo-multi-serwis.md`](monorepo-multi-serwis.md) §4 |
+| Test na `dev` stworzył realny deal / wysłał realny mail | `dev` wpięty w PROD-owe credki integracji (brak sandboxu) | potwierdź gdzie idą zapisy PRZED smoke; sprzątnij artefakty → [`monorepo-multi-serwis.md`](monorepo-multi-serwis.md) §11 |
 | Zapisy do zewn. systemu „nic nie robią" | flaga `*_DRY_RUN=true` na wdrożonym serwisie | sprawdź flagę pierwszą; `false` + realny token do zapisów (patrz `env-i-sekrety.md`) |
 | „tsc zielone" a jednak build/typy padają | incremental cache `tsconfig.tsbuildinfo` | usuń buildinfo, odpal typecheck na zimno przed „zielone" |
 | Health 200, ale leci stary kod | ruch przełączony, ale to poprzedni build | potwierdź świeżą linią startową w logu / probe zachowania |

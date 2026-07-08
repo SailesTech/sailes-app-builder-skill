@@ -8,6 +8,11 @@ description: >-
   / migracje na starcie, czytasz logi przez railway CLI (railway logs / link / variables),
   debugujesz „coś się nie wdrożyło" / „zniknęły pliki po redeploy" / „redirect_uri / callback
   URL", albo rejestrujesz URL zwrotny OAuth/webhooka na produkcyjnej domenie.
+  Użyj TAKŻE przy wdrożeniu monorepo pnpm / wielu serwisów (api+worker+self-hosted Inngest+
+  Postgres+Redis): Dockerfile vs Nixpacks, „tsc: not found" na buildzie, RAILWAY_DOCKERFILE_PATH,
+  kasowanie railway.json, przypięty branch serwisu (branch: None buduje default), railway status
+  --json jako źródło prawdy, config-as-code trap, region EU/RODO, sieć prywatna railway.internal,
+  self-hosted Inngest, „dev trzyma prod-owe credki".
   Platforma referencyjna = Railway; zasady (env parity, ephemeral FS, warstwy storage,
   smoke po deployu) przenoszą się na inne hostingi. Komplementarny do release-checklist.md
   (brama wydania) — tu jest „jak platforma działa", tam „czy wolno wypuścić".
@@ -15,10 +20,14 @@ description: >-
 
 # sailes-hosting — hosting na Railway (jak to robimy naprawdę)
 
-Ten skill to **destylat z realnych wdrożeń** (projekt Idealny Wzrok / custom-overlay-app):
-co wiemy o Railway, na co się nadzialiśmy i jak tego nie powtórzyć. Nie zastępuje
-dokumentacji Railway — daje **nasz sposób** hostowania backendu Sailes (Fastify + Drizzle +
-Postgres + integracje).
+Ten skill to **destylat z realnych wdrożeń**: co wiemy o Railway, na co się nadzialiśmy i jak
+tego nie powtórzyć. Nie zastępuje dokumentacji Railway — daje **nasz sposób** hostowania backendu
+Sailes (Fastify + Drizzle + Postgres + integracje). Dwa źródła:
+- **pojedynczy serwis** (Idealny Wzrok / `custom-overlay-app`, Fastify + Postgres) — bazowa topologia,
+  build/start, storage, logi, gotchas;
+- **monorepo + multi-serwis async** (SRF / Volubus — `api` + `worker` + self-hosted Inngest +
+  Postgres + Redis, 5 serwisów, EU/RODO) — Dockerfile-first, `RAILWAY_DOCKERFILE_PATH`, przypinanie
+  brancha, `railway status --json`, sieć prywatna, self-host Inngest → [`references/monorepo-multi-serwis.md`](references/monorepo-multi-serwis.md).
 
 > **Oficjalna dokumentacja (źródło prawdy):** <https://docs.railway.com>.
 > Gdy coś się nie zgadza z tym plikiem — wygrywa docs Railway + faktyczny stan w dashboardzie.
@@ -85,6 +94,7 @@ takie → `sailes-database`. Decyzja „czy wolno wypuścić" → `sailes-bootst
 | Zmienne env, sekrety, `.env.example` jako lista prawdy, reference variables, `DRY_RUN`, rejestracja callback/redirect URL, **katalog zmiennych projektu** | [`references/env-i-sekrety.md`](references/env-i-sekrety.md) |
 | Postgres vs Bucket(S3) vs Volume — którą warstwę wybrać, efemeryczny FS, dokładne okablowanie env, RODO/EU | [`references/storage-postgres-bucket-volume.md`](references/storage-postgres-bucket-volume.md) |
 | Model deployu (push na branch), **gotcha: build-branch ≠ working-branch**, redeploy, `railway logs` (przechwytywanie/czytanie), tabela gotchas, rejestracja callback/webhook URL | [`references/wdrozenie-logi-gotchas.md`](references/wdrozenie-logi-gotchas.md) |
+| **Monorepo + multi-serwis** (pnpm, `api`+`worker`+self-host Inngest+Postgres+Redis): Dockerfile-first zamiast Nixpacks, `RAILWAY_DOCKERFILE_PATH`, przypinanie brancha (`branch: None` buduje default), `railway status --json` jako ground truth, config-as-code trap, region EU, sieć prywatna, self-host Inngest, `dev` = prod-credki | [`references/monorepo-multi-serwis.md`](references/monorepo-multi-serwis.md) |
 
 ---
 
@@ -96,13 +106,21 @@ takie → `sailes-database`. Decyzja „czy wolno wypuścić" → `sailes-bootst
    dysku przeżyje redeploy.
 3. **Wiedz, który branch Railway buduje i jak jego układ mapuje się na repo.** Roboczy branch nie
    musi być tym, co idzie na produkcję (monorepo, osobne branche deployowe, Root Directory serwisu).
-   Zweryfikuj `git ls-tree <remote>/<branch>` zanim uznasz, że „wypchnąłem zmianę".
-4. **Prod-owe callback/redirect URL rejestruj dokładnie** (OAuth `redirect_uri`, webhooki) na
+   Zweryfikuj `git ls-tree <remote>/<branch>` zanim uznasz, że „wypchnąłem zmianę". W multi-serwis
+   sprawdź przypięty branch wprost: `railway status --json` → `source.branch` (`None` = buduje default).
+4. **Monorepo pnpm → Dockerfile-first, nie Nixpacks.** Nixpacks/Railpack buduje z `NODE_ENV=production`
+   → pomija devDeps → `tsc: not found`. Commituj `Dockerfile` per app + `RAILWAY_DOCKERFILE_PATH`,
+   skasuj wszystkie `railway.json` (patrz [`monorepo-multi-serwis.md`](references/monorepo-multi-serwis.md)).
+5. **Ground truth = `railway status --json`, nie dashboard.** Pola serwisu (`build.builder`,
+   `dockerfilePath`, `startCommand`, `configErrors`) mówią, co Railway NAPRAWDĘ zrobił — a nie co
+   „ustawiłeś". Pierwszy krok, gdy serwis buduje/startuje nie to co myślisz.
+6. **Prod-owe callback/redirect URL rejestruj dokładnie** (OAuth `redirect_uri`, webhooki) na
    domenie produkcyjnej — musi się zgadzać co do znaku.
-5. **Weryfikuj `railway logs`, nie przeczuciem.** „Health 200" nie znaczy „nowy build" ani „działa".
+7. **Weryfikuj `railway logs`, nie przeczuciem.** „Health 200" nie znaczy „nowy build" ani „działa".
    Potwierdź zachowaniem (probe) albo świeżą linią startową w logu.
-6. **Prod zatwierdza człowiek.** Agent nie pushuje na branch deployowy bez wyraźnej prośby
-   (bezpiecznik projektu #5). Deploy przechodzi przez `release-checklist.md`.
+8. **Prod zatwierdza człowiek.** Agent nie pushuje na branch deployowy bez wyraźnej prośby
+   (bezpiecznik projektu #5). Deploy przechodzi przez `release-checklist.md`. **`dev` może trzymać
+   PROD-owe credki integracji** (brak sandboxu) — potwierdź, gdzie idą zapisy, zanim odpalisz smoke.
 
 ---
 
