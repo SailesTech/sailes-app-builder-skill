@@ -23,6 +23,43 @@ ls ~/.claude/skills      # → sailes-discovery sailes-bootstrap sailes-start sa
 
 > Installs **copies**, not symlinks — stable even if you move or delete this repo. The repo stays the source of truth; re-run `install.sh` after pulling changes.
 
+## Distribute to the team as a Claude Code plugin (marketplace)
+
+This repo is also a **Claude Code plugin marketplace** (`.claude-plugin/marketplace.json` → the `sailes-app-builder` plugin, which ships every `skills/sailes-*`). This is the go-forward way to give the whole team the skills — no manual `git clone` / `install.sh` per person.
+
+> **Reality check:** Claude Code plugin config is **not** synced by your Anthropic account. It lives in per-machine `settings.json`. So "everyone auto-gets it" means the marketplace must be registered in each machine's settings **once** — after that the plugin auto-installs in *every* project on that machine.
+
+**Each teammate runs once per machine:**
+
+```bash
+# Windows (PowerShell)
+powershell -ExecutionPolicy Bypass -File .\enable-plugin.ps1
+# macOS / Linux
+./enable-plugin.sh
+```
+
+The script merges into `~/.claude/settings.json` (without clobbering your other keys):
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "sailes": { "source": { "source": "github", "repo": "SailesTech/sailes-app-builder-skill" } }
+  },
+  "enabledPlugins": { "sailes-app-builder@sailes": true }
+}
+```
+
+Restart Claude Code → the plugin auto-installs and updates from GitHub. Manual equivalent, if you prefer typing it:
+
+```
+/plugin marketplace add SailesTech/sailes-app-builder-skill
+/plugin install sailes-app-builder@sailes
+```
+
+**Fully zero-touch (org-enforced):** deploy the same JSON as a read-only *managed settings* file to each Windows machine via IT/MDM/login-script at `C:\ProgramData\ClaudeCode\managed-settings.json`. This can't be disabled by users, but requires a way to push a file to every machine.
+
+> **Plugin vs `install.sh`:** the plugin is the team distribution channel; `install.sh` is the local-dev path (edit under `skills/`, install a copy). On a machine using the plugin, you don't also need `install.sh` — running both just loads the skills twice.
+
 ### How Claude Code finds skills
 
 Claude Code loads skills from `~/.claude/skills/<name>/SKILL.md` (global) — that's where `install.sh` puts them. It activates a skill automatically when your request matches the skill's `description` triggers, or when you type `/<skill-name>`.
