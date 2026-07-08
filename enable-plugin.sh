@@ -26,7 +26,7 @@ const p = process.env.SETTINGS;
 let s = {};
 try { const raw = fs.readFileSync(p, "utf8").trim(); if (raw) s = JSON.parse(raw); } catch (e) {}
 s.extraKnownMarketplaces = s.extraKnownMarketplaces || {};
-s.extraKnownMarketplaces.sailes = { source: { source: "github", repo: "SailesTech/sailes-app-builder-skill" } };
+s.extraKnownMarketplaces.sailes = { source: { source: "github", repo: "SailesTech/sailes-app-builder-skill" }, autoUpdate: true };
 s.enabledPlugins = s.enabledPlugins || {};
 s.enabledPlugins["sailes-app-builder@sailes"] = true;
 fs.writeFileSync(p, JSON.stringify(s, null, 2) + "\n");

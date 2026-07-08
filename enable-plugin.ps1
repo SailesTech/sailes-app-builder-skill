@@ -22,7 +22,8 @@ if (Test-Path $settingsPath) {
 }
 
 $marketplace = [pscustomobject]@{
-  source = [pscustomobject]@{ source = 'github'; repo = 'SailesTech/sailes-app-builder-skill' }
+  source     = [pscustomobject]@{ source = 'github'; repo = 'SailesTech/sailes-app-builder-skill' }
+  autoUpdate = $true
 }
 
 if ($settings.PSObject.Properties.Name -contains 'extraKnownMarketplaces') {

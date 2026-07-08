@@ -2,7 +2,63 @@
 
 A modular set of Claude Code skills that lead agents **and** developers through building custom B2B web apps in a **repeatable, standardized, agentic-first** way — from business discovery to an implementation-ready repo. The goal: everyone at the company builds apps the same way, with the **developer consciously owning every key decision** (the AI recommends with pros/cons; the human chooses).
 
-## Install (global)
+## Which install method? — you choose (recommended: **the plugin**)
+
+Two ways to get these skills. Both make the same `sailes-*` skills active; they differ in **how updates reach you**. Pick one — don't run both on the same machine (the skills would load twice).
+
+| | **A. Plugin — Claude Code marketplace** ✅ recommended | **B. `install.sh` — global copies** |
+|---|---|---|
+| **How updates reach you** | **Central source on GitHub.** One command per machine — `/plugin marketplace update sailes` — pulls the latest; no repo on disk, no re-clone. Can be made automatic (see the update note below). | **Manual, per machine.** Everyone must have the repo on disk, `git pull`, then re-run `./install.sh`. Versions drift when people forget. |
+| **First-time setup (per machine)** | Run `enable-plugin.ps1` / `.sh` **once** (or 2 `/plugin` commands). | `git clone` + `./install.sh`. |
+| **Needs the repo on disk** | No — Claude Code fetches from GitHub. | Yes — the repo is the source of the copies. |
+| **Team consistency** | High — one source of truth, auto-synced. | Low — depends on each person re-running the installer. |
+| **Best for** | **Teams**, staying in sync, "set once & forget". | **Editing the skills themselves** (change under `skills/`, install a copy, test), or offline/air-gapped machines. |
+
+**Recommendation:** use the **plugin** (Method A) unless you're actively developing the skills. It's the go-forward team channel: change once, everyone gets it. `install.sh` (Method B) stays as the local-dev path.
+
+> **Note on "automatic for everyone":** Claude Code plugin config is **not** synced by your Anthropic account — it lives in per-machine `settings.json`. "Auto for everyone" therefore means the marketplace is registered on each machine **once** (the enable script); after that, updates are one central command (or automatic — see the update note in Method A). Truly zero-touch (nothing to run per machine) needs *managed settings* pushed by IT/MDM — see Method A below.
+
+---
+
+## Method A — Plugin (marketplace) · recommended
+
+**Each teammate runs once per machine:**
+
+```bash
+# Windows (PowerShell)
+powershell -ExecutionPolicy Bypass -File .\enable-plugin.ps1
+# macOS / Linux
+./enable-plugin.sh
+```
+
+Restart Claude Code → the `sailes-app-builder` plugin auto-installs from GitHub. Manual equivalent, if you prefer typing it:
+
+```
+/plugin marketplace add SailesTech/sailes-app-builder-skill
+/plugin install sailes-app-builder@sailes
+```
+
+The enable script merges this into `~/.claude/settings.json` without clobbering your other keys:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "sailes": {
+      "source": { "source": "github", "repo": "SailesTech/sailes-app-builder-skill" },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": { "sailes-app-builder@sailes": true }
+}
+```
+
+**Getting updates.** Third-party marketplaces do **not** auto-update by default. Two options:
+- **Manual (always works):** run `/plugin marketplace update sailes` when you want the latest. One command, no repo on disk.
+- **Automatic (best-effort):** the `autoUpdate: true` above tells Claude Code to refresh this marketplace at session start. It's officially documented for *managed settings*; in user settings it's undocumented (harmless if ignored). Note a known Claude Code issue where `autoUpdate` refreshes the catalog but may not always re-install a plugin to its newest version — so keep the manual command as the reliable fallback.
+
+**Fully zero-touch (org-enforced):** deploy the same JSON as a read-only *managed settings* file to each machine via IT/MDM/login-script (`C:\ProgramData\ClaudeCode\managed-settings.json` on Windows). There `autoUpdate` is officially supported, can't be disabled by users — but you need a way to push a file to every machine.
+
+## Method B — `install.sh` (global copies)
 
 These skills install into `~/.claude/skills/`, which makes them active in **every** project on your machine.
 
@@ -23,46 +79,10 @@ ls ~/.claude/skills      # → sailes-discovery sailes-bootstrap sailes-start sa
 
 > Installs **copies**, not symlinks — stable even if you move or delete this repo. The repo stays the source of truth; re-run `install.sh` after pulling changes.
 
-## Distribute to the team as a Claude Code plugin (marketplace)
-
-This repo is also a **Claude Code plugin marketplace** (`.claude-plugin/marketplace.json` → the `sailes-app-builder` plugin, which ships every `skills/sailes-*`). This is the go-forward way to give the whole team the skills — no manual `git clone` / `install.sh` per person.
-
-> **Reality check:** Claude Code plugin config is **not** synced by your Anthropic account. It lives in per-machine `settings.json`. So "everyone auto-gets it" means the marketplace must be registered in each machine's settings **once** — after that the plugin auto-installs in *every* project on that machine.
-
-**Each teammate runs once per machine:**
-
-```bash
-# Windows (PowerShell)
-powershell -ExecutionPolicy Bypass -File .\enable-plugin.ps1
-# macOS / Linux
-./enable-plugin.sh
-```
-
-The script merges into `~/.claude/settings.json` (without clobbering your other keys):
-
-```json
-{
-  "extraKnownMarketplaces": {
-    "sailes": { "source": { "source": "github", "repo": "SailesTech/sailes-app-builder-skill" } }
-  },
-  "enabledPlugins": { "sailes-app-builder@sailes": true }
-}
-```
-
-Restart Claude Code → the plugin auto-installs and updates from GitHub. Manual equivalent, if you prefer typing it:
-
-```
-/plugin marketplace add SailesTech/sailes-app-builder-skill
-/plugin install sailes-app-builder@sailes
-```
-
-**Fully zero-touch (org-enforced):** deploy the same JSON as a read-only *managed settings* file to each Windows machine via IT/MDM/login-script at `C:\ProgramData\ClaudeCode\managed-settings.json`. This can't be disabled by users, but requires a way to push a file to every machine.
-
-> **Plugin vs `install.sh`:** the plugin is the team distribution channel; `install.sh` is the local-dev path (edit under `skills/`, install a copy). On a machine using the plugin, you don't also need `install.sh` — running both just loads the skills twice.
-
 ### How Claude Code finds skills
 
-Claude Code loads skills from `~/.claude/skills/<name>/SKILL.md` (global) — that's where `install.sh` puts them. It activates a skill automatically when your request matches the skill's `description` triggers, or when you type `/<skill-name>`.
+- **Plugin (Method A):** loaded from the installed plugin; auto-triggered when your request matches a skill's `description`.
+- **`install.sh` (Method B):** loaded from `~/.claude/skills/<name>/SKILL.md`; same auto-trigger, or type `/<skill-name>`.
 
 ## What you get
 
