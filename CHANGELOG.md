@@ -4,6 +4,32 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.2.0 — 2026-07-12 · Codex CLI parity — second harness, one source of truth
+
+Make the framework run correctly under **OpenAI Codex CLI**, not just Claude Code — skills
+*and* the repos they generate. What a generated/adopted repo now contains or does differently:
+
+- **Codex guardrail twin**: `sailes-bootstrap` emits `.codex/config.toml` alongside
+  `.claude/settings.json` (new `codex-config-template.md`). It maps `permissions.allow/deny` →
+  `sandbox_mode`/`approval_policy` + `[hooks]`, and the **hook scripts are shared** —
+  `.claude/hooks/*.sh` is one copy referenced by both configs (identical stdin-JSON payload +
+  exit-2-to-block + SessionStart-stdout→context contract). Honestly encodes the Codex
+  limitation that some versions fire `PreToolUse` only for `Bash` (apply_patch edits fall back
+  to sandbox/approval + prose rules).
+- **Copilot pointer**: `.github/copilot-instructions.md` → `AGENTS.md` generated too. One source
+  of truth, three harnesses.
+- **Skill distribution for Codex**: `enable-codex.sh` / `enable-codex.ps1` copy `sailes-*` into
+  `~/.agents/skills/` (Codex USER-scope). The `SKILL.md` frontmatter (`name` + `description`) is
+  already Codex-native — no transformation. Ships `VERSION` + `CHANGELOG.md` next to the skills,
+  like `install.sh`, so Upgrade mode can read `~/.agents/skills/CHANGELOG.md`.
+- **Bootstrap wiring**: skeleton (`.codex/` in the tree, shared-hooks note), `agents-md-template`
+  (Enforcement lists both twins), `agentic-first-principles` (harness-parity principle),
+  `repo-done-checklist` (verify `.codex/config.toml` + no script drift), `adopt-existing-repo`
+  (audit row 13 + additive generation of the Codex twin), `SKILL.md` (Case B/C generate both
+  twins by default).
+- **Definition of "Codex-ready"**: a repo is Codex-ready only when the `.codex/` twin exists and
+  points at the shared scripts — not merely because `AGENTS.md` is readable.
+
 ## 1.1.0 — 2026-07-05 · "move truth from prose into the machine" + the value layer
 
 Engineering layer (`.ai/specs/2026-07-05-agentic-first-next-level.md`):
