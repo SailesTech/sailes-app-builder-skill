@@ -35,6 +35,7 @@ A repo built with `sailes-bootstrap` has a **local** spec-writing skill at `.ai/
    - Add a numbered **Open Questions** block (Q1, Q2, …) right after the TLDR — one per line, answerable (binary/multiple-choice where possible). For anything that's a real fork, present it the way `sailes-discovery` does: options with ✅/⚠️ + a recommendation, the user chooses.
    - Apply the same quality bar as discovery: every option needs one concrete upside, one concrete cost, and the real trade-off it introduces. If the pros/cons are weak or generic, ask a fact-finding question instead of pretending it's a real decision.
    - **STOP after the skeleton. Hard gate.** Do not write the rest until the user answers every open question.
+   - **Escalation — Open Questions bigger than one sitting:** if the unknowns can't all be answered in this pass (answers depend on other answers, need research/spikes/prototypes, or wait on client input) — don't park a growing flat list: invoke **`sailes-wayfinder`**, convert each unknown into a typed ticket (decision/research/prototype/task), keep the spec at skeleton with `Status: draft` + a link to the map, and resume writing when the map clears. The resolved map feeds the Decisions Ledger (gist + link — a decision lives in its ticket, never restated).
 4. **Iterate** — apply answers, remove the Open Questions block. New unknowns surface → re-gate only those.
 5. **Design** — data model, API surface, UI surface, module boundaries, integration/webhook contracts, jobs/workflows.
 6. **Phasing** — break into **Phases** (stories) and **Steps** (testable tasks). Each step leaves the app working. **Every phase carries a `Done-when`** — a binary, machine-checkable completion condition: the exact command(s) to run + the expected outcome (e.g. `pnpm test src/auth → 0 failures`; `curl -s -o /dev/null -w '%{http_code}' -X POST /api/export → 200 + non-empty file`; UI: screenshot of screen X matches the design artifact). "Works correctly" / "is polished" is not a Done-when — if you can't write the check, the phase isn't specified yet.
@@ -126,6 +127,7 @@ Status: draft | approved | in-progress | implemented | superseded
 | Mistake | Fix |
 |---|---|
 | Writing the full spec in one pass on assumptions | Skeleton + Open Questions gate; STOP for answers. |
+| Flat Open Questions list growing across sessions | Escalate to `sailes-wayfinder` (typed tickets + map); resume at skeleton when it clears. |
 | Deciding the critical unknowns yourself | They're the user's — present options + recommendation, let them choose. |
 | Duplicating an existing spec for the same area | Extend the existing `.ai/specs/` file. |
 | Ignoring a local `.ai/skills/spec-writing/` | Local wins; this skill is the fallback. |
@@ -140,3 +142,4 @@ Status: draft | approved | in-progress | implemented | superseded
 - A phase leaves the app non-working, or a step has no test.
 - A phase's completion is described qualitatively ("improve", "polish", "works well") with no binary `Done-when`.
 - You're about to hand the spec to implementation with unanswered critical unknowns.
+- Your Open Questions need research or client input that won't arrive this sitting and you're holding the spec open instead of escalating to `sailes-wayfinder`.
