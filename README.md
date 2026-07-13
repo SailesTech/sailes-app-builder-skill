@@ -1,6 +1,8 @@
 # Sailes App-Builder Skills
 
-A modular set of Claude Code skills that lead agents **and** developers through building custom B2B web apps in a **repeatable, standardized, agentic-first** way — from business discovery to an implementation-ready repo. The goal: everyone at the company builds apps the same way, with the **developer consciously owning every key decision** (the AI recommends with pros/cons; the human chooses).
+A modular set of agentic-coding skills — for **Claude Code** and **OpenAI Codex CLI** — that lead agents **and** developers through building custom B2B web apps in a **repeatable, standardized, agentic-first** way — from business discovery to an implementation-ready repo. The goal: everyone at the company builds apps the same way, with the **developer consciously owning every key decision** (the AI recommends with pros/cons; the human chooses).
+
+> **Two harnesses, one source of truth.** The skills (`SKILL.md`) run in both Claude Code and Codex; the repos they generate carry guardrail twins for both (`.claude/settings.json` **and** `.codex/config.toml`, sharing the same hook scripts) plus a Copilot pointer. See **[Codex CLI support](#codex-cli-support)** below.
 
 ## Which install method? — you choose (recommended: **the plugin**)
 
@@ -84,6 +86,36 @@ ls ~/.claude/skills      # → sailes-discovery sailes-bootstrap sailes-start sa
 - **Plugin (Method A):** loaded from the installed plugin; auto-triggered when your request matches a skill's `description`.
 - **`install.sh` (Method B):** loaded from `~/.claude/skills/<name>/SKILL.md`; same auto-trigger, or type `/<skill-name>`.
 
+## Codex CLI support
+
+These skills — and the repos they generate — work under **OpenAI Codex CLI**, not just Claude Code. Codex has no plugin marketplace, so the distribution is a global copy (the analog of Method B), and the two harnesses map cleanly:
+
+| Layer | Claude Code | Codex CLI |
+|---|---|---|
+| Repo instructions | `AGENTS.md` (via `CLAUDE.md`→`@AGENTS.md`) | `AGENTS.md` (read natively; global → repo → subdir) |
+| The `sailes-*` skills | plugin / `~/.claude/skills/` | `~/.agents/skills/` (same `SKILL.md`, `name`+`description` frontmatter) |
+| Guardrails | `.claude/settings.json` (permissions + hooks) | `.codex/config.toml` (`sandbox_mode`/`approval_policy` + `[hooks]`) |
+| Hook **scripts** | `.claude/hooks/*.sh` | **the same scripts** — identical stdin-JSON + exit-2-to-block contract |
+
+**Enable the skills for Codex (once per machine):**
+
+```bash
+# macOS / Linux
+./enable-codex.sh
+# Windows (PowerShell)
+powershell -ExecutionPolicy Bypass -File .\enable-codex.ps1
+```
+
+This copies every `sailes-*` skill into `~/.agents/skills/` (Codex's USER-scope skill path), active in **every** repo. Start a new Codex session, then `/skills` (or reference one inline, e.g. `$sailes-discovery`). Options mirror `install.sh`: `--dry-run`, `--force`.
+
+```bash
+ls ~/.agents/skills      # → sailes-discovery sailes-bootstrap sailes-start …
+```
+
+**Generated projects are Codex-ready.** `sailes-bootstrap` emits the `.codex/config.toml` guardrail twin (reusing the shared `.claude/hooks/*.sh`) and a `.github/copilot-instructions.md` pointer by default — so a Sailes app runs *guarded* under Codex, not merely readable. See `skills/sailes-bootstrap/codex-config-template.md`.
+
+> **One known Codex caveat, handled honestly:** on some Codex versions `PreToolUse` fires only for the `Bash` tool, so shell-driven writes to protected paths are blocked but `apply_patch` edits fall back to sandbox/approval + the AGENTS.md prose rules. The template documents this rather than pretending the file-edit guard is airtight.
+
 ## What you get
 
 | Skill | Use it for |
@@ -116,10 +148,12 @@ Each skill is **independently callable** — invoke `sailes-discovery` alone for
 ## Repo layout
 
 ```
-skills/                 # the skills (source of truth) — installed by install.sh
-  sailes-*/SKILL.md     #   one folder per skill (+ reference files)
+skills/                 # the skills (source of truth) — installed by install.sh / enable-codex.sh
+  sailes-*/SKILL.md     #   one folder per skill (+ reference files) — Claude & Codex compatible
   README.md             #   pipeline overview, invariants, file index
-install.sh              # global installer (copy into ~/.claude/skills/)
+enable-plugin.sh/.ps1   # Claude Code: register the marketplace + plugin (Method A)
+install.sh              # Claude Code: global copy into ~/.claude/skills/ (Method B)
+enable-codex.sh/.ps1    # Codex CLI: global copy into ~/.agents/skills/
 skile do inspiracji/    # provenance: source material the skills were distilled from
 ```
 

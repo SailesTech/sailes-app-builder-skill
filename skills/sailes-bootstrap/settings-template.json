@@ -10,6 +10,12 @@
 // Hook commands below are illustrative shell one-liners; move non-trivial logic into
 // .claude/hooks/*.sh and call the script here. See Claude Code docs for the hook JSON contract
 // (a PreToolUse hook that prints to stderr and exits non-zero blocks the tool call).
+//
+// CODEX TWIN: generate .codex/config.toml alongside this file (see codex-config-template.md).
+// Codex uses the SAME hook contract (stdin JSON + exit-2-to-block + SessionStart stdout→context),
+// so the .claude/hooks/*.sh scripts are SHARED — one copy, referenced by both harness configs.
+// The permissions.allow/deny model below maps to Codex sandbox_mode + approval_policy + a Bash
+// PreToolUse guard. A repo is "Codex-ready" only when BOTH configs exist and point at the scripts.
 {
   "permissions": {
     "allow": [
@@ -40,7 +46,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat .ai/STATE.md 2>/dev/null; echo '--- Task Router: see AGENTS.md ---'"
+            "command": "sh \"$(git rev-parse --show-toplevel)/.claude/hooks/session-start.sh\""
           }
         ]
       }

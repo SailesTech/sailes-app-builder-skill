@@ -62,6 +62,7 @@ repo/
     pre-commit            # lint + typecheck (+ format/i18n) — deterministic gate before commit
   .github/
     workflows/ci.yml      # lint → typecheck → unit → integration → e2e → security scan
+    copilot-instructions.md  # → one-line pointer to AGENTS.md (Copilot). One source, three harnesses.
 
   .claude/                # Claude Code harness guardrails — structural discipline, not agent goodwill
     settings.json         #   ONE JSON file with two keys (copy from sailes-bootstrap/settings-template.json):
@@ -78,9 +79,16 @@ repo/
                           #   guard-protected-paths.sh) — harness-optional: in a harness without
                           #   hooks the AGENTS.md prose rules are the fallback (the Guardrails note
                           #   there says which rules lost their backstop)
+                          #   SHARED with Codex: the same scripts are referenced by .codex/config.toml
+  .codex/                 # Codex CLI harness guardrails — the twin of .claude/ (copy from
+    config.toml           #   sailes-bootstrap/codex-config-template.md): sandbox_mode + approval_policy
+                          #   (the "permissions" model) + [hooks] SessionStart/PreToolUse that call the
+                          #   SAME .claude/hooks/*.sh (identical stdin-JSON + exit-2-to-block contract).
+                          #   Generate by default so a Sailes app runs guarded under Codex too, not just
+                          #   readable. Caveat: some Codex versions fire PreToolUse only for Bash.
 
   AGENTS.md               # concise; see agents-md-template.md (incl. Git Workflow + PR Workflow)
-  CLAUDE.md               # → @AGENTS.md
+  CLAUDE.md               # → @AGENTS.md   (Claude Code entry point)
   STATUS.md               # client-readable progress derived from live specs (header-only to start;
                           #   updated at each phase gate — never contains effort/pricing data)
   README.md

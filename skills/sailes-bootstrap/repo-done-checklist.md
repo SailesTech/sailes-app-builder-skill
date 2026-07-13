@@ -22,6 +22,8 @@ Every item MUST exist on disk. The manifest decides *optional packages*, never t
 | **git initialized + first commit** | A repo with 0 commits is not a working repo. |
 | **design artifact** (`design-system/MASTER.md` OR `.ai/specs/ui-spec.md`) | The design phase ran (see `sailes-design`). Missing = the "no frontend project" failure. |
 | `.claude/settings.json` (+ hooks) | Harness guardrails: verify-commands allowlist, protected-path denies, SessionStart STATE.md injection. Structural discipline beats agent goodwill. |
+| `.codex/config.toml` (Codex twin) | Same guardrails for Codex CLI (sandbox/approval + `[hooks]` reusing `.claude/hooks/*.sh`). A Sailes app must run *guarded*, not just *readable*, under Codex. See `codex-config-template.md`. |
+| `.github/copilot-instructions.md` | One-line pointer to `AGENTS.md` — third harness reads the same source of truth. |
 | `STATUS.md` (root, header-only) | Client-readable progress view exists from day one (filled at phase gates). |
 
 **Generate the full `.ai/` structure** — including `specs/` (+ `implemented/`, `archived/`), `backlog.md`, `lessons.md` (header-only; filled on the first real lesson), and `STATE.md` (header-only session memory: Verified facts / General rules / Open failures / Lessons learned / Last session). Present from day one so the convention is visible. **Idempotent:** if any `.ai/` artifact already exists in the repo, do NOT overwrite it — add only what is missing, follow the repo's existing convention.
@@ -55,6 +57,16 @@ echo "== harness guardrails + client status =="
 for f in .claude/settings.json STATUS.md; do
   [ -e "$ROOT/$f" ] && echo "OK   $f" || echo "MISS $f"
 done
+echo "== Codex twin + multi-harness interop =="
+for f in .codex/config.toml .github/copilot-instructions.md; do
+  [ -e "$ROOT/$f" ] && echo "OK   $f" || echo "MISS $f (Codex/Copilot parity — see codex-config-template.md)"
+done
+# .codex/config.toml must reference hook scripts that actually exist (no drift)
+if [ -e "$ROOT/.codex/config.toml" ]; then
+  grep -oE '\.claude/hooks/[A-Za-z0-9_.-]+\.sh' "$ROOT/.codex/config.toml" | sort -u | while read -r s; do
+    [ -e "$ROOT/$s" ] && echo "OK   .codex refs $s" || echo "DRIFT .codex/config.toml references missing $s"
+  done
+fi
 ```
 
 **Any `MISS` line means bootstrap is NOT done.** Fix it, re-run, then proceed. Do not hand off to spec-writing or implementation with outstanding `MISS` lines.
@@ -119,6 +131,7 @@ you" as a product, not a favor.
 
 The list differs — you are *validating* or *adding additively*, not generating a monorepo. Required:
 - methodology layer present (`AGENTS.md`/`CLAUDE.md`/`.ai/` — generated in Case C, pre-existing in Case A)
+- harness guardrails present for both harnesses in scope: `.claude/settings.json` and (default) `.codex/config.toml` sharing `.claude/hooks/*.sh` — added additively in Case C, validated in Case A
 - a local `spec-writing` skill (existing in A; generated, real-stack, in C)
 - an ADR recording the existing stack + gaps (Case C)
 - the existing test/build still green (you changed docs+config only)

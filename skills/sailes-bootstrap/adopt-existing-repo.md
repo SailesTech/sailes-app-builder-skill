@@ -32,6 +32,7 @@ For each element below, classify it **PRESENT** (exists and matches the current 
 | 10 | **loop hygiene / session memory** | `.ai/STATE.md` present (five sections, read-at-start + write-before-walking-away in AGENTS.md); live specs' phases carry a binary `Done-when`; gate isolation known (checker sees diff+spec+checklist only, never the maker's narrative) | scaffold STATE.md header + AGENTS.md rules; flag live specs without `Done-when`; document gate isolation |
 | 11 | **doc freshness** | every path & command referenced in AGENTS.md / Task Router exists / runs (`repo-done-checklist.md` Freshness check) | doc drift — fix the references (or the missing artifact); a doc that lies actively misleads every future agent |
 | 12 | **Framework-Version stamp** | AGENTS.md header carries `Framework-Version:`; compare against the current framework `VERSION` | absent → stamp the current version; older → run **Upgrade mode** below |
+| 13 | **harness parity (Codex twin)** | `.codex/config.toml` present (twin of `.claude/settings.json`, reusing `.claude/hooks/*.sh`); `.github/copilot-instructions.md` points at AGENTS.md — see `codex-config-template.md` | add the Codex twin + Copilot pointer additively so the repo runs *guarded* under Codex too; commonly MISSING on repos adopted before Codex support existed |
 
 ```bash
 ROOT="$(pwd)"
@@ -47,6 +48,9 @@ for d in .ai/specs .ai/specs/implemented .ai/specs/archived .ai/adr; do
 done
 grep -q "@AGENTS.md" "$ROOT/CLAUDE.md" 2>/dev/null && echo "PRESENT CLAUDE→AGENTS" || echo "MISSING CLAUDE→AGENTS"
 grep -qi "Task Router" "$ROOT/AGENTS.md" 2>/dev/null && echo "PRESENT Task-Router section" || echo "DRIFTED/MISSING Task-Router section"
+for f in .codex/config.toml .github/copilot-instructions.md; do
+  [ -e "$ROOT/$f" ] && echo "PRESENT $f" || echo "MISSING $f (Codex/Copilot parity)"
+done
 ls "$ROOT/.ai/adr/"*stack* "$ROOT/.ai/adr/"*ADR-001* 2>/dev/null | head -1 | grep -q . && echo "PRESENT stack ADR" || echo "MISSING stack ADR"
 ```
 
@@ -61,7 +65,8 @@ The framework improves between projects; without an upgrade path, improvements o
    that is the **standard delta** (what the methodology added/changed since this repo was
    bootstrapped or last upgraded). `install.sh` ships `VERSION` + `CHANGELOG.md` next to the
    installed skills, so read `~/.claude/skills/CHANGELOG.md` and `~/.claude/skills/VERSION`
-   (fall back to this framework repo's root copies if you're running from source).
+   (Codex install via `enable-codex.sh` ships the same pair at `~/.agents/skills/`; fall back to
+   this framework repo's root copies if you're running from source).
 2. Turn the delta into an upgrade plan: which template sections, checklists, guardrails, or
    `.ai/` artifacts this repo is missing or has in an older shape. Same idempotency rules as
    adoption — **additive only, never overwrite, never touch running code**.
@@ -91,6 +96,7 @@ The generated `AGENTS.md` must reflect **their** patterns so agents extend the c
 Generate, after a quick confirm:
 - `AGENTS.md` (concise, from `agents-md-template.md`) — with the **real** stack/commands/conventions filled in, not the baseline defaults. Adapt the Critical Rules / Conventions / Key Commands sections to what this repo does.
 - `CLAUDE.md` → `@AGENTS.md`.
+- **Harness guardrails, both twins:** `.claude/settings.json` + `.codex/config.toml` (from `codex-config-template.md`) sharing `.claude/hooks/*.sh`, plus `.github/copilot-instructions.md`. Wire the hook guards to the repo's REAL protected surface (their migrations dir, their prod-deploy command). Additive — if the repo already has one twin, add the missing one; never overwrite.
 - `.ai/{specs,skills,checklists,adr}` scaffolding + the local `spec-writing` skill from `spec-writing-template.md`, with its `## Stack conventions` block **tuned to their actual stack** (raw SQL / Express / Jest, etc.), not the baseline.
 - An **ADR** (`.ai/adr/`) recording: the existing stack as the accepted decision + the known gaps vs. baseline, so any future deviation is deliberate.
 - Working discipline (the universal guardrails in `agentic-first-principles.md`): verifiable-done via **their** test/build commands, RED-test-first, security checklist applied as a *gap list*, adversarial review — adopted, not retrofitted by rewriting code.

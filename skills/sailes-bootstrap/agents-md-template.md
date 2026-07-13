@@ -16,6 +16,8 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 - `.ai/screens/` — latest accepted screenshot per key screen, qa's vision-verify baseline (created when first used)
 - `STATUS.md` (root) — client-readable progress, derived from live specs (header-only to start; updated at each phase gate — see `sailes-implement`). No effort/pricing data ever.
 - `.claude/settings.json` + hooks — the harness guardrails (permissions allowlist, SessionStart memory injection, PreToolUse protected paths) — see `skeleton.md`
+- `.codex/config.toml` — the **Codex twin** of the guardrails (sandbox/approval + `[hooks]` reusing the SAME `.claude/hooks/*.sh` scripts) — see `codex-config-template.md`. Generate it whenever the repo should run under Codex CLI too (default yes).
+- `.github/copilot-instructions.md` — one-line pointer to `AGENTS.md` for Copilot. One source of truth, three harnesses.
 - (idempotent: never overwrite an existing `.ai/` artifact; add only what's missing)
 
 ---
@@ -29,7 +31,7 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 ## Enforcement (the ratchet)
 - Rules the toolchain enforces (lint/types/tests/hooks) are NOT restated here — this file lists only judgment rules and pointers. If you can express a rule as a check, add the check and link it here instead of writing prose (`agentic-first-principles.md` §B.3).
 - Enforced in this repo: no `any` (ESLint error) · design tokens only (lint on raw literals) · module import direction (dependency rule) · Zod at boundaries (convention test). <!-- keep this list in sync with the actual config -->
-- Harness guardrails (`.claude/settings.json` + hooks): verify commands run without prompts; protected paths (`.env*`, applied migrations, prod deploy/migrate commands) are blocked; STATE.md is injected at session start. In a harness without hooks, the prose rules below are the fallback — know which rules lost their backstop.
+- Harness guardrails — two twins, shared hook scripts: `.claude/settings.json` (Claude Code) and `.codex/config.toml` (Codex CLI) both run `.claude/hooks/*.sh` to inject STATE.md at session start and block the protected surface (`.env*`, applied migrations, prod deploy/migrate, force-push). Codex caveat: on some versions PreToolUse fires only for `Bash`, so shell-driven writes are blocked but `apply_patch` edits fall back to sandbox/approval + the prose rules. In any harness without hooks, the prose Hard Safety Rules below are the fallback — know which rules lost their backstop.
 
 ## Before Writing Code
 1. Run discovery (needs/scope) → then bootstrap (methodology + stack) → then spec.
