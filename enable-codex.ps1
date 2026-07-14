@@ -13,6 +13,7 @@
 #   Claude Code -> enable-plugin.ps1 (marketplace + plugin, auto-installs per repo)
 #                  install.sh        (global copy into ~/.claude/skills/)
 #   Codex CLI   -> enable-codex.ps1  (global copy into ~/.agents/skills/)  <- this file
+#   Codex agents -> enable-codex-agents.ps1 (global custom-agent installation)
 #
 # Re-run any time to update to the latest version in this repo (it overwrites the
 # installed copy). Installs COPIES (not symlinks). SKILL.md frontmatter is already

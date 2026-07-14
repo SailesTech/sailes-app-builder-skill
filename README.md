@@ -112,6 +112,55 @@ This copies every `sailes-*` skill into `~/.agents/skills/` (Codex's USER-scope 
 ls ~/.agents/skills      # → sailes-discovery sailes-bootstrap sailes-start …
 ```
 
+### Codex agent team (global install)
+
+Skills and agents are installed separately: `enable-codex.ps1` / `.sh` installs the
+`sailes-*` **skills**, while the commands below install seven global Codex
+**subagent roles**: `team-lead`, `explorer`, `designer`, `be-dev`, `fe-dev`,
+`checker`, and `qa`. Codex must support local agent TOML configuration; start a
+fresh Codex session after installing them.
+
+```powershell
+# PowerShell — preview only; creates and changes nothing
+.\enable-codex-agents.ps1 -DryRun
+
+# Install or safely update (asks once before an update)
+.\enable-codex-agents.ps1
+
+# Update Sailes-owned agent files without the prompt
+.\enable-codex-agents.ps1 -Force
+```
+
+```bash
+# macOS / Linux — preview, install, or non-interactive update
+./enable-codex-agents.sh --dry-run
+./enable-codex-agents.sh
+./enable-codex-agents.sh --force
+```
+
+The installer copies only those seven TOMLs to `~/.codex/agents/` and owns one
+clearly marked Sailes block in `~/.codex/config.toml`. It preserves unrelated
+agents and settings. Before it changes an existing config it creates and prints a
+timestamped backup; a second identical run makes no write or backup. `-Force`
+skips the confirmation only — it never bypasses malformed-config or conflicting-
+agent safety checks.
+
+Verify the installation (PowerShell):
+
+```powershell
+Get-ChildItem ~/.codex/agents/*.toml | Where-Object Name -in @('team-lead.toml','explorer.toml','designer.toml','be-dev.toml','fe-dev.toml','checker.toml','qa.toml')
+```
+
+Start a fresh Codex session after installation. For non-trivial work, invoke
+`team-lead`; it coordinates the relevant roles in the order
+`explorer → designer → be-dev → fe-dev → checker → qa` and retains the
+independent checker and QA gates.
+
+To recover, restore the exact `.bak` path printed by the installer, or remove
+only the documented Sailes managed block and these seven Sailes-owned role files:
+`team-lead.toml`, `explorer.toml`, `designer.toml`, `be-dev.toml`, `fe-dev.toml`,
+`checker.toml`, and `qa.toml` from `~/.codex/agents/`.
+
 **Generated projects are Codex-ready.** `sailes-bootstrap` emits the `.codex/config.toml` guardrail twin (reusing the shared `.claude/hooks/*.sh`) and a `.github/copilot-instructions.md` pointer by default — so a Sailes app runs *guarded* under Codex, not merely readable. See `skills/sailes-bootstrap/codex-config-template.md`.
 
 > **One known Codex caveat, handled honestly:** on some Codex versions `PreToolUse` fires only for the `Bash` tool, so shell-driven writes to protected paths are blocked but `apply_patch` edits fall back to sandbox/approval + the AGENTS.md prose rules. The template documents this rather than pretending the file-edit guard is airtight.
