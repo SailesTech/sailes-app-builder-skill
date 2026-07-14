@@ -4,6 +4,31 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.3.0 — 2026-07-13 · the wayfinding layer for big, foggy efforts
+
+- **New skill `sailes-wayfinder`** — when an effort is too big/foggy for one session, chart a
+  decision map on disk (`.ai/wayfinder/<effort>/map.md` + `tickets/NNN-*.md`): a named
+  Destination, typed tickets (decision / research / prototype / task), fog of war
+  ("Not yet specified"), an out-of-scope ledger, and claim/`Blocked-by`/frontier mechanics so
+  concurrent sessions don't collide. Work mode resolves **one decision per session**
+  (research excepted, runs parallel via subagents); when no tickets + no fog remain, hand off
+  to the pipeline gate the Destination names. Ticket types resolve through mechanisms the
+  framework already has (decision cards, research subagents, `sailes-design` prototypes) —
+  methodology adapted from Matt Pocock's Wayfinder with zero external skill dependencies.
+  `.ai/STATE.md` points at the active map (path + next frontier ticket).
+- **`sailes-start` — Step 0 fog check**: a too-big/foggy idea (unknowns depending on
+  unknowns, pending API access, awaited client input) routes to `sailes-wayfinder` before
+  Phase 1; A/B/C routing still applies after the map clears.
+- **`sailes-spec` — Open Questions escalation**: unknowns that can't be answered in one
+  sitting become typed wayfinder tickets; the spec stays at skeleton (`Status: draft` + map
+  link) and resumes when the map clears; the Decisions Ledger references ticket resolutions
+  (gist + link), never restates them.
+- **Evals**: +3 scenarios (`wayfinder-charts-map-not-full-plan`,
+  `start-routes-foggy-ideas-to-wayfinder`, `spec-escalates-oversized-open-questions`) —
+  RED baselines and GREEN verification recorded 2026-07-13.
+- A repo on an older framework gains: the `.ai/wayfinder/` convention + the STATE.md pointer
+  to the active map.
+
 ## 1.2.0 — 2026-07-12 · Codex CLI parity — second harness, one source of truth
 
 Make the framework run correctly under **OpenAI Codex CLI**, not just Claude Code — skills

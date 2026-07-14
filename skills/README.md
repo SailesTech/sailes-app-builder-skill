@@ -9,6 +9,9 @@ A modular set of Claude Code skills that lead agents **and** developers through 
 ```
 sailes-start  (thin orchestrator: shows the map, routes A/B/C, gates each phase)
    │
+   ├─ Phase 0  sailes-wayfinder  (optional — only when the idea is too big/foggy for
+   │             one session) → decision map on disk (.ai/wayfinder/) → tickets resolved
+   │             one decision per session → way clear → re-enter at the destination's gate
    ├─ Phase 1  sailes-discovery   → requirements elicitation → confirmed Brief
    │                                 (decisions owned by the USER, with trade-offs shown)
    ├─ Phase 2  sailes-bootstrap   → classify · lock stack · generate agentic-first repo
@@ -33,7 +36,8 @@ Each skill is **independently callable** — use `sailes-discovery` alone for a 
 
 | Skill | Role | Key files |
 |---|---|---|
-| **sailes-start** | End-to-end orchestrator. Shows the phase map, picks Route A (new) / B (feature) / C (adopt), gates every boundary. | `SKILL.md` |
+| **sailes-start** | End-to-end orchestrator. Shows the phase map, picks Route A (new) / B (feature) / C (adopt), gates every boundary; fog check routes too-big/foggy ideas to `sailes-wayfinder` before Phase 1. | `SKILL.md` |
+| **sailes-wayfinder** | Decision map for efforts too big/foggy for one session. Charts a Destination + typed tickets (decision/research/prototype/task) as committed files (`.ai/wayfinder/<effort>/map.md` + `tickets/`) with fog-of-war ("Not yet specified"), out-of-scope ledger, and claim/Blocked-by/frontier mechanics for concurrent sessions; works ONE decision per session until the way is clear, then hands off to the pipeline gate. Ticket types resolve through existing mechanisms (decision cards, research subagents, `sailes-design` prototypes) — adapted from Matt Pocock's Wayfinder, zero external skill dependencies. | `SKILL.md` |
 | **sailes-discovery** | The interview before the spec. Pulls full intent into a structured Brief. **Must** chain into bootstrap on greenfield (never stop at the spec). | `SKILL.md`, `brief-template.md` |
 | **sailes-bootstrap** | Stack + architecture + agentic-first methodology. Generates/validates the repo standard; runs the design gate; **verifies artifacts on disk** before handoff. | `SKILL.md`, `decision-engine.md`, `stack-baseline.md`, `modules-catalog.md`, `skeleton.md`, `agents-md-template.md`, `agentic-first-principles.md`, `security-checklist.md`, `spec-writing-template.md`, `adopt-existing-repo.md`, `repo-done-checklist.md`, `developer-fit.md`, `backlog-template.md` |
 | **sailes-design** | The frontend/visual design phase. Deliberate direction (palette/type/layout/**signature**) + anti-AI-default check + a11y/interaction discipline + a **premium finish** on both axes — looks (craft) and behavior (feel) — → persisted design artifact with a Design log. | `SKILL.md`, `design-judgment.md`, `ux-rules.md`, `premium-craft.md`, `premium-ux.md`, `assets/premium-tokens-starter.css` |

@@ -48,6 +48,8 @@ START → │  sailes-discovery(greenfield) → sailes-bootstrap(Case B: generat
 
 Detect from context (empty dir / "nowa aplikacja" → A; existing repo with AGENTS.md+`.ai/` → B; populated repo without them → C), but confirm if ambiguous — **trust the filesystem**: real code + no AGENTS.md/`.ai/` is C, not B. This route choice selects the *variant* of each downstream skill — it does not change the order.
 
+3. **Fog check (before Phase 1):** if the idea is too big or foggy for one discovery session — unknowns depending on other unknowns, on research/spikes (API access not yet granted), or on client input arriving later ("to za duże na jedną rozmowę") — invoke **`sailes-wayfinder`** first to chart the decision map. Its Destination is usually the confirmed Brief; when the map clears, re-enter this pipeline at the gate the destination names. A/B/C routing still applies — wayfinding precedes Phase 1, it doesn't replace it.
+
 ## The pipeline (run in order, gate each boundary)
 
 ### Phase 1 — Discovery  →  invoke the `sailes-discovery` skill
@@ -124,10 +126,12 @@ This orchestrator's job ends when the spec is approved; it hands to these.
 | Re-writing discovery/stack logic inline | Invoke the skills; keep this orchestrator thin. |
 | Proceeding past a gate without confirmation | Each phase boundary needs explicit user sign-off. |
 | Running phases in parallel | Strictly sequential; one gate at a time. |
+| One mega discovery session on a foggy, multi-unknown idea | Chart a `sailes-wayfinder` map first; one decision per session. |
 
 ## Red Flags — STOP
 
 - You started asking elicitation questions and the user never saw the phase map.
+- The Brief keeps growing in one session because unknowns depend on other unknowns, spikes, or pending client input — that's a `sailes-wayfinder` map, not a longer interview.
 - You're about to write a spec and bootstrap (stack/methodology/manifest) never ran.
 - You're about to write a spec and there's no `AGENTS.md` / `.ai/skills/` / git — bootstrap didn't really finish; run `repo-done-checklist.md`.
 - It's a UI app and no design artifact exists (`sailes-design` never ran).
