@@ -10,7 +10,7 @@
       "name": "sailes-app-builder",
       "source": "./",
       "description": "Skills leading agents & developers from business discovery to an implementation-ready repo: wayfinder → discovery → bootstrap → design → spec → pre-implement → database → async → hosting → implement, plus sailes-pipedrive.",
-      "version": "1.3.0"
+      "version": "1.4.0"
     }
   ]
 }

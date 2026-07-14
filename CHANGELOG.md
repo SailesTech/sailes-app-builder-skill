@@ -4,6 +4,24 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.4.0 — 2026-07-14 · the agent team ships as installable agents
+
+- **New `agents/` directory — the agent team is now installable, not just described.** The seven
+  roles that `sailes-bootstrap/agent-team-structure.md` defined only in prose (`team-lead`,
+  `explorer`, `designer`, `be-dev`, `fe-dev`, `checker`, `qa`) now exist as real agent files with
+  frontmatter (`name` · `description` · `model` · `tools`), auto-discovered on
+  `plugin install sailes-app-builder@sailes`. Models follow the canonical table: `team-lead`=opus,
+  `explorer`=haiku, the rest=sonnet.
+- **Fix: "marketplace doesn't install agents."** Root cause — the plugin shipped zero agent files,
+  and the only folder present was a dot-prefixed `.agents/`, which Claude Code ignores during
+  plugin component discovery. Agents must live in `agents/` (no dot). The empty `.agents/` was
+  removed; `agents/README.md` documents the trap.
+- **`agent-team-structure.md`** now states the roles ship in the plugin's `agents/` (and may be
+  copied to `~/.claude/agents/` for global use) instead of assuming they already live globally.
+- **Upgrade action:** repos on ≤1.3.0 pulling this version gain the installable agent team; no repo
+  file changes required — this is a plugin-packaging fix. After updating the marketplace plugin,
+  the seven roles appear in `/agents`.
+
 ## 1.3.0 — 2026-07-13 · the wayfinding layer for big, foggy efforts
 
 - **New skill `sailes-wayfinder`** — when an effort is too big/foggy for one session, chart a

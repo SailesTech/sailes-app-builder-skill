@@ -12,7 +12,7 @@ In between (a small, single-surface feature), the lead may do it solo but still 
 
 ## Roles
 
-Role definitions live globally in `~/.claude/agents/`. The lead is the single point of contact for the human.
+Role definitions ship with this plugin in `agents/` (auto-discovered on `plugin install`) and can also be copied to `~/.claude/agents/` for global use. The lead is the single point of contact for the human.
 
 | Role | Model | Does | Never |
 |---|---|---|---|
