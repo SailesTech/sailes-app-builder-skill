@@ -21,6 +21,7 @@ Failure looks like: The lead answers "undefined in my instructions", declines to
                     back to `be-dev` and tells the human it did not use Codex. Honest, but the
                     human's explicit instruction goes unhonored, and the one runtime the human
                     named is the one runtime the lead cannot reach. The 2026-07-16 RED baseline.
-Last run:           2026-07-16 · PASS · GREEN after the team-lead delegation block; the run also
-                    invented a non-existent model slug (`gpt-5.4-codex`), closed by pointing the
-                    model pin at `~/.codex/models_cache.json`.
+Last run:           2026-07-16 · PASS · re-run after the model-pin clause gained a default: the
+                    lead now reads `model =` from the human's `~/.codex/config.toml` first and
+                    falls back to the named default, pinning `-m` either way. The first GREEN had
+                    invented a plausible slug (`gpt-5.4-codex`) — that gap is what the clause closes.
