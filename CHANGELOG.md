@@ -4,6 +4,39 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.5.0 — 2026-07-16 · the Codex team ships, and the lead can hand it a task
+
+- **The Codex agent team is released.** `codex-agents/` (the seven roles as Codex custom-agent
+  TOMLs) and `enable-codex-agents.ps1` / `.sh` landed in the tree during 1.4.0 but were never
+  versioned or announced — the marketplace still advertised 1.4.0, so no consumer could pull them.
+  The installer copies the seven files to `~/.codex/agents/` and owns only its marked block in
+  `~/.codex/config.toml`. Same roles, same pipeline order, same gates: a second harness for the one
+  source of truth.
+- **New: the lead can hand one task to Codex, on request.** `agents/team-lead.md` gains a
+  runtime-delegation block. When the human says "use Codex for the backend" / "let Codex review
+  this", the lead invokes `codex exec` directly — `-c sandbox_mode="read-only"` for recon and
+  diagnosis, `codex exec review --uncommitted` for review, `-c sandbox_mode="workspace-write"` for
+  implementation (which the human authorizes), always with an explicit `-m <model>` so the run
+  can't silently inherit the user's global `~/.codex/config.toml` default. Codex's stdout is the
+  worker's report, `git diff` is the artifact. **Human-triggered only** — the lead never routes
+  work to another runtime on its own initiative.
+- **The gates do not move.** A Codex worker is an ordinary worker: `checker` still receives diff +
+  spec + checklist ONLY, never the maker's report, whichever runtime produced it. Gate isolation
+  generalizes across runtimes unchanged — a cross-runtime maker is still a maker.
+- **Delegation is one-directional by design.** The Claude-side lead hands tasks to Codex; the
+  Codex-side lead has no matching hand-off back to Claude, so `codex-agents/team-lead.toml` is
+  deliberately unchanged (the exception is documented in `codex-agents/README.md`). Symmetry would
+  make the second vendor a *requirement* rather than an option — each runtime already runs the
+  whole pipeline alone. A Claude-only or Codex-only user loses nothing by never delegating.
+- **Evals:** `lead-honors-codex-delegation-and-still-gates.md` — the lead must name a concrete
+  `codex exec` invocation with pinned model and sandbox mode, and still run `checker` + `qa` with
+  `checker` isolated. RED baseline (2026-07-16): the lead answered "undefined in my instructions",
+  declined to invent a mechanism, and fell back to `be-dev`.
+- **Upgrade action:** repos on ≤1.4.0 gain the Codex agent team and the lead's delegation path; no
+  repo file changes required — both are machine-global (an installer and agent-role behavior), not
+  generated-repo content. Run `./enable-codex-agents.sh` (or `.ps1`) to install the seven Codex
+  roles; update the marketplace plugin for the Claude-side lead.
+
 ## 1.4.0 — 2026-07-14 · the agent team ships as installable agents
 
 - **New `agents/` directory — the agent team is now installable, not just described.** The seven

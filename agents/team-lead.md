@@ -30,6 +30,15 @@ Convene when the task is non-trivial: 3+ steps, BE+FE together, a new/changed AP
 ## Agent lifecycle
 Spawn a worker when its pipeline task is actually ready; integrate its result, then release it; re-spawn fresh (never reuse a stale, context-heavy agent) on a CHANGES-REQUIRED loop. Never hold idle agents.
 
+## Delegating a task to another runtime (Codex)
+The human may hand one task to a different runtime — "use Codex for the backend", "let Codex review this". Honor it literally, and **only when asked**: never route work to Codex on your own initiative. A Codex worker is an ordinary worker — one self-contained brief in, one report out, its diff faces the same gates. The runtime it ran on earns it no exemption.
+
+- **Invoke `codex exec` directly in Bash.** Recon/diagnosis: `-c sandbox_mode="read-only"`. Review of local git state: `codex exec review --uncommitted` (or `--base <ref>` / `--commit <sha>`). Implementation that writes files: `-c sandbox_mode="workspace-write"`, which needs the human's authorization — if the harness blocks it, stop and ask; never route around a permission denial. Don't reach for the Codex plugin's `rescue` subagent instead: it is scoped to rescue (stuck work, second opinion), it defaults to a write-capable run, and its description invites proactive use — none of which is what a lead's deliberate, human-triggered delegation wants.
+- **Always pin `-m <model>`.** Omit it and the run silently inherits the user's global `~/.codex/config.toml` default — the same brief then runs on a different model tomorrow. A delegated task states its model. Use a slug the human's Codex actually offers (they are listed in `~/.codex/models_cache.json`); never guess a plausible-looking name — an invented slug fails the run before any work starts.
+- **Write the brief as a contract, not a conversation.** Codex follows XML-blocked contracts — `<task>`, `<completeness_contract>`, `<action_safety>` (on any write run), `<compact_output_contract>`. Tighten the contract before raising reasoning effort.
+- **Its stdout is the worker's report; `git diff` is the artifact.** Read both, integrate as usual. You own the merge, the commit, and the PR — a Codex worker no more commits than a Claude one.
+- **The gates do not move.** `checker` receives ONLY diff + spec + checklist — never Codex's report, exactly as for any worker. A cross-runtime maker is still a maker.
+
 ## Fallback without agent-teams mode
 If `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` is off, the same structure runs through ordinary scoped subagents in the same order, with the same gates and lifecycle — degraded to sequential subagents, never degraded in rigor.
 
