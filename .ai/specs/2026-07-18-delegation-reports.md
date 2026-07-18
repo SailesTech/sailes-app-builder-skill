@@ -53,8 +53,8 @@ script the way spec drift or a version stamp can.
 This matters because `agentic-first-principles.md` §B.3 says a rule that can be expressed
 as a check should become one. Here it cannot. This is therefore prose enforcement by
 necessity, not by laziness — and prose is exactly what decays, which is the problem the
-`prompt-anchor` spec is separately trying to solve. Any answer to Q1 should be judged on
-whether it survives a lead under context pressure at turn 60.
+`prompt-anchor` spec is separately trying to solve. D1 below should be judged on whether
+it survives a lead under context pressure at turn 60 — not on whether it reads well here.
 
 ## Decisions (gate closed 2026-07-18)
 
@@ -98,14 +98,6 @@ its own.
 ## Non-Goals
 
 - Any attempt to detect a missing report mechanically. Verified: no hook sees it.
-- Changing when the lead delegates. Delegation-as-default is settled doctrine (1.7.0);
-  this spec makes the return trip reliable, it does not revisit the outbound decision.
-- Fixing the `git checkout` footgun from failure #3 — same class, different surface;
-  belongs in the lead's own working rules, not here.
-
-## Non-Goals
-
-- Any attempt to detect a missing report mechanically. Verified above: no hook sees it.
 - Changing when the lead delegates. Delegation-as-default is settled doctrine (1.7.0);
   this spec makes the return trip reliable, it does not revisit the outbound decision.
 - Fixing the `git checkout` footgun from failure #3 — same class, different surface;
