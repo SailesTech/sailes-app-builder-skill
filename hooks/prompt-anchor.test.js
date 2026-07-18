@@ -166,56 +166,33 @@ test('keeps the emitted anchor short', (ctx) => {
 });
 
 // ---------------------------------------------------------------------------
-// Emission policy — hybrid: state changed OR N turns.
+// Emission policy — control arm: always.
 // ---------------------------------------------------------------------------
 
-// SessionStart has just injected the full mandate; repeating it is the loudest way to
-// say nothing new.
-test('stays silent on the first turn, where SessionStart just fired', (ctx) => {
+// The point of this arm: no suppression at all, so the cost is maximal and the effect,
+// if the decay premise is wrong, should be too.
+test('emits on every turn, including the first', (ctx) => {
   mkrepo(ctx.repo, { agentsMd: true, specs: ['2026-01-01-x.md'] });
-  assert.strictEqual(run(ctx).context, null);
+  assert.strictEqual(turns(ctx, 30), 30);
 });
 
-test('emits once every N turns when the disk never moves', (ctx) => {
+test('ignores SAILES_ANCHOR_EVERY — there is no gap to tune', (ctx) => {
   mkrepo(ctx.repo, { agentsMd: true, specs: ['2026-01-01-x.md'] });
-  assert.strictEqual(turns(ctx, 30), 3);
+  assert.strictEqual(turns(ctx, 30, { SAILES_ANCHOR_EVERY: '5' }), 30);
 });
 
-test('honors SAILES_ANCHOR_EVERY', (ctx) => {
-  mkrepo(ctx.repo, { agentsMd: true, specs: ['2026-01-01-x.md'] });
-  assert.strictEqual(turns(ctx, 30, { SAILES_ANCHOR_EVERY: '5' }), 6);
-});
-
-// The state clause is what keeps this from decaying into an ignorable fixed prefix.
-test('emits immediately when a spec appears mid-session', (ctx) => {
+test('re-anchors on a spec appearing mid-session', (ctx) => {
   mkrepo(ctx.repo, { agentsMd: true });
-  turns(ctx, 3); // well short of N
+  turns(ctx, 3);
   fs.mkdirSync(path.join(ctx.repo, '.ai', 'specs'), { recursive: true });
   fs.writeFileSync(path.join(ctx.repo, '.ai', 'specs', '2026-07-18-new.md'), '# spec\n');
-  const res = run(ctx);
-  assert.ok(res.context, 'a new spec should re-anchor at once');
-  assert.match(res.context, /2026-07-18-new\.md/);
-});
-
-test('emits immediately when an incident opens mid-session', (ctx) => {
-  mkrepo(ctx.repo, { agentsMd: true, specs: ['2026-01-01-x.md'] });
-  turns(ctx, 3);
-  fs.mkdirSync(path.join(ctx.repo, '.ai', 'incidents'), { recursive: true });
-  fs.writeFileSync(path.join(ctx.repo, '.ai', 'incidents', '2026-07-18-down.md'), '# down\n');
-  const res = run(ctx);
-  assert.match(res.context, /sailes-diagnose/);
+  assert.match(run(ctx).context, /2026-07-18-new\.md/);
 });
 
 // Something is broken right now; the build pipeline is the wrong instrument for it.
 test('an open incident outranks a spec in the anchor', (ctx) => {
-  mkrepo(ctx.repo, {
-    agentsMd: true,
-    specs: ['2026-01-01-x.md'],
-    incidents: ['2026-07-18-down.md'],
-  });
-  turns(ctx, 9);
-  const res = run(ctx);
-  assert.match(res.context, /OPEN INCIDENT/);
+  mkrepo(ctx.repo, { agentsMd: true, specs: ['2026-01-01-x.md'], incidents: ['2026-07-18-down.md'] });
+  assert.match(run(ctx).context, /OPEN INCIDENT/);
 });
 
 // A closed incident is not news. Reusing the router's own rule keeps the two consistent.
@@ -226,30 +203,18 @@ test('ignores incidents whose record says they are closed', (ctx) => {
     path.join(ctx.repo, '.ai', 'incidents', '2026-07-01-old.md'),
     '# old\nStatus: FIXED\n'
   );
-  turns(ctx, 9);
-  const res = run(ctx);
-  assert.doesNotMatch(res.context || '', /OPEN INCIDENT/);
+  assert.doesNotMatch(run(ctx).context || '', /OPEN INCIDENT/);
 });
 
 test('routes a spec-less repo to discovery', (ctx) => {
   mkrepo(ctx.repo, { agentsMd: true });
-  turns(ctx, 9);
   assert.match(run(ctx).context, /sailes-discovery/);
 });
 
 // Anything repeating the rules cheaply must repeat THESE words, or the instruments compete.
 test('carries the canonical spine verbatim', (ctx) => {
   mkrepo(ctx.repo, { agentsMd: true });
-  turns(ctx, 9);
   assert.match(run(ctx).context, /SPEC → HUMAN → VERIFIED → GATED/);
-});
-
-// Two sessions in one repo must not share a counter, or each gets a random subset.
-test('keys its counter per session', (ctx) => {
-  mkrepo(ctx.repo, { agentsMd: true, specs: ['2026-01-01-x.md'] });
-  turns(ctx, 9); // session A is one turn from emitting
-  const other = { ...ctx, session: `${ctx.session}-b` };
-  assert.strictEqual(run(other).context, null, 'a fresh session must start its own count');
 });
 
 if (failures) {

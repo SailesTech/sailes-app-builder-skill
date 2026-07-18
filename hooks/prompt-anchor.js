@@ -54,15 +54,14 @@ function turnsBetween() {
 // ---------------------------------------------------------------------------
 
 /**
- * Hybrid: emit when the repo state changed since the last emission, OR when N turns have
- * passed without one.
+ * Control arm: emit on every turn.
  *
- * The state clause is what keeps this from decaying — a line that carries new information
- * gets read, a fixed prefix gets skipped. The turn clause is the floor: a long session
- * whose disk never moves is exactly the case the state clause is blind to.
+ * This is the ceiling on effect and the full cost, and it exists to falsify the design.
+ * If it wins outright, the premise that a fixed prefix decays into an ignorable prefix is
+ * wrong, and the hybrid is complexity bought for nothing.
  */
-function shouldEmit({ changed, turnsSinceEmit }) {
-  return changed || turnsSinceEmit >= turnsBetween();
+function shouldEmit() {
+  return true;
 }
 
 // ---------------------------------------------------------------------------
