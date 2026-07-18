@@ -28,6 +28,16 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 > Single source of truth for how agents work in this repo. CLAUDE.md imports this via @AGENTS.md.
 > Framework-Version: <x.y.z — from the sailes framework VERSION file at bootstrap time; used by adopt-existing-repo upgrade mode>
 
+## The spine
+**SPEC → HUMAN → VERIFIED → GATED** — the four hard rules, in the words every other instrument uses.
+- **SPEC** — no feature code before an approved spec exists on disk. A one-line fix is exempt; a feature is not.
+- **HUMAN** — the human owns every key decision. Recommend with trade-offs, then let them choose.
+- **VERIFIED** — done means verified, not asserted. Drive the real flow; a passing typecheck is not evidence.
+- **GATED** — phases are gated. Do not cross a gate because the next phase looks obvious.
+
+<!-- This line is repeated verbatim by the session hooks. Reword it here and the reminders stop
+     reinforcing this file and start competing with it — change both or neither. -->
+
 ## Enforcement (the ratchet)
 - Rules the toolchain enforces (lint/types/tests/hooks) are NOT restated here — this file lists only judgment rules and pointers. If you can express a rule as a check, add the check and link it here instead of writing prose (`agentic-first-principles.md` §B.3).
 - Enforced in this repo: no `any` (ESLint error) · design tokens only (lint on raw literals) · module import direction (dependency rule) · Zod at boundaries (convention test). <!-- keep this list in sync with the actual config -->

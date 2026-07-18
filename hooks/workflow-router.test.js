@@ -60,6 +60,23 @@ function mkrepo(dir, { agentsMd = false, aiDir = false, specs = [], implemented 
   }
 }
 
+/**
+ * A copy of the hook with main() throwing, used to prove the error fallback still governs.
+ * `lib/` is copied alongside it so the copy resolves `./lib/repo-state` exactly as the real
+ * hook does — the fixture mirrors the production module layout rather than flattening it.
+ */
+function mkBrokenHook(dir) {
+  const broken = path.join(dir, 'broken-router.js');
+  fs.cpSync(path.join(__dirname, 'lib'), path.join(dir, 'lib'), { recursive: true });
+  fs.writeFileSync(
+    broken,
+    fs
+      .readFileSync(HOOK, 'utf8')
+      .replace('function main() {', 'function main() {\n  throw new Error("induced");')
+  );
+  return broken;
+}
+
 console.log('workflow-router.js');
 
 // The plugin is enabled globally. Silence in unrelated checkouts is the whole reason
@@ -167,13 +184,7 @@ test('survives malformed stdin instead of crashing the session', (dir) => {
 // must still govern the session, and must say that it failed.
 test('degrades to a minimum mandate instead of going silent on an internal error', (dir) => {
   mkrepo(dir, { agentsMd: true });
-  const broken = path.join(dir, 'broken-router.js');
-  fs.writeFileSync(
-    broken,
-    fs
-      .readFileSync(HOOK, 'utf8')
-      .replace('function main() {', 'function main() {\n  throw new Error("induced");')
-  );
+  const broken = mkBrokenHook(dir);
   const out = execFileSync(process.execPath, [broken], {
     input: JSON.stringify({ cwd: dir }),
     encoding: 'utf8',
@@ -185,13 +196,7 @@ test('degrades to a minimum mandate instead of going silent on an internal error
 
 test('stays silent on an internal error in a repo that is not ours', (dir) => {
   mkrepo(dir); // no AGENTS.md, no .ai/
-  const broken = path.join(dir, 'broken-router.js');
-  fs.writeFileSync(
-    broken,
-    fs
-      .readFileSync(HOOK, 'utf8')
-      .replace('function main() {', 'function main() {\n  throw new Error("induced");')
-  );
+  const broken = mkBrokenHook(dir);
   const out = execFileSync(process.execPath, [broken], {
     input: JSON.stringify({ cwd: dir }),
     encoding: 'utf8',

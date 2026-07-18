@@ -14,48 +14,12 @@
  * and a repo that is up to date — or was never a Sailes repo — has nothing to say.
  */
 
-const fs = require('fs');
 const path = require('path');
+
+const { readStdin, read, exists, findRepoRoot, emit } = require('./lib/repo-state');
 
 const MAX_HEADER_LINES = 40; // the stamp lives in the AGENTS.md header, not the body
 const MAX_DELTA_ENTRIES = 8;
-
-function readStdin() {
-  try {
-    return fs.readFileSync(0, 'utf8');
-  } catch {
-    return '';
-  }
-}
-
-function read(file) {
-  try {
-    return fs.readFileSync(file, 'utf8');
-  } catch {
-    return null;
-  }
-}
-
-function exists(p) {
-  try {
-    fs.statSync(p);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/** Walk up from cwd to the git root; the stamp lives at the repo root, not in a subdir. */
-function findRepoRoot(startDir) {
-  let dir = path.resolve(startDir);
-  for (let i = 0; i < 10; i++) {
-    if (exists(path.join(dir, '.git'))) return dir;
-    const parent = path.dirname(dir);
-    if (parent === dir) break;
-    dir = parent;
-  }
-  return path.resolve(startDir);
-}
 
 function parseVersion(raw) {
   const m = /^\s*v?(\d+)\.(\d+)(?:\.(\d+))?/.exec(String(raw || '').trim());
@@ -103,17 +67,6 @@ function changelogDelta(changelog, from, to) {
   return out.slice(0, MAX_DELTA_ENTRIES);
 }
 
-function emit(context) {
-  process.stdout.write(
-    JSON.stringify({
-      hookSpecificOutput: {
-        hookEventName: 'SessionStart',
-        additionalContext: context,
-      },
-    })
-  );
-}
-
 function main() {
   const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT;
   if (!pluginRoot) return; // not running as a plugin hook — nothing to compare against
@@ -138,6 +91,7 @@ function main() {
 
   if (agentsMd === null) {
     emit(
+      'SessionStart',
       `[sailes] This repo has \`.ai/\` but no root AGENTS.md, so the methodology layer is partial ` +
         `and unstamped. Current Sailes standard: ${formatVersion(current)}. ` +
         `Offer to run the sailes-bootstrap audit (\`adopt-existing-repo.md\` Step 0) to see what is ` +
@@ -150,6 +104,7 @@ function main() {
 
   if (!stamped) {
     emit(
+      'SessionStart',
       `[sailes] This repo's AGENTS.md carries no \`Framework-Version:\` stamp, so its distance from ` +
         `the standard is unknown. Current Sailes standard: ${formatVersion(current)}. ` +
         `Offer to run the sailes-bootstrap audit (\`adopt-existing-repo.md\` Step 0, element 12) — ` +
@@ -164,6 +119,7 @@ function main() {
 
   if (cmp > 0) {
     emit(
+      'SessionStart',
       `[sailes] This repo is stamped Framework-Version ${formatVersion(stamped)}, but the installed ` +
         `sailes-app-builder plugin is ${formatVersion(current)} — the plugin is behind the repo. ` +
         `Likely the local plugin needs updating; do not "downgrade" the repo to match it.`
@@ -177,6 +133,7 @@ function main() {
     : '\n';
 
   emit(
+    'SessionStart',
     `[sailes] This repo is stamped Framework-Version ${formatVersion(stamped)}; the current Sailes ` +
       `standard is ${formatVersion(current)}.${deltaBlock}` +
       `Tell the human this at the start of your first reply and OFFER to run ` +

@@ -17,8 +17,14 @@
  * repo that never adopted the workflow has not asked to be governed by it.
  */
 
-const fs = require('fs');
-const path = require('path');
+const {
+  readStdin,
+  findRepoRoot,
+  isSailesRepo,
+  activeSpecs,
+  openIncidents,
+  emit,
+} = require('./lib/repo-state');
 
 const MAX_SPECS_LISTED = 5;
 
@@ -29,112 +35,21 @@ const MAX_SPECS_LISTED = 5;
  */
 const DRIFT_THRESHOLD = 10;
 
-/** Scaffolding that lives in `.ai/specs/` but is not work in flight. Found in real repos. */
-const NOT_A_SPEC = /^(readme|template|agents|claude)\.md$/i;
-
-/** An incident is closed once its record says so; anything else still wants attention. */
-const CLOSED_INCIDENT = /^\s*Status:\s*(FIXED\b|RESOLVED\b|CLOSED\b)/im;
-
-const MAX_INCIDENTS_LISTED = 3;
-
-function readStdin() {
-  try {
-    return fs.readFileSync(0, 'utf8');
-  } catch {
-    return '';
-  }
-}
-
-function read(file) {
-  try {
-    return fs.readFileSync(file, 'utf8');
-  } catch {
-    return null;
-  }
-}
-
-function exists(p) {
-  try {
-    fs.statSync(p);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/** The stamp and `.ai/` live at the repo root, not in whatever subdir the session opened in. */
-function findRepoRoot(startDir) {
-  let dir = path.resolve(startDir);
-  for (let i = 0; i < 10; i++) {
-    if (exists(path.join(dir, '.git'))) return dir;
-    const parent = path.dirname(dir);
-    if (parent === dir) break;
-    dir = parent;
-  }
-  return path.resolve(startDir);
-}
-
 /**
- * Specs sitting at `.ai/specs/` root are in flight; `implemented/` and `archived/`
- * are done and say nothing about what this session should do (README.md invariant 6).
+ * The four hard rules compressed to one repeatable line.
+ *
+ * This exact literal also appears in `skills/sailes-bootstrap/agents-md-template.md`, so the
+ * generated AGENTS.md and this mandate reinforce each other instead of saying overlapping
+ * things in different words — two phrasings compete for the same slot, one phrasing compounds.
+ * Keep the two byte-identical; anything repeating the rules cheaply must repeat *these* words.
  */
-function activeSpecs(root) {
-  const dir = path.join(root, '.ai', 'specs');
-  try {
-    return fs
-      .readdirSync(dir, { withFileTypes: true })
-      .filter((e) => e.isFile() && e.name.endsWith('.md') && !NOT_A_SPEC.test(e.name))
-      .map((e) => e.name)
-      .sort();
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Incident records that are still open. An open incident outranks every spec at session start:
- * it means something is broken right now, and the build pipeline is the wrong instrument for it.
- */
-function openIncidents(root) {
-  const dir = path.join(root, '.ai', 'incidents');
-  let names;
-  try {
-    names = fs
-      .readdirSync(dir, { withFileTypes: true })
-      .filter((e) => e.isFile() && e.name.endsWith('.md') && !NOT_A_SPEC.test(e.name))
-      .map((e) => e.name)
-      .sort()
-      .reverse(); // newest first — incident files are date-prefixed
-  } catch {
-    return [];
-  }
-  const out = [];
-  for (const name of names) {
-    const body = read(path.join(dir, name));
-    if (body === null || CLOSED_INCIDENT.test(body)) continue;
-    const status = /^\s*Status:\s*(.+)$/im.exec(body);
-    out.push(`\`${name}\`${status ? ` (${status[1].trim()})` : ''}`);
-    if (out.length === MAX_INCIDENTS_LISTED) break;
-  }
-  return out;
-}
-
-function emit(context) {
-  process.stdout.write(
-    JSON.stringify({
-      hookSpecificOutput: {
-        hookEventName: 'SessionStart',
-        additionalContext: context,
-      },
-    })
-  );
-}
+const SPINE = 'SPEC → HUMAN → VERIFIED → GATED';
 
 const HARD_RULES = [
-  '- No feature code before an approved spec exists on disk. A one-line fix is exempt; a feature is not.',
-  '- The human owns every key decision. Recommend with trade-offs, then let them choose — never pick for them.',
-  '- Done means verified, not asserted. Drive the real flow; a passing typecheck is not evidence.',
-  '- Phases are gated. Do not cross a gate because the next phase looks obvious.',
+  '- SPEC — No feature code before an approved spec exists on disk. A one-line fix is exempt; a feature is not.',
+  '- HUMAN — The human owns every key decision. Recommend with trade-offs, then let them choose — never pick for them.',
+  '- VERIFIED — Done means verified, not asserted. Drive the real flow; a passing typecheck is not evidence.',
+  '- GATED — Phases are gated. Do not cross a gate because the next phase looks obvious.',
 ].join('\n');
 
 // Resolved once, at module scope, so the error fallback below judges the same repo main() would.
@@ -151,11 +66,9 @@ const SESSION_ROOT = (() => {
 
 function main() {
   const root = SESSION_ROOT;
-  const isSailesRepo =
-    exists(path.join(root, 'AGENTS.md')) || exists(path.join(root, '.ai'));
 
   // Not a Sailes repo — it never adopted the workflow, so do not impose it.
-  if (!isSailesRepo) return;
+  if (!isSailesRepo(root)) return;
 
   const specs = activeSpecs(root);
 
@@ -195,6 +108,7 @@ function main() {
     : '';
 
   emit(
+    'SessionStart',
     `[sailes] This repo runs the Sailes workflow (AGENTS.md/.ai present), so it governs this ` +
       `session — including after a context reset.\n\n` +
       `Pipeline: sailes-start → [wayfinder] → discovery → bootstrap → [design] → spec → ` +
@@ -206,7 +120,7 @@ function main() {
       `mechanism, which then becomes a fix.\n\n` +
       `ROUTING (from the repo's state on disk, not from your read of the request):\n${route}\n` +
       `${incidentBlock}\n` +
-      `HARD RULES for this session:\n${HARD_RULES}\n\n` +
+      `HARD RULES for this session — ${SPINE}:\n${HARD_RULES}\n\n` +
       `Read \`AGENTS.md\` before your first substantive action; the repo's own conventions win ` +
       `over generic defaults. Do not recite this block to the human — act on it.`
   );
@@ -222,8 +136,9 @@ try {
   // repo that asked to be governed.
   try {
     const root = SESSION_ROOT;
-    if (exists(path.join(root, 'AGENTS.md')) || exists(path.join(root, '.ai'))) {
+    if (isSailesRepo(root)) {
       emit(
+        'SessionStart',
         `[sailes] This repo runs the Sailes workflow, but the session router failed to read its ` +
           `state, so there is no per-repo routing this time. Fall back to the standard: read ` +
           `\`AGENTS.md\` and \`.ai/specs/\` yourself before acting; a broken system goes to ` +
