@@ -75,8 +75,9 @@ repo/
                           #     PreToolUse blocks edits to protected paths (applied migrations,
                           #     .ai/specs/implemented/, lockfiles unless the task says so)
                           #   (hooks reference scripts under .claude/hooks/ below)
-    hooks/                #   hook scripts invoked by settings.json (e.g. session-start.sh,
-                          #   guard-protected-paths.sh) — harness-optional: in a harness without
+    hooks/                #   hook scripts invoked by settings.json — COPY them from this skill's
+                          #   hooks-template/ (session-start.sh, guard-protected-paths.sh) and
+                          #   chmod +x; do not retype them. Harness-optional: in a harness without
                           #   hooks the AGENTS.md prose rules are the fallback (the Guardrails note
                           #   there says which rules lost their backstop)
                           #   SHARED with Codex: the same scripts are referenced by .codex/config.toml
