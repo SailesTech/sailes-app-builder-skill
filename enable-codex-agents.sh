@@ -31,6 +31,11 @@ same() { cmp -s <(normalize < "$1") <(normalize < "$2"); }
 is_sailes_owned() {
   grep -Fqx "$owner_marker" "$1" || same <(sed "1{/^# sailes-app-builder managed agent$/d;}" "$2") "$1"
 }
+# Unmarked, content-drifted, but still plainly one of our roles: same filename AND it
+# declares that role's name. Never matched against arbitrary files — only the seven names.
+looks_like_sailes_role() {
+  grep -Eq "^[[:space:]]*name[[:space:]]*=[[:space:]]*\"$2\"[[:space:]]*$" "$1"
+}
 validate_codex_strict_config() {
   command -v codex >/dev/null 2>&1 || fail 'Codex CLI is required to validate the existing config.toml. Install or expose `codex` on PATH, then rerun. No files were changed.'
   local output
@@ -38,10 +43,38 @@ validate_codex_strict_config() {
 }
 
 # The conservative validation catches malformed headings/assignments before writes.
+#
+# It MUST track multi-line basic strings (""" ... """): every role file puts the agent's
+# whole prompt in one, and a line-at-a-time check reads that prose as broken TOML. The
+# original version lacked this and so rejected all seven roles at line 5 — this installer
+# could never run on macOS/Linux. The PowerShell twin got it right; this is the port.
 validate_toml() {
   awk '
   function t(s) { sub(/^[[:space:]]+/, "", s); sub(/[[:space:]]+$/, "", s); return s }
-  { s=t($0); if (s=="" || substr(s,1,1)=="#") next; if (s ~ /^\[[A-Za-z0-9_-]+([.][A-Za-z0-9_-]+)*\]$/) next; sub(/[[:space:]]*#.*/, "", s); s=t(s); if (s !~ /^[A-Za-z0-9_-]+([.][A-Za-z0-9_-]+)*[[:space:]]*=[[:space:]]*.+$/) { print "line " NR ": expected TOML table or key/value"; exit 1 } }
+  BEGIN {
+    q = sprintf("%c", 39)                      # a literal single quote, unquotable inline here
+    # Bare, basic-quoted, or literal-quoted. Codex writes literal-quoted table keys itself
+    # (e.g. [projects.C:\Users\...]), so a bare-key-only guard rejects its own config.
+    KEY = "([A-Za-z0-9_-]+|\"[^\"]*\"|" q "[^" q "]*" q ")"
+    TABLE = "^\\[" KEY "([.]" KEY ")*\\]$"
+    KV = "^" KEY "([.]" KEY ")*[[:space:]]*=[[:space:]]*.+$"
+    inml = 0
+  }
+  {
+    s = t($0)
+    tmp = s; n = gsub(/"""/, "&", tmp)   # an odd count flips in/out of a multi-line string
+    if (inml) { if (n % 2 == 1) inml = 0; next }
+    if (s == "" || substr(s,1,1) == "#") next
+    if (n > 0) {
+      if (n % 2 == 1) inml = 1
+      if (s !~ ("^" KEY "[[:space:]]*=")) { print "line " NR ": malformed multiline assignment"; exit 1 }
+      next
+    }
+    if (s ~ TABLE) next
+    sub(/[[:space:]]*#.*/, "", s); s = t(s)
+    if (s !~ KV) { print "line " NR ": expected TOML table or key/value"; exit 1 }
+  }
+  END { if (inml) { print "unterminated multiline string"; exit 1 } }
   ' "$1"
 }
 
@@ -79,9 +112,19 @@ else
 fi
 
 changed=()
+adopt=()
 for role in "${roles[@]}"; do
   if [[ -f "$agents/$role.toml" ]] && ! is_sailes_owned "$agents/$role.toml" "$src/$role.toml"; then
-    fail "existing role file is not Sailes-owned: $agents/$role.toml. It will not be replaced, even with --force. Rename or remove it manually, then rerun."
+    # Content-equality ownership only holds until the role definition changes upstream —
+    # after any edit, a file this installer's predecessor wrote stops being recognizable
+    # and the upgrade dead-ends. A file named for one of our roles that declares that same
+    # role is ours by every practical measure; adopt it with consent and a backup rather
+    # than telling the human to delete their own agents by hand.
+    if looks_like_sailes_role "$agents/$role.toml" "$role"; then
+      adopt+=("$role")
+    else
+      fail "existing $agents/$role.toml is not a Sailes role definition (no name = \"$role\"). It will not be replaced, even with --force. Rename or remove it manually, then rerun."
+    fi
   fi
   [[ -f "$agents/$role.toml" ]] && same "$src/$role.toml" "$agents/$role.toml" || changed+=("$role")
 done
@@ -90,14 +133,34 @@ if [[ -f "$config" ]] && cmp -s <(printf '%s\n' "$candidate" | normalize) <(norm
 has_changes=0; (( ${#changed[@]} || config_changed )) && has_changes=1
 action='already current'; (( has_changes )) && action='update'; [[ -z "$existing" ]] && (( has_changes )) && action='install'
 backup=''; (( config_changed )) && [[ -f "$config" ]] && backup="$codex/backups/config.toml.$(date +%Y%m%d-%H%M%S).bak"
+agent_backup_dir="$codex/backups/agents.$(date +%Y%m%d-%H%M%S)"
 
 echo "Sailes Codex agents v$version"; echo; echo PLAN
 printf '  source:      %s\n  role files:  7 -> %s\n  config:      %s\n  backup:      %s\n  action:      %s\n\n' "$src" "$agents" "$config" "${backup:-<none>}" "$action"
 echo "Roles: ${roles[*]}"
 (( ${#changed[@]} )) && echo "Changed roles: ${changed[*]}"
 (( config_changed )) && echo 'Config: managed block will be installed or updated'
+if (( ${#adopt[@]} )); then
+  echo
+  echo "ADOPT: these role files predate this installer (or were written without its marker):"
+  for role in "${adopt[@]}"; do echo "  $agents/$role.toml"; done
+  echo "  They declare our role names, so they look like an earlier Sailes install."
+  echo "  Each will be backed up to $agent_backup_dir before being replaced."
+fi
 if (( ! has_changes )); then echo 'ALREADY CURRENT: no changes made'; exit 0; fi
 if (( dry_run )); then echo 'DRY RUN: no directories, files, backups, or config changes were made'; exit 0; fi
+if (( ${#adopt[@]} )); then
+  # Adoption overwrites a file this run did not write, so it is asked separately from the
+  # ordinary update — and --force does NOT answer it. Forcing an update is not the same
+  # decision as adopting files of unknown provenance.
+  read -r -p "Adopt and replace the ${#adopt[@]} file(s) above (backup kept)? [y/N] " answer </dev/tty || answer=''
+  [[ "$answer" =~ ^[yY] ]] || { echo 'No changes made.'; exit 0; }
+  mkdir -p "$agent_backup_dir" || fail 'could not create the agent backup directory'
+  for role in "${adopt[@]}"; do
+    cp "$agents/$role.toml" "$agent_backup_dir/$role.toml" || fail "could not back up $agents/$role.toml"
+  done
+  echo "Backed up ${#adopt[@]} file(s) to $agent_backup_dir"
+fi
 if (( ! force )); then read -r -p "$([[ "$action" == install ]] && echo Install || echo Update)? [y/N] " answer </dev/tty || answer=''; [[ "$answer" =~ ^[yY] ]] || { echo 'No changes made.'; exit 0; }; fi
 
 mkdir -p "$codex"

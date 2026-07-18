@@ -4,6 +4,30 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.7.1 — 2026-07-18 · the Codex agent installer actually installs
+
+- **`enable-codex-agents.sh` never worked — not once, on any version.** Its `validate_toml`
+  guard checked every line against "table header or key = value" with no awareness of
+  multi-line basic strings, and every role file puts the agent's whole prompt in a `"""`
+  block. It rejected all seven roles at line 5. Verified against the oldest committed role
+  files: the Codex agent team has been uninstallable on macOS/Linux since it shipped in 1.4.0.
+  The PowerShell twin had it right; this is the port.
+- **The same guard rejected Codex's own `config.toml`.** It allowed only bare table keys, but
+  Codex writes literal-quoted ones (`[projects.'C:\Users\...']`) because Windows paths carry
+  backslashes and a drive colon.
+- **A role file can no longer become un-upgradable.** Ownership was proven by content equality
+  with the current source, so the first upstream edit to any role — 1.7.0's delegation
+  change — made previously-installed files unrecognizable and dead-ended the upgrade with
+  "not Sailes-owned … even with --force". A file named for one of our seven roles that
+  declares that same role is now *adopted*: reported in the plan, backed up to
+  `~/.codex/backups/agents.<timestamp>/`, and replaced only after a separate consent prompt
+  that `--force` deliberately does NOT answer. Anything else still hard-fails.
+- **Both installers now behave identically**, and `npm test` covers the shipped awk program
+  itself (`codex-agents/validate-toml.test.js`), including reject-cases — without them the
+  suite passed while asserting nothing.
+- **Upgrade action:** macOS/Linux users can now run `./enable-codex-agents.sh` for the first
+  time. Existing installs will be offered adoption; the backup is kept.
+
 ## 1.7.0 — 2026-07-18 · delegation becomes the lead's default, not its fallback
 
 - **The "may do it solo" loophole is closed.** `agent-team-structure.md` previously allowed the

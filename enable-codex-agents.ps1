@@ -34,6 +34,13 @@ function Test-SailesOwnedRole([string]$DestinationPath, [string]$SourceContent) 
   return (Normalize-Content $existing) -eq (Normalize-Content $legacySource)
 }
 
+# Unmarked, content-drifted, but still plainly one of our roles: same filename AND it
+# declares that role's name. Never matched against arbitrary files — only the seven names.
+function Test-LooksLikeSailesRole([string]$DestinationPath, [string]$Role) {
+  $existing = Get-Content -Raw $DestinationPath
+  return $existing -match ('(?m)^\s*name\s*=\s*"' + [regex]::Escape($Role) + '"\s*$')
+}
+
 function Test-CodexStrictConfig {
   $codex = Get-Command codex -ErrorAction SilentlyContinue
   if ($null -eq $codex) {
@@ -196,13 +203,23 @@ try {
   if ($candidateIssue) { throw "ERROR: generated config failed validation ($candidateIssue). No files were changed." }
 
   $changedRoles = @()
+  $adoptRoles = @()
   $sourceContents = @{}
   foreach ($role in $RoleNames) {
     $sourceContent = Get-Content -Raw (Join-Path $sourceDir "$role.toml")
     $sourceContents[$role] = $sourceContent
     $destinationPath = Join-Path $agentDir "$role.toml"
     if ((Test-Path $destinationPath) -and -not (Test-SailesOwnedRole $destinationPath $sourceContent)) {
-      throw "ERROR: existing role file is not Sailes-owned: $destinationPath. It will not be replaced, even with -Force. Rename or remove it manually, then rerun."
+      # Content-equality ownership only holds until the role definition changes upstream.
+      # After any edit, a file the previous installer wrote stops being recognizable and the
+      # upgrade dead-ends. A file named for one of our roles that declares that same role is
+      # ours by every practical measure; adopt it with consent and a backup rather than
+      # telling the human to delete their own agents by hand.
+      if (Test-LooksLikeSailesRole $destinationPath $role) {
+        $adoptRoles += $role
+      } else {
+        throw "ERROR: existing $destinationPath is not a Sailes role definition (no name = `"$role`"). It will not be replaced, even with -Force. Rename or remove it manually, then rerun."
+      }
     }
     if (-not (Test-Path $destinationPath) -or (Normalize-Content $sourceContent) -ne (Normalize-Content (Get-Content -Raw $destinationPath))) {
       $changedRoles += $role
@@ -226,6 +243,15 @@ try {
   if ($changedRoles.Count) { Write-Host "Changed roles: $($changedRoles -join ', ')" }
   if ($configChanged) { Write-Host 'Config: managed block will be installed or updated' }
 
+  $agentBackupDir = Join-Path $codexDir ("backups\agents.{0}" -f (Get-Date -Format 'yyyyMMdd-HHmmss'))
+  if ($adoptRoles.Count) {
+    Write-Host ''
+    Write-Host 'ADOPT: these role files predate this installer (or were written without its marker):'
+    foreach ($role in $adoptRoles) { Write-Host "  $(Join-Path $agentDir "$role.toml")" }
+    Write-Host '  They declare our role names, so they look like an earlier Sailes install.'
+    Write-Host "  Each will be backed up to $agentBackupDir before being replaced."
+  }
+
   if (-not $hasChanges) {
     Write-Host 'ALREADY CURRENT: no changes made'
     exit 0
@@ -233,6 +259,18 @@ try {
   if ($DryRun) {
     Write-Host 'DRY RUN: no directories, files, backups, or config changes were made'
     exit 0
+  }
+  if ($adoptRoles.Count) {
+    # Adoption overwrites a file this run did not write, so it is asked separately from the
+    # ordinary update — and -Force does NOT answer it. Forcing an update is not the same
+    # decision as adopting files of unknown provenance.
+    $reply = Read-Host "Adopt and replace the $($adoptRoles.Count) file(s) above (backup kept)? [y/N]"
+    if ($reply -notmatch '^[yY]') { Write-Host 'No changes made.'; exit 0 }
+    New-Item -ItemType Directory -Force -Path $agentBackupDir | Out-Null
+    foreach ($role in $adoptRoles) {
+      Copy-Item (Join-Path $agentDir "$role.toml") (Join-Path $agentBackupDir "$role.toml") -Force
+    }
+    Write-Host "Backed up $($adoptRoles.Count) file(s) to $agentBackupDir"
   }
   if (-not $Force) {
     $question = if ($action -eq 'install') { 'Install?' } else { 'Update?' }
