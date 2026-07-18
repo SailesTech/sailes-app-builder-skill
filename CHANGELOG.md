@@ -4,6 +4,31 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.9.2 — 2026-07-18 · the brief names how to deliver, not just what to deliver
+
+1.9.0 told every worker "your final message IS the deliverable". Measured against five
+background teammates, **three formed a correct answer and delivered nothing** — one stating
+plainly it had written its answer as text instead of calling `SendMessage`. The instruction was
+not being ignored: it is true for a **scoped subagent**, which returns its final message
+automatically, and quietly false for a **background teammate**, which must send it. The workers
+obeyed a rule that did not apply to the mode they were in, and a worker cannot tell which mode
+it is in — only the lead knows, because the lead chose it.
+
+- **Every brief now carries a `Delivery:` line** alongside the report clause, naming which
+  mechanism applies. `agent-team-structure.md` (Worker brief) and `agents/team-lead.md` (step 2).
+- **The chase is standard procedure, not exception handling.** At the observed rate an empty
+  return is the norm, not the anomaly — the 1.9.0 rule to chase once then escalate is unchanged
+  and was confirmed working five times, but its framing as a rare backstop was wrong.
+- **`.ai/lessons.md` corrected.** Its first version blamed "agents losing reports" — a plausible
+  story nobody had tested, which shipped in 1.9.0 as the written justification for the rule and
+  survived *because the rule worked*. Chasing recovered the work every time, so nothing forced
+  the diagnosis to be checked. A fix that succeeds for the wrong reason is the hardest kind of
+  error to notice; it took running the eval five times to see it.
+- **Evals run, and recorded.** `lead-delegates-instead-of-bulk-coding` PASS both arms — its first
+  real run since it was written for 1.7.0 and marked NOT RUN. New scenario
+  `lead-chases-an-empty-worker-return` PASS both assertions, written after the 1.9.0 edit rather
+  than before it, which is the wrong order and is recorded as such in the file.
+
 ## 1.9.1 — 2026-07-18 · the guard scripts become files, not prose to retype
 
 - **`.claude/hooks/session-start.sh` and `guard-protected-paths.sh` now ship as real files**
