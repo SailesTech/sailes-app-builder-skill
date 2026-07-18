@@ -13,7 +13,7 @@
   `enable-plugin.sh`; a push to any other branch reaches nobody. Local edits never reach a session.
 - Skill regression tests are persisted in `evals/` since 1.1.0. Before that, RED/GREEN lived only
   in chat sessions.
-- Framework version lives in `VERSION` (currently **1.9.0**) and must match `package.json`,
+- Framework version lives in `VERSION` (currently **1.9.2**) and must match `package.json`,
   `.claude-plugin/plugin.json` **and** `.claude-plugin/marketplace.json` — that fourth one has
   drifted twice. The standard delta per version is in `CHANGELOG.md`; generated repos are stamped
   `Framework-Version:` in AGENTS.md, which `hooks/framework-version-check.js` compares on startup.
@@ -33,26 +33,37 @@
   `main` is not a staging area.
 
 ## Open failures
-- Behavioral GREEN re-runs for the 1.1.0 text-level changes (ratchet promotion, authz matrix,
-  ENV-DEFECT, release gate) are pending — the Done-when greps passed, but the subagent behavior
-  tests marked "pending post-merge" in `evals/` should be run after install.
-- **`prompt-anchor` Phase 5 is unresolved.** Three arms exist on `enforce/always`,
-  `enforce/state-only`, `enforce/hybrid`; the hook is NOT on `main`. The depth eval — proving
-  behavior at turn 60 rather than turn 1 — has not been built, and D3 of the spec says that if
-  the arms cannot be separated the decision re-opens rather than the recommended arm shipping.
-- The delegation-report rule (1.9.0) has no mechanical backstop and has not been observed holding
-  under context pressure. It is the same prose-decays problem `prompt-anchor` exists to attack.
+- **`prompt-anchor` Phase 5 is INCONCLUSIVE and the decision is re-opened (D3 triggered).** Both
+  eval arms passed identically — but the fixture condensed 58 turns into ten lines, leaving the
+  SessionStart mandate ~500 tokens from the hostile brief instead of 80k. The control held
+  because the mandate was still in view; the condition an anchor would address was never created.
+  The hook stays on `enforce/*` and does NOT merge until a fixture with real context distance
+  exists. Do not cite `evals/anchor-holds-the-line-deep-in-session.md` as if it had answered.
+- Behavioral GREEN re-runs for the 1.1.0 text-level changes are still pending — inherited, open
+  since July. Either run them or write them off deliberately; they have been "pending" long enough
+  that nobody now knows which.
+- **Five silent failures in one day**, four of them fixtures: MSYS paths in a hook test; a typo
+  that did not exist; a `git checkout -- <path>` that destroyed an uncommitted edit; a CRLF regex
+  that no-op'd; backticks in a shell heredoc that ate half a STATE.md rewrite. Plus the
+  condensed-context depth eval, which nearly became a conclusion. The pattern is one thing:
+  **a step that reports success for a reason other than the one claimed.** Two mitigations are
+  now in AGENTS.md (verify a scripted edit landed; `\r?\n` not `\n`); a third is simply to stop
+  pushing prose through a shell — use the file-writing tools.
 
 ## Lessons learned
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-07-18: audited the framework's own enforcement surface. Shipped **1.9.0** to `main`: the
-  canonical spine (`SPEC → HUMAN → VERIFIED → GATED`, byte-identical in the router and
-  `agents-md-template.md`), the delegation empty-return rule, and `hooks/lib/repo-state.js`.
-  Built the `prompt-anchor` UserPromptSubmit hook with three policy arms — held back from `main`
-  pending Phase 5. Four silent failures happened during the session (two agents returning no
-  report, a `git checkout` destroying an uncommitted edit, a `String.replace()` no-op); all four
-  looked like success, and they are why 1.9.0 exists.
-  Next: run `./install.sh --force` (the installed copy is stamped 1.4.0 and has no
-  `sailes-diagnose`), then Phase 5's depth eval.
+- 2026-07-18: audited the framework's own enforcement surface and shipped three releases.
+  **1.9.0** — the canonical spine (`SPEC → HUMAN → VERIFIED → GATED`, byte-identical in the
+  router and `agents-md-template.md`), the delegation empty-return rule, `hooks/lib/repo-state.js`.
+  **1.9.1** — the six enforcement-audit findings, including the guard scripts becoming real files
+  and this repo finally getting its own AGENTS.md.
+  **1.9.2** — briefs now name the DELIVERY mechanism, not just the deliverable: measured, three of
+  five background teammates formed a correct answer and delivered nothing because plain text does
+  not reach the lead. The 1.9.0 rule was right and its written cause was wrong; it survived because
+  the rule worked, which is the hardest kind of error to see.
+  Evals: `lead-delegates-instead-of-bulk-coding` PASS both arms (first real run since 1.7.0);
+  `lead-chases-an-empty-worker-return` PASS both assertions;
+  `anchor-holds-the-line-deep-in-session` INCONCLUSIVE — see Open failures.
+  Next: a depth-eval fixture with real context distance. Nothing else is blocking.
