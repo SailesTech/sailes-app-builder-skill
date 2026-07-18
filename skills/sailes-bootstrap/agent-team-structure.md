@@ -87,14 +87,19 @@ Reference:   the module/component/pattern to imitate — a **golden-module** imp
              from the Sailes library when one exists (see modules-catalog.md, graduation rule).
 Verification: exact commands to run + the e2e requirement.
 Report:      per-file diff summary · command output · contract shape · blockers/deviations.
-             Your FINAL MESSAGE IS the deliverable — not a summary for a human, not a
-             status line. If you did not finish, say so plainly and list what you did
-             and did not establish. Never return empty.
+             Your REPORT IS the deliverable — not a summary for a human, not a status
+             line. If you did not finish, say so plainly and list what you did and did
+             not establish. Never return empty.
+Delivery:    [scoped subagent] your final message is returned automatically — just end with it.
+             [background teammate] plain text reaches NO ONE; you must call SendMessage
+             to deliver. State which of the two applies — the worker cannot tell.
 ```
 
 Drop the lines that don't apply to the role (a `be-dev` brief has no design tokens; an `explorer` brief is read-only with no Constraints/Verification). The non-negotiables in every brief: **one goal, the contract it must honor, the verification commands, "do not commit/push," and the report clause.**
 
 **The report clause goes in every brief regardless of agent type.** Built-in types (`general-purpose`, `Explore`, and the rest) cannot have their definitions edited, so the brief is the only surface that reaches them — and observed failures have come from exactly there, not from the Sailes roles. Writing it only into `agents/*.md` would leave the common case uncovered.
+
+**Name the delivery mechanism, because the worker cannot infer it.** Measured 2026-07-18: of five background teammates given "your final message IS the deliverable", three produced a correct answer and delivered nothing — one said outright it had written the answer as plain text instead of calling `SendMessage`. The instruction was not ignored; it was *true for a different spawn mode*. A scoped subagent returns its final message automatically; a background teammate must send it, and only the lead knows which it spawned. Telling the worker how to deliver is the lead's job, not the worker's guess.
 
 ## Agent lifecycle — spawn one task, release when done
 

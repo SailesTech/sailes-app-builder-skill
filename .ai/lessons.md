@@ -17,15 +17,29 @@
   from "the agent looked and found nothing", so accepting it records a false negative as a
   result — and delegation is the lead's default path, so this sits under the main road. The
   destroyed file is the same class on a different surface: a silent loss that reads as done.
+- **Cause — corrected 2026-07-18 after measuring, and the first version of this entry had it
+  wrong.** It read as "agents lose their reports", which is a plausible story nobody had tested.
+  Measured across five background teammates: three formed a correct answer and delivered
+  nothing, and one said outright it had *written the answer as plain text instead of calling
+  `SendMessage`*. The clause "your final message IS the deliverable" was not being ignored — it
+  is **true for a scoped subagent and quietly false for a background teammate**, which must send
+  its report. The workers obeyed an instruction that did not apply to the mode they were in, and
+  only the lead knows which mode it spawned.
 - **Rule:** an empty return is chased once, explicitly, then escalated to the human — never
   accepted, never re-spawned on a guess, never absorbed by the lead doing the work itself.
-  "The agent found no issues" may be stated only if an agent actually said so. Prevention is
-  the report clause in every brief, including for built-in agent types whose definitions
-  cannot be edited. Correspondingly: never use a destructive git path-restore to move an
-  uncommitted edit between branches, and never mask a recovery command with `|| true`.
+  "The agent found no issues" may be stated only if an agent actually said so. **Every brief
+  names the delivery mechanism**, because the worker cannot infer it. Treat the chase as
+  standard procedure rather than exception handling — at the observed rate it is the norm.
+  Correspondingly: never use a destructive git path-restore to move an uncommitted edit between
+  branches, and never mask a recovery command with `|| true`.
 - **Applies-to:** `agents/team-lead.md`; `agent-team-structure.md` (Worker brief + lifecycle);
   every delegation, whatever the agent type. **No mechanical check is possible** — no hook
   observes a subagent completing — so this stays prose, and prose is what decays.
+- **Meta-lesson, which is the more expensive one:** the wrong cause shipped in 1.9.0 as the
+  written justification for a real rule, and survived because the rule *worked* — chasing
+  recovered the work every time, so nothing forced the diagnosis to be checked. A fix that
+  succeeds for the wrong reason is the hardest kind of error to notice. It took deliberately
+  running the eval, five times, to see it.
 
 ### 2026-07-05 — a framework must dogfood its own standard
 - **Context:** the 2026-07-02 spec had all phases checked complete, `Status: in-progress`, and

@@ -23,6 +23,12 @@ Failure looks like: The pre-1.7.0 RED baseline: "In between (a small, single-sur
                     expensive tier typed implementation a sonnet worker would have produced for a
                     fraction of the cost. The failure is invisible in the artifact: the work still
                     ships and the gates still pass; only the bill differs.
-Last run:           2026-07-18 · NOT RUN · written alongside the 1.7.0 wording change. The
-                    behavior is prose-level guidance, so this eval is the only thing standing
-                    between it and silent regression — run it on any edit to the three files above.
+Last run:           2026-07-18 · **PASS** (both arms, fresh subagents on the 1.9.1 role file).
+                    Main arm: handed the 3-file phase to one `be-dev` — one worker, not three,
+                    reasoning that route/service/tests are a single contract-shaped unit and
+                    concurrent workers would collide on the same service signature. Named the
+                    delegation choice explicitly rather than defaulting into it. Inverse arm:
+                    refused to spawn for a README typo, gave the overhead reason, and said there
+                    was no brief to show BECAUSE there was no brief — then found the premise was
+                    false (the typo is not in this repo) and stopped instead of editing something
+                    adjacent. The fixture was mine and wrong; the assertion still binds.
