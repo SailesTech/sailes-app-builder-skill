@@ -4,6 +4,24 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.7.0 — 2026-07-18 · delegation becomes the lead's default, not its fallback
+
+- **The "may do it solo" loophole is closed.** `agent-team-structure.md` previously allowed the
+  lead to implement a small single-surface feature itself. An opus-tier lead reliably took that
+  permission, so the expensive tier typed implementations a sonnet worker produces just as well.
+  Delegation is now the stated default above a one-file change, and "I'll just write this one
+  myself" is a choice the lead owes a reason for.
+- **The cost argument is stated in both directions**, because a rule that only rewards delegation
+  trains the opposite waste: a worker costs a spawn, a brief, a report and an integration, and
+  below roughly a file's worth of change that overhead exceeds the saving.
+- **Codex parity:** `codex-agents/team-lead.toml` carries the same rule — one standard, two
+  harnesses.
+- **Why it needed saying at all:** this failure is invisible in the artifact. The work ships and
+  the gates pass; only the bill differs. `evals/lead-delegates-instead-of-bulk-coding.md` guards
+  it, with an inverse guard so a one-line typo fix still does NOT spawn a worker.
+- **Upgrade action:** none in a consuming repo — this is agent-role behavior, not generated
+  content. Update the plugin (and re-run `enable-codex-agents` for the Codex side).
+
 ## 1.6.1 — 2026-07-18 · the router survives contact with real repos
 
 - **Scaffolding in `.ai/specs/` no longer reads as work in flight.** `TEMPLATE.md`, `AGENTS.md`,

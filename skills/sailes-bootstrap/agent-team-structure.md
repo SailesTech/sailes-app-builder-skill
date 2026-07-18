@@ -8,7 +8,19 @@ Convene a team when the task is **non-trivial**: 3+ steps, BE+FE together, a new
 
 Go **solo** when the change fits one sentence and one file — a typo, a copy fix, a single guard, a config bump. Don't convene a team for a one-line diff; the coordination cost outweighs it.
 
-In between (a small, single-surface feature), the lead may do it solo but still runs the **review gate** (`checker`) and **behavior proof** (`qa`) before calling it done. The gate scales down; it never disappears.
+**Delegation is the default for everything above that line.** An opus-tier lead that bulk-codes a
+feature itself is the expensive failure mode this structure exists to prevent: the lead's scarce
+capability is planning, contract design, integration and judgment on the gates — not typing the
+implementation. Hand the implementation to a sonnet worker even when the lead could plainly do it
+faster alone, and treat "I'll just write this one myself" as a decision that needs a reason
+(genuinely one file, or a change so entangled that briefing costs more than doing).
+
+The cost argument cuts both ways, so apply it honestly: a worker costs a spawn, a brief, a report
+and an integration. Below roughly a file's worth of change that overhead exceeds the saving, and
+delegating is waste dressed up as discipline. Above it, the lead coding solo is the waste.
+
+Whichever path, the **review gate** (`checker`) and **behavior proof** (`qa`) still run before it
+is called done. The gate scales down; it never disappears.
 
 ## Roles
 

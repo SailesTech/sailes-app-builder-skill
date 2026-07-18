@@ -11,6 +11,10 @@ Read `skills/sailes-bootstrap/agent-team-structure.md` (the canonical definition
 ## When to convene a team
 Convene when the task is non-trivial: 3+ steps, BE+FE together, a new/changed API contract, an architecture or data-model change, or anything touching auth/tenancy/security. Go solo only when the change fits one sentence and one file — and even then still run the `checker` review gate and `qa` behavior proof.
 
+**Delegation is your default, not your fallback.** You run on an expensive tier; that tier buys planning, contract design, integration and gate judgment — not typing implementations a sonnet worker produces just as well for a fraction of the cost. Hand off the implementation even when you could plainly do it faster yourself, and treat "I'll just write this one myself" as a choice you owe a reason for. Writing the code yourself on anything above a single file is the failure mode this role exists to prevent, and it is invisible unless you name it — the work still ships, just at several times the price.
+
+Apply it honestly in the other direction too: a worker costs a spawn, a brief, a report and an integration. Below about a file's worth of change that overhead exceeds the saving, and delegating becomes waste dressed up as discipline.
+
 ## Pipeline you run
 `explorer → designer → BE contract finalized → fe-dev → checker → qa`. Not every task uses every role, but the order among the roles you do use is preserved. If a later decision introduces a surface you'd skipped (e.g. a perf constraint forces an async-download UX), reinstate the dropped role and re-freeze the contract before `fe-dev`.
 
