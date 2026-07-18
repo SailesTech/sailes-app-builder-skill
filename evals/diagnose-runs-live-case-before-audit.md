@@ -34,20 +34,45 @@ Failure looks like: The RED baseline this whole skill was distilled from — Par
                     one confident hypothesis presented as the diagnosis; a fix proposed before the
                     mechanism is shown; "it works now" with no mechanism (must read as STOPPED,
                     CAUSE UNKNOWN); and inferring health from an absent error line.
-Fixture requirement: **the app must actually run.** The 2026-07-18 pass used four static files with
-                    no runnable server, so neither arm could reproduce anything and criterion (b)
-                    — the skill's central rule — went untested. A fixture for this eval needs a
-                    bootable endpoint and a seeded record that triggers the defect, or it cannot
-                    grade live-case-first at all. Do not record a pass on (b) without one.
-                    Keep the planted defect subtle (a string id meeting `Number()`), and keep
-                    incidental scaffolding realistic: the control anchored on a stubbed `db.ts`
-                    that was an artifact of the fixture, not a planted bug.
+Fixture:            `evals/fixtures/diagnose-orders-export/` — a runnable, dependency-free B2B
+                    order panel (`node server.js`). **The app must actually run**: the first
+                    attempt at this eval used static files, so neither arm could reproduce
+                    anything and criterion (b) — the skill's central rule — went untested. Never
+                    record a pass on (b) without a bootable app.
+                    The planted defect is silent by design: `/api/orders/export` does
+                    `Number(supplier)` then a strict compare, so alphanumeric supplier ids
+                    (`S0002556`) yield `NaN`, zero rows, and **200 OK with an empty body** — no
+                    error, no alert, `status:200` in the seeded audit log. The list endpoint
+                    compares as strings and works, so the customer sees their orders on screen
+                    while the export returns nothing. Numeric-id suppliers work, which forces a
+                    control to find the real boundary.
 Discriminates on:   structure, NOT hypothesis count. In the 2026-07-18 pass the control produced
                     MORE hypotheses (5 vs 4) — but as a likelihood ranking led by "most probable
                     cause", with no refuting observations, no ledger, no artifact, and fixes
                     proposed before a mechanism was shown. Count is not the signal; a named
                     falsifier per hypothesis and an explicit "not established" are.
-Last run:           2026-07-18 · PARTIAL PASS · Treatment: read `sailes-diagnose/SKILL.md`, named
+Last run:           2026-07-18 (runnable fixture) · **PASS** · Treatment reproduced live BEFORE
+                    reading `server.js` — started the app, curled the failing supplier plus a
+                    numeric-id control — then wrote 3 hypotheses each with a named refuting
+                    observation, confirmed H1 and **refuted H2 and H3 with evidence that is kept**
+                    (H3 died on the control: Metalex's export included a `pending` row, killing
+                    the status-filter theory). No production writes; incident record written.
+                    Control read source FIRST and reproduced only afterwards — its own report:
+                    "Reprodukcję wykonałem dopiero po przeczytaniu kodu" — and put forward
+                    **one** hypothesis, explicitly declining to consider competing ones. No
+                    ledger, no artifact.
+                    Both arms reached the correct mechanism and both generalised past the report
+                    ("not Nordkabel — every alphanumeric-id supplier; Veltra just hasn't complained
+                    yet"), which is the Italy/Vatican shape. **Read that honestly: on a 70-line
+                    fixture, audit-first works.** The eval demonstrates a difference in METHOD and
+                    in what survives on disk, not in outcome. The original "loads 2008" bug cost
+                    days precisely because the codebase was large enough that reading it did not
+                    reveal the answer — a property this fixture cannot reproduce.
+                    Operational note: the control ran `taskkill /F /IM node.exe`, killing every
+                    node process on the machine rather than its own server. Sandbox this eval or
+                    pin the PID.
+
+Superseded run:     2026-07-18 (static fixture) · PARTIAL PASS · Treatment: read `sailes-diagnose/SKILL.md`, named
                     BROKEN ≠ MISSING, 4 hypotheses each with a refuting observation and all marked
                     UNTESTED, zero production writes (citing the dev=prod-credentials warning),
                     status left OPEN — root cause not established, incident record written to

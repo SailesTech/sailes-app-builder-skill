@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Zamówienia — panel dostawcy</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; color: #1a1a1a; }
+  h1 { font-size: 1.25rem; }
+  select, button { font: inherit; padding: .4rem .6rem; }
+  button { cursor: pointer; }
+  table { border-collapse: collapse; margin-top: 1rem; width: 100%; max-width: 720px; }
+  th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid #ddd; }
+  th { font-weight: 600; }
+</style>
+</head>
+<body>
+  <h1>Zamówienia — panel dostawcy</h1>
+
+  <label for="supplier">Dostawca:</label>
+  <select id="supplier"></select>
+  <button id="export">Eksportuj CSV</button>
+
+  <table>
+    <thead><tr><th>Nr</th><th>Data</th><th>Kwota PLN</th><th>Status</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+
+<script>
+const sel = document.getElementById('supplier');
+const rowsEl = document.getElementById('rows');
+
+async function loadSuppliers() {
+  const res = await fetch('/api/suppliers');
+  const suppliers = await res.json();
+  sel.innerHTML = suppliers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  loadOrders();
+}
+
+async function loadOrders() {
+  const res = await fetch('/api/orders?supplier=' + encodeURIComponent(sel.value));
+  const orders = await res.json();
+  rowsEl.innerHTML = orders.map(o =>
+    `<tr><td>${o.id}</td><td>${o.placed_at}</td><td>${o.total_pln.toFixed(2)}</td><td>${o.status}</td></tr>`
+  ).join('');
+}
+
+document.getElementById('export').addEventListener('click', async () => {
+  const res = await fetch('/api/orders/export?supplier=' + encodeURIComponent(sel.value));
+  const blob = await res.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'orders.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+sel.addEventListener('change', loadOrders);
+loadSuppliers();
+</script>
+</body>
+</html>

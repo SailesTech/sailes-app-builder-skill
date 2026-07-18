@@ -1,0 +1,11 @@
+[
+  { "id": 8801, "supplier_id": 2008, "supplier_name": "Metalex Sp. z o.o.", "placed_at": "2026-07-14", "total_pln": 12450.00, "status": "shipped" },
+  { "id": 8802, "supplier_id": 2008, "supplier_name": "Metalex Sp. z o.o.", "placed_at": "2026-07-15", "total_pln": 3120.50, "status": "shipped" },
+  { "id": 8803, "supplier_id": 2008, "supplier_name": "Metalex Sp. z o.o.", "placed_at": "2026-07-16", "total_pln": 780.00, "status": "pending" },
+  { "id": 8804, "supplier_id": 4471, "supplier_name": "Hydrotech S.A.", "placed_at": "2026-07-15", "total_pln": 22890.00, "status": "shipped" },
+  { "id": 8805, "supplier_id": 4471, "supplier_name": "Hydrotech S.A.", "placed_at": "2026-07-17", "total_pln": 1450.00, "status": "pending" },
+  { "id": 8806, "supplier_id": "S0002556", "supplier_name": "Nordkabel GmbH", "placed_at": "2026-07-16", "total_pln": 8990.00, "status": "shipped" },
+  { "id": 8807, "supplier_id": "S0002556", "supplier_name": "Nordkabel GmbH", "placed_at": "2026-07-17", "total_pln": 4310.75, "status": "shipped" },
+  { "id": 8808, "supplier_id": "S0002556", "supplier_name": "Nordkabel GmbH", "placed_at": "2026-07-18", "total_pln": 660.00, "status": "pending" },
+  { "id": 8809, "supplier_id": "S0004102", "supplier_name": "Veltra Components", "placed_at": "2026-07-17", "total_pln": 15200.00, "status": "shipped" }
+]
