@@ -4,6 +4,20 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.9.1 — 2026-07-18 · the guard scripts become files, not prose to retype
+
+- **`.claude/hooks/session-start.sh` and `guard-protected-paths.sh` now ship as real files**
+  under `sailes-bootstrap/hooks-template/`. They previously existed only as fenced blocks inside
+  `codex-config-template.md`, which meant the framework's **only mechanical enforcement** — the
+  `permissions.deny` + `PreToolUse` surface in a generated repo — depended on an agent retyping
+  shell correctly. Bootstrap now copies two files. The template points at them instead of
+  carrying a second copy that would drift.
+  *Verified by execution, for the first time since they were written:* force-push, `reset --hard`,
+  `.env`, `.ai/specs/implemented/` and applied migrations all exit 2; ordinary edits and commands
+  pass through.
+- **The plugin description names both tracks.** It listed only the build pipeline, three versions
+  after `sailes-diagnose` shipped. Fixed in `plugin.json` and `marketplace.json`.
+
 ## 1.9.0 — 2026-07-18 · one vocabulary, and a silent worker stops reading as a finished one
 
 - **A canonical spine: `SPEC → HUMAN → VERIFIED → GATED`.** The generated `AGENTS.md` gains a
