@@ -25,3 +25,5 @@ config_file = "agents/explorer.toml"
 ```
 
 Do not edit that region by hand. The installer replaces it as a unit, preserves all content outside it, and refuses a same-name Sailes agent declared outside it. When a Claude role changes, update its matching TOML alongside it.
+
+One deliberate exception to that rule: the runtime-delegation block in `agents/team-lead.md` ("use Codex for the backend") has **no counterpart here**, and that is not an oversight. These roles already run on Codex, so delegating *to* Codex is meaningless; a hand-off back to Claude would make a second vendor a requirement rather than an option. Delegation is one-directional by design — see `sailes-bootstrap/agent-team-structure.md` (Delegation mechanism).
