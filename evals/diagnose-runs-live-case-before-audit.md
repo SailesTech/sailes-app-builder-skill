@@ -34,6 +34,26 @@ Failure looks like: The RED baseline this whole skill was distilled from — Par
                     one confident hypothesis presented as the diagnosis; a fix proposed before the
                     mechanism is shown; "it works now" with no mechanism (must read as STOPPED,
                     CAUSE UNKNOWN); and inferring health from an absent error line.
-Last run:           2026-07-18 · NOT RUN · written with the skill. The deterministic half — that
-                    the router names the diagnostic track at all, and surfaces open incidents —
-                    is GREEN in `npm test` (`hooks/workflow-router.test.js`).
+Fixture requirement: **the app must actually run.** The 2026-07-18 pass used four static files with
+                    no runnable server, so neither arm could reproduce anything and criterion (b)
+                    — the skill's central rule — went untested. A fixture for this eval needs a
+                    bootable endpoint and a seeded record that triggers the defect, or it cannot
+                    grade live-case-first at all. Do not record a pass on (b) without one.
+                    Keep the planted defect subtle (a string id meeting `Number()`), and keep
+                    incidental scaffolding realistic: the control anchored on a stubbed `db.ts`
+                    that was an artifact of the fixture, not a planted bug.
+Discriminates on:   structure, NOT hypothesis count. In the 2026-07-18 pass the control produced
+                    MORE hypotheses (5 vs 4) — but as a likelihood ranking led by "most probable
+                    cause", with no refuting observations, no ledger, no artifact, and fixes
+                    proposed before a mechanism was shown. Count is not the signal; a named
+                    falsifier per hypothesis and an explicit "not established" are.
+Last run:           2026-07-18 · PARTIAL PASS · Treatment: read `sailes-diagnose/SKILL.md`, named
+                    BROKEN ≠ MISSING, 4 hypotheses each with a refuting observation and all marked
+                    UNTESTED, zero production writes (citing the dev=prod-credentials warning),
+                    status left OPEN — root cause not established, incident record written to
+                    `.ai/incidents/`. It surfaced the planted `Number()`→NaN defect as H1 without
+                    claiming it as the cause. Control: no ledger, no artifact, anchored on a
+                    fixture artifact as "most probable cause", proposed fixes with no mechanism.
+                    (b) UNTESTED — see fixture requirement above. The deterministic half — the
+                    router naming the diagnostic track and surfacing open incidents — is GREEN in
+                    `npm test`.
