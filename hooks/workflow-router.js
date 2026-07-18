@@ -32,11 +32,24 @@ const DRIFT_THRESHOLD = 10;
 /** Scaffolding that lives in `.ai/specs/` but is not work in flight. Found in real repos. */
 const NOT_A_SPEC = /^(readme|template|agents|claude)\.md$/i;
 
+/** An incident is closed once its record says so; anything else still wants attention. */
+const CLOSED_INCIDENT = /^\s*Status:\s*(FIXED\b|RESOLVED\b|CLOSED\b)/im;
+
+const MAX_INCIDENTS_LISTED = 3;
+
 function readStdin() {
   try {
     return fs.readFileSync(0, 'utf8');
   } catch {
     return '';
+  }
+}
+
+function read(file) {
+  try {
+    return fs.readFileSync(file, 'utf8');
+  } catch {
+    return null;
   }
 }
 
@@ -78,6 +91,34 @@ function activeSpecs(root) {
   }
 }
 
+/**
+ * Incident records that are still open. An open incident outranks every spec at session start:
+ * it means something is broken right now, and the build pipeline is the wrong instrument for it.
+ */
+function openIncidents(root) {
+  const dir = path.join(root, '.ai', 'incidents');
+  let names;
+  try {
+    names = fs
+      .readdirSync(dir, { withFileTypes: true })
+      .filter((e) => e.isFile() && e.name.endsWith('.md') && !NOT_A_SPEC.test(e.name))
+      .map((e) => e.name)
+      .sort()
+      .reverse(); // newest first — incident files are date-prefixed
+  } catch {
+    return [];
+  }
+  const out = [];
+  for (const name of names) {
+    const body = read(path.join(dir, name));
+    if (body === null || CLOSED_INCIDENT.test(body)) continue;
+    const status = /^\s*Status:\s*(.+)$/im.exec(body);
+    out.push(`\`${name}\`${status ? ` (${status[1].trim()})` : ''}`);
+    if (out.length === MAX_INCIDENTS_LISTED) break;
+  }
+  return out;
+}
+
 function emit(context) {
   process.stdout.write(
     JSON.stringify({
@@ -96,15 +137,20 @@ const HARD_RULES = [
   '- Phases are gated. Do not cross a gate because the next phase looks obvious.',
 ].join('\n');
 
-function main() {
-  let input = {};
+// Resolved once, at module scope, so the error fallback below judges the same repo main() would.
+// stdin can only be consumed once, and a failure inside main() must not change which repo we
+// think we are in — that is how the fallback ended up nagging unrelated checkouts.
+const SESSION_ROOT = (() => {
   try {
-    input = JSON.parse(readStdin() || '{}');
+    const input = JSON.parse(readStdin() || '{}');
+    return findRepoRoot(input.cwd || process.cwd());
   } catch {
-    /* fall through to cwd */
+    return findRepoRoot(process.cwd());
   }
+})();
 
-  const root = findRepoRoot(input.cwd || process.cwd());
+function main() {
+  const root = SESSION_ROOT;
   const isSailesRepo =
     exists(path.join(root, 'AGENTS.md')) || exists(path.join(root, '.ai'));
 
@@ -141,12 +187,25 @@ function main() {
       `the human only wants the scope interview. Do not begin implementation from a one-line brief.`;
   }
 
+  const incidents = openIncidents(root);
+  const incidentBlock = incidents.length
+    ? `\nOPEN INCIDENT(S) in \`.ai/incidents/\`: ${incidents.join(', ')}. Something is already ` +
+      `known to be broken here — read the record before starting anything else, and continue that ` +
+      `diagnosis rather than opening a second one.\n`
+    : '';
+
   emit(
     `[sailes] This repo runs the Sailes workflow (AGENTS.md/.ai present), so it governs this ` +
       `session — including after a context reset.\n\n` +
       `Pipeline: sailes-start → [wayfinder] → discovery → bootstrap → [design] → spec → ` +
-      `pre-implement → [database|async] → implement → release gate.\n\n` +
-      `ROUTING (from the repo's state on disk, not from your read of the request):\n${route}\n\n` +
+      `pre-implement → [database|async] → implement → release gate.\n` +
+      `BROKEN ≠ MISSING: if the request is about something failing — production errors, a failed ` +
+      `run, an alert, a customer-visible defect, missing data — invoke \`sailes-diagnose\` INSTEAD ` +
+      `of that pipeline. The build track cannot diagnose: there is nothing to elicit and the ` +
+      `requirement is already written. Diagnosis is read-only on production and ends at a proven ` +
+      `mechanism, which then becomes a fix.\n\n` +
+      `ROUTING (from the repo's state on disk, not from your read of the request):\n${route}\n` +
+      `${incidentBlock}\n` +
       `HARD RULES for this session:\n${HARD_RULES}\n\n` +
       `Read \`AGENTS.md\` before your first substantive action; the repo's own conventions win ` +
       `over generic defaults. Do not recite this block to the human — act on it.`
@@ -156,6 +215,24 @@ function main() {
 try {
   main();
 } catch {
-  // Routing guidance is never worth breaking a session over.
+  // Routing guidance is never worth breaking a session over — but silence is not the safe
+  // default either. A coding error here used to make the whole mandate vanish while the session
+  // looked entirely normal: the "silent instrument" trap this framework's own diagnosis skill
+  // exists to stamp out. Degrade to the minimum that still governs the session, and only in a
+  // repo that asked to be governed.
+  try {
+    const root = SESSION_ROOT;
+    if (exists(path.join(root, 'AGENTS.md')) || exists(path.join(root, '.ai'))) {
+      emit(
+        `[sailes] This repo runs the Sailes workflow, but the session router failed to read its ` +
+          `state, so there is no per-repo routing this time. Fall back to the standard: read ` +
+          `\`AGENTS.md\` and \`.ai/specs/\` yourself before acting; a broken system goes to ` +
+          `\`sailes-diagnose\`, new scope to \`sailes-discovery\`; no feature code without an ` +
+          `approved spec. Mention the router failure to the human once — it is a real defect.`
+      );
+    }
+  } catch {
+    /* the fallback must never throw */
+  }
   process.exit(0);
 }

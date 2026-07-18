@@ -162,6 +162,78 @@ test('survives malformed stdin instead of crashing the session', (dir) => {
   assert.doesNotThrow(() => run(dir, 'not json at all'));
 });
 
+// A ReferenceError in this file once made the entire mandate disappear while the session looked
+// normal — the silent-instrument trap, in the tool that preaches against it. On failure the hook
+// must still govern the session, and must say that it failed.
+test('degrades to a minimum mandate instead of going silent on an internal error', (dir) => {
+  mkrepo(dir, { agentsMd: true });
+  const broken = path.join(dir, 'broken-router.js');
+  fs.writeFileSync(
+    broken,
+    fs
+      .readFileSync(HOOK, 'utf8')
+      .replace('function main() {', 'function main() {\n  throw new Error("induced");')
+  );
+  const out = execFileSync(process.execPath, [broken], {
+    input: JSON.stringify({ cwd: dir }),
+    encoding: 'utf8',
+  });
+  const ctx = JSON.parse(out).hookSpecificOutput.additionalContext;
+  assert.match(ctx, /sailes-diagnose/);
+  assert.match(ctx, /router failure|failed to read/);
+});
+
+test('stays silent on an internal error in a repo that is not ours', (dir) => {
+  mkrepo(dir); // no AGENTS.md, no .ai/
+  const broken = path.join(dir, 'broken-router.js');
+  fs.writeFileSync(
+    broken,
+    fs
+      .readFileSync(HOOK, 'utf8')
+      .replace('function main() {', 'function main() {\n  throw new Error("induced");')
+  );
+  const out = execFileSync(process.execPath, [broken], {
+    input: JSON.stringify({ cwd: dir }),
+    encoding: 'utf8',
+  });
+  assert.strictEqual(out.trim(), '');
+});
+
+// The build pipeline cannot diagnose: there is nothing to elicit and the requirement is already
+// written. Without this line the mandate routes a broken-production session into discovery.
+test('names the diagnostic track, whatever the spec state', (dir) => {
+  mkrepo(dir, { agentsMd: true });
+  assert.match(run(dir), /sailes-diagnose/);
+});
+
+test('names the diagnostic track when specs are in flight too', (dir) => {
+  mkrepo(dir, { agentsMd: true, specs: ['a.md'] });
+  assert.match(run(dir), /sailes-diagnose/);
+});
+
+// An open incident is the single most relevant fact at session start — more than any spec.
+test('surfaces an open incident record when one exists', (dir) => {
+  mkrepo(dir, { agentsMd: true });
+  fs.mkdirSync(path.join(dir, '.ai', 'incidents'), { recursive: true });
+  fs.writeFileSync(
+    path.join(dir, '.ai', 'incidents', '2026-07-18-vat-204.md'),
+    '# Incident\n\nStatus: INVESTIGATING\n'
+  );
+  const ctx = run(dir);
+  assert.match(ctx, /2026-07-18-vat-204\.md/);
+  assert.match(ctx, /INVESTIGATING/);
+});
+
+test('stays quiet about incidents that are closed', (dir) => {
+  mkrepo(dir, { agentsMd: true });
+  fs.mkdirSync(path.join(dir, '.ai', 'incidents'), { recursive: true });
+  fs.writeFileSync(
+    path.join(dir, '.ai', 'incidents', '2026-07-01-old.md'),
+    '# Incident\n\nStatus: FIXED & VERIFIED\n'
+  );
+  assert.doesNotMatch(run(dir), /2026-07-01-old\.md/);
+});
+
 test('always carries the hard rules', (dir) => {
   mkrepo(dir, { agentsMd: true });
   const ctx = run(dir);

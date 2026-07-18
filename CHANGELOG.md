@@ -4,6 +4,40 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.8.0 — 2026-07-18 · a track for when something is broken, not missing
+
+- **New skill `sailes-diagnose`.** The build pipeline turns intent into software and is the wrong
+  instrument for a failing system: there is nothing to elicit and the requirement is already
+  written. This is the other track — scope → live case → ≥3 falsifiable hypotheses → read-only
+  fan-out → discriminating test → mechanism → hand off. It ends at a **proven mechanism**, never at
+  a merged fix, because a correct diagnosis and a correct fix are separate claims (on "loads 2008"
+  the diagnosis was right and the first fix still corrupted the supplier id).
+- **Read-only on production, always.** Stricter than the industry default for a local reason:
+  Railway `dev` holds production credentials, so a Tokyo→Kyoto smoke test created a real person, a
+  real deal, and sent a real email (SRF `lessons.md:151-154`). There is no harmless environment to
+  "just try it" in. Replay commands are written out and handed to the human.
+- **Live case before code audit** — the one explicit self-reversal in either source repo:
+  "the audit-first order wasted effort … most of the prior reasoning was wrong."
+- **Three hypotheses before any deep dive**, each with a named refuting observation. Agent
+  commitment to an early reading peaks around reasoning step 4 (arXiv 2606.22936), so the set must
+  exist before then; deliberately constructing the opposing case measurably improves accuracy
+  (arXiv 2604.02485). **"5 whys" is deliberately not encoded** — no evidence base, and its failure
+  mode (a fluent single causal thread from insufficient knowledge) is an LLM's native one.
+- **Fan out by data source, never by hypothesis-with-an-advocate** — advocacy manufactures
+  confirmation — and only when the cause is not obvious. Collectors return raw evidence with the
+  query they ran; verdicts stay with the lead.
+- **New artifact: `.ai/incidents/<date>-<slug>.md`** — timeline, evidence log, hypothesis ledger
+  (refutations kept), contributing factors *plural*, verification with a pre-committed negative,
+  detection gap. Deliberately separate from `.ai/specs/` so an incident does not inflate the
+  in-flight count the session router reads.
+- **The router gained a BROKEN ≠ MISSING branch** and now surfaces open incident records at
+  session start, ranked above specs.
+- **The router no longer fails silently.** A `ReferenceError` in it used to make the entire mandate
+  vanish while the session looked normal — the "silent instrument" trap this very skill exists to
+  stamp out. It now degrades to a minimum mandate and reports its own failure, in Sailes repos
+  only. Covered by tests, including the negative case.
+- **Upgrade action:** none required. `.ai/incidents/` is created on first use.
+
 ## 1.7.1 — 2026-07-18 · the Codex agent installer actually installs
 
 - **`enable-codex-agents.sh` never worked — not once, on any version.** Its `validate_toml`
