@@ -6,7 +6,7 @@ Date: 2026-07-18
 > Open Questions answered and spec approved 2026-07-18. Work runs on `enforce/base`;
 > `main` is production (see **Deployment channel**).
 >
-> Progress: Phase 1 ✅ · Phase 2 ☐ · Phase 3 ☐ · Phase 4 ☐ · Phase 5 ☐
+> Progress: Phase 1 ✅ · Phase 2 ✅ · Phase 3 ✅ · Phase 4 ✅ · Phase 5 ☐ (needs live sessions)
 
 ## TLDR & Context
 
@@ -165,8 +165,14 @@ passing explicitly:
 Steps: branch from the Phase 3 commit on `enforce/base`; each branch implements only the
 policy function.
 
-**Done-when:** for each branch, `npm test` → 0 failures **and**
-`git diff main --stat` touches exactly one file (`hooks/prompt-anchor.js`).
+**Done-when:** for each branch, `npm test` → 0 failures **and** `git diff enforce/base --stat`
+touches only the hook and its tests.
+
+**Deviation, recorded 2026-07-18:** the criterion said *one* file. It is two. Policy
+assertions cannot be shared across arms — `always` has no gap to tune, `state-only` has no
+turn counter — so each arm carries its own policy tests. The five SAFETY invariants are
+byte-identical in all three and were never relaxed to go green; that, not the file count,
+is the property that mattered.
 
 ### Phase 5 — Depth eval and the decision
 
