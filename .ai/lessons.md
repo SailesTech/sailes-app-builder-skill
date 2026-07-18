@@ -7,6 +7,26 @@
 
 ## Lessons
 
+### 2026-07-18 — a silent return is a false negative, not a finding
+- **Context:** three losses in one session while building the prompt-anchor. Two delegated
+  agents (`general-purpose`, `claude-code-guide`) signalled idle carrying no report; the lead
+  recovered both only by noticing the absence and chasing. Separately the lead destroyed an
+  uncommitted backlog entry with `git checkout <branch> -- <path>` and committed the reverted
+  file, with `|| true` swallowing the signal.
+- **Problem:** all three failures *looked like success*. An empty return is indistinguishable
+  from "the agent looked and found nothing", so accepting it records a false negative as a
+  result — and delegation is the lead's default path, so this sits under the main road. The
+  destroyed file is the same class on a different surface: a silent loss that reads as done.
+- **Rule:** an empty return is chased once, explicitly, then escalated to the human — never
+  accepted, never re-spawned on a guess, never absorbed by the lead doing the work itself.
+  "The agent found no issues" may be stated only if an agent actually said so. Prevention is
+  the report clause in every brief, including for built-in agent types whose definitions
+  cannot be edited. Correspondingly: never use a destructive git path-restore to move an
+  uncommitted edit between branches, and never mask a recovery command with `|| true`.
+- **Applies-to:** `agents/team-lead.md`; `agent-team-structure.md` (Worker brief + lifecycle);
+  every delegation, whatever the agent type. **No mechanical check is possible** — no hook
+  observes a subagent completing — so this stays prose, and prose is what decays.
+
 ### 2026-07-05 — a framework must dogfood its own standard
 - **Context:** the 2026-07-02 spec had all phases checked complete, `Status: in-progress`, and
   sat in `.ai/specs/` root; this repo had no STATE.md/backlog.md/lessons.md at all.
