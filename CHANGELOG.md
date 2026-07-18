@@ -4,6 +4,31 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.9.0 — 2026-07-18 · one vocabulary, and a silent worker stops reading as a finished one
+
+- **A canonical spine: `SPEC → HUMAN → VERIFIED → GATED`.** The generated `AGENTS.md` gains a
+  short **The spine** section stating the four hard rules in the same words the session hooks
+  use. Previously the SessionStart mandate and the generated `AGENTS.md` said overlapping things
+  in *different* phrasing, so two instruments competed for one slot instead of reinforcing each
+  other. Anything that repeats the rules cheaply must now repeat these words — the string is
+  byte-identical in `workflow-router.js` and `agents-md-template.md`, and changing one without
+  the other is the regression to watch for.
+- **An empty return from a delegated worker is a failure, not a completion.** A worker can go
+  idle having said nothing, which is indistinguishable from "it looked and found nothing" — so
+  accepting the silence records a false negative as a result. The lead now chases once,
+  explicitly, then escalates to the human; it never re-spawns on a guess, never absorbs the work
+  itself, and may claim "the agent found no issues" only if an agent actually said so.
+- **Every worker brief carries a report clause**, named alongside goal/contract/verification:
+  *your final message IS the deliverable — if you did not finish, say so and list what you did
+  and did not establish.* It goes in the brief rather than in role definitions deliberately:
+  built-in agent types (`general-purpose`, `Explore`) cannot have their definitions edited, and
+  they are where this has actually gone wrong.
+- **Harvest before release.** A worker that hit a real problem lands it in `.ai/lessons.md`
+  before the agent is released, and a substantial delegation lands in `.ai/runs/`. A message
+  queue does not survive a context reset; disk does.
+- **Internal:** the two SessionStart hooks now share `hooks/lib/repo-state.js` instead of each
+  carrying a verbatim copy of the same four I/O helpers.
+
 ## 1.8.0 — 2026-07-18 · a track for when something is broken, not missing
 
 - **New skill `sailes-diagnose`.** The build pipeline turns intent into software and is the wrong
