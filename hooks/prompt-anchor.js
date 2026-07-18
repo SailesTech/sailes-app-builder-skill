@@ -40,13 +40,8 @@ const {
 /** Byte-identical to workflow-router.js and agents-md-template.md. Change all three or none. */
 const SPINE = 'SPEC → HUMAN → VERIFIED → GATED';
 
-/** D4: a starting point to measure, not a finding. Env override so tuning needs no commit. */
-const DEFAULT_EVERY = 10;
-
-function turnsBetween() {
-  const raw = Number(process.env.SAILES_ANCHOR_EVERY);
-  return Number.isInteger(raw) && raw > 0 ? raw : DEFAULT_EVERY;
-}
+// This arm has no turn gap, so SAILES_ANCHOR_EVERY is deliberately absent rather than
+// present-and-inert: an env var that silently does nothing is the silent-instrument trap.
 
 // ---------------------------------------------------------------------------
 // POLICY — the only thing that differs between the experiment's branches.
@@ -54,15 +49,15 @@ function turnsBetween() {
 // ---------------------------------------------------------------------------
 
 /**
- * Hybrid: emit when the repo state changed since the last emission, OR when N turns have
- * passed without one.
+ * State-only: emit when the repo state changed since the last emission, and never otherwise.
  *
- * The state clause is what keeps this from decaying — a line that carries new information
- * gets read, a fixed prefix gets skipped. The turn clause is the floor: a long session
- * whose disk never moves is exactly the case the state clause is blind to.
+ * The purest form of the framework's own doctrine that silence is the default — it speaks
+ * only when it has something new to say. Its blind spot is the whole reason the hybrid
+ * exists: a long session whose disk never moves gets no anchor at all, which is precisely
+ * the turn-47 case this design set out to cover.
  */
-function shouldEmit({ changed, turnsSinceEmit }) {
-  return changed || turnsSinceEmit >= turnsBetween();
+function shouldEmit({ changed }) {
+  return changed;
 }
 
 // ---------------------------------------------------------------------------
