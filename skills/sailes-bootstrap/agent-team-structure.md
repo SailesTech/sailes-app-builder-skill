@@ -87,9 +87,14 @@ Reference:   the module/component/pattern to imitate — a **golden-module** imp
              from the Sailes library when one exists (see modules-catalog.md, graduation rule).
 Verification: exact commands to run + the e2e requirement.
 Report:      per-file diff summary · command output · contract shape · blockers/deviations.
+             Your FINAL MESSAGE IS the deliverable — not a summary for a human, not a
+             status line. If you did not finish, say so plainly and list what you did
+             and did not establish. Never return empty.
 ```
 
-Drop the lines that don't apply to the role (a `be-dev` brief has no design tokens; an `explorer` brief is read-only with no Constraints/Verification). The non-negotiables in every brief: **one goal, the contract it must honor, the verification commands, and "do not commit/push."**
+Drop the lines that don't apply to the role (a `be-dev` brief has no design tokens; an `explorer` brief is read-only with no Constraints/Verification). The non-negotiables in every brief: **one goal, the contract it must honor, the verification commands, "do not commit/push," and the report clause.**
+
+**The report clause goes in every brief regardless of agent type.** Built-in types (`general-purpose`, `Explore`, and the rest) cannot have their definitions edited, so the brief is the only surface that reaches them — and observed failures have come from exactly there, not from the Sailes roles. Writing it only into `agents/*.md` would leave the common case uncovered.
 
 ## Agent lifecycle — spawn one task, release when done
 
@@ -99,7 +104,9 @@ A worker is **single-task and disposable**: it exists to do its one assigned tas
 2. **Integrate, then release.** As soon as a worker returns its result and the lead has integrated it, the lead **closes that worker** — it does not keep finished agents around "in case". A worker whose task is APPROVED by `checker` is done; release it. *What "release" means operationally:* with a scoped subagent it's automatic — the subagent returns its result and ends. With a live teammate (flag on) the lead stops addressing it and tears it down (e.g. `TaskStop`) so it is not re-tasked; the lead's job is the **decision** to release on integration — actually reclaiming the agent's resources is the runtime's.
 3. **Re-spawn fresh, don't reuse.** If a CHANGES-REQUIRED loop sends work back, the lead spawns a fresh worker (or re-tasks with a clean, explicit scope) rather than carrying a stale, context-heavy agent forward. Fresh context = honest review and no scope drift.
 4. **Never hold idle agents.** At any moment, only agents with an active assigned task should be alive. Idle workers waste context and blur ownership.
-5. **Run log survives resets.** The lead records, per task: who was spawned, what they returned, the gate verdict, and whether they were released. After a context reset the lead reconstructs *which agents are still active* from the run log instead of re-deriving it — and releases any orphaned ones.
+5. **Run log survives resets.** The lead records, per task: who was spawned, what they returned, the gate verdict, and whether they were released. An empty return is recorded as an empty return — hiding it is how the same failure repeats next session. After a context reset the lead reconstructs *which agents are still active* from the run log instead of re-deriving it — and releases any orphaned ones.
+6. **An empty return is a failure, not a completion.** A worker can go idle having said nothing. That is indistinguishable from "it looked and found nothing" — so accepting the silence records a false negative as a result, which is the silent-instrument trap. The lead chases once, explicitly; if the report is still absent it escalates to the human rather than re-spawning on a guess or quietly doing the work itself. **"The agent found no issues" is a claim the lead may make only if an agent actually said so.**
+7. **Harvest before release.** A worker that hit a real problem — a wrong assumption in its brief, a contract that did not hold, a tool that failed silently — carries knowledge worth more than its diff. It lands in `.ai/lessons.md` (Context / Problem / Rule / Applies-to) before the agent is released, and the delegation in `.ai/runs/` when the task was substantial. A message queue does not survive a context reset; disk does.
 
 This lifecycle is the concrete form of "one task per worker": agents are spawned for a task and retired with it, not maintained as a standing pool.
 

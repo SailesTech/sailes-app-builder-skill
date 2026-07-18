@@ -1,11 +1,10 @@
 # Delegation reports — a silent worker must not read as a finished one
 
-Status: draft
+Status: approved
 Date: 2026-07-18
 
-> **SKELETON — Open Questions gate is OPEN.** Per `spec-writing-template.md` step 3, this
-> stops at TLDR + Problem + Constraints + Open Questions. No edits to `agents/`,
-> `codex-agents/`, or `agent-team-structure.md` until Q1–Q4 are answered.
+> Open Questions answered 2026-07-18; see **Decisions**. Phase 1 done, Phase 2 deferred
+> to the backlog by D3. Runs on `fix/delegation-reports`; `main` is production.
 
 ## TLDR & Context
 
@@ -57,31 +56,52 @@ necessity, not by laziness — and prose is exactly what decays, which is the pr
 `prompt-anchor` spec is separately trying to solve. Any answer to Q1 should be judged on
 whether it survives a lead under context pressure at turn 60.
 
-## Open Questions — ANSWER BEFORE ANY EDIT
+## Decisions (gate closed 2026-07-18)
 
-**Q1. What must the lead actually DO when a worker returns without a report?**
-Options: (a) chase once with an explicit request, then escalate to the human if still
-empty; (b) chase once, then re-spawn a fresh worker with the same brief; (c) treat it as
-a failed task immediately and report the gap to the human without chasing. Today's
-recovery used (a) and worked, but n=2.
+- **D1 — Prevention first, chase as backstop.** Chasing is the only correct response to an
+  empty return, but the goal is that it stays rare: the report clause in the brief is the
+  prevention, the chase is recovery. Escalate to the human if the chase comes back empty —
+  do not re-spawn on a guess, do not quietly absorb the work.
+- **D2 — Yes, persist to disk — into structures that already exist.** No new store: a
+  worker's *problem* knowledge lands in `.ai/lessons.md` (Context / Problem / Rule /
+  Applies-to, which already has a promotion path to enforced checks), and a substantial
+  delegation lands in `.ai/runs/`. A message queue does not survive a context reset.
+- **D3 — Minimum now, twins deferred.** `agents/team-lead.md` + `agent-team-structure.md`
+  only. Because the lead writes every brief, this reaches **all** agent types including
+  the built-ins that actually failed. The 13 remaining role/TOML files would cover only
+  Sailes roles — a belt to the braces, not the fix. Deferred to the backlog, not dropped.
+- **D4 — Yes, the report clause is a named brief element.** Added to the brief template in
+  `agent-team-structure.md` and to the lead's decomposition step, alongside the existing
+  non-negotiables (one goal, contract, verification commands, do-not-commit).
 
-**Q2. Should a delegation's report be persisted to `.ai/`, or stay in the message?**
-Persisting survives context resets and makes "was there a report?" checkable on disk —
-possibly by a script, which would be the only mechanical foothold available. Cost: more
-files, and most reports are ephemeral scaffolding not worth keeping. If yes, which
-reports — all, or only those feeding a gate verdict?
+## Phasing & Steps
 
-**Q3. How wide is the edit?**
-Minimum is `agents/team-lead.md` + `agent-team-structure.md` (lead side + doctrine).
-Adding the worker-side line to the 7 `agents/*.md` and their 7 `codex-agents/*.toml`
-twins helps only Sailes roles — real, but not what failed today. Do we do the minimum
-now and the twins later, or all sixteen files in one pass?
+### Phase 1 — Lead side + doctrine  ✅
 
-**Q4. Does the lead's brief template change?**
-If "your final message IS the deliverable, not a summary for a human" goes into every
-brief, that is a change to the briefing protocol at `agents/team-lead.md:23`, and it
-should probably be named as a required brief element alongside
-`goal · files · contract · constraints · verification · report`.
+Steps: define the report clause in the brief template (`agent-team-structure.md` Worker
+brief) and in the lead's step 2; add "an empty return is a failure, not a completion" to
+both lifecycle sections; add the harvest-before-release step pointing at `.ai/lessons.md`
+and `.ai/runs/`.
+
+**Done-when:** `npm test` → 0 failures (TOML twins still validate); the phrase "final
+message IS the deliverable" appears in the brief template; both lifecycle sections state
+that an empty return is chased, not accepted; a lesson recording today's three failures
+exists in `.ai/lessons.md`.
+
+### Phase 2 — Worker-side twins (deferred, backlog)
+
+The 6 remaining `agents/*.md` and 7 `codex-agents/*.toml`. Only worth doing as part of the
+next edit that touches those files anyway — they must stay in sync (`validate-toml.test.js`,
+`repo-done-checklist.md`), and a 13-file pass for a redundant safety net is poor value on
+its own.
+
+## Non-Goals
+
+- Any attempt to detect a missing report mechanically. Verified: no hook sees it.
+- Changing when the lead delegates. Delegation-as-default is settled doctrine (1.7.0);
+  this spec makes the return trip reliable, it does not revisit the outbound decision.
+- Fixing the `git checkout` footgun from failure #3 — same class, different surface;
+  belongs in the lead's own working rules, not here.
 
 ## Non-Goals
 

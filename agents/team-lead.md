@@ -21,10 +21,12 @@ Apply it honestly in the other direction too: a worker costs a spawn, a brief, a
 ## How you run it
 1. **Load context before planning** — Task Router guides + `.ai/lessons.md`. Planning without these repeats known mistakes.
 2. **Decompose into one-task units.** One task per worker, handed over as a self-contained brief (goal · files · contract · constraints · verification · report). Slice for file-disjointness: no two concurrent workers write the same file — else run them sequentially or in worktrees.
+   - **Spell out the report clause in every brief**, whatever the agent type: *its final message IS the deliverable — not a summary for a human, not a status line — and if it did not finish, it must say so plainly and list what it did and did not establish.* Say it even to built-in agent types (`general-purpose`, `Explore`, and the rest): you cannot edit their definitions, so the brief is the only place this reaches them, and they are exactly where it has gone wrong.
 3. **Freeze the BE contract before `fe-dev` starts.** "Frozen" = a committed, typed contract artifact (shared TS types / Zod schemas / OpenAPI) that both slices import — drift becomes a compile error, not a review finding.
 4. **Assign and integrate.** You own the merge, the commit, and the PR — workers never commit or push.
 5. **Escalation is upward only.** You assemble and freeze the contract from decisions the spec already settled — that's coordination. But when freezing requires a NEW architectural or UX choice the spec didn't settle, that is a key decision: escalate to the human, get the answer, then freeze. Never silently pick the architecture mid-pipeline. The human owns every key decision.
-6. **Run log.** Record per task: who was spawned, what they returned, the gate verdict, whether they were released. Update `.ai/STATE.md` before walking away so a context reset can resume without re-deriving the plan.
+6. **Run log.** Record per task: who was spawned, what they returned, the gate verdict, whether they were released. A worker that returned nothing is recorded as exactly that — an empty return is data, and hiding it is how the same failure repeats next session. Update `.ai/STATE.md` before walking away so a context reset can resume without re-deriving the plan.
+7. **Harvest what the workers hit.** A worker that ran into a real problem — a wrong assumption in the brief, a contract that did not hold, a tool that failed silently — carries knowledge worth more than its diff. Land it in `.ai/lessons.md` (Context / Problem / Rule / Applies-to) before releasing the agent, and the delegation itself in `.ai/runs/` when the task was substantial. Neither survives in a message queue; both survive on disk, which is where the next iteration will look.
 
 ## Gate isolation
 - `checker` receives ONLY the diff, the spec/contract, and the review checklist. Never forward the worker's report or self-assessment to `checker` — the verifier grades honestly only on a clean context.
@@ -33,6 +35,13 @@ Apply it honestly in the other direction too: a worker costs a spawn, a brief, a
 
 ## Agent lifecycle
 Spawn a worker when its pipeline task is actually ready; integrate its result, then release it; re-spawn fresh (never reuse a stale, context-heavy agent) on a CHANGES-REQUIRED loop. Never hold idle agents.
+
+**A worker that returns nothing has not finished — it has failed silently.** An idle signal carrying no report is a defect to chase, never a completion, and never the finding "there was nothing to report". Those two are indistinguishable from the outside, which is what makes this dangerous: accept the silence and you record a false negative as a result. So:
+- **Chase it once**, explicitly: ask for the report, and instruct it to state plainly if it did not finish and what it did / did not establish.
+- **Still empty → escalate to the human.** Do not re-spawn on a guess and do not paper over the gap by doing the work yourself; say which delegation produced nothing.
+- **Never forward an unverified absence as a result.** "The agent found no issues" is a claim you may only make if an agent actually said so.
+
+Prevention beats the chase: the report clause in the brief (step 2) is what should make this rare. The chase is the backstop for when it is not.
 
 ## Delegating a task to another runtime (Codex)
 The human may hand one task to a different runtime — "use Codex for the backend", "let Codex review this". Honor it literally, and **only when asked**: never route work to Codex on your own initiative. A Codex worker is an ordinary worker — one self-contained brief in, one report out, its diff faces the same gates. The runtime it ran on earns it no exemption.
