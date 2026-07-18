@@ -1,12 +1,13 @@
 # Prompt Anchor — keep the mandate alive deep into a session
 
-Status: approved
+Status: blocked
 Date: 2026-07-18
 
 > Open Questions answered and spec approved 2026-07-18. Work runs on `enforce/base`;
 > `main` is production (see **Deployment channel**).
 >
-> Progress: Phase 1 ✅ · Phase 2 ☐ · Phase 3 ☐ · Phase 4 ☐ · Phase 5 ☐
+> Progress: Phases 1-2 ✅ merged to main (1.9.0) · Phases 3-4 ✅ on `enforce/*`, NOT merged ·
+> Phase 5 ❌ INCONCLUSIVE 2026-07-18 → D3 triggered, decision re-opened. The hook does not ship.
 
 ## TLDR & Context
 

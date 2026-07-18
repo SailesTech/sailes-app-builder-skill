@@ -1,10 +1,11 @@
 # Delegation reports — a silent worker must not read as a finished one
 
-Status: approved
+Status: implemented
 Date: 2026-07-18
 
-> Open Questions answered 2026-07-18; see **Decisions**. Phase 1 done, Phase 2 deferred
-> to the backlog by D3. Runs on `fix/delegation-reports`; `main` is production.
+> Implemented 2026-07-18 (1.9.0) and corrected the same day (1.9.2), after the eval showed the
+> diagnosis behind it was wrong. Phase 2 closed as a non-goal — see below. Evals:
+> `lead-chases-an-empty-worker-return` PASS both assertions.
 
 ## TLDR & Context
 
@@ -88,12 +89,15 @@ message IS the deliverable" appears in the brief template; both lifecycle sectio
 that an empty return is chased, not accepted; a lesson recording today's three failures
 exists in `.ai/lessons.md`.
 
-### Phase 2 — Worker-side twins (deferred, backlog)
+### Phase 2 — Worker-side twins  ❌ CLOSED as a non-goal, 2026-07-18
 
-The 6 remaining `agents/*.md` and 7 `codex-agents/*.toml`. Only worth doing as part of the
-next edit that touches those files anyway — they must stay in sync (`validate-toml.test.js`,
-`repo-done-checklist.md`), and a 13-file pass for a redundant safety net is poor value on
-its own.
+Not deferred — dropped, with the reason on record so it is not re-proposed as an oversight.
+Every failure this spec was written for came from **built-in** agent types whose definitions
+cannot be edited. Adding the clause to the 6 remaining `agents/*.md` and 7 `codex-agents/*.toml`
+would not have prevented a single observed case. 1.9.2 then moved the load-bearing part — the
+`Delivery:` line — into the brief, where the lead reaches every agent type including those seven.
+The twins would be a redundant net costing 13 files kept in sync (`validate-toml.test.js`,
+`repo-done-checklist.md`). **Re-open only if a Sailes role is ever observed failing this way.**
 
 ## Non-Goals
 
