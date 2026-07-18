@@ -6,11 +6,11 @@ upgrade-actionable: what a generated/adopted repo would now contain or do differ
 
 ## 1.6.1 — 2026-07-18 · the router survives contact with real repos
 
-- **Scaffolding in  no longer reads as work in flight.** , ,
-   and  are filtered out — all four were found sitting in live repos, and a
+- **Scaffolding in `.ai/specs/` no longer reads as work in flight.** `TEMPLATE.md`, `AGENTS.md`,
+  `CLAUDE.md` and `README.md` are filtered out — all four were found sitting in live repos, and a
   template announced as an active spec teaches the agent to distrust the routing.
 - **A large in-flight set is now named as probable drift.** Past ten specs the mandate says so and
-  points at , because an agent cannot otherwise tell a busy repo from a stale one.
+  points at `implemented/`, because an agent cannot otherwise tell a busy repo from a stale one.
   Found by running the hook against a repo with 27.
 - **Status lines are deliberately NOT parsed.** Across real repos that line takes five shapes, is
   absent from a third of specs, and appears inside fenced code blocks; filtering on it would
