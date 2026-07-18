@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "node hooks/workflow-router.test.js && node codex-agents/validate-toml.test.js"
+    "test": "node hooks/workflow-router.test.js && node hooks/prompt-anchor.test.js && node codex-agents/validate-toml.test.js"
   },
   "dependencies": {},
   "devDependencies": {
