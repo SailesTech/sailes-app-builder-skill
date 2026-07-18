@@ -35,11 +35,21 @@ const MAX_SPECS_LISTED = 5;
  */
 const DRIFT_THRESHOLD = 10;
 
+/**
+ * The four hard rules compressed to one repeatable line.
+ *
+ * This exact literal also appears in `skills/sailes-bootstrap/agents-md-template.md`, so the
+ * generated AGENTS.md and this mandate reinforce each other instead of saying overlapping
+ * things in different words — two phrasings compete for the same slot, one phrasing compounds.
+ * Keep the two byte-identical; anything repeating the rules cheaply must repeat *these* words.
+ */
+const SPINE = 'SPEC → HUMAN → VERIFIED → GATED';
+
 const HARD_RULES = [
-  '- No feature code before an approved spec exists on disk. A one-line fix is exempt; a feature is not.',
-  '- The human owns every key decision. Recommend with trade-offs, then let them choose — never pick for them.',
-  '- Done means verified, not asserted. Drive the real flow; a passing typecheck is not evidence.',
-  '- Phases are gated. Do not cross a gate because the next phase looks obvious.',
+  '- SPEC — No feature code before an approved spec exists on disk. A one-line fix is exempt; a feature is not.',
+  '- HUMAN — The human owns every key decision. Recommend with trade-offs, then let them choose — never pick for them.',
+  '- VERIFIED — Done means verified, not asserted. Drive the real flow; a passing typecheck is not evidence.',
+  '- GATED — Phases are gated. Do not cross a gate because the next phase looks obvious.',
 ].join('\n');
 
 // Resolved once, at module scope, so the error fallback below judges the same repo main() would.
@@ -110,7 +120,7 @@ function main() {
       `mechanism, which then becomes a fix.\n\n` +
       `ROUTING (from the repo's state on disk, not from your read of the request):\n${route}\n` +
       `${incidentBlock}\n` +
-      `HARD RULES for this session:\n${HARD_RULES}\n\n` +
+      `HARD RULES for this session — ${SPINE}:\n${HARD_RULES}\n\n` +
       `Read \`AGENTS.md\` before your first substantive action; the repo's own conventions win ` +
       `over generic defaults. Do not recite this block to the human — act on it.`
   );
