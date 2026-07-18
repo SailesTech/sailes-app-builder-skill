@@ -97,43 +97,18 @@ codes). Keep them under `.claude/hooks/` and let both configs point at them — 
 move them to `.ai/hooks/` and update both `.claude/settings.json` and `.codex/config.toml` — but
 keep it a *single* copy.)
 
-### `.claude/hooks/session-start.sh`
-```sh
-#!/usr/bin/env sh
-# SessionStart: emit session memory to stdout — both Claude Code and Codex append it as context.
-ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-cat "$ROOT/.ai/STATE.md" 2>/dev/null
-echo "--- Task Router: see AGENTS.md ---"
-```
+### The two shared hook scripts
 
-### `.claude/hooks/guard-protected-paths.sh`
-```sh
-#!/usr/bin/env sh
-# PreToolUse guard, shared by Claude Code and Codex. Reads the event JSON on stdin,
-# blocks (exit 2 + reason on stderr) when a tool call touches the protected surface.
-# Payload is the same in both harnesses: { tool_name, tool_input: { command?, file_path? }, ... }.
-# No jq dependency — grep the raw JSON so it runs anywhere.
-payload="$(cat)"
+They ship as **real files**, not as code blocks to transcribe:
 
-block() { echo "BLOCKED by guard-protected-paths: $1" >&2; exit 2; }
+| Source in this skill | Copy to |
+|---|---|
+| `hooks-template/session-start.sh` | `.claude/hooks/session-start.sh` |
+| `hooks-template/guard-protected-paths.sh` | `.claude/hooks/guard-protected-paths.sh` |
 
-# --- Protected command surface (Bash tool_input.command) ---
-case "$payload" in
-  *'push --force'*|*'push -f'*)        block "force-push is denied (Hard Safety Rules)";;
-  *'reset --hard'*)                    block "reset --hard is denied — use git restore / revert";;
-  *'db:migrate:prod'*)                 block "production migration needs explicit human approval";;
-  *' deploy'*prod*|*prod*' deploy'*)   block "production deploy is denied — no auto-deploy";;
-esac
-
-# --- Protected path surface (Bash redirects/edits + file-edit tools' file_path) ---
-case "$payload" in
-  *'.env'*)                            block "secrets/.env are protected — never read/write via a tool";;
-  *'/migrations/'*|*'\\migrations\\'*) block "applied migrations are immutable — add a NEW migration";;
-  *'.ai/specs/implemented/'*)          block "implemented specs are frozen — write a new spec";;
-esac
-
-exit 0
-```
+`cp` them and `chmod +x`. They were prose here until 1.9.0, which meant the only mechanical
+enforcement the framework owns depended on an agent retyping shell correctly — the bodies now
+live in one place so this file cannot drift from what actually ships.
 
 > The guard is intentionally a **string-match on the raw payload** (no `jq`) so it is portable
 > across both harnesses and any OS shell. Tighten it per project — the point is a *mechanical*
