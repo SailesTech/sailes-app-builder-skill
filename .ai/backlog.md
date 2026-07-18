@@ -17,6 +17,7 @@
 | Item | Impact | Source | Status |
 |---|---|---|---|
 | Behavioral GREEN re-runs pending for 1.1.0 text-level edits (see evals/ "pending" lines) | text Done-when passed; behavior unproven until re-run post-merge | this change-set | next |
+| **Delegated agents go idle without delivering their report to the lead** | Observed twice in one session (2026-07-18): a spawned agent signalled `idle` with no findings, and the work was recovered only because the lead noticed and chased it with an explicit "send me your report". A lead that does not notice loses the entire delegation — and `agent-team-structure.md` makes delegation the default, so this is a hole under the framework's main path. The failure mode is the dangerous one: **an idle-with-no-report is indistinguishable from "the agent found nothing"**, which is the silent-instrument trap this framework preaches against. Needs both sides: a lead-side rule that idle-without-report is a defect to chase, never a completion; and a worker-side instruction that its final message IS the deliverable. Consider persisting reports to `.ai/` so a delegation's output survives outside a message queue. | observed 2026-07-18 during prompt-anchor work | **next** |
 
 ## Later phases (from specs)
 | Phase / feature | From spec | Trigger to start |
