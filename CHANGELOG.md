@@ -4,6 +4,18 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.6.1 — 2026-07-18 · the router survives contact with real repos
+
+- **Scaffolding in  no longer reads as work in flight.** , ,
+   and  are filtered out — all four were found sitting in live repos, and a
+  template announced as an active spec teaches the agent to distrust the routing.
+- **A large in-flight set is now named as probable drift.** Past ten specs the mandate says so and
+  points at , because an agent cannot otherwise tell a busy repo from a stale one.
+  Found by running the hook against a repo with 27.
+- **Status lines are deliberately NOT parsed.** Across real repos that line takes five shapes, is
+  absent from a third of specs, and appears inside fenced code blocks; filtering on it would
+  silently drop live work — a worse failure than listing too much.
+
 ## 1.6.0 — 2026-07-18 · the workflow routes itself from the repo's state on disk
 
 - **New hook: `hooks/workflow-router.js` (SessionStart).** In any repo carrying `AGENTS.md` or

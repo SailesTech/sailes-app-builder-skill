@@ -22,6 +22,16 @@ const path = require('path');
 
 const MAX_SPECS_LISTED = 5;
 
+/**
+ * Above this, "in flight" stops being credible. Real repos accumulate specs that were
+ * implemented but never `git mv`'d to implemented/ (one had 27), and an agent cannot tell a
+ * genuinely busy repo from a stale one — so the hook says which it suspects.
+ */
+const DRIFT_THRESHOLD = 10;
+
+/** Scaffolding that lives in `.ai/specs/` but is not work in flight. Found in real repos. */
+const NOT_A_SPEC = /^(readme|template|agents|claude)\.md$/i;
+
 function readStdin() {
   try {
     return fs.readFileSync(0, 'utf8');
@@ -60,7 +70,7 @@ function activeSpecs(root) {
   try {
     return fs
       .readdirSync(dir, { withFileTypes: true })
-      .filter((e) => e.isFile() && e.name.endsWith('.md') && !/^readme\.md$/i.test(e.name))
+      .filter((e) => e.isFile() && e.name.endsWith('.md') && !NOT_A_SPEC.test(e.name))
       .map((e) => e.name)
       .sort();
   } catch {
@@ -107,8 +117,17 @@ function main() {
   if (specs.length) {
     const shown = specs.slice(0, MAX_SPECS_LISTED).map((s) => `\`${s}\``).join(', ');
     const more = specs.length > MAX_SPECS_LISTED ? ` (+${specs.length - MAX_SPECS_LISTED} more)` : '';
+    // Deliberately not filtered by a `Status:` line. Across real repos that line appears in five
+    // different shapes, is missing entirely from a third of specs, and occurs inside fenced code
+    // blocks — parsing it would silently drop live work, which is worse than listing too much.
+    const drift =
+      specs.length > DRIFT_THRESHOLD
+        ? `\n${specs.length} specs read as "in flight", which usually means finished ones were never ` +
+          `\`git mv\`'d to \`implemented/\` rather than that all ${specs.length} are live. Trust the ` +
+          `spec's own status over this count, and consider offering to tidy the folder.`
+        : '';
     route =
-      `This repo has spec(s) in flight at \`.ai/specs/\`: ${shown}${more}.\n` +
+      `This repo has spec(s) in flight at \`.ai/specs/\`: ${shown}${more}.${drift}\n` +
       `Read the relevant one BEFORE proposing work. If the human's request is covered by it, ` +
       `continue the pipeline at its current phase — \`sailes-pre-implement\` if it has not been ` +
       `risk-checked, otherwise \`sailes-implement\` (phase by phase, gated). If the request is ` +

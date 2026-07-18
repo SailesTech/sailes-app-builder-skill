@@ -103,9 +103,38 @@ test('ignores implemented/ specs when deciding what is in flight', (dir) => {
   assert.doesNotMatch(ctx, /old-feature\.md/);
 });
 
-test('does not mistake .ai/specs/README.md for a spec', (dir) => {
-  mkrepo(dir, { agentsMd: true, specs: ['README.md'] });
-  assert.match(run(dir), /no active spec/);
+// Every one of these was found sitting in a real `.ai/specs/` during the 1.6.0 rollout
+// (konsyliumAI shipped TEMPLATE.md; the SRF repo a per-directory AGENTS.md). A template is
+// not work in flight, and announcing it as such teaches the agent to distrust the routing.
+test('does not mistake scaffolding files in .ai/specs/ for specs', (dir) => {
+  mkrepo(dir, { agentsMd: true, specs: ['README.md', 'TEMPLATE.md', 'AGENTS.md', 'CLAUDE.md'] });
+  const ctx = run(dir);
+  // "no active spec" is itself the proof that all four were filtered out — the mandate
+  // legitimately mentions `AGENTS.md` in its closing line, so it cannot be grepped for here.
+  assert.match(ctx, /no active spec/);
+  assert.doesNotMatch(ctx, /TEMPLATE|CLAUDE/);
+});
+
+test('still counts a real spec sitting next to scaffolding files', (dir) => {
+  mkrepo(dir, { agentsMd: true, specs: ['TEMPLATE.md', '2026-07-18-real-work.md'] });
+  const ctx = run(dir);
+  assert.match(ctx, /2026-07-18-real-work\.md/);
+  assert.doesNotMatch(ctx, /TEMPLATE/);
+});
+
+// The SRF repo had 27. That is drift — implemented specs never `git mv`'d to implemented/ —
+// and the hook should name it, because the agent cannot tell a busy repo from a stale one.
+test('flags a suspiciously large in-flight set as probable drift', (dir) => {
+  const specs = Array.from({ length: 27 }, (_, i) => `2026-07-${String(i + 1).padStart(2, '0')}-x.md`);
+  mkrepo(dir, { agentsMd: true, specs });
+  const ctx = run(dir);
+  assert.match(ctx, /27/);
+  assert.match(ctx, /implemented\//);
+});
+
+test('does not cry drift for a normal handful of specs', (dir) => {
+  mkrepo(dir, { agentsMd: true, specs: ['a.md', 'b.md', 'c.md'] });
+  assert.doesNotMatch(run(dir), /implemented\//);
 });
 
 // Context is charged on every session start; a repo with 30 specs must not dump all 30.
