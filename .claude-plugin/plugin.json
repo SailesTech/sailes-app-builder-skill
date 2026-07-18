@@ -1,7 +1,7 @@
 {
   "name": "sailes-app-builder",
   "description": "Sailes app-builder skills — the agentic-first B2B web-app build pipeline (wayfinder → discovery → bootstrap → design → spec → pre-implement → database → async → hosting → implement, plus sailes-pipedrive).",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "author": {
     "name": "Sailes Tech",
     "email": "services@sailes.tech"

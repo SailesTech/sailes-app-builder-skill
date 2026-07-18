@@ -4,6 +4,29 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.6.0 — 2026-07-18 · the workflow routes itself from the repo's state on disk
+
+- **New hook: `hooks/workflow-router.js` (SessionStart).** In any repo carrying `AGENTS.md` or
+  `.ai/`, every session now opens with a routing mandate derived from the filesystem, not from the
+  model's read of the request: specs at `.ai/specs/` root → continue at
+  `sailes-pre-implement`/`sailes-implement`; none in flight → a feature request enters via
+  `sailes-start`. `implemented/` and `archived/` are ignored, so a finished spec cannot masquerade
+  as work in progress. The mandate carries four hard rules (no feature code before an approved
+  spec; the human owns key decisions; done means verified; gates are not skipped).
+- **It fires on `resume|clear|compact`, not just `startup`.** A context reset is precisely when the
+  methodology used to evaporate — the previous 1.4.0 hook ran only at startup.
+- **Enforcement stays soft, deliberately.** A `PreToolUse` gate that blocks `Write`/`Edit` was
+  considered and rejected: it would take the wheel away from the human, which is the one thing the
+  standard exists to prevent. The mandate constrains the agent, never the human — "skip it, just
+  do the fix" still wins.
+- **The hook is now covered by real tests.** `npm test` runs `hooks/workflow-router.test.js`
+  (11 assertions, no framework, no deps). The behavioral half — does the agent *honor* the mandate
+  — lives in `evals/session-start-routes-from-repo-state.md`, whose control arm records the RED
+  baseline: without the block, an agent handed "szybka sprawa, bez ceregieli" writes untyped JS
+  into a TS/Drizzle repo, invoking zero skills.
+- **Upgrade note:** nothing to change in a consuming repo. The hook ships with the plugin and keys
+  off `AGENTS.md`/`.ai/`, which an adopted repo already has. Repos without them stay silent.
+
 ## 1.5.0 — 2026-07-16 · the Codex team ships, and the lead can hand it a task
 
 - **The Codex agent team is released.** `codex-agents/` (the seven roles as Codex custom-agent
