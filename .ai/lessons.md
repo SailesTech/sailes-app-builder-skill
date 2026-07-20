@@ -7,6 +7,36 @@
 
 ## Lessons
 
+### 2026-07-20 — a pre-formatted statistic is the highest-risk input you handle
+- **Context:** building `sailes-test`, a delegated research agent returned a confident, well-formatted
+  finding — specific percentages attributed to arXiv 2410.21136 (≈62% implementation-biased oracles,
+  ≈45% passing on buggy variants, docstrings shifting bias ~70%→~55%). It flagged them UNVERIFIED but
+  they were quotable-looking. A second agent dispatched to verify went idle three times without
+  delivering, so the lead verified directly.
+- **Problem:** the paper's abstract contains **no percentages at all** — its only figure is "24 Java
+  repositories". Every number had been manufactured during summarization. A parallel claim (Luo et al.
+  flaky-cause split 45/20/12) survived only partially: scope and ranking real, percentages
+  unconfirmable. Both arrived looking like citations.
+- **Rule:** an expected value you cannot justify from something other than the source is an echo, not
+  a fact — for a citation and for a test oracle alike. Check the source or drop the number; never
+  repeat a pre-formatted statistic because it looks sourced. This is now a worked example inside
+  `sailes-test/references/techniques.md`, so the skill teaches the lesson its own construction taught.
+- **Applies-to:** every delegated research result; `sailes-test` Step 1 (the oracle-provenance rule
+  is the same rule). Promoted into skill content, not left as prose.
+- **Meta:** the irony is the point — writing a tool against confident-but-wrong claims surfaced a
+  confident-but-wrong claim in its own source material. The mirror pathology is not hypothetical.
+
+### 2026-07-20 — a hardcoded list that a loop iterates is a silent skip waiting to happen
+- **Context:** `codex-agents/validate-toml.test.js` held `const ROLES = [7 names]` and the accept-loop
+  iterated that array, not the directory. Shipping `tester.toml` without editing the array would have
+  left the new file **unvalidated while `npm test` stayed green** — caught only by the pre-implement audit.
+- **Problem:** same class as the five silent failures of 2026-07-18 — a step reporting success for a
+  reason other than the one claimed. A green suite that never looked at the new file reads as coverage.
+- **Rule:** when a test iterates a hardcoded manifest, add a parity guard that the manifest matches
+  reality (here: `deepStrictEqual(rolesOnDisk, ROLES)` both ways) so an omission fails loudly. Adding
+  the missing entry fixes the instance; the guard fixes the class.
+- **Applies-to:** any convention test driven by an in-code list; `codex-agents/validate-toml.test.js`.
+
 ### 2026-07-18 — a silent return is a false negative, not a finding
 - **Context:** three losses in one session while building the prompt-anchor. Two delegated
   agents (`general-purpose`, `claude-code-guide`) signalled idle carrying no report; the lead

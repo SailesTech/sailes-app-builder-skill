@@ -4,6 +4,40 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.10.0 — 2026-07-20 · a testing skill and a `tester` role — tests that detect, not tests that pass
+
+Testing was a gate condition with no craft behind it: `sailes-implement` gave it one paragraph,
+`checker` verified tests were *present*, `qa` proved behavior only at the end. Nothing said how to
+design a suite for a feature wired into Pipedrive, Make, Slack and an LLM API — so agents read the
+implementation and wrote tests that mirror it, green on the first run and green forever. That is the
+documented LLM failure mode (arXiv 2410.21136: oracles capture *actual* not *expected* behaviour),
+and a mirrored suite is worse than none because its presence raises reviewer confidence.
+
+A generated/adopted repo on 1.10.0 now has:
+
+- **A new `sailes-test` skill.** The last verification step *inside each phase*, before `checker`
+  and `qa`. Its core is informational isolation: derive expected behavior from the spec with the
+  implementation **unread**, the human **freezes** the case list to `.ai/test-plans/<spec>.md`, then
+  write the suite; afterwards the diff may only **add** cases, never weaken an assertion. Carries the
+  full technique arsenal (`references/techniques.md`, every section sourced), browser-first UI rules
+  with the anti-flake set (`references/browser-e2e.md`), and a per-integration double decision card
+  (`references/external-systems.md`).
+- **A new `tester` role** (`agents/tester.md` + `codex-agents/tester.toml`) — the one gate role that
+  writes, because a suite by the implementation's author mirrors it. Detection is proven at a **risk
+  tier computed from triggers**, never the agent's judgment: tier A (money/auth/tenancy/idempotency/
+  irreversible outbound write) → Stryker; tier B → a per-behavior break shown to go red then
+  reverted; tier C → a green suite. The agent may raise a tier, never lower it.
+- **The pipeline is now `… → fe-dev → tester → checker → qa`** in both `agent-team-structure.md` and
+  `agentic-first-principles.md`, in the teams-on and teams-off paths. `checker` now treats a frozen
+  behavior ID with no covering test as a defect; `qa` **runs the `tester` suite as its gate verdict**.
+- **`sailes-async/harness-checklist.md` gained a 15-row "how each item is tested" table** — the
+  idempotency/replay/ordering rules were architecture with no assertions; now each links to its test.
+- **Never gate on line coverage** is now explicit — trivially satisfiable by an agent, and it raises
+  confidence when it should lower it. Mutation score on tier-A modules replaces it.
+
+Upgrade action: adopt `skills/sailes-test/`, add the `tester` role to `agents/` and `codex-agents/`,
+and re-point any local pipeline docs at the new gate order. Three eval scenarios ship with it.
+
 ## 1.9.2 — 2026-07-18 · the brief names how to deliver, not just what to deliver
 
 1.9.0 told every worker "your final message IS the deliverable". Measured against five

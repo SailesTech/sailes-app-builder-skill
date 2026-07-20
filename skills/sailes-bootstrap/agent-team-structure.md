@@ -19,7 +19,7 @@ The cost argument cuts both ways, so apply it honestly: a worker costs a spawn, 
 and an integration. Below roughly a file's worth of change that overhead exceeds the saving, and
 delegating is waste dressed up as discipline. Above it, the lead coding solo is the waste.
 
-Whichever path, the **review gate** (`checker`) and **behavior proof** (`qa`) still run before it
+Whichever path, the **test gate** (`tester`), the **review gate** (`checker`) and the **behavior proof** (`qa`) still run before it
 is called done. The gate scales down; it never disappears.
 
 ## Roles
@@ -32,18 +32,20 @@ Role definitions ship with this plugin in `agents/` (auto-discovered on `plugin 
 | `explorer` | haiku | read-only recon → `file:line` findings, contract shapes, prop/value maps | propose final code; review quality |
 | `designer` | sonnet | UX/UI spec from design tokens (layout, states, responsive) | write feature code |
 | `be-dev` / `fe-dev` | sonnet | implement exactly the approved scope, per spec / per design | commit, push, or expand scope |
+| `tester` | sonnet | author the phase's suite via `sailes-test`: derive cases from the spec with the code UNREAD → human freezes `.ai/test-plans/<spec>.md` → write → ADD-only from the diff → tiered detection proof. The **one gate role that writes** | read the implementation before deriving cases; weaken a frozen assertion; lower its own risk tier; commit or push |
 | `checker` | sonnet | independent read-only review of the diff vs. spec → APPROVE / NITS / CHANGES-REQUIRED; input = diff + spec + checklist ONLY (see Gate isolation) | grade on reasoning instead of result; read the maker's narrative; touch code |
-| `qa` | sonnet | real-flow e2e proof + screenshots; behavior before diff; vision-verify vs design artifact + `.ai/screens/` baseline | fake a pass when stack/creds are missing |
+| `qa` | sonnet | run the `tester` suite on the live app as the gate verdict + real-flow proof + screenshots; behavior before diff; vision-verify vs design artifact + `.ai/screens/` baseline | fake a pass when stack/creds are missing |
 
 ## Order of work (the pipeline)
 
 ```
-explorer → designer → BE contract finalized → fe-dev → checker → qa
+explorer → designer → BE contract finalized → fe-dev → tester → checker → qa
 ```
 
 - **`explorer` first** maps the affected code so the lead plans against reality, not assumption.
 - **BE contract is finalized before `fe-dev` starts** — the frontend builds against a frozen shape, not a moving target. **"Frozen" means a committed, typed contract artifact** — shared TS types / Zod schemas (or OpenAPI where the consumer is external) at the repo's shared-contracts location — that both slices *import*. Drift then is a compile/type error, not a review finding. The brief's `Contract:` line points at the artifact path; prose describes intent, the artifact is the truth.
-- **`checker` and `qa` are both gates, not formalities.** CHANGES-REQUIRED loops back to the relevant dev; a faked or skipped `qa` is not a pass.
+- **`tester` runs after the code is written and before `checker`** (`sailes-test`). It derives the phase's expected behavior from the spec *before reading the implementation*, the human freezes that list, then it writes the suite — the informational barrier is what stops the tests from mirroring the code. `tester` writes; the other two gates stay read-only. `tester` runs **per phase**, not once at the end.
+- **`tester`, `checker` and `qa` are all gates, not formalities.** `tester` CHANGES nothing but authors the proof; CHANGES-REQUIRED from `checker` loops back to the relevant dev; a faked or skipped `qa` is not a pass.
 - Not every task needs every role. A backend-only change skips `designer`/`fe-dev`. The **order among the roles you do use** is preserved.
 - **Dropping a role is provisional, not final.** If a later decision introduces a surface you'd skipped — e.g. a perf constraint forces an async-download UX, so a backend-only task suddenly needs a UI flow — **reinstate the dropped role** (`designer` here) and re-freeze the contract before `fe-dev`. Don't push a new UX surface through without the design pass just because the original plan skipped it.
 
@@ -123,21 +125,21 @@ Enable teams with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/setting
 
 **Handing one task to another runtime.** The human may hand a single task to a different runtime — "use Codex for the backend", "let Codex review this". This is **human-triggered only**: a lead never routes work to another runtime on its own initiative. A cross-runtime worker is an **ordinary worker** — one self-contained brief in, one report out — and **the gates do not move**: `checker` still receives diff + spec + checklist only, never the worker's report, whichever runtime produced it. A maker is a maker; the engine it ran on earns no exemption. Operational detail (commands, model pinning, brief format) lives in `agents/team-lead.md`.
 
-Delegation is **one-directional by design**: the Claude-side lead can hand a task to Codex; the Codex-side lead has no matching hand-off back to Claude. Symmetry would quietly make the second vendor a *requirement* instead of an option, which is the opposite of the point — each runtime already runs the whole pipeline alone (`agents/` and `codex-agents/` are the same seven roles, two harnesses). Delegation is an extra that a both-quota human may reach for, never a dependency; a Claude-only or Codex-only user loses nothing by never using it.
+Delegation is **one-directional by design**: the Claude-side lead can hand a task to Codex; the Codex-side lead has no matching hand-off back to Claude. Symmetry would quietly make the second vendor a *requirement* instead of an option, which is the opposite of the point — each runtime already runs the whole pipeline alone (`agents/` and `codex-agents/` are the same eight roles, two harnesses). Delegation is an extra that a both-quota human may reach for, never a dependency; a Claude-only or Codex-only user loses nothing by never using it.
 
 ## Fallback — when agent-teams mode is unavailable
 
 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` is experimental and may be off or unsupported. The team **model does not depend on the flag** — only the delegation *mechanism* does. Without it, the same structure runs through ordinary subagents:
 
 - The driving agent **is** the lead and stays the single point of contact.
-- Each "worker" becomes a **scoped subagent task** (one task, one subagent) dispatched in the same order — `explorer → designer → BE contract → fe-dev → checker → qa`. Read-only roles (`explorer`, `checker`, `qa`) map cleanly to read-only subagents.
+- Each "worker" becomes a **scoped subagent task** (one task, one subagent) dispatched in the same order — `explorer → designer → BE contract → fe-dev → tester → checker → qa`. Read-only roles (`explorer`, `checker`, `qa`) map cleanly to read-only subagents; `tester` writes tests (it is a gate that authors, not one that only reads), so it maps to a writing subagent that still never commits.
 - The lifecycle still holds: spawn a subagent for one task, take its result, drop it; don't reuse a stale subagent across stages. Subagents that touch the same files run **sequentially** (or in worktrees) to avoid conflicts.
-- The gates (`checker` review, `qa` behavior proof) and "workers never commit/push" are **unchanged** — they're properties of the process, not the flag.
+- The gates (`tester` suite, `checker` review, `qa` behavior proof) and "workers never commit/push" are **unchanged** — they're properties of the process, not the flag.
 
 So the answer to "will this work without the experimental mode?" is **yes** — degraded to sequential subagents, but with the same roles, order, gates, and lifecycle.
 
 ## The hard lines
 
 - **The human owns every key decision; the lead owns coordination; workers own only their one task.** A worker never makes a key decision.
-- **No gate is optional.** Scale the team down for small work, but `checker` (review) and `qa` (behavior proof) still run.
+- **No gate is optional.** Scale the team down for small work, but `tester` (suite), `checker` (review) and `qa` (behavior proof) still run.
 - **Behavior before diff.** Done means the running system was observed doing the thing — not that the build is green. (`qa`'s deliverable.)

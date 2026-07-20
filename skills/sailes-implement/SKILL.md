@@ -27,7 +27,7 @@ description: Use to implement an approved, ready spec (or specific phases of it)
 
 For each **Phase** (story) in order, and each **Step** (testable task) within it:
 
-1. **Plan the step** — restate what it changes and the check that will prove it. Identify the RED test first (write or name a failing test before the code — `superpowers:test-driven-development`).
+1. **Plan the step** — restate what it changes and the check that will prove it. Identify the RED test first (write or name a failing test before the code — `superpowers:test-driven-development`). This RED test is **scaffolding for the step** — it may be implementation-shaped and it drives your increment. It is **not** the graded suite: that is authored later by `tester` (`sailes-test`), from the spec, with your implementation unread — so the graded tests cannot mirror the code. `tester` may supersede a scaffolding test only with an ID-bearing equivalent, never delete one to reach green.
 2. **Implement** — minimal change that satisfies the step. Logic in services, validation at the boundary (Zod), thin controllers, no `any`. Honor the repo's `AGENTS.md` rules + Task Router guides for the area.
 3. **Test** — unit for logic, integration for every affected API path, E2E for user-critical flows (per the spec's integration coverage). Self-contained tests; never fake a pass. **Auth/roles-touching phases: generate the authz-matrix suite from the spec's permission matrix** — every action × role → asserted allow/deny + the anonymous row (and, multi-tenant, the cross-org denial tests). The matrix table in the spec is the source; the tests are its executable form (`security-checklist.md`).
 4. **Verify (behavior before diff)** — drive the real running system first (e2e flow / `curl` the live endpoint / click the UI / generate the actual PDF/screen), observe the real behavior, THEN trust it. Paste the evidence (command + output / screenshot). A green build/lint is not proof; "looks done" is the failure mode. **UI-touching steps get vision-verify:** compare the fresh screenshot against the design artifact and the previous accepted screenshot in `.ai/screens/` (canon: `sailes-bootstrap/agent-team-structure.md`, Gate isolation).
@@ -36,9 +36,10 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 
 **Phase gate (binary stop condition).** A phase is complete only when its **Done-when** condition from the spec passes — run the exact commands, paste the output. "Looks complete" is not a phase gate. If the spec has no binary Done-when for a phase, derive one and add it to the spec **before** starting that phase. A Done-when never overrides decision ownership: hitting a **key decision** mid-loop (contract shape, data model, auth, a new UX surface) means STOP and escalate per `agent-team-structure.md` — never push through it to satisfy the goal.
 
-## Review gate (before "done")
-- **Adversarial review in a fresh context** — a reviewer subagent / `checker` reads the diff against the spec + the code-review checklist (correctness, contracts, security, scope creep, tests present). (`sailes-bootstrap/agentic-first-principles.md` §C.)
-- Address findings; re-verify. Don't mark done with open Critical findings.
+## Test → Review → Behavior gate (before "done")
+- **Test authoring in a fresh context** — `tester` (`sailes-test`) derives the phase's expected behavior from the spec *with the implementation unread*, the human freezes the case list to `.ai/test-plans/<spec>.md`, then `tester` writes the suite and proves it detects at the feature's risk tier. This runs **per phase**, after the code and before `checker`. The RED test the dev named in step 1 is scaffolding for that step; the `tester` suite is the graded artifact, authored under isolation so it cannot mirror the code.
+- **Adversarial review in a fresh context** — a reviewer subagent / `checker` reads the diff (incl. the tests) against the spec + the code-review checklist (correctness, contracts, security, scope creep) and confirms every frozen behavior ID has a covering test. (`sailes-bootstrap/agentic-first-principles.md` §C.)
+- **Behavior proof** — `qa` runs the `tester` suite against the live app as the gate verdict, then drives the real flow. Address findings; re-verify. Don't mark done with open Critical findings.
 
 ## On completion
 - All phases shipped + verified → set spec `Status: implemented` and `git mv` it to `.ai/specs/implemented/` (preserve history); update cross-references.
@@ -61,7 +62,8 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 | Pre-flight | spec approved + READY; STATE.md + lessons.md read; status→in-progress; run log if long; branch |
 | Per step | RED test → implement → test → verify (evidence) → commit → track |
 | Per phase | **Done-when passes** — exact commands run, output pasted |
-| Review | adversarial fresh-context review vs spec + checklist (checker sees diff + rubric only) |
+| Test (per phase) | `tester` (`sailes-test`): cases from spec with code unread → human freezes `.ai/test-plans/<spec>.md` → write suite → tiered detection proof |
+| Review | adversarial fresh-context review vs spec + checklist (checker sees diff + rubric only; every frozen behavior ID covered) |
 | Release (deploying work) | release-checklist walked; post-deploy **smoke** output pasted; rollback plan written pre-deploy; first prod launch → ops block (restore tested, runbook) |
 | Done | status→implemented + git mv to implemented/; backlog + lessons + **STATE.md** + STATUS.md updated; estimate-vs-actuals closed |
 

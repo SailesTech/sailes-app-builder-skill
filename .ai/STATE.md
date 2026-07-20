@@ -54,6 +54,36 @@
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
+- 2026-07-20: built **`sailes-test`** (1.10.0) — a testing skill + a `tester` agent role, on branch
+  `feat/sailes-test`, **not yet merged**. The last verification step inside each spec phase, before
+  `checker` and `qa`. Core is informational isolation: derive expected behavior from the spec with
+  the implementation unread → human freezes the case list to `.ai/test-plans/<spec>.md` → write →
+  diff may only ADD, never weaken → detection proven at a risk tier computed from triggers (A Stryker
+  / B per-B-ID break / C green suite), which the agent may raise but never lower. Full discovery →
+  spec → pre-implement → 7 gated phases; every Done-when run with output pasted
+  (`.ai/runs/2026-07-20-sailes-test.md`).
+  - **Pre-implement earned its keep:** READY-WITH-FIXES, three findings of the "green for the wrong
+    reason" class — a hardcoded `ROLES` array that would leave `tester.toml` unvalidated; the pipeline
+    order living twice with a read-only enumeration that a writing gate makes false; a Done-when
+    asserting 15 where a naive count returns 19. All fixed on paper before code.
+  - **Two research statistics did not survive verification** — arXiv 2410.21136's percentages were
+    fabricated in summarization (abstract has none); Luo et al.'s flaky split is unconfirmable
+    (ranking real). Kept as a worked example in the skill and a lesson. See Open failures.
+  - **The version-check hook caught its own repo** — flagged AGENTS.md still at 1.9.2 after the bump;
+    fixed. Small proof the instrument works on the framework that ships it.
+  - **All three evals RUN 2026-07-20 · PASS** (fresh blind agents, real fixtures with actual context —
+    not the condensed-fixture trap that made the anchor eval inconclusive). Isolation: derived from
+    spec, did not read the readable-and-wrong impl, flagged Slack-first as a FAIL. One-way rule: left
+    a red frozen B2 byte-for-byte unchanged and fixed the code instead. Tier: classified a
+    charge-on-activation phase tier A and refused the "keep it lightweight" nudge, citing the Red Flag.
+    Fixtures in scratchpad/eval{1,2,3}; verdicts recorded in each `evals/tester-*.md`.
+  - **One finding from the eval run** (backlog): under "make it pass", the one-way eval's agent fixed
+    feature code — correct outcome, but `tester` editing implementation is `be-dev`'s lane. `tester`
+    holds Write/Edit for tests and nothing scopes it off feature code. A one-line guard in
+    `agents/tester.md` would close it.
+  - **Still NOT merged.** All work on `feat/sailes-test`. `main` is production; the merge +
+    `./install.sh --force` is the human's call — now unblocked, since the behavior is proven.
+
 - 2026-07-18: audited the framework's own enforcement surface and shipped three releases.
   **1.9.0** — the canonical spine (`SPEC → HUMAN → VERIFIED → GATED`, byte-identical in the
   router and `agents-md-template.md`), the delegation empty-return rule, `hooks/lib/repo-state.js`.
