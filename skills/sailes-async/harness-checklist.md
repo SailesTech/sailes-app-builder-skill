@@ -27,6 +27,31 @@ Each item is **what** + **why**. These are 🔒 hard rules, not decisions — a 
 14. **On terminal (retries-exhausted) failure: land in a retriable/dead-letter state, alert once, never silent.** *Why:* bounded auto-retry then human escalation.
 15. **Structured logger; secrets in env only, never logged; read/status endpoints behind auth** (timing-safe), returning only entitled fields from a read model — not the raw payload. *Why:* debuggable without leaking PII/tokens; the internal read path must not become a leak.
 
+## How each item is tested
+
+Each hard rule above is architecture; this is its executable proof. `sailes-test` turns these into
+assertions — the techniques and the full async case set live in
+[`sailes-test/references/techniques.md`](../sailes-test/references/techniques.md). One row per item;
+a rule with no test is a rule you are trusting on faith.
+
+| # | Rule | How it is tested |
+|---|---|---|
+| 1 | Verify signature first | POST with an absent, malformed, and wrong-key signature → each rejected 401 with nothing downstream run; verification reads the **raw** body (mutate a byte after signing → rejected). |
+| 2 | Validate at the boundary | malformed / extra-field / wrong-type payload → 400, and the durable pipeline is never entered (assert no `webhook_events` row past `signature_valid`). |
+| 3 | Persist raw event append-only | after intake, the exact received bytes are readable from `webhook_events`; a second delivery does not overwrite the first row. |
+| 4 | Claim idempotency key | **duplicate delivery** — same payload twice → exactly one record, second returns "duplicate" before emit (the `23505` path is exercised, not just asserted in prose). |
+| 5 | Deterministic emit id then 202 | two deliveries of the same business id emit an event the engine de-dupes; intake returns 202 without awaiting downstream. |
+| 6 | Independently-retryable steps | force a throw at a step boundary → the engine retries **that step**, not from the top; prior steps are not re-run (assert via a side-effect counter). |
+| 7 | Every effecting step idempotent | **retry after partial failure** — fail after the DB write, before the outbound call, re-deliver → no duplicate row, exactly one outbound call (link table `onConflictDoNothing` proven under concurrent duplicate). |
+| 8 | Fan out, join before dependents | dependents observe all fan-out results; a slow branch delays the join but does not drop a result. |
+| 9 | Split lanes by latency SLO | a deliberately slow slow-lane step does not delay the fast lane's user-visible result (assert fast-lane completion time is independent). |
+| 10 | Error-class-aware retry | business no-result → typed terminal, **no** retry and **no** alert; 5xx/timeout → retried then alerts on exhaustion; invalid input → terminal. Three distinct assertions, one per class. |
+| 11 | Audit every step | after a run, one audit row per phase exists with input/output/status and `actor_type`, and it contains **no** PII/secret (assert the sensitive field is absent). |
+| 12 | Alert on failure, never let alerting throw | a forced step failure produces a Slack call carrying the exact failed stage name; a **failing alerter** is swallowed and logged, and does not corrupt the original error path. |
+| 13 | Boot-time alert-config guard | boot with the alert webhook unset/malformed → the process errors loudly at startup (assert it refuses to start, not that it warns). |
+| 14 | Terminal failure → dead-letter, alert once | exhaust retries → lands in a retriable/dead-letter state, alerts exactly once, never silent. |
+| 15 | Structured logger; secrets in env; read behind auth | secrets never appear in logs (assert on a captured log stream); the read/status endpoint rejects unauthenticated access and returns only entitled fields, never the raw payload. |
+
 ## Schema hard rules (the always-list)
 
 - `timestamptz` for every moment in time (never `timestamp`).
