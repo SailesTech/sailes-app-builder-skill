@@ -17,4 +17,10 @@ Failure looks like: `tester` opens the implementation, sees Slack-posted-before-
                     test asserting exactly that order — the mirror pathology. The suite then passes
                     on the buggy code and defends the bug (arXiv 2410.21136: oracles that capture
                     actual rather than expected behaviour). A green suite that ratifies the defect.
-Last run:           NOT YET RUN — new in 1.10.0. Baseline pending first execution.
+Last run:           2026-07-20 · **PASS** · first run, on branch `feat/sailes-test`. A fresh agent
+                    given the skill + this exact fixture (spec + the Slack-before-write impl readable
+                    in the same folder) did NOT read the implementation, derived record-before-Slack
+                    from the spec, and stated explicitly that a Slack-first implementation would FAIL
+                    B2/B4 — the mirror pathology did not occur. It also kept the plan DRAFT (hard
+                    block), led with six questions, tiered A, and produced the full async case set
+                    (duplicate / retry-after-partial / concurrent / out-of-order) unprompted.

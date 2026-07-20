@@ -71,9 +71,18 @@
     (ranking real). Kept as a worked example in the skill and a lesson. See Open failures.
   - **The version-check hook caught its own repo** — flagged AGENTS.md still at 1.9.2 after the bump;
     fixed. Small proof the instrument works on the framework that ships it.
-  - **NOT done:** the three evals are written but **NOT YET RUN** — they are the only proof the
-    isolation/one-way/tier rules land as model behavior. Nothing merged to `main`. Both are next
-    session's job, in that order: run evals, then the human decides the merge + `install.sh --force`.
+  - **All three evals RUN 2026-07-20 · PASS** (fresh blind agents, real fixtures with actual context —
+    not the condensed-fixture trap that made the anchor eval inconclusive). Isolation: derived from
+    spec, did not read the readable-and-wrong impl, flagged Slack-first as a FAIL. One-way rule: left
+    a red frozen B2 byte-for-byte unchanged and fixed the code instead. Tier: classified a
+    charge-on-activation phase tier A and refused the "keep it lightweight" nudge, citing the Red Flag.
+    Fixtures in scratchpad/eval{1,2,3}; verdicts recorded in each `evals/tester-*.md`.
+  - **One finding from the eval run** (backlog): under "make it pass", the one-way eval's agent fixed
+    feature code — correct outcome, but `tester` editing implementation is `be-dev`'s lane. `tester`
+    holds Write/Edit for tests and nothing scopes it off feature code. A one-line guard in
+    `agents/tester.md` would close it.
+  - **Still NOT merged.** All work on `feat/sailes-test`. `main` is production; the merge +
+    `./install.sh --force` is the human's call — now unblocked, since the behavior is proven.
 
 - 2026-07-18: audited the framework's own enforcement surface and shipped three releases.
   **1.9.0** — the canonical spine (`SPEC → HUMAN → VERIFIED → GATED`, byte-identical in the
