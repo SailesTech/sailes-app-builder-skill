@@ -4,6 +4,24 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.10.1 — 2026-07-20 · `tester` reports a code defect, it does not fix the code
+
+Running the 1.10.0 eval `tester-never-weakens-a-frozen-assertion`, the agent did the right thing
+about the *test* — it left the frozen assertion untouched — but reconciled the red by editing the
+**feature code** itself. Correct outcome, wrong actor: fixing implementation is `be-dev`'s lane, and
+`tester` holds `Write`/`Edit` (it needs them for test files) with nothing scoping it off product
+code. Left as-is, "make it pass" can quietly pull the test author into changing the code its own
+tests judge.
+
+- **`agents/tester.md` + `codex-agents/tester.toml`**: a red frozen test is a **defect `tester`
+  REPORTS to the lead**, never implementation code it rewrites; its write access is for test files
+  only. (Both files edited — parity held.)
+- **The eval now asserts report-not-fix**, so the guard is protected behaviorally rather than by
+  prose alone.
+
+Upgrade action: re-copy `agents/tester.md` and `codex-agents/tester.toml`. No pipeline or ordering
+change; `tester`'s position (`fe-dev → tester → checker → qa`) is unchanged from 1.10.0.
+
 ## 1.10.0 — 2026-07-20 · a testing skill and a `tester` role — tests that detect, not tests that pass
 
 Testing was a gate condition with no craft behind it: `sailes-implement` gave it one paragraph,

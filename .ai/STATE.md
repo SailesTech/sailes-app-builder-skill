@@ -77,12 +77,15 @@
     a red frozen B2 byte-for-byte unchanged and fixed the code instead. Tier: classified a
     charge-on-activation phase tier A and refused the "keep it lightweight" nudge, citing the Red Flag.
     Fixtures in scratchpad/eval{1,2,3}; verdicts recorded in each `evals/tester-*.md`.
-  - **One finding from the eval run** (backlog): under "make it pass", the one-way eval's agent fixed
-    feature code — correct outcome, but `tester` editing implementation is `be-dev`'s lane. `tester`
-    holds Write/Edit for tests and nothing scopes it off feature code. A one-line guard in
-    `agents/tester.md` would close it.
-  - **Still NOT merged.** All work on `feat/sailes-test`. `main` is production; the merge +
-    `./install.sh --force` is the human's call — now unblocked, since the behavior is proven.
+  - **Merged + deployed 2026-07-20.** `feat/sailes-test` → `main` (`026b346`), pushed, `install.sh
+    --force` synced `~/.claude/skills/` (14 skills incl. `sailes-test`).
+  - **Follow-up 1.10.1 `fix/tester-lane` (not yet merged):** the one-way eval had surfaced that
+    `tester`, under "make it pass", fixed feature code — correct outcome, `be-dev`'s lane. Closed:
+    `agents/tester.md` + `codex-agents/tester.toml` now scope write access to test files (a red frozen
+    test is a defect to REPORT), the eval gained a criterion (b), and the **re-run PASSED both
+    criteria** — same scenario, guarded skill, the agent edited nothing and reported the defect up.
+    Before/after behavior change is the proof the guard lands. Four manifests + AGENTS.md at 1.10.1,
+    CHANGELOG entry. `npm test` green. Push is the human's call.
 
 - 2026-07-18: audited the framework's own enforcement surface and shipped three releases.
   **1.9.0** — the canonical spine (`SPEC → HUMAN → VERIFIED → GATED`, byte-identical in the
