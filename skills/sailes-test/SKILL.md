@@ -122,8 +122,9 @@ boundary length. Optional fields are exercised filled *and* empty. Assert on the
 — the database row, the API response — never on a "Saved" toast alone.
 
 **The anti-flake rules are not advisory.** Timing is the top cause of flaky tests
-([Luo et al., FSE 2014](https://dl.acm.org/doi/10.1145/2635868.2635920) — 201 commits across 51
-projects; async, then concurrency, then test-order dependency), and the browser is its home turf. A
+([Luo et al., FSE 2014](https://mir.cs.illinois.edu/lamyaa/publications/fse14.pdf) — 201 commits
+across 51 projects; async, then concurrency, then test-order dependency), and the browser is its
+home turf. A
 suite that flickers gets disabled, and then the whole investment protects nothing.
 
 - Never `sleep`. Poll for a condition with a timeout, or control the clock.
