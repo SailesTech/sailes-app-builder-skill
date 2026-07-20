@@ -23,7 +23,7 @@ const path = require('path');
 
 const REPO = path.join(__dirname, '..');
 const SCRIPT = path.join(REPO, 'enable-codex-agents.sh');
-const ROLES = ['team-lead', 'explorer', 'designer', 'be-dev', 'fe-dev', 'checker', 'qa'];
+const ROLES = ['team-lead', 'explorer', 'designer', 'be-dev', 'fe-dev', 'checker', 'qa', 'tester'];
 
 let failures = 0;
 
@@ -74,6 +74,23 @@ for (const role of ROLES) {
     assert.ok(r.ok, `rejected a role file we ship: ${r.message}`);
   });
 }
+
+// ROLES is hardcoded and the loop above iterates IT, not the directory — so a role file added
+// without touching this list is silently never validated. That is the exact "green for the wrong
+// reason" trap this repo keeps stepping on; this guard makes the omission loud. Every `*.toml` on
+// disk must be a listed role, and every listed role must exist on disk — no drift in either direction.
+test('ROLES matches the .toml files on disk (no unlisted, no missing)', () => {
+  const onDisk = fs
+    .readdirSync(__dirname)
+    .filter((f) => f.endsWith('.toml'))
+    .map((f) => f.replace(/\.toml$/, ''))
+    .sort();
+  assert.deepStrictEqual(
+    onDisk,
+    [...ROLES].sort(),
+    'ROLES and codex-agents/*.toml disagree — add the new role to ROLES, or the file is unexpected'
+  );
+});
 
 // Codex writes literal-quoted table keys into config.toml itself (Windows paths contain
 // backslashes and a drive colon), so a bare-key-only guard rejects Codex's own config.
