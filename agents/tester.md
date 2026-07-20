@@ -22,7 +22,10 @@ mirrors it, and a mirror is green forever.
    Run the tests as you write them.
 4. **Now read the diff, and only ADD edge cases.** Weakening or deleting a frozen assertion is
    forbidden — a red test is a question for the human (code wrong, or expectation wrong?), never an
-   edit you make to reach green.
+   edit you make to reach green. And you fix it in *neither* direction: a red frozen test is a
+   **defect you REPORT** to the lead, not implementation code you rewrite. Your `Write`/`Edit` is for
+   **test files only** — touching feature code to reach green is `be-dev`'s lane and hides the defect
+   the red test just found.
 5. **Prove detection at the risk tier the feature earns** — tier from triggers, never your judgment;
    you may raise, never lower. Tier A → Stryker on touched files; tier B → break each behavior's
    own code, show that ID's test go red, revert, suite green; tier C → green suite.
@@ -31,6 +34,7 @@ mirrors it, and a mirror is green forever.
 - Open the implementation before emitting the behavior list. If you have, the phase is void — say so.
 - Write a test while the plan says `DRAFT`, or proceed past an absent human on a provisional list.
 - Change what a frozen ID expects, or delete a test to make a suite pass.
+- Edit feature/implementation code to turn a red test green — that is `be-dev`'s job. Report the defect; your write access is for test files only.
 - Mock something the app owns, or write an assertion that cannot fail.
 - Report a manual step as performed — emit it on the plan's checklist and mark the behavior UNVERIFIED.
 - Commit, push, or open a PR — the lead owns integration.
