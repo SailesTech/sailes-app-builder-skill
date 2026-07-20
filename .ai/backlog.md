@@ -13,6 +13,8 @@
 | Bespoke ESLint plugin packaging the ratchet rules (tokens-only, boundaries) as one install | start with stock rules per repo; extract once the config recurs (graduation rule applied to config) | 2026-07-05 engineering spec (Non-goals) | parked |
 | CI wiring for `evals/` (run affected scenarios on PRs touching skills/) | manual dispatch first; automate when eval count grows | 2026-07-05 engineering spec (Non-goals) | parked |
 | Hook enforcing that a spec cannot reach `implemented/` without a `.ai/test-plans/<spec>.md` | rejected during `sailes-test` discovery on blast radius (a hook changes behavior in every repo on the machine); revisit once the artifact has proven itself in a real client repo | 2026-07-20 discovery session (sailes-test, Non-goals) | parked |
+| Real `agents/*.md` ↔ `codex-agents/*.toml` **content** parity check (today only TOML syntax + the new ROLES-vs-disk guard exist; a qa.md edit that forgets qa.toml still passes) | surfaced as W4 in the sailes-test pre-implement; a real semantic diff is its own change | 2026-07-20 pre-implement (sailes-test) | next |
+| Mutation testing (Stryker) as tier-A detection proof — needs per-repo config; `sailes-test` mandates it for tier A but a client repo has to wire it | the skill names it; wiring it into a real client repo's CI is the follow-up that proves the tier system end-to-end | 2026-07-20 (sailes-test Phase 5) | next |
 | `run-` skill for this repo (driver piping SessionStart JSON into the hooks to show what they inject) | deliberately dropped mid-session for `sailes-test`; the hooks were exercised by hand and both behave as designed, so this is convenience, not a gap | 2026-07-20 session (parked by user) | parked |
 
 ## Tech debt

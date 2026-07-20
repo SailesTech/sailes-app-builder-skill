@@ -54,6 +54,27 @@
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
+- 2026-07-20: built **`sailes-test`** (1.10.0) — a testing skill + a `tester` agent role, on branch
+  `feat/sailes-test`, **not yet merged**. The last verification step inside each spec phase, before
+  `checker` and `qa`. Core is informational isolation: derive expected behavior from the spec with
+  the implementation unread → human freezes the case list to `.ai/test-plans/<spec>.md` → write →
+  diff may only ADD, never weaken → detection proven at a risk tier computed from triggers (A Stryker
+  / B per-B-ID break / C green suite), which the agent may raise but never lower. Full discovery →
+  spec → pre-implement → 7 gated phases; every Done-when run with output pasted
+  (`.ai/runs/2026-07-20-sailes-test.md`).
+  - **Pre-implement earned its keep:** READY-WITH-FIXES, three findings of the "green for the wrong
+    reason" class — a hardcoded `ROLES` array that would leave `tester.toml` unvalidated; the pipeline
+    order living twice with a read-only enumeration that a writing gate makes false; a Done-when
+    asserting 15 where a naive count returns 19. All fixed on paper before code.
+  - **Two research statistics did not survive verification** — arXiv 2410.21136's percentages were
+    fabricated in summarization (abstract has none); Luo et al.'s flaky split is unconfirmable
+    (ranking real). Kept as a worked example in the skill and a lesson. See Open failures.
+  - **The version-check hook caught its own repo** — flagged AGENTS.md still at 1.9.2 after the bump;
+    fixed. Small proof the instrument works on the framework that ships it.
+  - **NOT done:** the three evals are written but **NOT YET RUN** — they are the only proof the
+    isolation/one-way/tier rules land as model behavior. Nothing merged to `main`. Both are next
+    session's job, in that order: run evals, then the human decides the merge + `install.sh --force`.
+
 - 2026-07-18: audited the framework's own enforcement surface and shipped three releases.
   **1.9.0** — the canonical spine (`SPEC → HUMAN → VERIFIED → GATED`, byte-identical in the
   router and `agents-md-template.md`), the delegation empty-return rule, `hooks/lib/repo-state.js`.

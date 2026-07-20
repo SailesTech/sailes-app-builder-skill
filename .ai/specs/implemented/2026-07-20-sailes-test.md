@@ -1,8 +1,9 @@
 # sailes-test — make testing a craft with a gate, not a reminder
 
-Status: approved
+Status: implemented
 Date: 2026-07-20
 Approved: 2026-07-20 by Jacek
+Implemented: 2026-07-20 — all 7 phases, each Done-when run with output pasted in `.ai/runs/2026-07-20-sailes-test.md`
 
 > Open Questions answered 2026-07-20 (Q1→C, Q2→B, Q3→B, Q4→A, Q5→A). Research landed after the
 > first gate and forced three amendments — risk-tiered detection proof, browser-first UI testing,
