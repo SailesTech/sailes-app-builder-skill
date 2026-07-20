@@ -22,7 +22,6 @@
 | Item | Impact | Source | Status |
 |---|---|---|---|
 | Behavioral GREEN re-runs pending for 1.1.0 text-level edits (see evals/ "pending" lines) | text Done-when passed; behavior unproven until re-run post-merge | this change-set | next |
-| `hooks/framework-version-check.js` has **no test at all** — `npm test` runs only `workflow-router.test.js` + `validate-toml.test.js` (verified 2026-07-20 by reading package.json and running the suite: 34 tests, none touching it) | it is a SessionStart hook firing in every repo on every machine; a silent-instrument regression there is invisible by construction — the exact failure class `workflow-router.js` grew its error-fallback test for | 2026-07-20 discovery session (sailes-test) | next |
 
 ## Later phases (from specs)
 | Phase / feature | From spec | Trigger to start |
