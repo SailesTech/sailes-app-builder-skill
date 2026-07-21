@@ -43,7 +43,7 @@ Environments:   local / dev / prod (staging only for larger/riskier projects)
 | Runtime / pkg | Node Active LTS (24) · **pnpm** monorepo | 🟡 | LTS for prod; workspaces make local linking explicit; ready for worker/integrations from day one. |
 | Language | TypeScript **strict** end-to-end | 🟡 | One language UI+API+worker; best agent + type-safety story. |
 | Framework | **Next.js App Router** (default) — or **SPA (Vite+React) + standalone API** variant | 🟡 | Next.js when front is/may be public or web is the only backend consumer. Switch to the SPA+API variant for login-only UI with multiple backend consumers / independent deploy / very heavy async backend — see **Frontend architecture** below. |
-| UI | **Tailwind + shadcn/ui + React Hook Form + Zod** | 🟡 | "open code" components in-repo (agent-editable); forms validated by Zod; domain logic OUT of UI. |
+| UI | **Tailwind + shadcn/ui + React Hook Form + Zod** | 🟡 | "open code" components in-repo (agent-editable); forms validated by Zod; domain logic OUT of UI. Named options for the UX layer — **Preline UI** (additive block library) and **Astryx** (alternative, React+StyleX, agent-ready) — see `ui-libraries.md`. |
 | DB | **Railway Postgres** | 🟡 | Single Postgres, migrations in repo + reviewed, seeds local/dev, test DB for integration tests. |
 | ORM | **Drizzle** (default) | 🟡 | TS-first, Postgres-first, explicit schema/query → great for reports, integrations, audit logs, and agent comprehension. Plan B / specialist below. |
 | Auth | **Better Auth** (email/pw + Google) | 🟡 | Owns its tables, sessions, org/admin plugins, Drizzle adapter, password reset, email verification (prod). **Google login ≠ Gmail access.** |
@@ -143,6 +143,8 @@ Multi-tenant adds: `organizations · organization_members · organization_roles 
 | Wants fully managed auth, budget OK | Clerk instead of Better Auth |
 | Touches Pipedrive embedding/marketplace | carve out `apps/pipedrive-extension` (iframe+SDK) + own OAuth2 flow |
 | Sends email as the user's Gmail | Gmail API + OAuth scopes (Email Level 3+), not just transactional |
+| Needs many ready-made sections/blocks fast (marketing surface, dashboard shell) | add **Preline UI** as a markup/block source — interactive primitives stay on shadcn/Radix (`ui-libraries.md`) |
+| Is agent-generated UI end-to-end and a ready theme beats a bespoke design system | **Astryx** (React+StyleX, CLI+MCP) instead of the Tailwind+shadcn layer — full trade-offs in `ui-libraries.md` |
 | Breaks the ≤50-user / single-client profile | re-run discovery + a fresh stack research |
 
 ---
@@ -152,5 +154,6 @@ Multi-tenant adds: `organizations · organization_members · organization_roles 
 - ✅ Prisma 7 / Rust-free GA: https://www.prisma.io/blog/rust-free-prisma-orm-is-ready-for-production
 - ✅ Lucia deprecation: https://github.com/lucia-auth/lucia/discussions/1714
 - ✅ Anthropic Claude Code best practices: https://code.claude.com/docs/en/best-practices · Next.js AI-agents guide
+- 🟡 Preline UI + Astryx (named UX-layer options): sources + confidence in `ui-libraries.md` (researched Jul 2026).
 - 🟡 Drizzle/Prisma/Kysely, Better Auth, Inngest/Trigger.dev/BullMQ/Temporal, Railway (Buckets/Postgres/cron), shadcn/ui, Zod, RHF, Testcontainers/MSW/Playwright, Sentry/PostHog, Pipedrive OAuth2 + `create-pipedrive-app`: corroborated across multi-source research (Jun 2026). Re-confirm before high-stakes use.
 ```
