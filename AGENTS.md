@@ -75,6 +75,7 @@ Delegation is the lead's default (`agents/team-lead.md`). Two rules earn their p
 | Situation | Go to |
 |---|---|
 | Something is broken in a running system | `sailes-diagnose` — read-only, ends at a proven mechanism |
+| Porting an existing codebase to another language/stack at scale | `sailes-migrate` — domain sibling, judge-before-translation, behavior-parity gate |
 | New scope, not covered by a live spec | `sailes-discovery` |
 | A live spec covers it | continue its phase — `sailes-pre-implement`, then `sailes-implement` |
 | Changing a skill / hook / agent definition | spec first; the blast radius is every repo on the machine |
