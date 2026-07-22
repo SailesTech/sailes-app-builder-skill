@@ -9,8 +9,8 @@
     {
       "name": "sailes-app-builder",
       "source": "./",
-      "description": "Sailes app-builder skills — two tracks for custom B2B web apps. BUILD: wayfinder → discovery → bootstrap → design → spec → pre-implement → database → async → hosting → implement. DIAGNOSE: sailes-diagnose, for when a running system is broken rather than missing. Plus sailes-pipedrive.",
-      "version": "1.11.0"
+      "description": "Sailes app-builder skills — two tracks for custom B2B web apps. BUILD: wayfinder → discovery → bootstrap → design → spec → pre-implement → database → async → hosting → implement. DIAGNOSE: sailes-diagnose, for when a running system is broken rather than missing. Plus sailes-pipedrive and sailes-migrate.",
+      "version": "1.12.0"
     }
   ]
 }

@@ -4,6 +4,31 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.12.0 — 2026-07-22 · sailes-migrate: large-scale codebase migration as a domain sibling
+
+New domain-sibling skill (like `sailes-pipedrive` / `sailes-hosting`) — **not** part of the linear
+build pipeline, invocable on its own.
+
+- **`sailes-migrate` — porting an existing codebase to another language/stack at scale.** A gated
+  six-step method (feasibility+judge → map+rulebook+inventory → stress-test → translate fan-out →
+  survey build+fixers → behavior parity) that **reuses existing machinery**: `explorer`+graphify
+  for the dependency map, `team-lead`→`be-dev`/`fe-dev` for parallel translation, the deny-list
+  `.claude/settings.json` (+`.codex` twin) guardrail for fan-out, and `checker`/`tester`/`qa` for
+  the parity gate. Adds one hard invariant: *no translation fan-out begins before a judge/parity
+  harness exists and has been validated against deliberately-broken source* — the migration analog
+  of "no feature code before an approved spec". Structure-preserving is the default; redesign is an
+  explicit mode. **Distinct from `sailes-database`** (DB-schema migrations) — the description
+  disambiguates the two senses of "migration" so triggering doesn't collide. New skill files:
+  `skills/sailes-migrate/{SKILL,methodology,judge-setup,rulebook-template,parallel-translation,cost-and-gates}.md`.
+  New evals: `migrate-judge-gate`, `migrate-structure-preserving-default`, `migrate-is-domain-sibling`
+  (all GREEN on fresh clean-context subagents). Method distilled from
+  `anthropics/code-migration-kit-with-claude-code` (Apache-2.0, © 2026 Anthropic PBC) — our own
+  prose synthesis of the ideas; the kit's scripts are referenced, not vendored (vendoring is a
+  deferred human licensing decision).
+
+  Upgrade action: adopt `skills/sailes-migrate/`. No pipeline, role, or template change — it is a
+  standalone domain sibling.
+
 ## 1.11.0 — 2026-07-21 · named UX-layer options: Preline UI (additive) and Astryx (alternative)
 
 The baseline named exactly one UX stack (Tailwind + shadcn/ui) and no alternatives, so the UI

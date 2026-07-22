@@ -54,6 +54,21 @@
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
+- 2026-07-22: added **`sailes-migrate`** (1.12.0) — a domain-sibling skill for porting an existing
+  codebase to another language/stack at scale, distilled from Anthropic's `code-migration-kit`
+  (Apache-2.0). Six-step gated method reusing existing roles (explorer/team-lead/be-dev/fe-dev/
+  checker/tester/qa) + the deny-list guardrail; one new hard invariant — *no translation fan-out
+  before a judge/parity-harness exists and is validated against deliberately-broken source*.
+  Authored **autonomously with the decision-owner away**, so the spec's Open-Questions gate was
+  answered by proxy: every scope call is in spec §2 marked **NEEDS-VERIFICATION** (D1 separate
+  skill, D2 SP default + redesign mode, **D4 kit scripts referenced not vendored — human licensing
+  call**). Evals written FIRST, then **run on fresh clean-context subagents — all three GREEN** on
+  adversarial prompts. **First built on a graphify-based branch (1.13.0), then rebased onto `main`
+  (1.11.0) and renumbered to 1.12.0** after verifying graphify is NOT on `main`; old branch kept as
+  `feat/sailes-migrate-graphifybased`. ⚠️ 1.12.0 collides with graphify's own 1.12.0 if graphify
+  later merges — coordinate then. `npm test` green; four manifests + CHANGELOG at 1.12.0. On branch
+  `feat/sailes-migrate`, **committed, not merged**; push/merge is the human's call (merge = live deploy).
+  Run log: `.ai/runs/2026-07-22-sailes-migrate.md`.
 - 2026-07-20: built **`sailes-test`** (1.10.0) — a testing skill + a `tester` agent role, on branch
   `feat/sailes-test`, **not yet merged**. The last verification step inside each spec phase, before
   `checker` and `qa`. Core is informational isolation: derive expected behavior from the spec with
