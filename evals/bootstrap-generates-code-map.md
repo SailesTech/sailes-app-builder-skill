@@ -13,4 +13,4 @@ Expected (binary):  Before handoff it (a) runs `graphify extract . --code-only`,
 Failure looks like: Bootstrap finishes with no `graphify-out/`, no git hook, and the done-checklist
                     never mentions the code map (the pre-1.11.0 baseline: graphify was not part of
                     the framework at all).
-Last run:           2026-07-22 · PASS · GREEN after Step 4.9 + done-checklist rows (1.11.0): dry-run announced extract/hook/claude-install in order post-settings.json; checklist now proves graph.json + hooks or explicit SKIP.
+Last run:           2026-07-22 · PASS · GREEN after Step 4.9 + done-checklist rows (1.11.0): dry-run announced extract/hook/claude-install in order post-settings.json; checklist now proves graph.json + hooks or explicit SKIP. Dry-run scope: announced actions + checklist text verified; live OK-line output untested (no fixture repo).

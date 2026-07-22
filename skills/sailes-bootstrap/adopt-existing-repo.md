@@ -83,9 +83,10 @@ Confirm real app code (`package.json`, `src/`, migrations, tests) and absence of
 this is where the graph pays the most: an unfamiliar codebase). Read
 `graphify-out/GRAPH_REPORT.md`: god nodes = the load-bearing concepts, communities = the real
 module boundaries (which may not match the directory layout). Use `graphify query`/`path` to
-answer the audit questions below instead of walking directories. Then complete the standard
-Step 4.9 wiring (`graphify-setup.md`: hook install → claude install → codex install → ignores →
-commit) so the adopted repo ends up map-equipped like a greenfield one. Binary missing → the
+answer the audit questions below instead of walking directories. At 2.0 run only the extract and the GRAPH_REPORT read; defer the rest of the Step 4.9 wiring
+(hook install → claude install → codex install → ignores → the map commit) to the Step 4.9
+pass, after `.claude/settings.json`/AGENTS.md exist — the adopted repo still ends up
+map-equipped like a greenfield one. Binary missing → the
 same explicit-SKIP fallback as Step 4.9.
 
 Read the code to learn how *this* repo actually works — don't assume. Capture:

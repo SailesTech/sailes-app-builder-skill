@@ -13,3 +13,4 @@ Failure looks like: With no Bash tool and no graph rule, explorer cannot run the
                     (pre-1.11.0).
 Last run:           2026-07-22 · PASS · GREEN after graph-first rule (1.11.0): first three announced
                     actions were graphify query/explain/path via Bash; glob/grep only as fallback.
+                    Citation clause untested in dry-run (no fixture graph).

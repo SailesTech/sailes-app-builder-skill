@@ -37,11 +37,11 @@ Then wire the ignore files (add, don't overwrite):
 
 ```bash
 # .gitignore — the map is committed, its local by-products are not
-printf '%s\n' 'graphify-out/cost.json' 'graphify-out/cache/' >> .gitignore
+for l in 'graphify-out/cost.json' 'graphify-out/cache/'; do grep -qxF "$l" .gitignore 2>/dev/null || echo "$l" >> .gitignore; done
 
 # .claudeignore — REQUIRED: without this every rebuild invalidates the
 # Claude Code prompt cache (full re-upload at cache-write rates)
-printf '%s\n' 'graphify-out/' 'graph.json' >> .claudeignore
+for l in 'graphify-out/' 'graph.json'; do grep -qxF "$l" .claudeignore 2>/dev/null || echo "$l" >> .claudeignore; done
 ```
 
 Finally commit the map with the bootstrap commit(s):
@@ -65,8 +65,9 @@ NEVER block the phase. In order:
 
 - The post-commit hook rebuilds AST-only in the background — `sailes-implement`
   commits per step, so the graph tracks implementation automatically.
-- Agents treat the graph as CURRENT if `git log -1 --format=%ct` is not newer than
-  `graphify-out/graph.json`'s mtime by more than one commit; otherwise run
+- Agents treat the graph as CURRENT if `graphify-out/graph.json`'s mtime is not older than the
+  previous commit's timestamp (`git log -2 --format=%ct | tail -1`) — i.e. at most one commit
+  behind, since the post-commit hook rebuilds in the background. Otherwise run
   `graphify update .` first (seconds, free) or fall back to grep for that question.
 - A refactor that DELETED files can leave ghost nodes: `graphify extract . --code-only --force`.
 

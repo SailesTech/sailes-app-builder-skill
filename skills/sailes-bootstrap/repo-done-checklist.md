@@ -25,7 +25,7 @@ Every item MUST exist on disk. The manifest decides *optional packages*, never t
 | `.codex/config.toml` (Codex twin) | Same guardrails for Codex CLI (sandbox/approval + `[hooks]` reusing `.claude/hooks/*.sh`). A Sailes app must run *guarded*, not just *readable*, under Codex. See `codex-config-template.md`. |
 | `.github/copilot-instructions.md` | One-line pointer to `AGENTS.md` — third harness reads the same source of truth. |
 | `graphify-out/graph.json` (committed) + `.claudeignore` covering `graphify-out/` | The code map every agent queries before grepping (Step 4.9). `.claudeignore` guard: without it each rebuild invalidates the Claude Code prompt cache. If the binary was unavailable, an explicit SKIP recorded in `.ai/STATE.md` replaces this row — silence is the failure. |
-| graphify git hooks installed (`graphify hook status`) | Freshness: post-commit AST rebuild + `graph.json` merge driver. A stale map that agents trust is worse than no map. |
+| graphify git hooks installed (proof: marker-delimited post-commit hook in `.git/hooks`; human check `graphify hook status`) | Freshness: post-commit AST rebuild + `graph.json` merge driver. A stale map that agents trust is worse than no map. |
 | `STATUS.md` (root, header-only) | Client-readable progress view exists from day one (filled at phase gates). |
 
 **Generate the full `.ai/` structure** — including `specs/` (+ `implemented/`, `archived/`), `backlog.md`, `lessons.md` (header-only; filled on the first real lesson), and `STATE.md` (header-only session memory: Verified facts / General rules / Open failures / Lessons learned / Last session). Present from day one so the convention is visible. **Idempotent:** if any `.ai/` artifact already exists in the repo, do NOT overwrite it — add only what is missing, follow the repo's existing convention.
@@ -73,7 +73,7 @@ echo "== code map (graphify — Step 4.9) =="
 if command -v graphify >/dev/null 2>&1; then
   [ -e "$ROOT/graphify-out/graph.json" ] && echo "OK   graphify-out/graph.json" || echo "MISS graphify-out/graph.json (run graphify-setup.md procedure)"
   grep -q "graphify-out" "$ROOT/.claudeignore" 2>/dev/null && echo "OK   .claudeignore covers graphify-out/" || echo "MISS .claudeignore entry"
-  graphify hook status 2>/dev/null | grep -qi "installed" && echo "OK   freshness hooks" || echo "MISS graphify hook install"
+  { [ -f "$ROOT/.git/hooks/post-commit" ] && grep -q graphify "$ROOT/.git/hooks/post-commit"; } && echo "OK   freshness hooks (post-commit)" || echo "MISS graphify hook install"
 else
   echo "SKIP graphify (binary missing — uv tool install graphifyy; record in .ai/STATE.md)"
 fi
