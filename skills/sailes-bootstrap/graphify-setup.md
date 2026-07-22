@@ -3,7 +3,7 @@
 Every Sailes repo carries a queryable knowledge graph of its own code
 (`graphify-out/graph.json`), built deterministically from tree-sitter AST — free, local,
 no API key. Agents query it (`graphify query|path|explain`) instead of grepping; a git
-post-commit hook keeps it fresh at zero cost. Validated against `graphifyy >= 0.9.24`
+post-commit hook keeps it fresh at zero cost. Validated against `graphifyy >= 0.9.23`
 (PyPI package is `graphifyy`, double-y; the CLI command is `graphify`).
 
 ## The procedure (bootstrap Step 4.9 — run in THIS order)
@@ -31,6 +31,15 @@ graphify claude install
 # 4) Codex twin: AGENTS.md section + .codex/hooks.json
 #    (separate file from our .codex/config.toml — no conflict)
 graphify codex install
+
+# 5) Portability — REQUIRED before committing: the installers write the ABSOLUTE
+#    local binary path (e.g. C:/Users/you/.local/bin/graphify.EXE) into
+#    .claude/settings.json and .codex/hooks.json. Both files are committed, so
+#    that path would break the hooks on every other machine. Normalize to the
+#    bare `graphify` command — it resolves from PATH (uv/pipx put it there):
+for f in .claude/settings.json .codex/hooks.json; do
+  [ -f "$f" ] && sed -i -E 's#"[^"]*/graphify(\.EXE|\.exe)? #"graphify #g' "$f"
+done
 ```
 
 Then wire the ignore files (add, don't overwrite):

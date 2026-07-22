@@ -17,7 +17,7 @@
 - **Graceful degradation**: a missing `graphify` binary must NEVER block bootstrap or any phase. It prints the one-line install command, records the exception, and continues.
 - Bootstrap runs the **code-only** extraction (`graphify extract . --code-only`) — deterministic, free, no API key, works headless. The semantic docs pass is a documented *optional* command, not a bootstrap step.
 - Nudge mode, not strict: `graphify claude install` default (soft PreToolUse nudge). `--strict` / `GRAPHIFY_HOOK_STRICT=1` is documented as a per-repo toggle only.
-- Known-good version pin: document `graphifyy >= 0.9.24` (the version this integration was validated against) in `graphify-setup.md`; bump deliberately, not implicitly.
+- Known-good version pin: document `graphifyy >= 0.9.23` (the version this integration was validated against; 0.9.24 was never released to PyPI) in `graphify-setup.md`; bump deliberately, not implicitly.
 - Commit style: `feat:` / `docs:` / `fix:` one-liners, matching `git log` in this repo.
 - After all tasks: `./install.sh --force` to refresh `~/.claude/skills/` copies.
 
@@ -109,7 +109,7 @@ git commit -m "test: RED eval — bootstrap must generate the graphify code map"
 Every Sailes repo carries a queryable knowledge graph of its own code
 (`graphify-out/graph.json`), built deterministically from tree-sitter AST — free, local,
 no API key. Agents query it (`graphify query|path|explain`) instead of grepping; a git
-post-commit hook keeps it fresh at zero cost. Validated against `graphifyy >= 0.9.24`
+post-commit hook keeps it fresh at zero cost. Validated against `graphifyy >= 0.9.23`
 (PyPI package is `graphifyy`, double-y; the CLI command is `graphify`).
 
 ## The procedure (bootstrap Step 4.9 — run in THIS order)
