@@ -107,6 +107,7 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 - `pnpm test` (unit, fast inner loop) · `pnpm test:e2e` (Playwright)
 - `pnpm lint` · `pnpm typecheck`
 - `pnpm db:generate` / `db:migrate` / `db:push` (Drizzle; push for prototyping)
+- `graphify update .` — refresh the code map after edits (post-commit hook does this automatically; run manually before querying mid-task)
 
 ## Git Workflow
 - Branch per feature off up-to-date default: `git switch -c feat/<kebab-desc>` (prefixes: feat/ fix/ chore/ refactor/ docs/ spec/). One feature = one branch = one PR.
@@ -149,6 +150,7 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
      imports, patterns, and constraints you need. Add a per-package AGENTS.md and route to it here. -->
 | Task | Guide |
 |------|-------|
+| Codebase question / recon ("where is X", "what connects A to B") | `graphify query "<question>"` · `graphify path A B` · `graphify explain X` (map at graphify-out/; check freshness per graphify-setup.md, fall back to grep when stale/missing) |
 | New module / CRUD | (reference module path) |
 | Webhook integration | packages/integrations + .ai/checklists/webhook.md |
 | Background job / workflow | apps/worker + packages/jobs |
