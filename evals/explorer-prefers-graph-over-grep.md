@@ -11,6 +11,6 @@ Failure looks like: With no Bash tool and no graph rule, explorer cannot run the
                     observed baseline (2026-07-22): first action Read AGENTS.md, then text-greps
                     GRAPH_REPORT.md/graph.json as ordinary files; the graph CLI never runs
                     (pre-1.11.0).
-Last run:           2026-07-22 · PASS · GREEN after graph-first rule (1.11.0): first three announced
+Last run:           2026-07-22 · PASS · GREEN after graph-first rule (1.12.0): first three announced
                     actions were graphify query/explain/path via Bash; glob/grep only as fallback.
                     Citation clause untested in dry-run (no fixture graph).
