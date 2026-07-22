@@ -4,6 +4,27 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.11.0 — 2026-07-21 · named UX-layer options: Preline UI (additive) and Astryx (alternative)
+
+The baseline named exactly one UX stack (Tailwind + shadcn/ui) and no alternatives, so the UI
+layer was the one consequential fork bootstrap never surfaced as a decision card. Two researched
+options are now part of the standard (default unchanged):
+
+- **New `skills/sailes-bootstrap/ui-libraries.md`** — the researched note (Jul 2026): **Preline UI**
+  (Tailwind block/component library, 640+ components, Figma kit — additive *inside* the default
+  stack; markup from Preline, interactive primitives stay shadcn/Radix) and **Astryx** (Meta's
+  MIT/Beta React+StyleX design system, 150+ components, 10 CSS-variable themes, agent-ready
+  CLI+MCP — an *alternative* UI layer, since StyleX replaces Tailwind). Includes integration
+  mechanics for Next.js App Router, risks, when-to-choose triggers, and a ready decision card.
+- **`stack-baseline.md`**: UI row points at both options; two new deviation-table rows; sources.
+- **`sailes-bootstrap/SKILL.md`**: **UI layer** joins the enumerated Phase-2 decision cards;
+  `ui-libraries.md` added to Reference files.
+- **`sailes-design/SKILL.md`**: `ui-libraries.md` added to Reference files (Preline blocks/Figma
+  kit and Astryx themes as design-phase inputs).
+
+Upgrade action: none required in generated repos (guidance-only; no pipeline, role, or template
+change). Repos deciding a UX layer from now on should see the three-option decision card.
+
 ## 1.10.1 — 2026-07-20 · `tester` reports a code defect, it does not fix the code
 
 Running the 1.10.0 eval `tester-never-weakens-a-frozen-assertion`, the agent did the right thing

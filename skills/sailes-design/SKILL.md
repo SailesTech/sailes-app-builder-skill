@@ -99,7 +99,7 @@ Hard rules for reference-match work:
 | **Render + integrity gate** | **screenshot the result; nothing clipped/overflowing/invisible/overlapping/non-responsive** |
 | Persist | `design-system/MASTER.md` or `.ai/specs/ui-spec.md` + **Design log** (tried/rejected directions) |
 
-Reference files: `design-judgment.md` (taste, signature, anti-AI-default), `ux-rules.md` (condensed accessibility/interaction/responsive/forms checklist), `premium-craft.md` (the "looks expensive" finish layer + premium-tells checklist, tuned to Tailwind v4/oklch + shadcn), `premium-ux.md` (the "feels expensive" interaction layer + premium-feel checklist), `assets/premium-tokens-starter.css` (ready @theme scaffold implementing the craft rules).
+Reference files: `design-judgment.md` (taste, signature, anti-AI-default), `ux-rules.md` (condensed accessibility/interaction/responsive/forms checklist), `premium-craft.md` (the "looks expensive" finish layer + premium-tells checklist, tuned to Tailwind v4/oklch + shadcn), `premium-ux.md` (the "feels expensive" interaction layer + premium-feel checklist), `assets/premium-tokens-starter.css` (ready @theme scaffold implementing the craft rules), `../sailes-bootstrap/ui-libraries.md` (UX-layer options as design-phase inputs — Preline blocks + free Figma kit, Astryx CSS-variable themes).
 
 ## Common Mistakes
 
