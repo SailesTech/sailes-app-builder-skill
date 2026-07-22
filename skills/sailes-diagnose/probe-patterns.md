@@ -119,3 +119,14 @@ Nearly every SRF probe carries the same two lines of hard-won setup:
 And the standing warning that applies to every one of these commands: in this setup the `dev`
 environment holds **production** credentials. A probe that reads is safe. A probe that writes
 creates real customer-visible records — see `traps.md`.
+
+---
+
+## Graph probe (when the repo has graphify-out/graph.json)
+
+Mechanism tracing without spelunking: `graphify path "<symptom site>" "<suspected cause>"`
+returns the concrete hop chain (each edge tagged EXTRACTED/INFERRED — cite the tag; INFERRED
+edges are hypotheses, not evidence). `graphify explain "<component>"` lists everything that
+can reach it — a fast falsification source for "nothing else touches this" claims. Read-only,
+local, safe on production incident work. Verify freshness first (`graphify update .` is
+AST-only and free); never build evidence on a stale graph.

@@ -41,6 +41,12 @@ For each affected surface, ask: does the spec **rename / remove / narrow** somet
 
 For each hit: classify **Critical** (must fix before coding) vs **Warning** (needs a deprecation bridge / migration), and propose the migration path (re-export, dual-write, alias, backfill). If the spec lacks a "Migration / Backward-Compatibility" section and needs one — flag it.
 
+**Mechanical BC probe (when `graphify-out/graph.json` exists):** for every surface the spec
+touches, run `graphify explain "<symbol>"` (its full in/out edge list = the real blast radius)
+and `graphify path "<changed thing>" "<suspected dependent>"` for each risky pair. Paste the
+edge lists into the readiness report as evidence — cited edges, not prose claims. Freshness
+check first (graphify-setup.md); a stale graph is not evidence.
+
 ### Phase 3 — Gap & completeness check
 Against the `sailes-spec` required sections: is anything missing or vague? Specifically — unresolved Open Questions, data model holes, integration contracts undefined, **no integration coverage / tests named**, security section absent for sensitive data, phases that leave the app broken mid-way, source-of-truth undefined for a sync.
 
