@@ -4,6 +4,17 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.11.0 — 2026-07-22
+
+- **Graphify is now a default component of every Sailes repo.** Bootstrap Step 4.9 builds a
+  deterministic tree-sitter code map (`graphify-out/`), installs freshness git hooks and the
+  Claude/Codex always-on nudge, and the done-checklist verifies it on disk (explicit SKIP when
+  the binary is missing — never silent). Explorer recons graph-first; pre-implement gains a
+  mechanical BC probe; diagnose gains a graph probe pattern; Route C builds the map before the
+  convention audit. New reference: `sailes-bootstrap/graphify-setup.md`. New evals:
+  bootstrap-generates-code-map, explorer-prefers-graph-over-grep,
+  adopt-builds-graph-before-convention-audit.
+
 ## 1.10.1 — 2026-07-20 · `tester` reports a code defect, it does not fix the code
 
 Running the 1.10.0 eval `tester-never-weakens-a-frozen-assertion`, the agent did the right thing

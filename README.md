@@ -165,6 +165,18 @@ only the documented Sailes managed block and these seven Sailes-owned role files
 
 > **One known Codex caveat, handled honestly:** on some Codex versions `PreToolUse` fires only for the `Bash` tool, so shell-driven writes to protected paths are blocked but `apply_patch` edits fall back to sandbox/approval + the AGENTS.md prose rules. The template documents this rather than pretending the file-edit guard is airtight.
 
+## Machine prerequisite — graphify (the default code map)
+
+Sailes repos ship with a queryable knowledge graph (see
+`skills/sailes-bootstrap/graphify-setup.md`). Each dev machine needs the CLI once:
+
+```bash
+uv tool install graphifyy   # package is graphifyy (double-y); the command is `graphify`
+```
+
+Bootstrap degrades gracefully when it's missing (explicit SKIP, one-line hint), but the
+default expectation is: installed on every machine, like git.
+
 ## What you get
 
 | Skill | Use it for |
