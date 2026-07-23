@@ -81,6 +81,20 @@ If the project has a user interface (almost all custom B2B apps do), **invoke th
 - The gate is met when a design artifact exists on disk (the checklist verifies it). A spec that only describes features with no design direction does NOT satisfy this gate.
 - Backend-only/no-UI work (pure API, worker, integration job): skip explicitly and note why.
 
+## Step 4.9 — Code map (graphify) — DEFAULT for every repo
+
+Every Sailes repo ships with a queryable knowledge graph of its own code. Follow
+`graphify-setup.md` → “The procedure” **verbatim and in order** (extract → hook install →
+claude install → codex install → ignore files → commit). Deterministic AST pass — free,
+local, no API key.
+
+- Runs AFTER `.claude/settings.json` exists (graphify merges its hooks into it).
+- Binary missing? Follow “If graphify is missing” — one-line install hint, else an explicit
+  `SKIP` recorded in `.ai/STATE.md` and in the done-checklist output. **Never block, never
+  skip silently.**
+- Case C (adopt): the same procedure runs even earlier — see `adopt-existing-repo.md` step 2,
+  the graph is built BEFORE reverse-engineering conventions.
+
 ## Step 5 — Handoff (verify artifacts FIRST)
 
 Methodology absorbed/established ✓, module manifest set ✓, stack locked ✓, design artifact present ✓.
@@ -99,7 +113,7 @@ All green → hand to the spec phase: the local `.ai/skills/spec-writing/` you j
 | Stack | **validate** platform vs needs | **recommend** baseline | **document existing** (validate mode) |
 | Output | wired-in plan honoring rules | foundation + baseline stack | methodology layer over real stack |
 
-Reference files: `stack-baseline.md` (incl. Frontend architecture variants) · `ui-libraries.md` (UX-layer options: Preline additive, Astryx alternative) · `modules-catalog.md` · `decision-engine.md` (classification + Stack-shaping axes S1–S8) · `developer-fit.md` (who-builds-it as a stack input) · `backlog-template.md` (deferred-ideas file, generated into `.ai/backlog.md`) · `security-checklist.md` · `skeleton.md` · `agentic-first-principles.md` · `agents-md-template.md` · `spec-writing-template.md` (generated into new repos) · `adopt-existing-repo.md` (Case C procedure + Step 0 re-adoption compliance audit) · `agent-team-structure.md` (Team Lead / worker roles, gates, run log — the canon for non-trivial work) · `repo-done-checklist.md` (verify artifacts before handoff — Step 5).
+Reference files: `stack-baseline.md` (incl. Frontend architecture variants) · `ui-libraries.md` (UX-layer options: Preline additive, Astryx alternative) · `modules-catalog.md` · `decision-engine.md` (classification + Stack-shaping axes S1–S8) · `developer-fit.md` (who-builds-it as a stack input) · `backlog-template.md` (deferred-ideas file, generated into `.ai/backlog.md`) · `security-checklist.md` · `skeleton.md` · `agentic-first-principles.md` · `agents-md-template.md` · `spec-writing-template.md` (generated into new repos) · `adopt-existing-repo.md` (Case C procedure + Step 0 re-adoption compliance audit) · `agent-team-structure.md` (Team Lead / worker roles, gates, run log — the canon for non-trivial work) · `repo-done-checklist.md` (verify artifacts before handoff — Step 5) · `graphify-setup.md` (Step 4.9 — default code map: build, freshness hooks, Claude/Codex always-on, fallbacks).
 
 ## Common Mistakes
 
@@ -120,6 +134,7 @@ Reference files: `stack-baseline.md` (incl. Frontend architecture variants) · `
 | Skipping a real design phase (UI work with no visual direction) | Invoke `sailes-design` (Step 4.5); a design artifact must exist before spec/impl. |
 | Overwriting an existing `.ai/` artifact when scaffolding | Idempotent: never overwrite; add only what's missing, follow the repo's existing convention. |
 | No git / 0 commits after "setup" | `git init` + commit the skeleton is part of Case B generation. |
+| Handing off with no code map (or silently skipping it) | Run Step 4.9 (`graphify-setup.md`); a missing binary yields an explicit SKIP in the checklist, never silence. |
 
 ## Red Flags — STOP
 

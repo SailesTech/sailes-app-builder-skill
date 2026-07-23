@@ -25,6 +25,7 @@
       "Bash(pnpm build:*)",
       "Bash(pnpm dev:*)",
       "Bash(pnpm db:generate:*)",
+      "Bash(graphify:*)",
       "Bash(git status:*)",
       "Bash(git diff:*)"
     ],

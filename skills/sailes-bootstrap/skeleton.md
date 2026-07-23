@@ -129,3 +129,7 @@ merge-conflict magnets that make concurrent agents collide. (`agentic-first-prin
     AGENTS.md prose is for judgment only (the ratchet, agentic-first-principles §B.3).
 17. Seed one fixture user per RBAC role; the app must boot with seeded data in one command.
 ```
+
+- **Code map ignores:** `.gitignore` gets `graphify-out/cost.json` + `graphify-out/cache/`;
+  `.claudeignore` gets `graphify-out/` + `graph.json` (prompt-cache guard). The map itself
+  (`graphify-out/graph.json`, `GRAPH_REPORT.md`) IS committed — it is the team's shared map.

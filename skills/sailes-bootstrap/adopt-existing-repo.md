@@ -79,6 +79,16 @@ The framework improves between projects; without an upgrade path, improvements o
 Confirm real app code (`package.json`, `src/`, migrations, tests) and absence of `AGENTS.md`/`.ai/`. Working code wins. Never scaffold over existing source. A methodology-adoption change is **docs + config only** — it must not modify application behavior.
 
 ### 2. Reverse-engineer the EXISTING conventions
+**2.0 Build the map first.** Run `graphify extract . --code-only` (deterministic AST, free —
+this is where the graph pays the most: an unfamiliar codebase). Read
+`graphify-out/GRAPH_REPORT.md`: god nodes = the load-bearing concepts, communities = the real
+module boundaries (which may not match the directory layout). Use `graphify query`/`path` to
+answer the audit questions below instead of walking directories. At 2.0 run only the extract and the GRAPH_REPORT read; defer the rest of the Step 4.9 wiring
+(hook install → claude install → codex install → ignores → the map commit) to the Step 4.9
+pass, after `.claude/settings.json`/AGENTS.md exist — the adopted repo still ends up
+map-equipped like a greenfield one. Binary missing → the
+same explicit-SKIP fallback as Step 4.9.
+
 Read the code to learn how *this* repo actually works — don't assume. Capture:
 - Real stack: framework, language, **data layer** (ORM? raw SQL? query builder?), auth, tests, package manager, build.
 - Real commands: dev / build / test / lint / typecheck / migrations (the actual scripts in `package.json`).

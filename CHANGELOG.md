@@ -4,6 +4,19 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.12.0 — 2026-07-22 · graphify is a default component of every repo
+
+Builds on 1.11.0 (below). Every repo the pipeline produces now carries a queryable code map.
+
+- **Graphify is now a default component of every Sailes repo.** Bootstrap Step 4.9 builds a
+  deterministic tree-sitter code map (`graphify-out/`), installs freshness git hooks and the
+  Claude/Codex always-on nudge, and the done-checklist verifies it on disk (explicit SKIP when
+  the binary is missing — never silent). Explorer recons graph-first; pre-implement gains a
+  mechanical BC probe; diagnose gains a graph probe pattern; Route C builds the map before the
+  convention audit. New reference: `sailes-bootstrap/graphify-setup.md`. New evals:
+  bootstrap-generates-code-map, explorer-prefers-graph-over-grep,
+  adopt-builds-graph-before-convention-audit. Machine prerequisite: `uv tool install graphifyy`.
+
 ## 1.11.0 — 2026-07-21 · named UX-layer options: Preline UI (additive) and Astryx (alternative)
 
 The baseline named exactly one UX stack (Tailwind + shadcn/ui) and no alternatives, so the UI
