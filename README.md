@@ -191,6 +191,7 @@ default expectation is: installed on every machine, like git.
 | **sailes-async** | When a slow/brittle integration flow (often Make/n8n) must become a fast, durable, code-first async backend: webhook intake + durable engine, parallel fan-out, retry-from-step, and a hard harness (idempotency, audit, failure alerts) under a measured latency budget. 🔒 harness rules applied; 🔀 decisions (build-vs-low-code, engine, self-host, sync-vs-defer) via decision cards. Distilled from the SRF "≤5s" build. |
 | **sailes-implement** | Execute an approved+ready spec phase by phase: RED test → implement → verify with evidence → commit per step → adversarial review gate → mark spec implemented. |
 | **sailes-pipedrive** | Reference for building Pipedrive app extensions (JSON panel, custom UI iframe, floating window, manifest/OAuth, signed-JWT auth, ACL, API proxy). A domain sibling, not part of the core pipeline. |
+| **sailes-migrate** | Port an existing codebase to another language/stack **at scale**, repeatably and gated — structure-preserving by default, redesign as an explicit mode. Six steps with the hard invariant: no parallel translation before a **judge/parity-harness** exists and is validated against deliberately-broken source. Reuses the existing agent team + deny-list guardrail. A domain sibling, not part of the core pipeline; distinct from `sailes-database`'s DB-schema migrations. Distilled from Anthropic's code-migration-kit (Apache-2.0). |
 
 Full pipeline diagram, invariants, and per-skill file lists: see **[`skills/README.md`](skills/README.md)**.
 
