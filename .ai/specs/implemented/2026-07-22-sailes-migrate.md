@@ -1,6 +1,6 @@
 # Spec: `sailes-migrate` — large-scale codebase migration as a Sailes domain skill
 
-Status: draft
+Status: implemented — §2 Provisional Decisions (D1–D7) approved as-is by the human, 2026-07-23
 Framework-Version target: 1.13.0
 Branch: `feat/sailes-migrate` (based on `feat/graphify-default-integration` = 1.12.0)
 Author: session 2026-07-22 (autonomous; human at pool — every decision below is marked NEEDS-VERIFICATION)
