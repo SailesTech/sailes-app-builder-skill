@@ -7,6 +7,30 @@
 
 ## Lessons
 
+### 2026-07-25 — silence from a worker has two causes, and they need different fixes
+- **Context:** six workers spawned for two eval runs. Four went idle having said nothing. The
+  doctrine (`team-lead.md:40`, `agent-team-structure.md:115`) says that means the worker *failed
+  silently*, so the lead chases once and escalates. The chase recovered every report, every time.
+- **Problem:** the stated cause was wrong. All four had finished and had written full reports —
+  `gate-arm-A3` said so outright once it had a channel that reached the lead. What failed was the
+  transport, not the worker. Two workers were re-spawned for nothing, and one eval arm was blocked
+  through two whole rounds. The rule kept working, so nothing forced its reason to be examined —
+  the same shape as the 2026-07-20 meta-lesson.
+- **Rule:** chase the silence exactly as before, but do not read it as negligence, and put the
+  prevention in the **deliverable** rather than in the wording of the report clause: for anything a
+  gate will grade, the brief names a FILE path and says the file is the task ("no file = not done").
+  Evidence from the same session: four message-deliverable briefs → six empty returns and two
+  wasted re-spawns; one file-deliverable brief → a complete, gradable artifact on the first try.
+  Corollary from the same ledger: release is an act you confirm — 5 shutdown requests, 3 needed a
+  second attempt, and a run log that records "released" on a request that was merely sent is fiction.
+- **Applies-to:** `agents/team-lead.md`, `codex-agents/team-lead.toml`,
+  `skills/sailes-bootstrap/agent-team-structure.md` §Agent lifecycle; every delegation. **No
+  mechanical check is possible** — no hook observes a subagent completing — so this stays prose,
+  with `.ai/runs/2026-07-25-eval-session-and-worker-lifecycle.md` as the evidence base.
+- **Escaped-defect:** none shipped, but the cost landed anyway: two re-spawns, six idle workers left
+  alive until the human noticed, and a lead grading other agents against a lifecycle rule it was not
+  executing itself.
+
 ### 2026-07-25 — a measuring instrument needs a fixture that must NOT fire
 - **Context:** 1.14.0 shipped the physical-integrity probe (`browser-inspect.md` §1) with pasted
   evidence: five deliberate defects on a fixture page, all five found, plus "clean page returned

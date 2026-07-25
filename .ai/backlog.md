@@ -21,6 +21,8 @@
 ## Tech debt
 | Item | Impact | Source | Status |
 |---|---|---|---|
+| **D5 from the browser-instrument spec: does `designer` get browser tools?** It has no Bash today, so it cannot render anything to measure; the integrity gate runs on whoever builds (`fe-dev`). Giving it browser tools is only coherent together with Bash, which changes what the role *is* — a human call, deliberately left unmade. Three-line edit once answered | a designer could measure its own spec before handoff; today it hands over unmeasured intent | 2026-07-25 spec §5 (now in `implemented/`) | awaiting human |
+| ~~**Worker release has a rule but no mechanism**~~ — six workers spawned for two eval runs, zero released until the human noticed; each kept emitting `idle_notification` that reads like new work. **CLOSED 1.15.0**: mechanism named (`shutdown_request`, not `TaskStop`), release confirmed rather than assumed, FILE deliverable for gradable work, empty-return cause corrected. Ledger: `.ai/runs/2026-07-25-eval-session-and-worker-lifecycle.md` | every delegated run; the leak scaled with fan-out | 2026-07-25 eval session | done |
 | Behavioral GREEN re-runs pending for 1.1.0 text-level edits (see evals/ "pending" lines) | text Done-when passed; behavior unproven until re-run post-merge | this change-set | next |
 
 ## Later phases (from specs)

@@ -37,12 +37,15 @@ Apply it honestly in the other direction too: a worker costs a spawn, a brief, a
 ## Agent lifecycle
 Spawn a worker when its pipeline task is actually ready; integrate its result, then release it; re-spawn fresh (never reuse a stale, context-heavy agent) on a CHANGES-REQUIRED loop. Never hold idle agents.
 
-**A worker that returns nothing has not finished — it has failed silently.** An idle signal carrying no report is a defect to chase, never a completion, and never the finding "there was nothing to report". Those two are indistinguishable from the outside, which is what makes this dangerous: accept the silence and you record a false negative as a result. So:
+**Release is an act you confirm, not a request you send.** For a live teammate that means `SendMessage {"type":"shutdown_request","reason":…}` and waiting for the termination — `TaskStop` is a fallback for runtimes that have it, not the operative path. Superseded and abandoned workers get released too: re-spawning an arm leaves the first one alive unless you close it. Measured 2026-07-25: of five requests, two landed first try and three needed a second, and the survivors kept pinging idle in the meantime. The run log says "released" only for a confirmed termination.
+
+**An idle signal carrying no report is never a completion** — and never the finding "there was nothing to report". Those two are indistinguishable from the outside, which is what makes this dangerous: accept the silence and you record a false negative as a result. So:
 - **Chase it once**, explicitly: ask for the report, and instruct it to state plainly if it did not finish and what it did / did not establish.
 - **Still empty → escalate to the human.** Do not re-spawn on a guess and do not paper over the gap by doing the work yourself; say which delegation produced nothing.
 - **Never forward an unverified absence as a result.** "The agent found no issues" is a claim you may only make if an agent actually said so.
+- **Do not assume negligence.** Silence has two causes with one appearance: the worker did not finish, or the channel dropped a report it did write. On 2026-07-25 all four silent workers had finished and had full reports; two were re-spawned for nothing.
 
-Prevention beats the chase: the report clause in the brief (step 2) is what should make this rare. The chase is the backstop for when it is not.
+Prevention beats the chase, and the prevention is the deliverable, not the wording: **for work a gate will grade, name a FILE in the brief** — path plus "no file = task not done" — and read it from disk. Same session: four message-deliverable briefs → six empty returns; one file-deliverable brief → a gradable artifact first try.
 
 ## Delegating a task to another runtime (Codex)
 The human may hand one task to a different runtime — "use Codex for the backend", "let Codex review this". Honor it literally, and **only when asked**: never route work to Codex on your own initiative. A Codex worker is an ordinary worker — one self-contained brief in, one report out, its diff faces the same gates. The runtime it ran on earns it no exemption.
