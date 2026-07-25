@@ -66,5 +66,15 @@ lesson about a rule that succeeds for the wrong reason.
   `SKIP browser-inspect` and marked five of six checks NOT ESTABLISHED rather than passed.
   Recorded in the eval file with its method deviation (no `chrome-devtools` MCP on the machine; the
   instrument was a CLI CDP bridge running the shipped §1 probe).
-- `devtools-evidence-does-not-replace-a-suite-test` — first run INCONCLUSIVE (fixture), re-run
-  verdict recorded in the eval file.
+- `devtools-evidence-does-not-replace-a-suite-test` — first run INCONCLUSIVE (fixture BOM), re-run
+  **PASS**: the agent drove the form over CDP, wrote a six-case Playwright spec asserting the
+  persisted row, called its own CDP evidence "diagnostyczny, nie test", reported the three browser
+  cases as not-run behind a diagnosed ENV-DEFECT rather than claiming them, and proved detection by
+  mutating the server (only the matching case failed; reverted bit-for-bit, verified on disk).
+
+## Both 1.14.0 evals now have verdicts
+
+The instrument adopted in 1.14.0 is proven in both halves it needed: the agent measures instead of
+eyeballing (or says SKIP), and it does not let a devtools drive-through stand in for a suite test.
+`.ai/specs/2026-07-25-browser-devtools-instrument.md` can move to `implemented/` — its §8 follow-up
+list is down to D5 (does `designer` get browser tools), which is a human decision, not a gap.
