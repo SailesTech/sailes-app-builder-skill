@@ -61,6 +61,14 @@
   `main` is not a staging area.
 
 ## Open failures
+- **1.15.0 shipped without re-running the three evals that name the files it edited** —
+  `lead-chases-an-empty-worker-return` (which covers the very rule that was rewritten),
+  `lead-delegates-instead-of-bulk-coding`, `lead-honors-codex-delegation-and-still-gates`. The
+  `evals/README.md` rule is explicit: editing a skill means re-running every scenario naming it.
+  `npm test` was green, and green there says nothing about these. The human deferred the harness
+  work on 2026-07-25; the debt is real and named here so it is not mistaken for coverage. Measured
+  the same day: **9 of 27 evals are stale** by the same definition (last run older than the last
+  change to the file under test).
 - ~~1.14.0's two evals are RED/GREEN PENDING~~ **CLOSED 2026-07-25 — both PASS.** Dispatched to
   fresh workers: the integrity-gate eval green in both arms (instrument present → CHANGES-REQUIRED
   quoting the probe at three widths; absent → literal `SKIP browser-inspect` plus five of six checks
