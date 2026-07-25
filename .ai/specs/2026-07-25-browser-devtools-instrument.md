@@ -107,6 +107,35 @@ changes what that role *is*. Left unchanged deliberately. Answer it and it is a 
 - No visual-diff/pixel-comparison automation — `.ai/screens/` vision-verify stays as it is.
 - Not wired into `sailes-async`, `sailes-database`, `sailes-hosting` — no browser surface there.
 
+## 7a. Correction — 1.14.1 (2026-07-25, post-merge audit)
+
+An audit of the merged commit ran the probe from §1 against a page carrying **no** defect. It
+returned `PASS: false`. Three false-positive classes, each triggered by a pattern present on
+essentially every application screen:
+
+| Check | What fired | Why |
+|---|---|---|
+| 2 off-canvas | `["section","#footer-action","#footer-link"]` | `r.top >= vh` flags everything below the fold; vertical scrolling is not a defect |
+| 1 clipped | `["#long-title"]` | `overflow:hidden` + `text-overflow:ellipsis` produces `scrollWidth > clientWidth` **by definition** |
+| 5 unclickable | `["#menu-a","#menu-b"]` | computed `display` of a child of a `display:none` parent is not `none`, so the visibility filter passed them; their 0×0 box then hit the sliver branch |
+
+All three were inside `PASS`. Fixed: `el.checkVisibility()` (accounts for ancestors), horizontal-only
+off-canvas with an above-the-edge arm gated on `scrollY === 0`, ellipsis excluded from `clipped`,
+zero-size controls excluded from `unclickable`.
+
+**Why §6's verification did not catch it, which is the more useful finding.** The fixture was a
+defect page plus the same page with the defects removed — `docHeight` 675 on a 690px viewport. It
+could not contain a below-the-fold element, an ellipsis, or a closed menu, so it could not have
+shown any of this. The claim "clean page returned `PASS: true`" was true and meant nothing.
+Detection and invention are separate claims and the fixture only tested the first.
+
+Now in the repo, both directions and re-runnable: `evals/fixtures/browser-probe/`
+(`clean-page.html`, `defect-page.html`, `run-probe.mjs`). The runner extracts the probe from §1's
+code block rather than a copy. RED-verified — restoring the old off-canvas rule fails it, exit 1.
+Lesson filed in `.ai/lessons.md` (2026-07-25). Release stamps: 1.14.0 shipped with `AGENTS.md`
+still reading 1.13.0; corrected, and the stamp is now named as a fifth release file in `AGENTS.md`
+§Release and `.ai/STATE.md`.
+
 ## 8. Follow-ups
 
 - Both evals are **RED/GREEN pending** — they need a fresh-subagent run before this is claimed

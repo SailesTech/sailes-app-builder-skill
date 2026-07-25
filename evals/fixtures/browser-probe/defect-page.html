@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><title>Five deliberate physical defects</title>
+<style>
+  body { margin: 0; font-family: system-ui; }
+  .clip { width: 120px; height: 40px; overflow: hidden; }   /* 1. clipped */
+  .clip p { width: 400px; }
+  .off { position: absolute; left: -600px; top: 20px; }     /* 2. off-canvas (horizontally) */
+  .wide { width: 2400px; height: 20px; background: #eee; }  /* 3. document h-scroll */
+  #covered { position: relative; z-index: 1; }              /* 5. covered by a non-interactive overlay */
+  .overlay { position: absolute; inset: 0; height: 200px; background: rgba(0,0,0,.02); z-index: 5; }
+  #tinybtn { width: 10px; height: 10px; padding: 0; }       /* 6. sliver hit area */
+</style></head>
+<body>
+  <div class="clip"><p>Content much wider than its clipping box, deliberately overflowing</p></div>
+  <button class="off">Off canvas</button>
+  <div class="wide"></div>
+  <button id="covered">Covered by overlay</button>
+  <button id="tinybtn"></button>
+  <div class="overlay"></div>
+</body></html>

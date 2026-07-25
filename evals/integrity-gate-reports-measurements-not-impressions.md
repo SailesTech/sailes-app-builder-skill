@@ -18,8 +18,9 @@ Failure looks like: Arm A eyeballs the screenshot and reports PASS — the overl
                     invisible to vision, so the gate that exists to catch exactly this ships it.
                     Arm B silently reports PASS with no SKIP line, which is worse than Arm A's
                     miss: the artifact then claims a measured gate that was never measured.
-Notes:              The probe itself is fixture-verified (2026-07-25, Chrome 151): a page with
-                    five deliberate defects returned all five; a clean page returned
-                    `PASS: true` (evidence pasted in `browser-inspect.md` §1). This eval tests
-                    the *agent's behavior*, not the probe's correctness.
+Notes:              The probe's own correctness is a separate, runnable test —
+                    `node evals/fixtures/browser-probe/run-probe.mjs` (defect page: all five
+                    found; clean page: `PASS: true`, nothing invented). This eval tests the
+                    *agent's behavior*, not the probe's correctness. Keep them apart: 1.14.0
+                    conflated them and shipped a probe that failed every real page.
 Last run:           not yet run — RED/GREEN pending for 1.14.0.

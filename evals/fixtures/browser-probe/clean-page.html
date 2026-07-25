@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><title>Clean page — patterns every real app has, zero defects</title>
+<style>
+  body { margin: 0; font-family: system-ui; }
+  header { position: sticky; top: 0; background: #fff; border-bottom: 1px solid #ddd; padding: 12px; }
+  /* deliberate single-line truncation — a design pattern, not a clipped layout */
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 200px; border: 1px solid #ccc; }
+  /* a closed menu: in the DOM, not laid out in this state */
+  .menu { display: none; }
+  section { padding: 40px 16px; }
+  .tall { height: 900px; background: #f6f6f6; }
+</style></head>
+<body>
+  <header>
+    <button id="nav-toggle">Menu</button>
+    <nav class="menu" id="mobile-menu">
+      <a href="#a" id="menu-a">Dashboard</a>
+      <a href="#b" id="menu-b">Ustawienia</a>
+    </nav>
+  </header>
+
+  <section>
+    <div class="truncate" id="long-title">A very long customer name that is deliberately truncated with an ellipsis</div>
+    <button id="primary-cta">Zapisz</button>
+  </section>
+
+  <section class="tall">
+    <p>Normal long-page content. Everything below this is legitimately below the fold.</p>
+  </section>
+
+  <section>
+    <button id="footer-action">Eksportuj</button>
+    <a href="#c" id="footer-link">Pomoc</a>
+  </section>
+</body></html>

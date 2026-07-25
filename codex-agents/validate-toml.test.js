@@ -27,6 +27,45 @@ const ROLES = ['team-lead', 'explorer', 'designer', 'be-dev', 'fe-dev', 'checker
 
 let failures = 0;
 
+/**
+ * Find a bash that is actually a POSIX shell.
+ *
+ * On Windows, `C:\Windows\System32\bash.exe` is the WSL relay and comes first in PATH for
+ * PowerShell sessions. Without a distro it fails with `execvpe(/bin/bash)` — every case here
+ * then reported "rejected a role file we ship: " with an empty message, i.e. 13 failures whose
+ * stated reason (a bad TOML guard) was not the real one. Same family as the MSYS note below:
+ * a step reporting an outcome for a reason other than the one claimed.
+ */
+function resolveBash() {
+  const probeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sailes-bash-'));
+  const probe = path.join(probeDir, 'probe.sh').replace(/\\/g, '/');
+  fs.writeFileSync(probe, 'printf sailes-ok\n');
+  const candidates = [
+    process.env.SAILES_BASH,
+    'bash',
+    'C:\\Program Files\\Git\\bin\\bash.exe',
+    'C:\\Program Files\\Git\\usr\\bin\\bash.exe',
+    '/bin/bash',
+  ].filter(Boolean);
+  for (const cand of candidates) {
+    try {
+      if (execFileSync(cand, [probe], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() === 'sailes-ok') {
+        return cand;
+      }
+    } catch { /* next candidate */ }
+  }
+  return null;
+}
+
+const BASH = resolveBash();
+if (!BASH) {
+  console.log('enable-codex-agents.sh :: validate_toml');
+  console.log('  SKIP no working POSIX bash found — checked $SAILES_BASH, PATH `bash`, Git Bash, /bin/bash.');
+  console.log('       On Windows the System32 `bash.exe` is the WSL relay, not a shell: run this from');
+  console.log('       Git Bash, or set SAILES_BASH to a real one. The guard was NOT validated.');
+  process.exit(0);
+}
+
 function test(name, fn) {
   try {
     fn();
@@ -52,7 +91,7 @@ function validate(file) {
   const runner = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'sailes-run-')), 'run.sh');
   fs.writeFileSync(runner, `${fn[0]}\nvalidate_toml ${target}\n`);
   try {
-    const out = execFileSync('bash', [runner.replace(/\\/g, '/')], { encoding: 'utf8' });
+    const out = execFileSync(BASH, [runner.replace(/\\/g, '/')], { encoding: 'utf8' });
     return { ok: true, message: out.trim() };
   } catch (err) {
     return { ok: false, message: (err.stdout || '').trim() };

@@ -7,6 +7,29 @@
 
 ## Lessons
 
+### 2026-07-25 — a measuring instrument needs a fixture that must NOT fire
+- **Context:** 1.14.0 shipped the physical-integrity probe (`browser-inspect.md` §1) with pasted
+  evidence: five deliberate defects on a fixture page, all five found, plus "clean page returned
+  `PASS: true`". The clean page was the same short synthetic page with the defects removed. Every
+  word of the claim was true.
+- **Problem:** on the first realistic page — one that scrolls, truncates a title with an ellipsis,
+  and keeps a closed `display:none` menu in the DOM — the probe returned `PASS: false` on three
+  counts, none of them a defect. The fixture was structurally incapable of showing it: at
+  `docHeight` 675 on a 690px viewport there is no below-the-fold content to misclassify. A gate
+  that fails every correct page is not a strict gate; it is a gate that gets argued with once and
+  ignored thereafter — the exact impression-based verdict the instrument was adopted to replace.
+- **Rule:** any check that classifies work as good or bad gets **two** fixtures — one it must flag,
+  one it must not — and the negative one is modelled on real usage, not on the positive one with
+  the defects deleted. Detection and invention are different claims; a defect-only fixture proves
+  only the first. Where the check is code, the fixtures ship with a runner that reads the checked
+  artifact itself (`evals/fixtures/browser-probe/run-probe.mjs` extracts the probe from the doc's
+  code block), so the evidence is re-runnable instead of pasted.
+- **Applies-to:** every gate, probe, hook or heuristic that emits a pass/fail; `evals/README.md`
+  (scenario design); `sailes-test` (a suite that only proves the bug is caught is half a suite).
+- **Escaped-defect:** the review gate read the probe as prose and accepted the pasted output as
+  verification. What catches it now: the fixture pair is in the repo and runnable, and a claim of
+  "fixture-verified" without a negative case is incomplete on its face.
+
 ### 2026-07-20 — a pre-formatted statistic is the highest-risk input you handle
 - **Context:** building `sailes-test`, a delegated research agent returned a confident, well-formatted
   finding — specific percentages attributed to arXiv 2410.21136 (≈62% implementation-biased oracles,
