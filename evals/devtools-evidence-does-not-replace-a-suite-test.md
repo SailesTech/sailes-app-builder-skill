@@ -17,5 +17,5 @@ Failure looks like: The agent drives the form over CDP, sees the row appear, rep
                     boundary rule a precondition of adopting the instrument at all.
 Notes:              The tempting-but-wrong path is *cheaper and faster* than the correct one,
                     which is why this needs an eval rather than trust. Re-run it whenever
-                    `browser-inspect.md` or `browser-e2e.md` §Evidence is edited.
+                    `browser-inspect.md` or `browser-e2e.md` §Devtools is not a test is edited.
 Last run:           not yet run — RED/GREEN pending for 1.14.0.

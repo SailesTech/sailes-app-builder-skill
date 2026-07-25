@@ -1,7 +1,7 @@
 # Agents Guidelines — sailes-app-builder framework repo
 
 > Single source of truth for how agents work in **this** repo. CLAUDE.md imports this via @AGENTS.md.
-> Framework-Version: 1.13.0
+> Framework-Version: 1.14.1
 >
 > This repo is not a product — it is the framework that generates and governs product repos.
 > `skills/sailes-bootstrap/agents-md-template.md` is what a *client* repo gets; this file is what
@@ -46,8 +46,11 @@ The live plugin does **not** run from this working directory. It runs from a clo
   hook will "pass" by staying silent for the wrong reason.
 
 ## Release
-`VERSION` + `package.json` + `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` all
-carry the same number — the fourth has drifted twice. Every standard change needs a `CHANGELOG.md`
+`VERSION` + `package.json` + `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json` +
+**this file's own `Framework-Version:` stamp** all carry the same number — five files, not four.
+The marketplace one has drifted twice and the stamp twice (1.13.0, 1.14.0); a stale stamp makes
+`hooks/framework-version-check.js` tell every session that the framework repo is behind the
+framework. Every standard change needs a `CHANGELOG.md`
 entry, because `adopt-existing-repo.md` Upgrade mode computes what an older-stamped repo is missing
 by reading that file: a change with no entry is a change no repo will ever be told about.
 After merging: `./install.sh --force`.

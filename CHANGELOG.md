@@ -4,6 +4,39 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.14.1 — 2026-07-25 · the integrity probe stops failing correct pages
+
+1.14.0's probe returned `PASS: false` on a page with no defect at all. What an upgraded repo gets:
+
+- **Three false-positive classes fixed** in `skills/sailes-design/browser-inspect.md` §1, each of
+  which fires on patterns every real application page has: content **below the fold** was read as
+  off-canvas (check 2 tested `top >= vh`; now horizontal-only, plus an above-the-edge arm that
+  disables itself when `scrollY !== 0`); **single-line ellipsis truncation** was read as clipping
+  (`overflow:hidden` + `text-overflow:ellipsis` produces `scrollWidth > clientWidth` by definition —
+  now excluded); controls inside a **closed `display:none` menu** were read as unclickable
+  (`getComputedStyle` on a child does not inherit the parent's `none` — the filter now uses
+  `el.checkVisibility()`, which accounts for ancestors, and zero-size controls are no longer
+  hit-tested). A gate that always fails is a gate agents learn to argue with.
+- **The "fixture-verified" claim is now runnable, and includes a clean page.**
+  `evals/fixtures/browser-probe/` ships both fixtures plus `run-probe.mjs`, which extracts the probe
+  from the **doc's own code block** — never a copy — launches headless Chromium over CDP and asserts
+  both directions: the defect page still surfaces all five defects, the clean page returns
+  `PASS: true`. RED-verified: restoring the pre-fix off-canvas rule fails it with exit 1. Not wired
+  into `npm test` (it needs a browser); no Chromium → prints `SKIP browser-probe fixtures`, exit 0.
+- **`AGENTS.md` stamp corrected.** It shipped 1.14.0 still reading `Framework-Version: 1.13.0`, so
+  `hooks/framework-version-check.js` told every session that the framework repo was behind the
+  framework. The stamp is a fifth file in the release ritual, not a footnote — same drift as
+  1.13.0, second occurrence.
+- Boundary-rule pointers now name `browser-e2e.md` **§Devtools is not a test** instead of the
+  neighbouring §Evidence.
+- **`npm test` no longer reports 13 false failures on Windows.** `codex-agents/validate-toml.test.js`
+  called `bash` from PATH; in a PowerShell session that resolves to `C:\Windows\System32\bash.exe`,
+  the WSL relay, which without a distro dies with `execvpe(/bin/bash)`. Every case then failed
+  claiming the shipped role TOMLs were rejected — a failure whose stated reason was not the real
+  one. It now resolves a bash that actually runs a script (`$SAILES_BASH` → PATH → Git Bash →
+  `/bin/bash`) and, when none does, prints an explicit `SKIP … The guard was NOT validated` and
+  exits 0 rather than inventing sixteen verdicts. Both arms exercised.
+
 ## 1.14.0 — 2026-07-25 · the UI gates measure instead of eyeball (optional browser instrument)
 
 No new skill and no new phase — an **instrument** for three gates we already mandate but could not

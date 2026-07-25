@@ -32,8 +32,9 @@ uses are exactly two:
 
 Any behavior that must not regress ends as a **Playwright test in the suite** (`sailes-test`
 → `references/browser-e2e.md`). "I clicked it in devtools and it worked" is the false green this
-framework was built against — see `browser-e2e.md` §Evidence. If you find yourself proving a
-behavior with `click` + `evaluate_script` and writing no test, stop: you are spending the ratchet.
+framework was built against — see `browser-e2e.md` §Devtools is not a test. If you find yourself
+proving a behavior with `click` + `evaluate_script` and writing no test, stop: you are spending the
+ratchet.
 
 ## Availability
 
@@ -72,8 +73,11 @@ result into the artifact — that is the gate's evidence.
 () => {
   const R = el => el.getBoundingClientRect();
   const vw = innerWidth, vh = innerHeight;
-  const vis = el => { const s = getComputedStyle(el);
-    return s.display !== 'none' && s.visibility !== 'hidden' && +s.opacity > 0.01; };
+  // checkVisibility accounts for ANCESTORS; a hand-rolled getComputedStyle check does not —
+  // computed `display` of a child of a display:none parent is still its own value.
+  const vis = el => el.checkVisibility
+    ? el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })
+    : (s => s.display !== 'none' && s.visibility !== 'hidden' && +s.opacity > 0.01)(getComputedStyle(el));
   const all = [...document.body.querySelectorAll('*')].filter(vis);
   const named = el => el.id ? '#'+el.id
     : el.className && typeof el.className === 'string'
@@ -83,13 +87,17 @@ result into the artifact — that is the gate's evidence.
   // 1. clipped — content larger than its own clipping box
   const clipped = all.filter(el => { const s = getComputedStyle(el);
     if (!/hidden|clip/.test(s.overflow + s.overflowX + s.overflowY)) return false;
-    return el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1;
+    const overX = el.scrollWidth > el.clientWidth + 1, overY = el.scrollHeight > el.clientHeight + 1;
+    if (overX && !overY && s.textOverflow === 'ellipsis') return false; // deliberate truncation, not a defect
+    return overX || overY;
   }).map(named);
 
-  // 2. off-canvas — laid out, but not on screen
+  // 2. off-canvas — laid out OUTSIDE the page, which is not the same as below the fold.
+  //    `top >= vh` would flag every element on a scrolling page, so vertical counts only
+  //    above the top edge, and only while the page is at scroll 0.
   const offcanvas = all.filter(el => { const r = R(el);
     if (r.width === 0 || r.height === 0) return false;
-    return r.right <= 0 || r.bottom <= 0 || r.left >= vw || r.top >= vh;
+    return r.right <= 0 || r.left >= vw || (scrollY === 0 && r.bottom <= 0);
   }).map(named);
 
   // 3. unintended document h-scroll
@@ -111,6 +119,7 @@ result into the artifact — that is the gate's evidence.
 
   // 5. controls not actually operable — centre point hits something else, or a sliver hit area
   const unclickable = ctrl.filter(el => { const r = R(el);
+    if (!r.width && !r.height) return false;  // not laid out in this state (closed menu, inactive tab) — open it and re-run
     if (r.width < 2 || r.height < 2) return true;
     const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
     if (cx < 0 || cy < 0 || cx > vw || cy > vh) return false; // off-canvas is check 2's finding
@@ -133,23 +142,40 @@ result into the artifact — that is the gate's evidence.
 at 1280, 1366 and 1440 and compare the recorded widths of the elements the spec says must flex. A
 column whose measured width is identical at all three is frozen — the defect `SKILL.md` names.
 
-**Verified against fixtures** (2026-07-25, Chrome 151, viewport 1280×783) — a page carrying five
-deliberate defects returned every one of them, and a clean page returned `PASS: true`:
+**Verified against fixtures that live in the repo** — `evals/fixtures/browser-probe/`, run with
+`node evals/fixtures/browser-probe/run-probe.mjs`. The runner extracts the probe from *this code
+block*, so editing it here is what the fixtures test. Last run 2026-07-25 (Chromium 150 / Edge
+150.0.4078.96, headless, 1254×690), both cases passing:
 
 ```json
+// defect-page.html — five deliberate defects, all found
 {"clipped":["div.clip"],"offcanvas":["button.off"],
- "hscroll":{"scrollWidth":2400,"clientWidth":1280,"widest":["div.wide"]},
- "overlap":[],"unclickable":["#covered"],"smallHit":["#tinybtn"],"PASS":false}
-{"clipped":[],"offcanvas":[],"hscroll":null,"overlap":[],"unclickable":[],"smallHit":[],"PASS":true}
+ "hscroll":{"scrollWidth":2400,"clientWidth":1254,"widest":["div.wide"]},
+ "overlap":[],"unclickable":["#covered","#tinybtn"],
+ "smallHit":["button.off","#covered","#tinybtn"],"PASS":false}
+// clean-page.html — sticky header, ellipsis truncation, a closed display:none menu,
+// 1257px of content on a 690px viewport: nothing invented
+{"clipped":[],"offcanvas":[],"hscroll":null,"overlap":[],"unclickable":[],
+ "smallHit":["#nav-toggle","#primary-cta","#footer-action","#footer-link"],"PASS":true}
 ```
 
-Note what that run proves about the **division of labour between checks 4 and 5**: the fixture's
-button was buried under a plain `div` overlay, `overlap` stayed empty (it compares interactive
-controls to each other), and check 5's hit-test caught it as `unclickable`. A control covered by a
-*non-interactive* element is check 5's finding, not check 4's — do not read an empty `overlap` as
-"nothing is covering anything".
+Note what the defect run proves about the **division of labour between checks 4 and 5**: the
+fixture's button was buried under a plain `div` overlay, `overlap` stayed empty (it compares
+interactive controls to each other), and check 5's hit-test caught it as `unclickable`. A control
+covered by a *non-interactive* element is check 5's finding, not check 4's — do not read an empty
+`overlap` as "nothing is covering anything".
 
-Three honest limits, so nobody over-trusts it:
+And note why the *clean* fixture is the one that earns its keep. 1.14.0 shipped this probe verified
+against the defect page only — a short synthetic page — and on a real application page it returned
+`PASS: false` for three reasons that were all correct design: content below the fold (check 2 tested
+`top >= vh`), single-line ellipsis truncation (check 1 sees `scrollWidth > clientWidth` by
+definition), and links inside a closed `display:none` menu (`getComputedStyle` on a child does not
+inherit the parent's `none`, so they passed the visibility filter with a 0×0 box and landed in
+`unclickable`). A gate that always fails is a gate agents learn to argue with — the opposite of what
+the instrument was adopted for. Fixed in 1.14.1: `checkVisibility()`, horizontal-only off-canvas,
+`text-overflow: ellipsis` excluded, zero-size controls excluded.
+
+Four honest limits, so nobody over-trusts it:
 - **It finds physical defects, not ugly ones.** Taste, hierarchy, and the premium-craft pass still
   need the screenshot and your judgment. This replaces the *integrity* half of the gate only.
 - **`overlap` and `smallHit` produce false positives by design** — deliberate stacking (a badge on
@@ -157,7 +183,11 @@ Three honest limits, so nobody over-trusts it:
   appear. Read the list; do not paste it as a verdict. `PASS` deliberately excludes `smallHit`.
 - **Only what is rendered now is measured.** Content behind a closed modal, an unopened dropdown,
   or a collapsed accordion is not in the DOM or not laid out — open each state and re-run. The gate
-  covers the states `ux-rules.md` requires, not just the default one.
+  covers the states `ux-rules.md` requires, not just the default one. Corollary: run the probe at
+  **scroll position 0** — check 2's "above the top edge" arm is only meaningful there, and it
+  disables itself when `scrollY` is anything else.
+- **An `overflow: hidden` carousel or marquee still reads as `clipped`.** Only ellipsis truncation
+  is excluded, because only it is detectable. Read the named element before believing the finding.
 
 ## 2. Accessibility, measured
 

@@ -13,10 +13,13 @@
   `enable-plugin.sh`; a push to any other branch reaches nobody. Local edits never reach a session.
 - Skill regression tests are persisted in `evals/` since 1.1.0. Before that, RED/GREEN lived only
   in chat sessions.
-- Framework version lives in `VERSION` (currently **1.14.0**) and must match `package.json`,
-  `.claude-plugin/plugin.json` **and** `.claude-plugin/marketplace.json` — that fourth one has
-  drifted twice. The standard delta per version is in `CHANGELOG.md`; generated repos are stamped
-  `Framework-Version:` in AGENTS.md, which `hooks/framework-version-check.js` compares on startup.
+- Framework version lives in `VERSION` (currently **1.14.1**) and must match `package.json`,
+  `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` **and this repo's own AGENTS.md
+  `Framework-Version:` stamp** — five files. The marketplace one has drifted twice; the stamp has
+  now drifted twice as well (1.13.0 needed a follow-up commit, 1.14.0 shipped stale). Evidence a
+  stale stamp is not cosmetic: with `CLAUDE_PLUGIN_ROOT` at 1.14.0 and the stamp at 1.13.0,
+  `hooks/framework-version-check.js` emits "this repo is stamped 1.13.0 … offer Upgrade mode" into
+  every session — the framework nagging itself. The standard delta per version is in `CHANGELOG.md`.
 - Spec lifecycle is enforced here too: `.ai/specs/` root = live. Both 2026-07-05 specs sat
   completed-but-unmoved for 13 days and were moved to `implemented/` on 2026-07-18 — the exact
   drift `workflow-router.js` was built to flag, in the repo that wrote the check.
@@ -27,9 +30,14 @@
   physical-integrity six (`sailes-design/SKILL.md`), contrast/focus/keyboard (`ux-rules.md:7,37,66`),
   and the latency budget (`premium-ux.md` §1). All three are measurable over CDP; the instrument is
   `skills/sailes-design/browser-inspect.md`, optional with an explicit-SKIP fallback (graphify
-  pattern). Evidence the probe works: fixture run 2026-07-25, Chrome 151 — five deliberate defects
-  all reported (incl. an overlay-covered button, invisible to any screenshot), clean page
-  `PASS: true`.
+  pattern). Evidence the probe works, **both directions**, and it is re-runnable rather than pasted:
+  `node evals/fixtures/browser-probe/run-probe.mjs` — the defect page surfaces all five (incl. an
+  overlay-covered button, invisible to any screenshot), the clean page returns `PASS: true`.
+- **1.14.0's probe failed every realistic page, and its fixture could not have shown that** (fixed
+  in 1.14.1). The only fixture was a short synthetic defect page, so three false-positive classes
+  shipped: below-the-fold content read as off-canvas, ellipsis truncation read as clipping, and
+  controls in a closed `display:none` menu read as unclickable. The runner now reads the probe out
+  of the doc's code block, and the clean-page fixture is the half that catches invention.
 - **A dev server cannot produce an absolute performance verdict** — unminified HMR bundle, no CDN,
   no prod cache headers. `lighthouse_audit` excludes performance by design; dev CWV numbers are a
   *relative* signal only. Geometry and contrast, by contrast, are valid on dev.
@@ -37,7 +45,11 @@
 ## General rules
 - Every framework change lands as: proposal spec (root `.ai/specs/`) → human answers Open
   Questions → edits with binary Done-when outputs pasted → evals updated → CHANGELOG entry →
-  VERSION bump (all four manifests) → push `main` → post-merge `./install.sh --force`.
+  VERSION bump (all four manifests **+ the AGENTS.md stamp**) → push `main` → post-merge
+  `./install.sh --force`.
+- A measuring instrument gets a fixture for **both** directions: one that must be flagged, and one
+  that must not. A defect-only fixture proves detection and says nothing about invention, and an
+  instrument that flags correct work is worse than none — the gate gets argued with, then ignored.
 - Editing a skill = re-run the `evals/` scenarios naming it; new protected behavior = eval first.
 - Experiments that change global behavior stay on a branch until their eval returns a verdict.
   `main` is not a staging area.
@@ -70,6 +82,9 @@
   **a step that reports success for a reason other than the one claimed.** Two mitigations are
   now in AGENTS.md (verify a scripted edit landed; `\r?\n` not `\n`); a third is simply to stop
   pushing prose through a shell — use the file-writing tools.
+  **Sixth instance, 2026-07-25 (1.14.0):** a probe "fixture-verified" against a defect-only page.
+  Every assertion in that claim was true and the instrument still failed every correct page. The
+  mitigation is in General rules — both directions, or it is not a fixture.
 
 ## Lessons learned
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
