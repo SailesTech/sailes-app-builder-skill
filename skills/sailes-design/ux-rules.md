@@ -4,7 +4,7 @@ Condensed from a large UI/UX rule base, filtered for **B2B web apps** (Next.js /
 
 ## 1. Accessibility (CRITICAL — non-negotiable)
 
-- Contrast ≥ **4.5:1** body text, 3:1 large text. Verify foreground/background pairs.
+- Contrast ≥ **4.5:1** body text, 3:1 large text. Verify foreground/background pairs — with `lighthouse_audit` (accessibility) if the `chrome-devtools` MCP is available, which names the failing pairs and their computed ratios; see `browser-inspect.md` §2. Eyeballing a palette is not verification.
 - **Visible focus rings** on every interactive element (don't remove outlines). Keyboard tab order matches visual order.
 - `aria-label` on icon-only buttons; `<label for>` on inputs; sequential heading hierarchy (no skipped levels).
 - **Never convey meaning by color alone** — add icon/text (error red + icon, etc.).
@@ -34,7 +34,7 @@ Every interactive component's design must define: **default, hover, pressed/acti
 - **Semantic color tokens** (`--primary`, `--surface`, `--on-surface`, `--error`…) — no raw hex inside components.
 - Type scale consistent (e.g. 12/14/16/18/24/32). Weight reinforces hierarchy: headings 600–700, body 400, labels 500.
 - Tabular/monospaced figures for prices, data columns, timers (prevents layout shift).
-- Dark mode (if any): desaturated/lighter tonal variants, not inverted colors; test its contrast separately. Design light+dark together; states distinguishable in both.
+- Dark mode (if any): desaturated/lighter tonal variants, not inverted colors; test its contrast separately — `emulate({colorScheme:'dark'})` then re-run the audit (`browser-inspect.md` §2), rather than assuming the light-mode pass carries over. Design light+dark together; states distinguishable in both.
 
 ## 5. Forms & feedback
 
@@ -63,7 +63,7 @@ Every interactive component's design must define: **default, hover, pressed/acti
 
 ## Pre-delivery checklist (run before calling UI done)
 
-- [ ] Contrast ≥4.5:1; focus visible; keyboard nav works; reduced-motion respected
+- [ ] Contrast ≥4.5:1; focus visible; keyboard nav works; reduced-motion respected — ticked from a measurement (audit + `press_key('Tab')` re-snapshot per `browser-inspect.md` §2), or from an explicit SKIP. A tick with neither behind it is the failure this checklist exists to prevent.
 - [ ] All interactive elements have hover/press/disabled/loading; surfaces have empty/error
 - [ ] Responsive at 375 / 768 / 1024 / 1440; no horizontal scroll
 - [ ] Semantic tokens (no raw hex in components); one primary CTA per screen

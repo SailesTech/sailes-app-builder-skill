@@ -24,6 +24,8 @@ Users read latency as quality. Design to a budget, not to "add a spinner":
 
 Checkable: mutations are optimistic w/ rollback; hover-prefetch on primary nav; loading indicators delayed ≥150ms; back-nav renders from cache instantly.
 
+**Measuring the budget instead of intending it (optional).** With the `chrome-devtools` MCP available, `performance_start_trace` returns LCP/INP/CLS and `emulate({cpuThrottlingRate:4, networkConditions:'Fast 4G'})` puts the interaction under a realistic load — see `browser-inspect.md` §3. One hard caveat lives there and is repeated because it decides whether this is a real instrument or a fake one: **a dev server's numbers are valid only as a relative signal** ("3× slower after my change"), never as an absolute pass against the table above. Absolute thresholds are asserted on a production or preview build only — a green gate computed from an unminified HMR bundle is a step reporting success for a reason other than the one claimed.
+
 ## 2. Keyboard-first — the power-user contract
 
 For any app used daily, the keyboard is the premium interface. Mouse-only operation is tolerated; keyboard flow is *loved*.

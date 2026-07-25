@@ -4,6 +4,50 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.14.0 — 2026-07-25 · the UI gates measure instead of eyeball (optional browser instrument)
+
+No new skill and no new phase — an **instrument** for three gates we already mandate but could not
+verify. What an existing repo does differently after upgrading:
+
+- **The physical-integrity gate is measured, not judged.** New reference
+  `skills/sailes-design/browser-inspect.md` carries a paste-able CDP probe returning the gate's six
+  checks as data — the offending elements by selector, at each target width — plus `lighthouse_audit`
+  for the `ux-rules.md` contrast/focus requirements and `performance_start_trace` for the
+  `premium-ux.md` latency budget. The gate's own wording is "categorical checks — pass/fail, not
+  opinion"; a model reading a screenshot delivers neither. Probe fixture-verified (Chrome 151): five
+  deliberate defects → all five reported, incl. a button covered by an overlay that no screenshot
+  can show; clean page → `PASS: true`.
+- **Optional, with an explicit SKIP — never silent.** Follows the `graphify` (1.12.0) pattern:
+  instrument absent → screenshot fallback **plus** a `SKIP browser-inspect (chrome-devtools MCP
+  absent)` line in the run log / qa verdict. No skill blocks on it. Machine prereq:
+  `claude mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@latest`.
+- **Per-project opt-in as a decision card.** `decision-engine.md` gains **Q21** (UI repos): commit a
+  `.mcp.json` (recommended), leave it out, or per-developer-only — with the third named as the bad
+  path, since it measures the gate on one machine and skips it on another with no signal in the repo.
+  Human chooses, logged in the Decisions Ledger; conditional row in `repo-done-checklist.md`; Codex
+  twin `[mcp_servers.chrome-devtools]` in `codex-config-template.md`.
+- **`sailes-diagnose` Step 1 Live gains its instrument** — console, request/response *bodies*, and
+  storage over CDP, plus the answer to a limitation the skill already conceded: a fresh Playwright
+  context cannot reproduce a stale-`localStorage` bug, while this server's persistent profile (or
+  `--browserUrl` against a running browser) observes the bug in the state that produced it. The
+  read-only-on-production and never-trigger-a-dialog rules are restated for a browser surface.
+- **🔒 New hard rule protecting the test doctrine: "Devtools is not a test"**
+  (`sailes-test/references/browser-e2e.md`). CDP evidence is ephemeral — an agent can "verify" a
+  behavior by clicking and leave nothing that runs tomorrow. Every behavior that must not regress
+  still ends as a Playwright test. This rule is a **precondition** of the adoption, not a footnote:
+  without it the instrument runs the ratchet backwards.
+- `qa` and `fe-dev` gain browser tools (Claude + Codex twins): `fe-dev` renders and measures its own
+  output before reporting; `qa` measures the gate on the real surface and may never substitute a
+  drive-through for the `tester` suite run. `designer` deliberately unchanged — see the spec's §5
+  open question.
+- New evals: `integrity-gate-reports-measurements-not-impressions` (two arms: present → cites the
+  defect list; absent → explicit SKIP, never a silent pass), `devtools-evidence-does-not-replace-a-suite-test`
+  (the boundary rule under time pressure). **Both RED/GREEN pending** — written first, not yet run.
+- Deliberately NOT done: performance thresholds gated on dev-server numbers (`lighthouse_audit`
+  excludes performance by design, and an unminified HMR bundle's LCP is not the product's — dev
+  timings are a relative signal only), and any pixel-diff automation (`.ai/screens/` vision-verify
+  unchanged). Spec: `.ai/specs/2026-07-25-browser-devtools-instrument.md`.
+
 ## 1.13.0 — 2026-07-22 · sailes-migrate: large-scale codebase migration as a domain sibling
 
 New domain-sibling skill (like `sailes-pipedrive` / `sailes-hosting`) — **not** part of the linear

@@ -36,11 +36,32 @@ Run the reported flow. Real login, real click, real payload, real submission. Ca
 This step is not optional and it comes first. The one explicit self-reversal in this company's
 records is about doing it second (`SKILL.md` §Core principle).
 
+**Capturing it, if the `chrome-devtools` MCP is available** (optional — see
+`../sailes-design/browser-inspect.md` §4): `list_console_messages` for the console half,
+`list_network_requests` → `get_network_request` for URL + status **and body** (the 200 carrying
+`{error:...}` is the case this rule was written for), `evaluate_script` to read
+`localStorage`/`sessionStorage`/cookies — the state your theory rests on. Absent it, a
+Playwright script with `page.on('console')` and `page.on('response')` produces the same evidence
+for more setup; either way the evidence log is what matters, not the tool.
+
+Two `sailes-diagnose` rules still bind and the browser does not exempt you from them: **read-only
+on production** — `click`/`fill`/`evaluate_script` can write, and a POST from a UI is still a
+write, so on a production surface restrict yourself to snapshot/console/network/storage and write
+the mutating step out for the human. And **never trigger `alert`/`confirm`/`prompt`** — a modal
+dialog blocks the CDP channel and the session stops responding mid-investigation.
+
 **When you cannot reproduce it**, that is a finding, not a dead end — and it splits the tree
 immediately: state-dependent (specific record, specific tenant, specific stale local state),
 time-dependent (a window, a cron, a token expiry), or environment-dependent. A Playwright context
 starting fresh *structurally cannot* reproduce a stale-localStorage bug; you must pre-seed the
 stale state to see it at all.
+
+For the **state-dependent** branch specifically, that limitation has an instrument-level answer:
+the `chrome-devtools` server does not start fresh — its default profile persists across calls, and
+`--browserUrl http://127.0.0.1:9222` attaches to an already-running browser holding the real
+session. That lets you observe the bug *in the state that produced it* instead of reconstructing
+that state from a guess — which is how "loads 2008" was eventually found (`SKILL.md` §Core
+principle). Pre-seeding remains correct once you know what to seed; it is a poor way to find out.
 
 **Produces:** the first entries in the evidence log — with ids, so everything after is anchored.
 

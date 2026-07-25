@@ -73,6 +73,8 @@ Two non-negotiable steps:
 
    A render failing ANY of these is a **defect to fix**, never a variant to present. Don't ask the human to choose between a broken layout and a less-broken one — fix it, re-render, re-check.
 
+   **Measure the six, don't eyeball them (optional instrument).** If the `chrome-devtools` MCP server is installed, run the probe in `browser-inspect.md` §1 instead of judging the screenshot: it returns the six checks as data — the offending elements by selector, at each target width — plus `lighthouse_audit` for the `ux-rules.md` contrast/focus requirements (§2). Paste that output into the artifact; a list of named defects is the gate's evidence, where "looks fine to me" never was. This gate says "categorical checks — pass/fail, not opinion", and a model reading a PNG cannot deliver either. **Not installed → keep step 1's screenshot as the fallback and record `SKIP browser-inspect (chrome-devtools MCP absent)`** in the run log. Never report an unmeasured gate as passed; an explicit SKIP is the honest output. The instrument covers *integrity only* — taste, hierarchy and the premium passes below still need your eyes on the pixels.
+
 This gate runs on EVERY UI design output (invented or reference-matched). The reference-match rules below are a special case layered on top of it.
 
 ## Matching an existing reference (prototype / screenshot)
@@ -96,16 +98,18 @@ Hard rules for reference-match work:
 | Discipline pass | a11y + states + responsive + tokens |
 | **Premium pass — craft** | **color depth + layered elevation + type refinement + motion choreography + finish; "premium tells" pass/fail; shadcn retuned; start from `assets/premium-tokens-starter.css`** |
 | **Premium pass — feel** | **latency budget + optimistic UI + keyboard-first + undo-over-confirm + input intelligence + continuity; "premium-feel tells" pass/fail** |
-| **Render + integrity gate** | **screenshot the result; nothing clipped/overflowing/invisible/overlapping/non-responsive** |
+| **Render + integrity gate** | **screenshot the result; nothing clipped/overflowing/invisible/overlapping/non-responsive — measured via `browser-inspect.md` §1 when available, else screenshot + explicit SKIP** |
 | Persist | `design-system/MASTER.md` or `.ai/specs/ui-spec.md` + **Design log** (tried/rejected directions) |
 
-Reference files: `design-judgment.md` (taste, signature, anti-AI-default), `ux-rules.md` (condensed accessibility/interaction/responsive/forms checklist), `premium-craft.md` (the "looks expensive" finish layer + premium-tells checklist, tuned to Tailwind v4/oklch + shadcn), `premium-ux.md` (the "feels expensive" interaction layer + premium-feel checklist), `assets/premium-tokens-starter.css` (ready @theme scaffold implementing the craft rules), `../sailes-bootstrap/ui-libraries.md` (UX-layer options as design-phase inputs — Preline blocks + free Figma kit, Astryx CSS-variable themes).
+Reference files: `design-judgment.md` (taste, signature, anti-AI-default), `ux-rules.md` (condensed accessibility/interaction/responsive/forms checklist), `premium-craft.md` (the "looks expensive" finish layer + premium-tells checklist, tuned to Tailwind v4/oklch + shadcn), `premium-ux.md` (the "feels expensive" interaction layer + premium-feel checklist), `assets/premium-tokens-starter.css` (ready @theme scaffold implementing the craft rules), `../sailes-bootstrap/ui-libraries.md` (UX-layer options as design-phase inputs — Preline blocks + free Figma kit, Astryx CSS-variable themes), `browser-inspect.md` (optional instrument — the integrity gate, contrast/focus and Core Web Vitals as measurements instead of impressions; also read by `sailes-diagnose` and `sailes-test`).
 
 ## Common Mistakes
 
 | Mistake | Fix |
 |---|---|
 | Deferring design to "the coder will decide" | That's the failure. Decide now; persist the artifact. |
+| Reporting the integrity gate as passed from looking at a screenshot, with the instrument available | Run `browser-inspect.md` §1 and paste the measurement. An impression is not a pass/fail check. |
+| Instrument absent, so the gate is quietly reported as passed | Screenshot fallback **plus** an explicit `SKIP browser-inspect` line. Silence is the failure, not the SKIP. |
 | Landing on an AI-default look on a free axis | Run the anti-default critique; revise and justify. |
 | Spreading boldness everywhere | One signature element; keep the rest quiet. |
 | Raw hex scattered in components | Semantic tokens; map to the stack. |

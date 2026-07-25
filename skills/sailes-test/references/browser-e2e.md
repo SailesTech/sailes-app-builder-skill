@@ -79,4 +79,29 @@ Screenshots are `qa`'s deliverable, not the test's assertion — a screenshot pr
 looked like, never that a value was persisted. Write the assertion against state; let `qa` capture
 the picture and compare it against the design artifact and the `.ai/screens/` baseline.
 
+## 🔒 Devtools is not a test — the boundary rule
+
+The `chrome-devtools` MCP server (`../../sailes-design/browser-inspect.md`) can click, fill, read the
+console and evaluate scripts in a live page. It is a **diagnostic and measurement** instrument, and
+it produces **no assertion, no file, and nothing that runs again tomorrow**.
+
+**Every behavior that must not regress ends as a test in this suite.** Devtools has exactly two
+legitimate uses: finding out what is happening (`sailes-diagnose` Step 1), and the measurable UI
+gates — integrity, contrast, Core Web Vitals — whose output is a number or a list of named elements
+that goes into the artifact as evidence.
+
+"I drove it in devtools and it worked" is the false green this whole reference exists to prevent,
+one step worse than the toast assertion above: a toast at least leaves a test behind. If you have
+just proven a behavior by clicking through CDP and written no test, the ratchet went backwards —
+the next change is free to break it silently, and nothing will say so.
+
+The division, stated once:
+
+| Question | Instrument |
+|---|---|
+| Does it work *right now*, and why not? | devtools — ephemeral, interactive, one-off |
+| Will it still work after the next change? | this suite — persisted, asserted, re-run |
+| Is the layout physically correct / accessible / fast enough? | devtools measurement, pasted into the artifact as evidence |
+| Did a value actually land in the DB / the CRM? | an assertion against state, in this suite |
+
 Reference: [Playwright](https://playwright.dev/docs/best-practices)

@@ -13,7 +13,7 @@
   `enable-plugin.sh`; a push to any other branch reaches nobody. Local edits never reach a session.
 - Skill regression tests are persisted in `evals/` since 1.1.0. Before that, RED/GREEN lived only
   in chat sessions.
-- Framework version lives in `VERSION` (currently **1.9.2**) and must match `package.json`,
+- Framework version lives in `VERSION` (currently **1.14.0**) and must match `package.json`,
   `.claude-plugin/plugin.json` **and** `.claude-plugin/marketplace.json` — that fourth one has
   drifted twice. The standard delta per version is in `CHANGELOG.md`; generated repos are stamped
   `Framework-Version:` in AGENTS.md, which `hooks/framework-version-check.js` compares on startup.
@@ -23,6 +23,16 @@
 - **No hook observes a subagent completing** (evidence: the hook event surface is session start,
   prompt submit, tool calls). A missing delegation report therefore cannot become a check; the
   rule for it is prose by necessity.
+- **Three UI gates were stated as binary and verified by impression until 1.14.0** — the
+  physical-integrity six (`sailes-design/SKILL.md`), contrast/focus/keyboard (`ux-rules.md:7,37,66`),
+  and the latency budget (`premium-ux.md` §1). All three are measurable over CDP; the instrument is
+  `skills/sailes-design/browser-inspect.md`, optional with an explicit-SKIP fallback (graphify
+  pattern). Evidence the probe works: fixture run 2026-07-25, Chrome 151 — five deliberate defects
+  all reported (incl. an overlay-covered button, invisible to any screenshot), clean page
+  `PASS: true`.
+- **A dev server cannot produce an absolute performance verdict** — unminified HMR bundle, no CDN,
+  no prod cache headers. `lighthouse_audit` excludes performance by design; dev CWV numbers are a
+  *relative* signal only. Geometry and contrast, by contrast, are valid on dev.
 
 ## General rules
 - Every framework change lands as: proposal spec (root `.ai/specs/`) → human answers Open
@@ -33,6 +43,17 @@
   `main` is not a staging area.
 
 ## Open failures
+- **1.14.0's two evals are RED/GREEN PENDING** — `integrity-gate-reports-measurements-not-impressions`
+  and `devtools-evidence-does-not-replace-a-suite-test`. Written first per `evals/README.md`, never
+  dispatched to a fresh subagent (the authoring session was scoped to no subagent use). The second
+  one is the load-bearing guard: it tests whether an agent under time pressure treats a devtools
+  drive-through as proof and leaves no test behind — the failure mode that makes the whole instrument
+  net-negative if unguarded. **Do not claim 1.14.0 proven until both return a verdict.** The probe
+  itself IS verified against fixtures; that is a different claim from the agent behaving correctly.
+- **One open decision in 1.14.0: does `designer` get browser tools?** It has no Bash today, so it
+  cannot render its own spec before handoff; the integrity gate runs on whoever builds. Widening
+  that role is a human call, left unchanged. See `.ai/specs/2026-07-25-browser-devtools-instrument.md`
+  §5 — a three-line edit once answered.
 - **`prompt-anchor` Phase 5 is INCONCLUSIVE and the decision is re-opened (D3 triggered).** Both
   eval arms passed identically — but the fixture condensed 58 turns into ten lines, leaving the
   SessionStart mandate ~500 tokens from the hostile brief instead of 80k. The control held
@@ -54,6 +75,21 @@
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
+- 2026-07-25: **1.14.0 — browser inspection as an optional instrument.** Evaluated
+  `chrome-devtools-mcp` against the framework and adopted it as an *instrument*, not a skill: three
+  gates we already mandate (integrity six, contrast/focus, latency budget) were stated as binary and
+  verified by impression. New reference `skills/sailes-design/browser-inspect.md` (probe
+  fixture-verified: 5/5 defects caught, clean page PASS) + pointers from design/diagnose/test,
+  browser tools for `qa` and `fe-dev` (Claude + Codex twins), `decision-engine.md` **Q21** as a
+  human-owned decision card for a committed `.mcp.json`. **Optional throughout** — screenshot
+  fallback + explicit `SKIP browser-inspect`, following graphify's pattern, because `main`
+  auto-deploys everywhere and a mandatory tool would point agents at a missing instrument repo-wide.
+  The adoption's precondition is a new hard rule, **"Devtools is not a test"**
+  (`sailes-test/references/browser-e2e.md`): CDP evidence is ephemeral, so without it an agent can
+  "verify" by clicking and leave nothing behind — the ratchet running backwards. `npm test` green,
+  four manifests + CHANGELOG at 1.14.0. Branch `feat/browser-devtools-instrument` off `origin/main`,
+  **draft PR, not merged**. Two evals PENDING (see Open failures) and one open decision (`designer`
+  tools). Spec: `.ai/specs/2026-07-25-browser-devtools-instrument.md`.
 - 2026-07-22: added **`sailes-migrate`** (1.13.0) — a domain-sibling skill for porting an existing
   codebase to another language/stack at scale, distilled from Anthropic's `code-migration-kit`
   (Apache-2.0). Branch `feat/sailes-migrate` (based on `feat/graphify-default-integration`=1.12.0),

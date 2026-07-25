@@ -29,7 +29,32 @@ Do NOT recommend a full architecture up front. **Classify the project first**, t
 18. Which integrations need retry/idempotency?         → integration hardening
 19. Prototype or production client system?             → observability + security gating
 20. Extra compliance/security requirements?            → R2/S3, encryption, residency
+21. Has the repo any UI at all?                        → browser-inspection MCP in .mcp.json (opt-in)
 ```
+
+**Q21 — browser inspection (decision card, UI projects only).** Our UI gates are stated as
+binary checks — the physical-integrity six, contrast ≥4.5:1, the latency budget — and without a
+DevTools connection the agent verifies them by looking at a screenshot, which is an impression.
+Committing a `.mcp.json` to the repo makes the measurement available to every agent and developer
+on the project:
+
+```jsonc
+// .mcp.json — project-scoped, committed. Machine prereq: a Chrome/Chromium install.
+{ "mcpServers": { "chrome-devtools": {
+    "command": "npx", "args": ["-y", "chrome-devtools-mcp@latest"] } } }
+```
+
+| Option | Pros | Cons |
+|---|---|---|
+| **A — commit `.mcp.json` (recommended for any repo with UI)** | The integrity/a11y/CWV gates become measurements; same instrument for everyone; diagnosis gets real console + network + storage | One more tool surface; needs Chrome on each machine; a second browser stack alongside Playwright |
+| B — leave it out | Nothing new to install | Three gates stay eyeballed; every UI run carries a `SKIP browser-inspect` line |
+| C — per-developer, user scope only | No repo change | Silent asymmetry: the gate is measured on one machine and skipped on another, with no signal in the repo |
+
+Present it, recommend A for UI repos, and **let the human choose** — this is a tooling decision,
+not a baseline. Log the answer in the Decisions Ledger. It never becomes mandatory: the fallback in
+`../sailes-design/browser-inspect.md` §Availability (screenshot + explicit SKIP) is a first-class
+path, and no skill blocks on the server being present. Codex twin: the same server goes under
+`[mcp_servers.chrome-devtools]` in `.codex/config.toml` (see `codex-config-template.md`).
 
 ## Stack-shaping axes (choose the SHAPE, not just the modules)
 
@@ -106,4 +131,4 @@ security checklist← Q7/Q19 = sensitive/production (mandatory)
 
 ## Output of this phase
 
-A short **module manifest** for the project: which modules are ON, tenancy mode, email/reporting levels, workflow tier, and the security gate (prototype vs production) — **plus the stack shape** (fullstack-Next vs SPA+standalone-API vs hybrid), the request-API engine, and the developer-fit notes. Every architectural and stack-shape choice + any preference-vs-requirement override is recorded in the brief's **Decisions Ledger** (overrides → ADR). This feeds the skeleton (`skeleton.md`), the stack decision (`stack-baseline.md`), and the spec.
+A short **module manifest** for the project: which modules are ON, tenancy mode, email/reporting levels, workflow tier, the security gate (prototype vs production), and — for UI repos — the Q21 browser-inspection answer — **plus the stack shape** (fullstack-Next vs SPA+standalone-API vs hybrid), the request-API engine, and the developer-fit notes. Every architectural and stack-shape choice + any preference-vs-requirement override is recorded in the brief's **Decisions Ledger** (overrides → ADR). This feeds the skeleton (`skeleton.md`), the stack decision (`stack-baseline.md`), and the spec.

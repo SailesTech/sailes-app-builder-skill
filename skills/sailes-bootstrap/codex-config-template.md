@@ -83,6 +83,12 @@ statusMessage = "Checking edit target against protected paths"
 timeout = 30
 
 # --- MCP servers (optional): the Codex equivalent of .mcp.json -------------------
+# Browser inspection — the Codex twin of the committed .mcp.json (decision-engine Q21).
+# Include it when the project chose option A; the UI gates then measure instead of eyeball.
+# [mcp_servers.chrome-devtools]
+# command = "npx"
+# args = ["-y", "chrome-devtools-mcp@latest"]
+#
 # [mcp_servers.example]
 # command = "npx"
 # args = ["-y", "@some/mcp-server"]
