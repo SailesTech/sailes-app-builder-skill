@@ -4,6 +4,35 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.15.0 — 2026-07-25 · worker release and delivery: the lifecycle rule meets the runtime
+
+The lifecycle doctrine was not missing rules — it had seven. Running two evals with six live workers
+showed four places where it disagrees with what the runtime actually does. What a repo does
+differently after upgrading:
+
+- **Release names the real mechanism, and is confirmed rather than assumed.**
+  `agent-team-structure.md` rule 2 said "e.g. `TaskStop`"; the operative path for a live teammate is
+  `SendMessage {"type":"shutdown_request"}` → `shutdown_response` → the runtime's termination notice.
+  **A release request is not a release**: measured 2026-07-25, of five requests two landed on the
+  first attempt and three needed a second, while the survivors kept emitting idle pings that read
+  like new work. The run log records "released" only for a confirmed termination (rule 5), and
+  superseded or abandoned workers are released too — re-spawning an arm leaves the first one alive.
+- **🔒 For work a gate will grade, the brief names a FILE, not a message.** A verdict, a review, a
+  findings list: the brief gives a path and states "no file = task not done", and the lead reads it
+  from disk. Same session: four message-deliverable briefs produced six empty idle returns and two
+  pointless re-spawns; the one brief naming `VERDICT.md` produced a complete, gradable artifact on
+  the first attempt. A message is a channel that can drop; a file survives the drop, the context
+  reset, and the worker itself.
+- **The empty-return rule keeps its teeth and loses its wrong cause.** It read "a worker that returns
+  nothing has failed silently". On 2026-07-25 all four silent workers had finished and had full
+  reports — the channel dropped them; one said so once it had a working channel. Chase once and
+  escalate exactly as before, but silence is no longer evidence of negligence, and the prevention
+  moved from the report clause to the deliverable.
+- Same four corrections in `agents/team-lead.md` and the Codex twin `codex-agents/team-lead.toml`.
+  Evidence base: `.ai/runs/2026-07-25-eval-session-and-worker-lifecycle.md` (delegation ledger,
+  six workers). No eval: no hook observes a subagent completing, and a scenario needing six live
+  workers costs more than it protects — the run log is the honest artifact.
+
 ## 1.14.1 — 2026-07-25 · the integrity probe stops failing correct pages
 
 1.14.0's probe returned `PASS: false` on a page with no defect at all. What an upgraded repo gets:

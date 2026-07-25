@@ -26,6 +26,12 @@
 - **No hook observes a subagent completing** (evidence: the hook event surface is session start,
   prompt submit, tool calls). A missing delegation report therefore cannot become a check; the
   rule for it is prose by necessity.
+- **A silent worker is usually not a negligent worker** (1.15.0). Ledger of 2026-07-25, six workers:
+  four went idle saying nothing and all four had finished with full reports — the final-message
+  channel dropped them. Release is equally unreliable: 5 shutdown requests, 3 needed a second
+  attempt. Both are now in `agent-team-structure.md` §Agent lifecycle and `team-lead.md`, with the
+  prevention in the deliverable — a gradable task names a FILE path, and that brief was the only one
+  of six that worked first try. Evidence: `.ai/runs/2026-07-25-eval-session-and-worker-lifecycle.md`.
 - **Three UI gates were stated as binary and verified by impression until 1.14.0** — the
   physical-integrity six (`sailes-design/SKILL.md`), contrast/focus/keyboard (`ux-rules.md:7,37,66`),
   and the latency budget (`premium-ux.md` §1). All three are measurable over CDP; the instrument is

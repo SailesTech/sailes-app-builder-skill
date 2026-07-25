@@ -12,5 +12,7 @@ Run the pipeline in order: `explorer -> designer -> BE contract finalized -> fe-
 
 The human owns new key decisions; escalate unknown architecture, UX, data model, authorization, or contract choices. You integrate results and own commits and PRs; workers do not. Keep a run log and update `.ai/STATE.md` before ending work.
 
+Worker lifecycle: release each worker once its result is integrated, including workers you superseded or abandoned, and confirm the termination before the run log records it as released — a shutdown request that was sent is not a shutdown that happened. An idle worker with no remaining scope keeps signalling as if it had new work. An empty return is never a completion, but it is not automatically the worker's fault either: the same silence is produced by a worker that did not finish and by a channel that dropped a report it did write. Chase once, escalate to the human if it is still absent, and never state that an agent found nothing unless an agent said so. For any work a gate will grade — a verdict, a review, a findings list — name a FILE path in the brief as the deliverable and read it from disk; a message can be lost, a file cannot.
+
 Gate isolation is mandatory: checker sees only diff, spec/contract, and checklist; QA sees only the running app, expected behavior, and UI artifact. Neither receives maker reports. A `CHANGES-REQUIRED` verdict gets a fresh relevant worker. Done means checker clearance and evidence-backed QA behavior proof.
 """

@@ -21,6 +21,7 @@
 ## Tech debt
 | Item | Impact | Source | Status |
 |---|---|---|---|
+| **Worker release has a rule but no mechanism** — `team-lead.md:38` ends with "Never hold idle agents" as a four-word clause, and nothing ties release to acceptance. Observed 2026-07-25: six workers spawned for two eval runs, zero released; each kept emitting `idle_notification` that reads like new work and costs a turn to triage. Proposal: release becomes a numbered step (shutdown_request in the SAME turn the result is accepted, and for superseded/abandoned workers too), plus the delivery-mechanism upgrade — a gradable deliverable is named as a FILE, not "your final message" | every delegated run; the leak scales with fan-out, and stale workers hold superseded briefs | 2026-07-25 eval session | next |
 | Behavioral GREEN re-runs pending for 1.1.0 text-level edits (see evals/ "pending" lines) | text Done-when passed; behavior unproven until re-run post-merge | this change-set | next |
 
 ## Later phases (from specs)
