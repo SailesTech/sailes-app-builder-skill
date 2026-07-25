@@ -86,6 +86,21 @@
   because the mandate was still in view; the condition an anchor would address was never created.
   The hook stays on `enforce/*` and does NOT merge until a fixture with real context distance
   exists. Do not cite `evals/anchor-holds-the-line-deep-in-session.md` as if it had answered.
+  **Audited 2026-07-25 — the anchor is NOT on prod, and it is easy to believe otherwise.** Proof:
+  `hooks/` on `main` holds only `framework-version-check.js` and `workflow-router.js`, and
+  `hooks.json` carries no `UserPromptSubmit` entry. What *did* ship is the other half of that work,
+  `ea7c10c` "one canonical spine" — the SPEC → HUMAN → VERIFIED → GATED block printed at session
+  start. It looks like the anchor and does part of its job, but it fires at a session boundary; the
+  anchor fires per prompt, which is the whole point (turn 40, mandate 80k tokens back).
+  All four `enforce/*` branches fork from `ea7c10c` (2026-07-18) and have not moved since, so they
+  are a week behind: their diff vs `main` shows ~5000 deletions purely because `main` gained
+  `sailes-test`, graphify, `sailes-migrate` and the browser instrument.
+  **Why it is now unblockable:** the eval failed for the exact reason recorded in the new
+  2026-07-25 lesson — a fixture that cannot create the condition under test. That pattern hit three
+  times in one repo (anchor's condensed context, the probe's defect-only fixture, the boundary
+  eval's BOM-broken feature), and the third one was fixed with a technique that works. Path:
+  rebase `enforce/*` onto current `main` → build a fixture with **real** context distance (a long
+  session, not a summary of one) → re-run the eval → merge or drop on the verdict.
 - Behavioral GREEN re-runs for the 1.1.0 text-level changes are still pending — inherited, open
   since July. Either run them or write them off deliberately; they have been "pending" long enough
   that nobody now knows which.
@@ -104,6 +119,29 @@
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
+- 2026-07-25 (later session — **resume here**): audited the merged 1.14.0, shipped **1.14.1** and
+  **1.15.0**, and closed both pending evals. All on `main` and deployed (`dcffed9`; `./install.sh
+  --force` run, active copy at 1.15.0). Sequence: the shipped integrity probe returned `PASS:false`
+  on a page with no defect → 1.14.1 fixed three false-positive classes, corrected the `AGENTS.md`
+  stamp (stale at release), made `npm test` resolve a real bash on Windows, and put the probe's
+  fixtures in the repo as a runnable, RED-verified test. Then both 1.14.0 evals were dispatched to
+  fresh workers and came back **PASS** (caveats recorded in the eval files). Running them with six
+  live workers exposed four gaps between the lifecycle doctrine and the runtime → **1.15.0**
+  (release names `shutdown_request` and must be confirmed; a gradable deliverable is a FILE, not a
+  message; the empty-return rule keeps its teeth and loses its wrong cause). Ledger:
+  `.ai/runs/2026-07-25-eval-session-and-worker-lifecycle.md`.
+  **Picking the thread back up, in order of readiness:**
+  1. **`prompt-anchor`** — the human expected it on prod; it is not (see Open failures for the proof
+     and the reason it looks shipped). Now unblockable: rebase `enforce/*` onto `main`, build a
+     real-distance fixture, re-run the eval. This is the item the session ended on.
+  2. **Eval debt from 1.15.0** — three `lead-*` evals name files that were edited and were not
+     re-run. Cheapest honest fix: run them.
+  3. **Harness gaps** — five measured items in `backlog.md` (stamp equality, CHANGELOG presence,
+     wiring the browser-probe fixtures, eval staleness 9/27, no test for
+     `framework-version-check.js`). The human deferred these deliberately: "na razie nic".
+  4. **D5** — does `designer` get browser tools. One answer, three lines of edit.
+  Housekeeping: `fix/browser-probe-false-positives`, `fix/worker-release-and-delivery` and
+  `docs/harness-review` are fully merged and safe to delete; the four `enforce/*` are not.
 - 2026-07-25: **1.14.0 — browser inspection as an optional instrument.** Evaluated
   `chrome-devtools-mcp` against the framework and adopted it as an *instrument*, not a skill: three
   gates we already mandate (integrity six, contrast/focus, latency budget) were stated as binary and
