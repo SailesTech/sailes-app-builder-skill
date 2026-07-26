@@ -7,6 +7,55 @@
 
 ## Lessons
 
+### 2026-07-26 — an agent's own run-data section is a claim, and it is the one claim with no artifact behind it
+- **Context:** an A/B comparing two `researcher` architectures. Arm B reported a tidy instrumentation
+  table — "7 gatherers, 38k–61k tokens each (~366k total), individual durations 50–125s, wall-clock
+  ≈125s, ≈6 min end to end". I read it as measurement and reported it onward as the reason arm B
+  "burns fewer tokens". A second run asked the same architecture for the same numbers; it answered
+  that **none of them are visible to it** — not its gatherers' tokens, not its own, not per-agent
+  durations. Asked directly, the run-1 agent then confirmed the same: the per-agent range was
+  unverified, "~366k" was its own arithmetic (7 × ~52k), and no clock was ever read. Its words: *"if
+  I had genuinely read them as data I would be able to quote one."*
+- **Problem:** this repo already grades the artifact rather than the report — for **findings**. Nobody
+  applied that rule to the **instrumentation** section, which is precisely the part with no artifact
+  to return to. Worse, both agents formatted estimates identically to source-verified claims, under a
+  heading naming them as measurement. One of them had, in the same document, caught a gatherer for
+  exactly this (a fabricated `supa_audit v0.3.1` in a summary table its own body contradicted) — it
+  checked the claim it could go to source on, and not the one it could not.
+- **Rule:** **a number an agent reports about itself is an estimate until it names where it read it.**
+  Ask for the provenance, not the number, and instruct it to answer "not measured" rather than
+  estimate — an estimate in a measurement register is worse than a gap, because a gap is visible.
+  Where the harness reports it (durations and tokens for agents *this session* spawned), use the
+  harness and ignore the self-report entirely.
+- **Applies-to:** every A/B arm, every eval verdict quoting cost or duration, and any brief that asks
+  a worker "how long did that take". Also the reason `evals/harness/README.md` rule 6 says record both
+  numbers — recording a number is not the same as measuring one.
+
+### 2026-07-26 — the cost of a self-organising swarm is invisible to everyone, including itself
+- **Context:** same experiment, second run. Arm A (lead spawns 3 explorers + a synthesiser) reported
+  648,945 then 798,900 tokens — exact, because the session spawns all four and the harness logs each.
+  Arm B (researcher spawns its own gatherers) could not be costed in either run: its gatherers are
+  children-of-children, invisible to the session, and the researcher confirmed they are invisible to
+  it as well.
+- **Problem:** this is not a brief that forgot to ask. It is a property of the topology, and it
+  collides with our own doctrine: `agent-team-structure.md` requires the run log to record who was
+  spawned, what each returned, and **whether a model escalation actually paid**. An architecture whose
+  costs cannot be observed cannot satisfy a rule that requires observing them — and the failure is
+  silent, because the deliverable looks the same either way.
+- **Rule:** when comparing architectures, ask **which one can be audited**, not only which one is
+  faster. Depth buys parallelism and spends observability, and that trade belongs on the decision card
+  next to the latency number.
+- **Applies-to:** roster spec Q1, any future grant of `Agent` to a non-lead role, and any sub-team
+  plan — a sub-lead's workers are already at this depth today.
+- **Also measured, and worth keeping:** run-to-run variance dwarfed the between-arm difference. One
+  explorer took **24.5 min in run 2 against 6.6 in run 1 on an unchanged slice** (3.7×). A single run
+  per arm cannot support a ratio; it can support a direction, and only if the direction has a
+  mechanism. Ours does — arm A pays a cold handoff between gathering and synthesis that arm B does not.
+- **And the finding neither topology owns:** in all four executions the decisive defect was found by
+  the top agent's **own mechanical sweep**, never by a gatherer — including a fake "Sailes baseline"
+  in `sailes-design/premium-ux.md:7` that is invisible from inside any single slice. The verification
+  pass is what produced the value; who spawned the gatherers did not change that.
+
 ### 2026-07-26 — a file can contradict itself eight lines apart and survive four releases
 - **Context:** AGENTS.md §`main` is production said "A push to `main` deploys — automatically…
   There is no install step and no confirmation." Its §Release section, eight lines later, said

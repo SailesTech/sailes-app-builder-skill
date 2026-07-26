@@ -51,6 +51,28 @@ the judgment lives once, at the top, where it is paid for once.
 
 **Q1 — Who spawns the explorers?** This is the sharpest question in the spec and it is a safety
 question, not an ergonomics one.
+
+> **Measured 2026-07-26, two runs per arm — `.ai/eval-runs/2026-07-26-ab-researcher/VERDICT.md`.**
+> Settled by experiment at the human's instruction, and the experiment moved the question rather than
+> answering it outright.
+> - **Quality: no separation.** Four executions, zero empty returns, zero fabrications reaching the
+>   deliverable. In *every* one the decisive defect was found by the top agent's own mechanical sweep,
+>   never by a gatherer — so the value came from the verification pass, which both topologies have.
+> - **Latency: (b) wins, magnitude unresolved.** (b) finished first in both runs, and the mechanism is
+>   structural — it pays no cold handoff between gathering and synthesis. But run-to-run variance
+>   (3.7× on one explorer, unchanged slice) exceeded the between-arm gap, so the ratio is not a
+>   constant.
+> - **Cost: not measurable under (b), and this is new.** Under (a) the session spawns every agent and
+>   the harness logs each one exactly. Under (b) the gatherers are children-of-children — invisible to
+>   the session **and to the researcher itself**. That collides with our own run-log rule, which
+>   requires recording each spawn and whether an escalation paid. **This is a fresh argument for (a)
+>   that the first run could not see**, and it did not exist when the options below were written.
+> - **Depth, still unpriced:** under (b) a `researcher` inside a sub-team sits at depth 3, which
+>   `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2` forbids outright.
+>
+> **(c) — surfaced by the experiment, untested:** `researcher` spawns, but **only at top level**,
+> never inside a sub-team. Keeps depth ≤ 2 and the latency win; still forfeits cost observability.
+> Naming it is not the same as measuring it.
 - (a) **The lead spawns them; `researcher` only synthesises** what it is handed. The invariant
   verified by runtime audit today — no non-lead role carries `Agent`, which is what makes depth-2
   sub-teams safe — stays intact. Cost: the lead does the fan-out coordination, so the method is

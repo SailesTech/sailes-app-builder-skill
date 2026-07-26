@@ -4,7 +4,7 @@ Pair with `premium-craft.md` (visual finish). Craft makes the app **look** premi
 
 **Core thesis: premium feel = respect for the user's time and intent.** Every pattern below is one of two moves: *remove waiting* or *remove fear*. An app that responds instantly and can always be undone feels expensive; an app that makes you wait and then asks "are you sure?" feels like bureaucracy.
 
-Scope: B2B web on the Sailes baseline (TanStack Start + React Query + shadcn). Apply to any app a person uses more than once a week; for a one-off internal form, the basics in `ux-rules.md` suffice.
+Scope: B2B web on the Sailes baseline — Next.js App Router, or the SPA (Vite+React) + standalone-API variant, with Tailwind v4 + shadcn/ui + React 19 (`sailes-bootstrap/stack-baseline.md`). Apply to any app a person uses more than once a week; for a one-off internal form, the basics in `ux-rules.md` suffice.
 
 ## 1. Speed is the premium feature — the latency budget
 
@@ -18,7 +18,7 @@ Users read latency as quality. Design to a budget, not to "add a spinner":
 | > 2s | Narrated progress — what's happening + real progress | progress bar/steps, cancellable |
 
 - **Optimistic UI as the default for mutations.** Write the change to the UI immediately, sync in the background, roll back with an explanatory error if it fails (React Query `onMutate`/`onError`). Waiting for the server on a checkbox toggle is the internal-tool tell.
-- **Prefetch on intent.** Prefetch route data on link hover/focus (TanStack Router `preload: 'intent'`). Navigation that arrives already-loaded is the single cheapest "this app is fast" win.
+- **Prefetch on intent.** Prefetch route data on link hover/focus (Next.js `<Link prefetch>`; TanStack Router `preload: 'intent'` only if the project actually uses TanStack). Navigation that arrives already-loaded is the single cheapest "this app is fast" win.
 - **No spinner flash.** Delay any loading indicator ~150–300ms so sub-perceptible loads never flicker one. A skeleton that flashes for 80ms reads as jank, not speed.
 - **Keep data warm.** Sensible React Query `staleTime` so back-navigation renders instantly from cache and revalidates quietly — never a blank refetch of a page the user just saw.
 

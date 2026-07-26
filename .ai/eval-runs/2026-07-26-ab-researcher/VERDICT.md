@@ -46,13 +46,42 @@ either** — which is itself the useful result: the verification pass earned its
 
 ## What actually separated them
 
-| | Arm A (lead spawns) | Arm B (researcher spawns) |
-|---|---|---|
-| Agents | 4 (3 explorers + synthesiser) | 8 (7 gatherers + researcher) |
-| Tokens | ~648k | ~497k |
-| Fan-out wall-clock | ~6.6 min | ~2.1 min |
-| End-to-end wall-clock | **~13 min** | **~6 min** |
-| Empty returns | 0 | 0 |
+> **CORRECTED 2026-07-26 after run 2.** The first version of this table reported Arm B at "~497k
+> tokens" and a "~2.1 min fan-out". **Those numbers were never measured.** They came from Arm B's own
+> run-data section, which formatted estimates identically to source-verified claims. Asked directly,
+> that agent confirmed: the per-gatherer token range is unverified, the "~366k total" was its own
+> arithmetic (7 × ~52k) rather than a reported aggregate, and no clock was ever read — the fan-out
+> figure was derived from the maximum of unverified per-agent durations. Its own words: *"if I had
+> genuinely read them as data I would be able to quote one."*
+>
+> I passed those figures on as measurement. The rule this repo applies to findings — grade the
+> artifact, not the report — was never applied to the arms' **self-reported instrumentation**, which
+> is the one part of an experiment that has no artifact to go back to.
+
+Numbers below are harness-side only: durations and token counts for agents **this session spawned
+directly**. Arm B's gatherers are children-of-children and are invisible both to me and, as run 2
+established, to the researcher itself.
+
+| | Arm A run 1 | Arm B run 1 | Arm A run 2 | Arm B run 2 |
+|---|---|---|---|---|
+| Agents | 4 | 8 | 4 | 7 |
+| End-to-end wall-clock | 13.3 min | 6.2 min | **34.4 min** | **8.9 min** |
+| Tokens (harness) | 648,945 | *uncountable* | 798,900 | *uncountable* |
+| Empty returns | 0 | 0 | 0 | 0 |
+
+**The token comparison does not exist and cannot be reconstructed.** Arm A's cost is fully visible
+because every one of its four agents is spawned by the session. Arm B's is not, in either run.
+
+**Direction is consistent across both runs; magnitude is not remotely stable.** Arm B finished first
+both times. But a single Arm A explorer took **24.5 minutes in run 2 against 6.6 in run 1 for the same
+slice** — a 3.7× swing on an unchanged task — and Arm B itself moved 6.2 → 8.9 min. The run-to-run
+variance is larger than the between-arm difference in run 1. Treating "2× faster" as a measured
+constant was over-reading a single sample.
+
+The mechanism that survives both runs is narrower and structural: **Arm A finishes at its slowest
+explorer and then pays for synthesis that must read three large files cold; Arm B waits for its
+slowest gatherer and synthesises in the context it already built.** Arm A pays the tail and the
+handoff separately.
 
 Two asymmetries, and neither is about model quality:
 
@@ -82,11 +111,52 @@ and either arm could fix it by overlapping deliberately.
 2. **The ten-tool floor was too low** to discriminate. A harder ground truth would weight tools that
    appear in exactly one file, or score locations rather than presence.
 
+## Run 2 — what a second sample changed
+
+Same fixture, same slices, same question, tree frozen at `b24fba1` before dispatch. Coverage is **not**
+comparable across runs: run 1's corpus was 79 files, run 2's is 80, because a doctrine file was added
+between them (see fixture defect 1). Cost and latency are comparable; recall is not.
+
+Three things the second run established that the first could not:
+
+1. **Cost visibility is a property of the topology under test.** This is the sharpest result and it
+   points the opposite way to run 1's latency finding. Under Arm A the session spawns every agent, so
+   every token and duration is logged automatically. Under Arm B the gatherers are one level down and
+   their cost is visible to **nobody** — not the session, not the researcher. That collides with this
+   framework's own run-log doctrine, which requires recording who was spawned, what they returned, and
+   **whether a model escalation actually paid**. An architecture whose costs cannot be observed cannot
+   satisfy a rule that requires observing them.
+2. **The decisive finding came from the top agent's own mechanical sweep in all four executions** —
+   never from the gatherers. Run 2's Arm A synthesiser found that `sailes-design/premium-ux.md:7`
+   declares a "Sailes baseline" of TanStack Start + React Query that appears **in that file alone**,
+   contradicting `premium-craft.md:7` six lines away and `stack-baseline.md:45`; it noted that neither
+   explorer flagged it because *it is invisible from inside any single slice*. Arm B found the same
+   defect the same way, via its own cross-cutting grep. **The verification pass is what produced the
+   value in both topologies.** That is an argument about method, not about who spawns.
+3. **Both arms' verification caught real defects in their own inputs, again.** Arm A run 2 corrected
+   its own explorer's "only two hard version constraints exist" against that explorer's own tables,
+   and spot-checked ~35 quotes at source with no fabrication found. Arm B run 2 caught its grep layer
+   twice attributing **this repo's own release numbers** (1.14.0/1.14.1, 1.9.0) to external tools as
+   version constraints — the line numbers real, the attribution invented.
+
 ## What this settles, and what it does not
 
-**Settles:** both architectures produce a correct, well-provenanced artifact. Arm B is roughly **twice
-as fast end-to-end at three-quarters the tokens**, and it removes the lead from the critical path
-between gathering and synthesis. On the measured axes, (b) wins.
+**Settles:** both architectures produce a correct, well-provenanced artifact — four executions, zero
+empty returns, zero fabrications reaching the deliverable, and in every case the top agent's own
+verification pass caught real defects in what it was handed. Neither arm is unsafe on quality.
+
+**Settles on latency, with the magnitude left open:** Arm B finished first in both runs, and the
+mechanism is structural — it does not pay for a cold handoff between gathering and synthesis. How much
+that is worth is unresolved: run-to-run variance (3.7× on a single explorer, unchanged task) exceeded
+the run-1 gap between arms.
+
+**Does not settle, and cannot with this instrument: cost.** Arm B's token consumption was never
+measured in either run, and the reason is not an oversight that a better brief fixes — it is the
+topology. Anything Arm B's gatherers spend is invisible to the session *and* to the researcher.
+
+**Runs against (b), newly:** the same invisibility. `agent-team-structure.md` requires the run log to
+record each spawn, each return, and whether an escalation paid for itself. Arm B cannot produce that
+record about its own gatherers.
 
 **Does not settle — and this is the human's call:** the win is bought with the safety invariant.
 Granting `Agent` to `researcher` makes it the second role that can spawn, and the runtime audit of
