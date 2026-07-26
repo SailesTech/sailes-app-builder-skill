@@ -14,6 +14,15 @@
   against `enable-plugin.sh:2-4` ("run once per machine… no per-project action needed") and
   `AGENTS.md` §`main` is production ("there is no install step and no confirmation"). The stale
   "After merging: `./install.sh --force`" line has been removed from AGENTS.md.
+- **This machine joined the marketplace on 2026-07-26** — `enable-plugin.sh` was run, adding
+  `extraKnownMarketplaces.sailes` + `enabledPlugins["sailes-app-builder@sailes"]` to
+  `~/.claude/settings.json` (backup: `settings.json.bak-before-enable-plugin`; the existing
+  `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` was preserved). **Registration happens at session start,
+  not on running the script**: `known_marketplaces.json` still listed only `claude-plugins-official`
+  immediately afterwards. Verified from this side: `git ls-remote` resolves the source repo and
+  `main` is `20a8b54`, so the install will pick up 1.16.0 rather than something older.
+  Until the next session the Sailes roles still do not resolve here, and every "team" run on this
+  machine before that point was staffed by `general-purpose` stand-ins.
 - **`main` is production.** The live plugin runs from `~/.claude/plugins/cache/sailes/…`, sourced
   from a clone at `~/.claude/plugins/marketplaces/sailes` that tracks **`main`** with
   `autoUpdate: true` (evidence: `known_marketplaces.json`; it self-updated to `9998c62` on
@@ -67,6 +76,19 @@
   concurrent, 200 per session. **Plugin subagents cannot carry `hooks`, `mcpServers`, or
   `permissionMode`** — those fields are ignored, and we ship as a plugin. **`effort` is unsupported
   on Haiku 4.5**, which is why `explorer` has no `effort:` line.
+- **Role enforcement audited by running the roles, 2026-07-26** — the first time the 1.16.0 routing
+  ever executed, because until the plugin was installed here every "team" was `general-purpose`
+  stand-ins. Spawned `checker` and `explorer` as their real types and asked what they could do.
+  **Enforced:** the model pin (`explorer` = `claude-haiku-4-5`, `checker` = `claude-sonnet-5`,
+  each matching its frontmatter), the tool allow-list (`checker` had exactly Glob/Grep/Read/Bash —
+  `Write` and `Edit` absent from the schema, not merely unused), and **the absence of `Agent`**,
+  which is what makes depth-2 sub-teams safe and is now verified rather than read off a file.
+  **NOT enforced: "read-only".** Both roles wrote a file through `Bash` on the first attempt, no
+  friction. Every gate carries Bash because the job needs it (lint/types/suite for `checker`,
+  driving the app for `qa`), and `permissionMode` is ignored for plugin subagents, so there is no
+  shippable lever. The gate's integrity never rested on the write restriction — it rests on the
+  inputs being limited to diff + spec + checklist. Doctrine corrected to say which half is which.
+  Evidence: `.ai/eval-runs/2026-07-26-role-runtime-audit/`, both claims re-verified on disk by the lead.
 - **The gates cannot spawn, by configuration rather than by promise.** All seven non-lead roles carry
   an explicit `tools:` list and none includes `Agent`; only `team-lead` inherits the full pool. This
   is what makes depth-2 sub-teams safe to enable — turning nesting on cannot make a worker or a gate
@@ -78,8 +100,8 @@
 ## General rules
 - Every framework change lands as: proposal spec (root `.ai/specs/`) → human answers Open
   Questions → edits with binary Done-when outputs pasted → evals updated → CHANGELOG entry →
-  VERSION bump (all four manifests **+ the AGENTS.md stamp**) → push `main` → post-merge
-  `./install.sh --force`.
+  VERSION bump (all five stamps) → merge to `main`, which IS the deploy — the marketplace plugin
+  auto-updates from it, and there is no post-merge install step.
 - A measuring instrument gets a fixture for **both** directions: one that must be flagged, and one
   that must not. A defect-only fixture proves detection and says nothing about invention, and an
   instrument that flags correct work is worse than none — the gate gets argued with, then ignored.
@@ -187,12 +209,22 @@
     merging to `main` deploys to Jacek's machine and any other that installed the plugin, but not to
     this one. `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2` was set in `~/.claude/settings.json` on
     2026-07-26 (backup: `settings.json.bak-2026-07-26`); it needs a session restart to take effect.
-  - **Sub-teams ran for real, and the machinery held.** Depth-2 exercised on an actual backlog item
-    (the `Files:` migration): three sub-leads spawned **15 workers** between them, **every one
-    returned a report and none returned empty** — against 2026-07-25, where four of six went silent.
-    The difference is the one 1.15.0 predicted: every brief named a FILE deliverable. Scope held —
+  - **Sub-teams ran, and the run proved less than it was reported to prove.** Depth-2 nesting was
+    genuinely exercised: three sub-leads spawned 15 workers between them, **every one returned a
+    report and none returned empty** — against 2026-07-25, where four of six went silent. The
+    difference is the one 1.15.0 predicted: every brief named a FILE deliverable. Scope held —
     nothing outside the 24 target files changed, verified against a pre-run `git status` snapshot.
-    Release was a non-issue on the fallback path, exactly as the corrected doctrine now says.
+    **But every agent was dispatched as `general-purpose` with the role text pasted into the
+    prompt**, because the plugin is not installed on this machine and the Sailes roles resolve
+    nowhere here. So the run tested the *briefs*, not the *roles*: the eight role files carrying a
+    pinned `claude-opus-5` / `claude-sonnet-5` and an explicit effort were never loaded, the
+    `tools` allow-lists never applied, and the invariant that makes gates structurally unable to
+    fan out — no non-lead role lists `Agent` — was never exercised, since no non-lead role was
+    ever spawned as itself. **The 1.16.0 model routing has therefore still never run.** Raised by
+    the human, not caught by me, and closed doctrinally in 1.16.1: spawn the named role type;
+    `general-purpose` is a last resort that must set model/effort on the invocation and be
+    recorded in the run log as a stand-in. Eval: `evals/lead-spawns-named-roles-not-general-purpose.md`
+    (PENDING — arm 1 needs a machine where the roles resolve).
   - **The gate caught more in the instrument than in the work.** Three real defects, all fixed same
     day: `eval-status.js` reads only committed history (uncommitted edits read FRESH → new `DIRTY`
     verdict); freshness was conflating with outcome (an INCONCLUSIVE eval printed FRESH → the

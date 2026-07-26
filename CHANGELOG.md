@@ -4,6 +4,47 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.16.1 — 2026-07-26 · what the roles actually enforce, and a phantom agent nobody could see
+
+Everything here was found by *installing the plugin and running the roles*, which had never been
+done on this machine. Reading the configuration had been enough to be confident and wrong.
+
+- **🔒 Spawn the named role, not `general-purpose` wearing its instructions.** Nothing in the
+  doctrine said so, so nothing was violated when 1.16.0's own sub-team run staffed every worker —
+  including three sub-leads — with generic agents carrying pasted role text. Depth-2 nesting was
+  genuinely exercised; the **roles were not**, so the pinned models never loaded, the tool
+  allow-lists never applied, and the no-worker-can-spawn invariant was never tested.
+  `general-purpose` is now a last resort that must set model/effort on the invocation and be
+  **recorded in the run log as a stand-in** — a run staffed by stand-ins tested the briefs, not
+  the roles. Eval `lead-spawns-named-roles-not-general-purpose`: arm 1 **PASS**; arm 2 VOID on a
+  fixture defect (see below), so the fallback path is untested.
+- **🔒 `agents/README.md` was shipping as a phantom agent type.** Claude Code registers every
+  `.md` in a plugin's `agents/` directory as an agent, frontmatter or not, so a documentation file
+  appeared in every session's roster as `README` — no description to choose it by, and no `tools`
+  list, so it inherited everything including `Agent`. Moved to `docs/agent-roles.md`. The
+  validator is the uncomfortable half: it *excluded* `README.md` by name, which is why no test
+  could ever have caught this. That exclusion is gone and a stray-file assertion replaces it,
+  RED-proved.
+- **What the role definitions enforce, separated from what they merely ask.** Audited by spawning
+  the real roles. **Enforced:** the model pin (`explorer` on `claude-haiku-4-5`, `checker` on
+  `claude-sonnet-5`), the tool allow-list (`Write`/`Edit` absent from `checker`'s schema, not
+  merely unused), and the absence of `Agent` — the invariant that makes depth-2 safe, now proven
+  rather than read off a file. **Not enforced: "read-only".** Every gate carries `Bash` because
+  the job requires it, and both audited roles wrote a file through it on the first attempt.
+  Removing `Bash` would break the gates rather than harden them, and `permissionMode` is ignored
+  for plugin subagents, so the fix is to stop overclaiming: the gate's integrity rests on its
+  **inputs** being limited to diff + spec + checklist, which is the part that actually works.
+- **The distribution doctrine contradicted itself**, and this entry is also where that change gets
+  its version: `AGENTS.md` said "there is no install step" and, eight lines later, "after merging:
+  `./install.sh --force`". The marketplace plugin is the distribution; `install.sh` copies `skills/`
+  only into a user-scope directory that then ages in place, shadowing rather than syncing. Shipped
+  to `main` unversioned earlier the same day — folded in here rather than left invisible to Upgrade
+  mode.
+- **Open, and deliberately not decided:** the two halves of 1.16.0 routing conflict. Roles pin full
+  IDs for reproducibility, but the Agent tool's `model` parameter accepts only aliases, so the
+  documented escalation path un-pins what the pinning was for — silently, because the alias
+  resolves to a working model. Four options in `.ai/backlog.md`, **awaiting human**.
+
 ## 1.16.0 — 2026-07-26 · measurement, model routing, and sub-teams — the Claude-5 re-fit
 
 Three capabilities that are one dependency chain: routing and sub-teams are bets, and the harness is
