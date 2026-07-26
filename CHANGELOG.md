@@ -4,6 +4,35 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.18.0 — 2026-07-26 · `designer` can measure, and the roster stops existing in triplicate
+
+- **`designer` gains browser tools *and* `Bash`** (human decision, the open D5 from the browser-
+  instrument spec). The first without the second is decoration — you cannot measure a page you cannot
+  boot. Inspect-only MCP set mirroring `fe-dev`; no interaction tools. Three guardrails ship with it,
+  because this changes what the role *is*: `Bash` is **boot-and-inspect only** (no install, migrate,
+  commit or push), a defect found is **reported, not fixed** (the `tester` rule), and **it does not
+  retire the integrity gate** — `qa` still verifies the built result on a clean context, because a
+  maker measuring its own intent is not a gate. Codex twin updated.
+- **The role/model table now exists once.** It lived in three files; on 2026-07-26 all three had
+  drifted and **two had silently lost `tester`** — a reader of either ran a seven-role pipeline with
+  the test gate missing and no way to notice. `agent-team-structure.md` is the single source;
+  `docs/agent-roles.md` and `agentic-first-principles.md` point at it. **Add a role or change a pin
+  there only.**
+- **Three rules that existed only by derivation are now written down.** (1) When "never hold idle
+  agents" collides with "chase the silent worker", **chasing wins** — a silent worker is not idle in
+  the sense the release rule means, because its context is the only place its findings may still
+  exist. (2) **A gate can earn a model escalation**, on a different trigger than a worker: when the
+  defect is *what the diff omits*, grading needs the whole surface rather than a patch read. (3)
+  **`BLOCKED-BY-POLICY`** — a refusal is not an empty return; it is quoted verbatim, gets exactly one
+  reroute, then goes to the human. Re-rolling tiers until one complies launders a refusal into an
+  approval nobody gave.
+- **Spec triage:** three shipped specs moved to `.ai/specs/implemented/`. The SessionStart hook routes
+  from that directory's contents, so it had been telling every new session that five specs were in
+  flight when three were done.
+
+**Upgrade-actionable:** a repo whose `designer` predates this hands over unmeasured intent; and if you
+copied the roster table into your own docs, delete the copy and point at the canonical one.
+
 ## 1.17.1 — 2026-07-26 · two tools the docs mandated and the machine could not deliver
 
 Both found by the A/B recon sweep that shipped in 1.17.0, both the same shape: a document instructing

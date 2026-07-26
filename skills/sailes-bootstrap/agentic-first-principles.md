@@ -84,17 +84,9 @@ An agent follows *enforced* rules ~always and *prose* rules ~usually — and "us
 
 ## C2. Agent teams — how non-trivial work is delegated
 
-Non-trivial tasks (3+ steps, BE+FE, an API contract, an architecture change) run as a **team**, not solo. Role definitions live globally in `~/.claude/agents/`:
+Non-trivial tasks (3+ steps, BE+FE, an API contract, an architecture change) run as a **team**, not solo. The eight role definitions ship with the marketplace plugin and are discovered from its `agents/` directory — they are not copied into `~/.claude/agents/`, and anything that says otherwise predates the plugin.
 
-| Role | Model · effort | Does |
-|---|---|---|
-| `team-lead` | `claude-opus-5` · high | plan · decompose · integrate · final verdict; never bulk-codes solo |
-| `explorer` | `claude-haiku-4-5` · — | read-only recon, `file:line` findings, no final code |
-| `designer` | `claude-sonnet-5` · high | UX/UI spec from design tokens, not feature code |
-| `be-dev` / `fe-dev` | `claude-sonnet-5` · high | implement per spec / per design |
-| `tester` | `claude-sonnet-5` · high | author the suite via `sailes-test`: cases from the spec with code unread → human freeze → write → tiered detection proof; the one gate that writes |
-| `checker` | `claude-sonnet-5` · high | independent read-only review → APPROVE / NITS / CHANGES-REQUIRED |
-| `qa` | `claude-sonnet-5` · high | run the `tester` suite as the verdict + real-flow proof + screenshots; never fakes a pass |
+**The roster — who each role is, what it must never do, and the model and effort it is pinned to — lives in exactly one place: `agent-team-structure.md`.** It is not restated here. That table used to exist in three files and all three had drifted by 2026-07-26; two had lost `tester` entirely, which is a missing gate that reads like a complete list. What follows are the *principles* that govern the team, which is what this file is for.
 
 - **Order:** `explorer → designer → BE contract finalized → fe-dev → tester → checker → qa`. One task per worker; workers escalate scope questions to `team-lead`; **workers never commit or push.**
 - **Delegation mechanism:** enable teams with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/settings.json`; the lead hands tasks to teammates (one task each), integrates the results, and **releases each teammate once its task is integrated** (no idle agents). **If the flag is off**, the same roles/order/gates run as sequential scoped subagents — the model doesn't depend on the flag.

@@ -26,6 +26,11 @@ is called done. The gate scales down; it never disappears.
 
 Role definitions ship with this plugin in `agents/` (auto-discovered on `plugin install`) and can also be copied to `~/.claude/agents/` for global use. The lead is the single point of contact for the human.
 
+**This table is the single source of truth for the roster.** `docs/agent-roles.md` and
+`agentic-first-principles.md` used to carry their own copies; on 2026-07-26 all three had drifted and
+two had lost `tester` entirely — a missing gate that reads like a complete list. Both now point here.
+Add a role, change a pin or change a lane **here only**.
+
 | Role | Model · effort | Does | Never |
 |---|---|---|---|
 | `team-lead` | `claude-opus-5` · high | plan · decompose into one-task units · assign · integrate results · final verdict; reads Task Router + `.ai/lessons.md` before planning | bulk-codes the feature solo on a large task; lets a worker decide a **key** decision |
@@ -104,6 +109,8 @@ effort; and **Haiku 4.5 holds 200K of context against 1M on the Sonnet and Opus 
 ceiling on whole-repo recon rather than a price difference. Note also that Claude Code's own built-in
 `Explore` agent stopped defaulting to Haiku and now inherits the session model — `explorer` staying on
 Haiku is a deliberate divergence from the platform default, not a match to it.
+
+**A gate can earn an escalation, on a different trigger than a worker.** Most review is a patch read and the pinned tier handles it. Escalate a gate when the defect it guards against is **what the diff omits** rather than what it contains — a tenant filter missing from one of nine access paths, an authorization check absent from a branch nobody wrote. That requires holding the whole surface in mind and asking what *should* be there, which is not the same task as checking that what is there is right. Named 2026-07-26 after a run escalated `checker` on a tenancy diff for exactly this reason while the doctrine had no words for it. Still a judgment trigger, never a size one, and still logged with its outcome.
 
 ## Order of work (the pipeline)
 
@@ -251,6 +258,10 @@ A worker is **single-task and disposable**: it exists to do its one assigned tas
 5. **Run log survives resets.** The lead records, per task: who was spawned, what they returned, the gate verdict, and whether they were released — "released" meaning a *confirmed* termination, not a request that was sent (rule 2). An empty return is recorded as an empty return — hiding it is how the same failure repeats next session. After a context reset the lead reconstructs *which agents are still active* from the run log instead of re-deriving it — and releases any orphaned ones.
 6. **An empty return is never a completion — but it is not always the worker's fault.** A worker can go idle having said nothing. That is indistinguishable from "it looked and found nothing" — so accepting the silence records a false negative as a result, which is the silent-instrument trap. The lead chases once, explicitly; if the report is still absent it escalates to the human rather than re-spawning on a guess or quietly doing the work itself. **"The agent found no issues" is a claim the lead may make only if an agent actually said so.** Two causes produce identical silence, and they need different fixes: the worker genuinely did not finish, or **the channel dropped a report that was written**. Measured 2026-07-25: four workers went idle with nothing; every one of them had finished and had a full report, and one said so once it had a channel that reached the lead — *"moje wcześniejsze odpowiedzi tekstowe do Ciebie nie docierały"*. Two were re-spawned for no reason. So chase the silence, but do not assume negligence — and prevent it with a durable deliverable rather than a better-worded report clause.
 7. **Harvest before release.** A worker that hit a real problem — a wrong assumption in its brief, a contract that did not hold, a tool that failed silently — carries knowledge worth more than its diff. It lands in `.ai/lessons.md` (Context / Problem / Rule / Applies-to) before the agent is released, and the delegation in `.ai/runs/` when the task was substantial. A message queue does not survive a context reset; disk does.
+
+**Rules 4 and 6 collide on a silent worker, and rule 6 governs — hold it.** "Never hold idle agents" and "chase the silent one" point opposite ways on exactly this case, and neither used to say which wins. A silent worker is **not** idle in the sense rule 4 means: its context is the only place its findings may still exist, so releasing it guarantees the work is redone, while holding it costs one live agent for a few minutes. Hold until the report is recovered or the escalation to the human resolves, **then** release. Written down 2026-07-26 because an eval derived this correctly unaided — and a rule that lives only in whichever model re-derives it is not a rule; the next reader could resolve it the other way and destroy a report that existed.
+
+**A refusal is not an empty return — `BLOCKED-BY-POLICY`.** A worker that declines a task for its own safety reasons reports that verbatim, and the lead records the refusal's exact wording rather than a paraphrase: a summarised refusal is not evidence of what was refused. The lead gets **one** reroute — re-spawn on a different tier, tightening the brief if the refusal points at real ambiguity in it. A second refusal goes to the human with both quoted. Do not keep re-rolling tiers until one complies; a task two models decline is a fact about the task, and shopping for a compliant model launders a refusal into an approval nobody gave.
 
 This lifecycle is the concrete form of "one task per worker": agents are spawned for a task and retired with it, not maintained as a standing pool.
 

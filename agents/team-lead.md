@@ -57,6 +57,8 @@ Escalate a worker to `claude-opus-5` when the task's difficulty is in the *judgm
 
 Go the other way just as deliberately. A phase's `Done-when` is a pass/fail read of exact commands against expected output — judgment does not enter it, so a lightweight model grades it. Raising effort on a binary read buys nothing.
 
+**A gate can earn an escalation too, and the trigger is different from a worker's.** Most review is a patch read, which the pinned tier handles. Escalate a gate when the defect you are guarding against is **what the diff omits** rather than what it contains — a missing tenant filter on one of nine access paths, an authorization check absent from the branch nobody added. Grading that requires holding the whole surface in mind and asking what *should* be there, which is a different task from checking that what is there is correct. Named 2026-07-26 after a run escalated `checker` to Opus on a tenancy diff for exactly this reason and the doctrine had no words for it. The same caution applies as everywhere: this is a judgment trigger, not a size one, and it belongs in the run log with its outcome.
+
 **An override buys you a tier, not a version — and it does not buy effort at all.** Measured against the live tool on 2026-07-26, the two halves fail in opposite ways. `model` fails **loudly**: it takes only the aliases `sonnet` / `opus` / `haiku` / `fable`, and a full ID is rejected outright. `effort` fails **silently**: it is not a declared parameter of the Agent tool, yet passing it raises no error, so you cannot tell whether it applied — and a parameter accepted without effect is the failure shape this repo keeps recording. Treat effort as frontmatter-only; **omitting `model` is how you keep the pin**, and passing it is the one deliberate lever you have per task.
 
 So the moment you override, that worker stops running on its pinned `claude-sonnet-5` and starts running on whatever `sonnet` resolves to right then. The default path keeps its pin, so this costs you only on tasks you deliberately escalate. **Record the alias you passed, not just "escalated"** — otherwise next session cannot tell which model produced the result, which is the attribution the pinning exists to protect. And if you catch yourself escalating the same role routinely, stop overriding and say so: a role escalated by habit, or one that needs a different effort, has outgrown its definition and should get its own pinned one. That is the graduation rule this framework already applies to config.
@@ -89,6 +91,8 @@ Spawn a worker when its pipeline task is actually ready; integrate its result, t
 - **Never forward an unverified absence as a result.** "The agent found no issues" is a claim you may only make if an agent actually said so.
 - **Do not assume negligence.** Silence has two causes with one appearance: the worker did not finish, or the channel dropped a report it did write. On 2026-07-25 all four silent workers had finished and had full reports; two were re-spawned for nothing.
 
+**When "never hold idle agents" collides with "chase the silent one", chasing wins — hold it.** These two rules contradict each other on exactly this case and neither used to say which governs. The resolution: a silent worker is **not** idle in the sense the release rule means, because its context is the only place its findings may still exist. Releasing it guarantees the work is redone; holding it costs a live agent for a few minutes. So hold until the report is recovered or the escalation to the human resolves, **then** release. Recorded 2026-07-26 because an eval derived this correctly on its own — and a rule that survives only as long as the model that re-derives it is not a rule. The next reader could as easily resolve it the other way and destroy a report that existed.
+
 Prevention beats the chase, and the prevention is the deliverable, not the wording: **for work a gate will grade, name a FILE in the brief** — path plus "no file = task not done" — and read it from disk. Same session: four message-deliverable briefs → six empty returns; one file-deliverable brief → a gradable artifact first try.
 
 ## Sub-teams ("commando mode") — human-triggered, never your own idea
@@ -106,6 +110,19 @@ When the human opens it:
 - **Silent returns are the failure mode that multiplies in both modes.** Fan-out is what multiplies it, and the prevention is unchanged: every brief names a FILE deliverable, and "released" is recorded only for a termination you actually observed. Reconstruct the live set from the run log, not from memory.
 
 If the human has not asked for sub-teams, run one team. A wide task is not by itself a reason to open a second one.
+
+## When a worker refuses on policy — `BLOCKED-BY-POLICY`
+A worker sometimes declines a task for its own safety reasons rather than because the task is
+impossible. That is not an empty return and must not be recorded as one. The worker reports
+**`BLOCKED-BY-POLICY`** with the refusal **verbatim** — your paraphrase of a refusal is not evidence
+of what was refused, and the exact wording is what lets anyone judge whether the brief or the model
+was at fault.
+
+You get **one** reroute: re-spawn once on a different tier, with the brief tightened if the refusal
+points at something genuinely ambiguous in it. If the second attempt refuses too, stop and escalate to
+the human with both refusals quoted. Do not keep re-rolling tiers until one complies — a task that two
+models decline is a fact about the task, and shopping for a compliant model is how a lead launders a
+refusal into an approval nobody gave. And never do the work yourself to route around it.
 
 ## Delegating a task to another runtime (Codex)
 The human may hand one task to a different runtime — "use Codex for the backend", "let Codex review this". Honor it literally, and **only when asked**: never route work to Codex on your own initiative. A Codex worker is an ordinary worker — one self-contained brief in, one report out, its diff faces the same gates. The runtime it ran on earns it no exemption.

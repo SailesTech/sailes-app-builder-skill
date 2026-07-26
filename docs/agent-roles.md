@@ -18,17 +18,16 @@ that team — Claude Code auto-discovers `agents/` at the plugin root, so
 > install agents" bug: the roles existed only as prose, and any folder that did
 > exist used a dot prefix.
 
-| File | Role | Model · effort | Stage in pipeline |
-|---|---|---|---|
-| `team-lead.md` | plan · decompose · assign · integrate · run gates · final verdict | `claude-opus-5` · high | (lead) |
-| `explorer.md` | read-only recon → `file:line` findings | `claude-haiku-4-5` · — | 1 |
-| `designer.md` | UX/UI spec from design tokens | `claude-sonnet-5` · high | 2 |
-| `be-dev.md` | implement approved backend scope | `claude-sonnet-5` · high | 3 |
-| `fe-dev.md` | implement approved UI scope | `claude-sonnet-5` · high | 4 |
-| `checker.md` | independent diff-vs-spec review gate | `claude-sonnet-5` · high | 5 |
-| `qa.md` | real-flow behavior proof + vision-verify | `claude-sonnet-5` · high | 6 |
+Eight files, one per role: `team-lead.md`, `explorer.md`, `designer.md`, `be-dev.md`, `fe-dev.md`,
+`tester.md`, `checker.md`, `qa.md`.
 
-Pipeline: `explorer → designer → BE contract frozen → fe-dev → checker → qa`.
+**What each role does, and what model and effort it is pinned to, lives in exactly one place:**
+`skills/sailes-bootstrap/agent-team-structure.md`. Do not restate it here. That table used to exist in
+three files, and on 2026-07-26 all three had drifted — two of them had silently lost `tester`
+altogether, so a reader of either ran a pipeline with one gate missing and no way to notice. One table
+with pointers is the fix; a second copy is a second thing to forget.
+
+Pipeline: `explorer → designer → BE contract frozen → fe-dev → tester → checker → qa`.
 
 Edit the canonical skill and these files together — the skill is the source of
 truth for behavior; these files are how the roles become real, installable agents.
