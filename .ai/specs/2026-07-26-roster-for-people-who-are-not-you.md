@@ -129,7 +129,7 @@ Not hypothetical. Each is a case where a defined lane would have caught the lead
 
 - **Roster inflation.** Ten roles is where a table stops being read. The role/model table already
   lives in three places (`.ai/backlog.md`, unblocked but not done).
-- **Q3 is a safety question, not a convenience one.** Granting `Agent` to a second role weakens an
+- **Q1 is a safety question, not a convenience one.** Granting `Agent` to a second role weakens an
   invariant that was verified by runtime audit today.
 - **`main` is production.** Both roles ship to every machine on merge; both need their own eval
   before that.
