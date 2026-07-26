@@ -47,14 +47,21 @@ claude mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@latest
 #   ...then add --executablePath "<printed path>" to the args above.
 ```
 
-Per-project opt-in is a `.mcp.json` decision card in bootstrap (Q21) — committed to the repo, so
-every agent and developer on that project gets the same instrument, and no machine is mutated
-behind anyone's back.
+The `.mcp.json` is **committed on any repo with a UI** (bootstrap Q21; human decision 2026-07-26 —
+it stopped being a card for UI repos), so every agent and developer on that project gets the same
+instrument and no machine is mutated behind anyone's back.
 
-**If it is not installed:** fall back to the screenshot render (`SKILL.md` §Render and self-verify,
-step 1) and record `SKIP browser-inspect (chrome-devtools MCP absent)` in the artifact — the run
-log, the incident record, or the qa verdict. An unmeasured gate reported as passed is the failure;
-an explicit SKIP is not.
+**If it is not installed on a UI repo:** report **`ENV-DEFECT`** with the one-line install
+(`claude mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@latest`) and **do not
+pass the gate.** The screenshot is no longer a fallback: these checks are stated as categorical, and
+a model reading a PNG delivers an impression instead. Do not install it yourself — that is the
+human's call, exactly as with missing test infrastructure.
+
+What has not changed: an unmeasured gate reported as passed is still *the* failure. `ENV-DEFECT`
+serves that better than a SKIP did, because a SKIP line sits inside an otherwise-complete run and
+reads like a completed one.
+
+**Backend-only repos are untouched** — no UI, no gate, no requirement.
 
 Tools referenced below, all `mcp__chrome-devtools__*`: `navigate_page`, `resize_page`, `emulate`,
 `evaluate_script`, `take_snapshot`, `take_screenshot`, `list_console_messages`,

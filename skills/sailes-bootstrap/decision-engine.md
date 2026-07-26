@@ -44,17 +44,31 @@ on the project:
     "command": "npx", "args": ["-y", "chrome-devtools-mcp@latest"] } } }
 ```
 
-| Option | Pros | Cons |
-|---|---|---|
-| **A — commit `.mcp.json` (recommended for any repo with UI)** | The integrity/a11y/CWV gates become measurements; same instrument for everyone; diagnosis gets real console + network + storage | One more tool surface; needs Chrome on each machine; a second browser stack alongside Playwright |
-| B — leave it out | Nothing new to install | Three gates stay eyeballed; every UI run carries a `SKIP browser-inspect` line |
-| C — per-developer, user scope only | No repo change | Silent asymmetry: the gate is measured on one machine and skipped on another, with no signal in the repo |
+**No longer a decision card for repos with a UI — human decision, 2026-07-26.** On any repo with a
+user interface the `.mcp.json` above is **committed, not chosen.** The card remains only for
+backend-only repos, where the answer is simply "not applicable".
 
-Present it, recommend A for UI repos, and **let the human choose** — this is a tooling decision,
-not a baseline. Log the answer in the Decisions Ledger. It never becomes mandatory: the fallback in
-`../sailes-design/browser-inspect.md` §Availability (screenshot + explicit SKIP) is a first-class
-path, and no skill blocks on the server being present. Codex twin: the same server goes under
-`[mcp_servers.chrome-devtools]` in `.codex/config.toml` (see `codex-config-template.md`).
+The reasoning, recorded so it can be argued with later: the UI gates are *stated* as binary — the
+physical-integrity six, contrast ≥4.5:1, the latency budget — and without the instrument an agent
+verifies them by reading a screenshot, which is an impression wearing a checklist's clothes. Making
+the instrument optional meant the gate's rigour depended on a per-project tooling answer, and option
+C in particular produced a **silent asymmetry**: measured on one machine, eyeballed on another, with
+nothing in the repo saying which run you were reading.
+
+**What absence now means: `ENV-DEFECT`, not `SKIP`.** On a UI repo where the server is unavailable,
+the agent reports `ENV-DEFECT` with the one-line install
+(`claude mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@latest`) and the UI
+verification gate does **not** pass. It does not fall back to a screenshot and it does not proceed.
+This is the same shape as the missing-test-infrastructure rule in `sailes-test`: the agent does not
+stand up the tooling itself, because installing it is the human's call — but it also does not
+pretend the gate ran.
+
+**What has NOT changed.** Absence still never produces silence, and it still never produces a
+fabricated pass — those were always the point, and `ENV-DEFECT` serves them more honestly than a SKIP
+that reads like a completed run. Backend-only repos are untouched: no UI, no gate, no requirement.
+
+Codex twin: the same server goes under `[mcp_servers.chrome-devtools]` in `.codex/config.toml`
+(see `codex-config-template.md`), and is equally required there for UI work.
 
 ## Stack-shaping axes (choose the SHAPE, not just the modules)
 

@@ -1,7 +1,29 @@
 # Prompt Anchor — keep the mandate alive deep into a session
 
-Status: **premise not reproduced — awaiting the human's call on retiring `enforce/*`**
-Date: 2026-07-18 · re-measured 2026-07-26
+Status: **RETIRED 2026-07-26 by human decision — premise did not reproduce, branches deleted**
+Date: 2026-07-18 · re-measured 2026-07-26 · retired 2026-07-26
+
+> ## Retirement record — how to bring this back if it is ever needed
+>
+> The human chose retirement over rebase after the control arm held at real context distance (see the
+> block below and `evals/anchor-holds-the-line-deep-in-session.md`). The four `enforce/*` branches
+> were deleted locally and on `origin`. **The work is not lost — it is reachable by SHA**, and these
+> are recorded here precisely because deleting the branches removes the only refs pointing at them:
+>
+> | Branch | SHA | Commits ahead of `main` at retirement |
+> |---|---|---|
+> | `enforce/base` | `3dae280` | 3 — the hook itself (`hooks/prompt-anchor.js`, `.test.js`, `hooks.json` wiring) |
+> | `enforce/always` | `da55d24` | 2 — inject on every prompt |
+> | `enforce/hybrid` | `f4cd0a8` | 1 — suppression policy, 6 of 60 turns |
+> | `enforce/state-only` | `4a97011` | 2 — inject only on state change |
+>
+> Recover with `git checkout -b <name> <sha>` while the objects are still in the repo; push a ref
+> before any `gc` if you want them durable again.
+>
+> **When this would be worth reopening:** a weaker model, or the Codex twins, where this prose is the
+> only backstop and the 2026-07-26 measurement says nothing. The control arm was one brief, one
+> language, one repo, one model. Retirement is a judgement that the *measured* case does not justify
+> the cost — not a proof that no case does.
 
 > Open Questions answered and spec approved 2026-07-18. Work runs on `enforce/base`;
 > `main` is production (see **Deployment channel**).

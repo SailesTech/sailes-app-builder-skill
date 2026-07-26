@@ -4,6 +4,47 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.21.0 — 2026-07-26 · the browser instrument becomes required, and its tool surface is finally checked
+
+Two human decisions and the check that neither was possible without.
+
+**`chrome-devtools` MCP is now REQUIRED on any repo with a UI** (human decision; Q21 stops being a
+card for UI repos and stays one only in the sense that backend-only repos answer "not applicable").
+The UI gates are *stated* as binary — the physical-integrity six, contrast ≥4.5:1, the latency budget
+— so making the instrument optional meant the gate's rigour depended on a per-project tooling answer.
+Old option C was worst: measured on one machine, eyeballed on another, nothing in the repo saying
+which run you were reading.
+
+- **Absence is now `ENV-DEFECT`, not `SKIP`** — with the one-line install, and **the UI gate does not
+  pass.** The screenshot stops being a fallback: a model reading a PNG returns an impression, and this
+  gate is categorical. Agents still do not install it themselves; that is the human's call, exactly as
+  with missing test infrastructure. Updated in `decision-engine.md`, `browser-inspect.md`,
+  `sailes-design/SKILL.md`, `repo-done-checklist.md`, and the `qa` / `designer` / `fe-dev` roles.
+- **What has not changed:** absence never produces silence and never produces a fabricated pass. Those
+  were always the point — `ENV-DEFECT` serves them better than a SKIP line sitting inside an
+  otherwise-complete run, which reads like a completed one. **Backend-only repos are untouched.**
+
+**The tool-surface check that had never run.** With the server finally wired up, its real tool list was
+read from the **live server** (MCP `tools/list` over stdio, not documentation): 29 tools, registry
+version 1.6.0. Recorded in `evals/fixtures/browser-probe/tool-surface.md`.
+
+- **No phantom tools remain** — the 1.17.1 `handle_dialog` fix was the only one. That is the direction
+  that fails loudly, mid-gate, on a live app.
+- **Twelve capabilities were silently unavailable, and three mattered.** `qa` had
+  `performance_start_trace` with **no** `performance_stop_trace` and no `performance_analyze_insight`
+  — a trace it could start and never stop or read, which is a defect rather than a gap. **Nobody had
+  `hover`**, while `designer` is required to specify every interaction state including hover and `qa`
+  is required to vision-verify against that artifact — configuration forbidding what doctrine
+  mandates. And **no page management**, on a framework whose `sailes-pipedrive` work is entirely
+  iframes, floating windows and OAuth callbacks: `qa` could not follow a popup.
+- Granted: `hover` to all three; `performance_stop_trace`, `performance_analyze_insight`, `drag`,
+  `upload_file`, `list_pages`, `new_page`, `select_page`, `close_page` to `qa`. Four tools were
+  **deliberately not granted**, with reasons recorded, so the next reader knows they were considered.
+
+**`prompt-anchor` retired** (human decision). The control arm held at real context distance without
+it, so the four `enforce/*` branches were deleted — their SHAs recorded in the spec, since deleting a
+branch removes the only ref pointing at the work.
+
 ## 1.20.0 — 2026-07-26 · `sailes-discovery` gets progressive disclosure — and two skills prove they should not
 
 The backlog asked for three monolithic skills to be split the way `sailes-bootstrap` already is. One
