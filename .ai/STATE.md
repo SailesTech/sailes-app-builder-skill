@@ -14,6 +14,15 @@
   against `enable-plugin.sh:2-4` ("run once per machine… no per-project action needed") and
   `AGENTS.md` §`main` is production ("there is no install step and no confirmation"). The stale
   "After merging: `./install.sh --force`" line has been removed from AGENTS.md.
+- **This machine joined the marketplace on 2026-07-26** — `enable-plugin.sh` was run, adding
+  `extraKnownMarketplaces.sailes` + `enabledPlugins["sailes-app-builder@sailes"]` to
+  `~/.claude/settings.json` (backup: `settings.json.bak-before-enable-plugin`; the existing
+  `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` was preserved). **Registration happens at session start,
+  not on running the script**: `known_marketplaces.json` still listed only `claude-plugins-official`
+  immediately afterwards. Verified from this side: `git ls-remote` resolves the source repo and
+  `main` is `20a8b54`, so the install will pick up 1.16.0 rather than something older.
+  Until the next session the Sailes roles still do not resolve here, and every "team" run on this
+  machine before that point was staffed by `general-purpose` stand-ins.
 - **`main` is production.** The live plugin runs from `~/.claude/plugins/cache/sailes/…`, sourced
   from a clone at `~/.claude/plugins/marketplaces/sailes` that tracks **`main`** with
   `autoUpdate: true` (evidence: `known_marketplaces.json`; it self-updated to `9998c62` on
