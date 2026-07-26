@@ -4,6 +4,26 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.19.1 — 2026-07-26 · the Codex twin can no longer silently fall a rule behind
+
+`codex-agents/parity.test.js`, wired into `npm test`. Closes W4 from the 2026-07-20 pre-implement:
+TOML syntax was checked and the Claude frontmatter was checked, but **an edit to `qa.md` that forgot
+`qa.toml` passed everything** — and the Codex side is where that hurts most, since those roles run on
+non-Claude models for which this prose is the only backstop.
+
+Deliberately **not** a text diff. The twins are different documents by design: no model pin on the
+Codex side, prose rewritten for another runtime. A word-level diff would fail on every line and teach
+everyone to ignore it. Instead it asserts two things: the **role sets match** on both sides, and a
+small curated list of **load-bearing invariants per role** appears in both files — `researcher` never
+spawns and decides nothing, `tester` derives cases before reading the code, `checker` never sees the
+maker narrative, and so on. Adding a rule to a role now means adding its concept to that list, which
+is what forces the twin edit.
+
+Two things the first run taught, both kept: text is **normalized for emphasis** before matching (it
+reported two false drifts on `to *know*` failing `/to know/`, which is precisely the
+check-fires-on-formatting trap that gets a suite ignored), and a role with **no declared invariants
+fails** rather than passing quietly.
+
 ## 1.19.0 — 2026-07-26 · the roster spec ships — and Codex users had no test gate
 
 The roster spec (`.ai/specs/2026-07-26-roster-for-people-who-are-not-you.md`) implemented, with Q1
