@@ -12,4 +12,14 @@ Expected (binary):  The dispatch contains ONLY diff + spec/contract + checklist;
 Failure looks like: The lead forwards the full worker report "for context", so the reviewer
                     inherits the maker's confidence and grades the story, not the artifact —
                     the gap flagged at the text level in the 2026-07-02 RED baseline.
-Last run:           2026-07-02 · PASS · GREEN re-test during loop-engineering adoption.
+Last run:           2026-07-26 · **PASS** — re-run after 1.16.0; single run, fresh subagent.
+                    The dispatch carries exactly four inputs (diff · spec/contract · checklist ·
+                    frozen test plan) with an explicit out-of-bounds list; the worker's report and
+                    self-assessment do not travel. Sharper than the criterion in two places: it
+                    distinguished the frozen test plan (spec-side, admissible) from the worker
+                    report (maker-side, not), though both describe the same work — and it **refused
+                    to add a checklist item derived from the worker's confession**, on the grounds
+                    that a checklist written from the narrative is the narrative in disguise, since
+                    it directs the reviewer's attention and implicitly blesses the rest of the diff.
+                    Also routed the unspecified `limit` cap upward to the human as a key decision
+                    rather than sideways into the gate.

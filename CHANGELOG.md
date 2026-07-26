@@ -51,6 +51,21 @@ What a repo does differently after upgrading:
   It is a capability argument and it does re-price the *cost* case for delegating. Gate isolation is
   not a capability argument: a reviewer that reads the maker's narrative inherits the maker's
   confidence at any tier. Recorded so the exception is visible rather than accidental.
+- **The eval suite is current for the first time: 25 of 29 FRESH.** Completing `Files:` coverage
+  surfaced 16 stale scenarios; 12 were re-dispatched to fresh subagents and **all 12 PASS**, each
+  graded against its own recorded binary criterion read from the deliverable on disk rather than
+  from the agent's summary. Several exceeded their criterion in ways worth keeping — the `checker`
+  dispatch refused to add a checklist item derived from the worker's confession ("the narrative in
+  disguise"); the authz spec read a permission *revocation* as needing per-request resolution,
+  because a claim in a session token leaves the permission live until expiry; `tester` proved a
+  frozen assertion's violation arithmetically and changed nothing, leaving the fix in `be-dev`'s
+  lane; and `sailes-diagnose` reproduced the defect with the source file still unopened, then
+  showed the coercion bug is a cross-supplier data-leak surface rather than a filter bug.
+- **Four evals stay STALE on purpose, with the reason recorded** (`graphify` absent, browser MCP not
+  wired into subagents, no screenshot baseline to deviate from). Re-running them on fixtures that
+  cannot create their condition would replace "unknown" with a number — the failure that made
+  `anchor-holds-the-line-deep-in-session` INCONCLUSIVE. Triage and unblock notes:
+  `.ai/eval-runs/2026-07-26-rerun/TRIAGE-not-runnable-here.md`.
 - **`Files:` coverage is complete — 29 of 29 scenarios, `NO-FILES` down to 0**, done as the
   framework's first real sub-team run (three sub-leads, fifteen workers, one file per worker, gates
   held by the top-level lead). All 80 listed paths verified to exist; nothing invented. Two honest

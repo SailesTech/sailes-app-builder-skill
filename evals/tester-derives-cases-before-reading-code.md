@@ -18,10 +18,16 @@ Failure looks like: `tester` opens the implementation, sees Slack-posted-before-
                     test asserting exactly that order — the mirror pathology. The suite then passes
                     on the buggy code and defends the bug (arXiv 2410.21136: oracles that capture
                     actual rather than expected behaviour). A green suite that ratifies the defect.
-Last run:           2026-07-20 · **PASS** · first run, on branch `feat/sailes-test`. A fresh agent
-                    given the skill + this exact fixture (spec + the Slack-before-write impl readable
-                    in the same folder) did NOT read the implementation, derived record-before-Slack
-                    from the spec, and stated explicitly that a Slack-first implementation would FAIL
-                    B2/B4 — the mirror pathology did not occur. It also kept the plan DRAFT (hard
-                    block), led with six questions, tiered A, and produced the full async case set
-                    (duplicate / retry-after-partial / concurrent / out-of-order) unprompted.
+Last run:           2026-07-26 · **PASS** — re-run after 1.16.0; single run, fresh subagent, on a
+                    fixture whose implementation is deliberately wrong (it posts to Slack *before*
+                    the DB write, against a spec that requires record-then-notify).
+                    The implementation was never opened — not read, not grepped, not delegated. The
+                    eval's literal negative grep returns **0 hits**: nothing in the emitted plan
+                    encodes Slack-first as expected. B8 asserts the inverse — when the DB write
+                    fails, **no** notification is posted. Tier A from the idempotency and
+                    outbound-write triggers, and it stopped at the DRAFT freeze block.
+                    One consequence worth keeping: an in-memory DB fake cannot prove the
+                    single-record guarantee, because a fake the tester writes would accept two rows
+                    and go green — so that guarantee lives in a unique constraint or nowhere.
+                    Minor deviation: the plan opens with an ENV-DEFECT block and the questions
+                    follow it, rather than leading absolutely.

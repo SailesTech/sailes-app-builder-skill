@@ -197,6 +197,24 @@
     the *agent* did. Both were caught before anything was reported — but both are the house failure
     shape (a step reporting an outcome for a reason other than the one claimed), produced by the
     instrument built to catch it.
+  - **The whole eval suite is now current, and the number is honest.** 25 of 29 FRESH, 4 STALE.
+    Sixteen came back stale once coverage was complete; twelve were re-dispatched to fresh
+    subagents and **all twelve PASS**, each checked against its own recorded binary criterion read
+    from the deliverable file rather than from the agent's summary. The remaining four are
+    environment-blocked and stay STALE deliberately — `graphify` is not installed, the browser MCP
+    is not wired into subagents, and no screenshot baseline exists to deviate from. Marking them
+    re-run would be the silent-instrument trap told by the person who built the instrument.
+    Triage with what would unblock each: `.ai/eval-runs/2026-07-26-rerun/TRIAGE-not-runnable-here.md`.
+  - **Fixture quality was the weak link three times, not the behaviour under test.** Agents caught
+    all three: a graph fixture of mine asserting edges its stub sources did not have (the explorer
+    refused to invent contract shapes rather than paper over it), an invoice fixture with no runner
+    at all (reported ENV-DEFECT instead of standing one up), and a webhook fixture with no test
+    infrastructure. That is now the session's clearest pattern — when an eval is inconclusive here,
+    suspect the fixture first.
+  - **I hit the repo's own recorded lesson while writing this up:** backticks in prose pushed through
+    a shell, which is the failure `.ai/lessons.md` already names. The parse failed before any write,
+    so nothing was corrupted, and the fix is the one already recorded — use the file-writing tools,
+    not the shell, for prose.
   - **Next, in order:** (1) ~~dispatch the two new evals~~ **done** — they are the only thing between this branch
     and a merge; (2) re-run the three `lead-*` evals the instrument now flags STALE (the 1.15.0 debt,
     and the first real customer for the A/B protocol); (3) the `Files:` editorial pass over the
