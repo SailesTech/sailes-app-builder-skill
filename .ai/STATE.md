@@ -168,7 +168,42 @@
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-07-26 (**resume here**): shipped **1.16.0** on branch `feat/measurement-routing-subteams` —
+- 2026-07-26 (**resume here**): **1.17.0 is on production** (`68a8366`, pushed) — *deciding under
+  uncertainty*, plus two real defect fixes and the A/B that settled roster Q1.
+  - **New doctrine:** `skills/sailes-bootstrap/deciding-under-uncertainty.md`. The decision card had
+    no escape hatch — `Rekomendacja: <A/B> — bo <ground>` is mandatory, so a fork with no available
+    ground rewarded manufacturing one. Now "nie mam podstaw" is a legitimate recommendation line, and
+    an expensive-to-reverse ungroundable fork gets a fourth move: settle it by measurement. Entry
+    points added to `sailes-discovery` (the card) and `agents/team-lead.md` (escalation).
+  - **Two defects fixed:** `team-lead.md` omitted `tester` from its pipeline line and Gate isolation
+    while `agent-team-structure.md` makes it a mandatory per-phase gate (a lead reading only its own
+    file ran a two-gate pipeline); and `sailes-design/premium-ux.md` declared a "Sailes baseline" of
+    TanStack Start + React Query occurring in that file alone.
+  - **Evals:** `lead-proposes-a-measurement-when-it-cannot-recommend` NEW, PASS both directions.
+    `lead-does-not-open-a-swarm-unprompted` re-run, PASS — the new doctrine *narrowed* fan-out.
+    Status: **27 fresh / 4 stale / 0 dirty**.
+  - **Roster Q1 RESOLVED as (a)** — the lead spawns; `researcher` synthesises and verifies, and ships
+    **without** `Agent`. Recorded as partly measured, partly argued: measured that cost observability
+    is lost when a non-lead spawns; the choice of (a) over the untested (c) is argument.
+  - **The correction that matters most, 2026-07-26:** the run-1 A/B claim that arm B "burns fewer
+    tokens" was **never measured**. It came from that arm's own run-data section, which formatted
+    estimates identically to source-verified claims; asked directly, both arm-B agents confirmed they
+    cannot see their gatherers' tokens, their own, or per-agent durations, and never read a clock. We
+    grade the artifact rather than the report for *findings* — nobody applied that to *instrumentation*,
+    the one section with no artifact to return to. Both lessons are in `.ai/lessons.md`.
+  - **Plugin clone on this machine was 9 commits behind** and `autoUpdate` had not pulled it; brought
+    to `68a8366` manually. The stale in-session agent registry still lists `sailes-app-builder:README`
+    — that clears on restart, not before.
+  - **Open, verified today, unfixed (both real):** `sailes-design/browser-inspect.md:264` instructs
+    `handle_dialog`, which is absent from that file's own tool list (L59-62) **and** from the `tools:`
+    allow-lists of `qa` and `fe-dev` — prose instructing a call the configuration forbids, the same
+    class as the phantom agent. And **Stryker is the one mandated tool with no absence path**:
+    `sailes-test/SKILL.md:107` requires it for tier A, while graphify and chrome-devtools both carry
+    explicit SKIP protocols and Stryker carries none.
+  - **Next (1.18.0), unblocked by Q1:** `researcher` (no `Agent`), `explorer` + `WebSearch`,
+    `eval-runner` as a **skill** rather than a role.
+
+- 2026-07-26 (earlier): shipped **1.16.0** on branch `feat/measurement-routing-subteams` —
   measurement, model routing, and sub-teams, as one dependency chain (spec:
   `.ai/specs/2026-07-26-measurement-routing-and-subteams.md`, gate cleared by the human same day,
   D1–D4 answered, D5–D6 assumed and recorded). **Not merged — `main` is a live deploy and both new
