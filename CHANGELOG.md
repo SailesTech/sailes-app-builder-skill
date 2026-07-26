@@ -4,6 +4,39 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.17.0 — 2026-07-26 · when you cannot ground a recommendation, propose a measurement
+
+The decision card mandates `Rekomendacja: <A/B> — bo <reason grounded in THEIR answers>`. For a fork
+with no available ground that clause is unfillable, and a blank recommendation reads as an unfinished
+card — so the format quietly rewarded manufacturing a plausible reason, which is indistinguishable to
+the reader from a founded one.
+
+- **New reference: `sailes-bootstrap/deciding-under-uncertainty.md`.** "Nie mam podstaw, żeby wskazać"
+  is a legitimate recommendation line. Where the fork is *also* expensive to reverse, a fourth move
+  sits next to A/B/C — settle it by measurement (A/B arms · spike · probe the live tool · instrument
+  and decide). Ten rules govern whether the run is worth it: criterion fixed and mechanically derived
+  **before** dispatch, one variable, same fixture, a FILE deliverable, what is **not** scored named out
+  loud, one run is a sample, and *if both arms agree, suspect the fixture*. The opposite failure is
+  named too — an experiment reached for to avoid a decision you can make costs fan-out and returns
+  nothing. **A generated repo gains this as the escape hatch its decision cards previously lacked.**
+- **`sailes-discovery`** gains the "When you cannot ground the recommendation" block; **`team-lead`**
+  gains "escalate with a measurement, not a guess", including the obligation to record whether a
+  decision was settled by argument or by measurement. An argued call later read as a measured one is a
+  false provenance nobody can detect.
+- **Fixes a real drift:** `agents/team-lead.md` omitted `tester` from its pipeline line and from Gate
+  isolation, while `agent-team-structure.md` makes it a mandatory per-phase gate. A lead reading only
+  its own role file ran a **two-gate** pipeline. Adopted repos should re-read the gate order.
+- **Fixes a false baseline:** `sailes-design/premium-ux.md` declared a "Sailes baseline" of TanStack
+  Start + React Query that appears in that file alone, contradicting `premium-craft.md` six lines away
+  and `stack-baseline.md`. Now points at the real baseline.
+- **Evals:** `lead-proposes-a-measurement-when-it-cannot-recommend` (PASS, both directions);
+  `lead-does-not-open-a-swarm-unprompted` re-run (PASS — the new doctrine narrowed fan-out, not
+  widened it).
+
+Two of the ten rules were paid for the day they were written, and both are recorded in
+`.ai/lessons.md`: an agent's own run-data section is a claim with no artifact behind it, and the cost
+of a self-organising swarm is invisible to everyone including itself.
+
 ## 1.16.2 — 2026-07-26 · an escalation buys a tier, not a version — and not effort at all
 
 The human decided the open routing conflict (option A). Both halves were then measured against the

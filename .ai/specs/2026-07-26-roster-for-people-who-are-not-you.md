@@ -49,8 +49,23 @@ the judgment lives once, at the top, where it is paid for once.
 
 ### Still open
 
-**Q1 — Who spawns the explorers?** This is the sharpest question in the spec and it is a safety
-question, not an ergonomics one.
+**Q1 — RESOLVED 2026-07-26: (a), the lead spawns; `researcher` synthesises and verifies only.**
+Settled **partly by measurement and partly by argument**, and the split matters — the measured half is
+that cost observability is lost under (b) and (c); the choice of (a) over (c) is argued, because (c)
+was never run. Recorded that way so a later reader cannot mistake one for the other.
+
+What decided it: quality did not separate the arms across four executions, and in **every** one the
+decisive defect came from the top agent's own mechanical sweep rather than from a gatherer — so the
+value lives in the verification pass, which (a) keeps in full. (b)'s latency win is real but unstable
+(run-to-run variance exceeded the between-arm gap) and is bought with the one thing that cannot be
+recovered afterwards: an auditable cost record. The invariant "no non-lead role carries `Agent`" also
+survives, so depth-2 sub-teams remain safe by configuration rather than by promise.
+
+Consequences for the build: `researcher` ships **without** `Agent`. Its brief takes explorer outputs
+as inputs, and its two obligations are synthesis with provenance and a verification pass of its own —
+the pass is not optional garnish, it is the part the experiment showed produces the value.
+
+*Original question and options, kept for provenance:*
 
 > **Measured 2026-07-26, two runs per arm — `.ai/eval-runs/2026-07-26-ab-researcher/VERDICT.md`.**
 > Settled by experiment at the human's instruction, and the experiment moved the question rather than
