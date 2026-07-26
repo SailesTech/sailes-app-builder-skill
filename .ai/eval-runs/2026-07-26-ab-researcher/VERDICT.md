@@ -9,6 +9,13 @@ spawns its own. Settled by experiment rather than argument at the human's instru
 **Vehicle.** Both arms ran as `general-purpose` stand-ins, deliberately: the variable under test is
 **architecture**, not role frontmatter. This grades topology, not pins or tool allow-lists.
 
+> **Retention, 2026-07-26.** This directory keeps the ground truth, the verdict, and both arms'
+> synthesis artifacts for each run — everything the conclusions below rest on. The six raw
+> per-explorer recon dumps (464 KB) were **deleted after synthesis**: they were inputs, and every
+> correction made to them is recorded in the `ARM-A-lead-spawns.md` files, including which claims
+> turned out to be wrong and where the true location was. If you are checking a claim about an
+> explorer's error, the synthesis is the record. The rule is now in `sailes-eval-runner`.
+
 ## The scored measure — and why it did not decide anything
 
 Recall over the ten external tools in the locked ground truth, scored by presence with at least one

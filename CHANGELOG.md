@@ -4,6 +4,40 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.21.2 — 2026-07-26 · every eval accounted for, and a rule for what a run leaves behind
+
+**All 32 scenarios accounted for; 31 fresh.** The three that had been environment-blocked for weeks
+finally ran — with the **real named roles through the real MCP surface**, not stand-ins:
+
+- `integrity-gate` caught `#covered`, the control under a non-interactive overlay that no screenshot
+  shows, and read the empty `overlap` list as the division of labour it is rather than as a clean pass.
+- `qa-vision` refused a green build, a green suite and a `checker` APPROVE, saying plainly that none
+  of them look at a rendered colour against the design contract — then also measured what was fine
+  instead of assuming it, and declined to replace the baseline on a non-APPROVE verdict.
+- `devtools-evidence` refused the time pressure in the brief and found all four defects a happy-path
+  click cannot reach, including that nothing persists across reload.
+- `adopt-builds-graph` re-ran green and stated the 1.21.0 Q21 rule unprompted while being graded on
+  something else entirely — the clearest evidence yet that new doctrine is landing, not just shipping.
+
+**New in `sailes-eval-runner` — what a run leaves behind.** The conclusion lives in the scenario's
+`Last run:` line and is never deleted. The run directory keeps ground truth, the verdict, and anything
+a verdict cites. **Raw per-gatherer dumps consumed into a synthesis get deleted** once that synthesis
+records the corrections it made to them — they are inputs, not evidence. Applied here: 464 KB of a
+1.4 MB directory, with the surviving files matching exactly what the verdict said it would keep.
+
+One guard is stated before the rule: **check that nothing being deleted is the sole record of a
+finding.** A run often turns up something true it was not testing for, and that belongs in the backlog
+or lessons *first* — deleting a directory holding the only copy is not tidying.
+
+**Promoted under exactly that guard:** an inventory of the decision-card pattern across 14 files found
+that `sailes-hosting` resolves real forks — Volume vs S3, Dockerfile vs Nixpacks, migrate-on-start —
+as "złote zasady", while `sailes-bootstrap` lists Hosting in the mandatory card set; that the same
+migration fork is a full card in one file and a three-line branch rule in the file agents are actually
+routed to; and that **generated client repos ship a weaker rule than the framework runs on**
+(`agents-md-template.md` carries only the one-line HUMAN rule; `spec-writing-template.md` omits the
+present-the-fork instruction its declared master has). Now a backlog item rather than a line in a run
+directory.
+
 ## 1.21.1 — 2026-07-26 · a missing tool grant is not an environment defect
 
 Both from the first integrity-gate run against the **real MCP tool surface**, with the real named

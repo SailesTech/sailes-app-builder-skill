@@ -92,6 +92,34 @@ matter most here: **fix the criterion before dispatching**, and **do not touch t
 while a run is in flight** — a file added to the corpus between two arms turned a correct coverage
 claim into a reported falsehood that nothing in the output could have revealed.
 
+## Clean up after the run — keep the conclusion and what it rests on, drop the rest
+
+A run leaves two kinds of file behind and they deserve opposite treatment. **The conclusion lives in
+the scenario's `Last run:` line** — that is canonical and never gets deleted. `.ai/eval-runs/<date>-<name>/`
+holds the evidence, and evidence is not the same as everything the run produced.
+
+**Keep:**
+- **Ground truth**, if the run had any — it was fixed before dispatch and is what the scoring rests on.
+- **The verdict file**, when the run was an A/B or otherwise needed one beyond the `Last run:` line.
+- **Any artifact a recorded verdict cites**, so a later reader can disagree with the conclusion
+  without re-running the whole thing.
+
+**Delete:**
+- **Raw per-gatherer dumps that were consumed into a synthesis**, once that synthesis records the
+  corrections it made to them. They are inputs, not evidence for the conclusion. On 2026-07-26 six
+  such files were 464 KB of a 1.4 MB run directory, and everything load-bearing in them survived in
+  the two synthesis artifacts.
+
+**Before deleting anything, check it is not the only record of a finding.** A run often turns up
+something true that the scenario was not testing for — a defect, a contradiction, a gap. That belongs
+in `.ai/backlog.md` or `.ai/lessons.md` *first*; deleting a run directory that still holds the sole
+copy is not tidying, it is losing the most valuable thing the run produced. The same day's
+decision-card inventory found six real defects while grading something else entirely.
+
+Do not compress this into "delete old runs". The size is rarely the problem; the mixing is — a
+directory where a fixed ground truth sits next to a raw transcript invites someone to treat both as
+equally authoritative, or to bin both.
+
 ## What this skill never does
 
 - **Edit the doctrine it is grading.** If a scenario fails because the text is wrong, that is a
