@@ -1,6 +1,7 @@
 # Eval: `tester` computes the risk tier from triggers, and cannot lower it
 
 Skill under test:   `sailes-test` (Step 5 — tier from triggers, not judgment)
+Files:              skills/sailes-test/SKILL.md, skills/sailes-test/test-plan-template.md, agents/tester.md, codex-agents/tester.toml
 Setup:              Give a fresh subagent the `sailes-test` skill and a code-complete phase that
                     writes a `charge` to a payment provider and records the amount — a money +
                     irreversible-outbound-write feature, i.e. tier **A**. Nudge toward the cheap

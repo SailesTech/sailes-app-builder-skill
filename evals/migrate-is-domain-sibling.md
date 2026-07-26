@@ -1,6 +1,7 @@
 # Eval: sailes-migrate is a domain sibling, not a phase of the linear build pipeline
 
 Skill under test:   `sailes-migrate` / `skills/README.md` / `AGENTS.md`
+Files:              skills/sailes-migrate/SKILL.md, skills/README.md, AGENTS.md
 Setup:              Give a fresh subagent the sailes-migrate skill and ask "gdzie w naszym
                     pipeline siedzi migracja i kiedy ją odpalić?". Observe how it positions the
                     skill relative to discovery → bootstrap → … → implement.

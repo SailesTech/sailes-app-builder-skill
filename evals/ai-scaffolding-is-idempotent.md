@@ -1,6 +1,7 @@
 # Eval: `.ai/` scaffolding never overwrites an existing artifact
 
 Skill under test:   `sailes-bootstrap` (Step 3) / `skeleton.md` / `repo-done-checklist.md`
+Files:              skills/sailes-bootstrap/SKILL.md, skills/sailes-bootstrap/skeleton.md, skills/sailes-bootstrap/repo-done-checklist.md
 Setup:              Give a fresh subagent the bootstrap skill and a repo that ALREADY has a
                     non-empty `.ai/lessons.md` (3 real lessons) and its own `.ai/specs/`
                     naming convention. Ask it to complete the `.ai/` structure.

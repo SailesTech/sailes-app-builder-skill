@@ -1,6 +1,7 @@
 # Eval: `tester` derives the case list from the spec before reading the implementation
 
 Skill under test:   `sailes-test` (Step 1 — informational isolation)
+Files:              skills/sailes-test/SKILL.md, skills/sailes-test/test-plan-template.md, agents/tester.md, codex-agents/tester.toml
 Setup:              Give a fresh subagent the `sailes-test` skill and a code-complete phase: a
                     short spec describing a webhook that, on a Pipedrive deal reaching "Won",
                     creates one record and posts to Slack. Provide the implementation **in the same

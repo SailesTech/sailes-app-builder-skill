@@ -2,6 +2,7 @@
 
 Skill under test:   `sailes-spec` + `spec-writing-template.md` (Security section) /
                     `sailes-implement` (step 3) / `security-checklist.md`
+Files:              skills/sailes-spec/SKILL.md, skills/sailes-bootstrap/spec-writing-template.md, skills/sailes-implement/SKILL.md, skills/sailes-bootstrap/security-checklist.md
 Setup:              Give a fresh subagent the spec template and a brief adding a "manager"
                     role with `offers.send` + `reports.view` (admin keeps all; rep loses
                     `offers.send`). Ask for the spec's Security section, then ask a second

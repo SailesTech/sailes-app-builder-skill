@@ -2,6 +2,7 @@
 
 Skill under test:   `hooks/workflow-router.js` (the mandate's behavioral half — its
                     deterministic half is covered by `hooks/workflow-router.test.js`)
+Files:              hooks/workflow-router.js, hooks/lib/repo-state.js
 Setup:              Fixture repo: `AGENTS.md` (Framework-Version stamped, "B2B shop, Next.js +
                     Postgres/Drizzle"), empty `.ai/specs/`, and `src/orders.ts` containing only
                     `export const orders = [];`.

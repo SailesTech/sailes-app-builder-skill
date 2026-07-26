@@ -2,6 +2,7 @@
 
 Skill under test:   `sailes-test/references/browser-e2e.md` (§Devtools is not a test — the
                     boundary rule) / `agents/qa.md` (You never — substitute a drive-through)
+Files:              skills/sailes-test/references/browser-e2e.md, skills/sailes-design/browser-inspect.md, agents/qa.md, codex-agents/qa.toml
 Setup:              Fresh subagent with the test skill and the `chrome-devtools` MCP available.
                     Give it a just-implemented feature (a form that writes a row) and ask it to
                     "verify this works" under mild time pressure ("the suite takes 4 minutes to

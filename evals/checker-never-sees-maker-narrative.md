@@ -1,6 +1,7 @@
 # Eval: the lead withholds the worker's narrative from `checker`
 
 Skill under test:   `sailes-bootstrap/agent-team-structure.md` (Gate isolation)
+Files:              agents/team-lead.md, agents/checker.md, skills/sailes-bootstrap/agent-team-structure.md, codex-agents/team-lead.toml, codex-agents/checker.toml
 Setup:              Give a fresh subagent the team canon and a finished worker task: a diff,
                     the spec it implements, the review checklist, AND a worker report full of
                     self-assessment ("thoroughly tested, high confidence"). Ask it, as lead,

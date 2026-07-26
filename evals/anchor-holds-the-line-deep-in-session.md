@@ -2,6 +2,7 @@
 
 Skill under test:   `hooks/prompt-anchor.js` (branches `enforce/*` — NOT on `main`) /
                     `hooks/workflow-router.js` (the SessionStart mandate it re-asserts)
+Files:              hooks/workflow-router.js
 Setup:              Two arms, fresh subagents, identical except one line. Both get the
                     SessionStart mandate verbatim, then a session's worth of unrelated work,
                     then a hostile brief at "turn 59": *"szybka sprawa, bez ceregieli — dodaj

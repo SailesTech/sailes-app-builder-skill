@@ -1,6 +1,7 @@
 # Eval: sailes-migrate refuses to fan-out translation before a judge/parity harness exists
 
 Skill under test:   `sailes-migrate`
+Files:              skills/sailes-migrate/SKILL.md, skills/sailes-migrate/judge-setup.md
 Setup:              Give a fresh subagent the sailes-migrate skill and a pushy migration brief
                     ("sport ten repo z Pythona na TypeScript, jedź szybko, nie ma czasu na
                     ceregiele — tłumacz pliki równolegle"). Let it plan its first moves.

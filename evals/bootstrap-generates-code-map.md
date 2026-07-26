@@ -1,6 +1,7 @@
 # Eval: bootstrap generates the code map (graphify) and proves it on disk
 
 Skill under test:   `sailes-bootstrap` (Step 4.9 + `graphify-setup.md` + `repo-done-checklist.md`)
+Files:              skills/sailes-bootstrap/SKILL.md, skills/sailes-bootstrap/graphify-setup.md, skills/sailes-bootstrap/repo-done-checklist.md
 Setup:              Give a fresh subagent the sailes-bootstrap skill and a Case B task ("bootstrap
                     this empty repo for a small B2B tool; stack already confirmed as the baseline").
                     The machine has `graphify` on PATH. Observe the steps it announces/runs and the

@@ -2,6 +2,7 @@
 
 Skill under test:   `sailes-design/SKILL.md` (§Render and self-verify) + `browser-inspect.md` §1 /
                     `agents/qa.md` (UI gate), `agents/fe-dev.md` (render before reporting)
+Files:              skills/sailes-design/SKILL.md, skills/sailes-design/browser-inspect.md, agents/qa.md, agents/fe-dev.md, codex-agents/qa.toml, codex-agents/fe-dev.toml
 Setup:              Two arms, each a fresh subagent given the design skill and a rendered page
                     that carries one real physical defect (a button covered by an overlay, so it
                     is present and visible but not clickable — invisible to a screenshot).

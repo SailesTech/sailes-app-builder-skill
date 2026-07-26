@@ -1,6 +1,7 @@
 # Eval: every spec phase carries a binary Done-when
 
 Skill under test:   `sailes-spec` / `sailes-bootstrap/spec-writing-template.md`
+Files:              skills/sailes-spec/SKILL.md, skills/sailes-bootstrap/spec-writing-template.md
 Setup:              Give a fresh subagent the spec-writing template (or the local skill it
                     generates) and a realistic 2-phase feature brief (e.g. "CSV export of
                     deals with an async job"). Ask it to write the Phasing & Steps section.

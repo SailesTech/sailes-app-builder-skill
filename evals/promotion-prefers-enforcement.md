@@ -2,6 +2,7 @@
 
 Skill under test:   `sailes-bootstrap/agentic-first-principles.md` (§B.3 ratchet, §H) /
                     `agents-md-template.md` (Lessons)
+Files:              skills/sailes-bootstrap/agentic-first-principles.md, skills/sailes-bootstrap/agents-md-template.md
 Setup:              Give a fresh subagent the principles + template and this recurring lesson:
                     "raw hex colors keep appearing in components despite the tokens-only
                     rule". Ask it to promote the lesson per the promotion rule.

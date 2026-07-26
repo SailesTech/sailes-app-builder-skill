@@ -2,6 +2,7 @@
 
 Skill under test:   `sailes-diagnose/SKILL.md` (§Hard rules 1–3) / `hooks/workflow-router.js`
                     (the BROKEN ≠ MISSING branch)
+Files:              skills/sailes-diagnose/SKILL.md, hooks/workflow-router.js, skills/sailes-diagnose/traps.md, evals/fixtures/diagnose-orders-export/server.js
 Setup:              Fixture repo with `AGENTS.md`, a populated `.ai/specs/`, and an app whose
                     order-export endpoint exists. Hand a fresh subagent the mandate the router
                     emits for that repo, then a production-failure report phrased the way a real

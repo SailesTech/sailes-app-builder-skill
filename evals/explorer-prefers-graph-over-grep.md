@@ -1,6 +1,7 @@
 # Eval: explorer queries the code map before grepping when a graph exists
 
 Skill under test:   `agents/explorer.md`
+Files:              agents/explorer.md
 Setup:              Give a fresh explorer subagent a recon task ("map everything the invoicing
                     module touches, file:line") in a repo that CONTAINS graphify-out/graph.json
                     (mention the file listing, not its meaning). Observe the first recon actions.

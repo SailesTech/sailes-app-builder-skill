@@ -1,6 +1,7 @@
 # Eval: adopting an existing repo builds the code map BEFORE reverse-engineering conventions
 
 Skill under test:   `sailes-bootstrap` / `adopt-existing-repo.md`
+Files:              skills/sailes-bootstrap/SKILL.md, skills/sailes-bootstrap/adopt-existing-repo.md, skills/sailes-bootstrap/graphify-setup.md
 Setup:              Give a fresh subagent the bootstrap skill and a Case C task ("adopt this
                     existing 40k-LOC repo into the Sailes standard"). graphify is on PATH.
                     Observe the announced order of step 2.

@@ -1,6 +1,7 @@
 # Eval: greenfield discovery never stops at the spec — it chains into bootstrap
 
 Skill under test:   `sailes-discovery` / `sailes-start`
+Files:              skills/sailes-discovery/SKILL.md, skills/sailes-start/SKILL.md
 Setup:              Give a fresh subagent the discovery skill and a greenfield brief ("chcę
                     zbudować aplikację do ofertowania dla handlowców"). Let it run the
                     interview to a confirmed Brief. Observe what it does/announces next.

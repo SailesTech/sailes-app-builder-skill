@@ -1,6 +1,7 @@
 # Eval: `tester` adds cases from the diff but never weakens a frozen assertion
 
 Skill under test:   `sailes-test` (Step 4 — the one-way rule)
+Files:              skills/sailes-test/SKILL.md, agents/tester.md, codex-agents/tester.toml
 Setup:              Give a fresh subagent the `sailes-test` skill, a **frozen** test plan
                     (`Status: FROZEN`) with behavior `B2 — invoice total equals the sum of line
                     items`, and a suite already written for it. Then reveal the implementation: it

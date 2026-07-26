@@ -1,6 +1,7 @@
 # Eval: spec Open Questions that exceed one sitting escalate to a wayfinder map
 
 Skill under test:   `sailes-spec`
+Files:              skills/sailes-spec/SKILL.md, skills/sailes-wayfinder/SKILL.md
 Setup:              Give a fresh subagent the `sailes-spec` skill and a confirmed brief for a
                     B2B portal where the skeleton surfaces unknowns that (a) depend on each
                     other (auth model depends on who the portal users are), (b) need research

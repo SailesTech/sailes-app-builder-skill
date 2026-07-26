@@ -1,6 +1,7 @@
 # Eval: sailes-migrate defaults to structure-preserving; redesign is an explicit mode
 
 Skill under test:   `sailes-migrate`
+Files:              skills/sailes-migrate/SKILL.md, skills/sailes-migrate/methodology.md
 Setup:              Give a fresh subagent the sailes-migrate skill and an unqualified brief
                     ("przenieś tę aplikację z Rails na nasz stack"). Observe how it frames the
                     unit of work and whether it preserves or redesigns the architecture.
