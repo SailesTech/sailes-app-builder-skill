@@ -168,7 +168,47 @@
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-07-26 (**resume here**): **1.17.1 is on production** (`6147346`, pushed; the plugin clone on
+- 2026-07-26 (**resume here — read the three "start here" items below first**): **1.21.0 is on
+  production**, plugin clone synced, `main` clean, `npm test` green, evals 28 fresh / 4 stale.
+  Five releases this session: 1.17.0 → 1.21.0.
+
+  **START HERE, in this order:**
+  1. **Restart Claude Code before anything else.** `chrome-devtools` MCP was installed at user scope
+     this session but its tools are not in the current session's registry, and the role registry is
+     also stale. Nothing browser-related can be verified until then.
+  2. **Then run the three evals that were environment-blocked for weeks** — `devtools-evidence…`,
+     `integrity-gate…`, `qa-vision…` — and **verify the tool grants actually resolve** (1.21.0 added
+     `hover`, the perf pair, page management and `upload_file` to `qa`; none of it is verified).
+  3. **Then write the eval for the chrome-devtools hard requirement.** That change touched six files
+     and altered gate semantics — absence is now `ENV-DEFECT`, the UI gate does not pass, the
+     screenshot is no longer a fallback — and it shipped with **zero eval coverage**. Known debt,
+     created deliberately, named here so it is not discovered later.
+
+  **Then the direction question, which matters more than any single item.** Measured across this
+  session: skill entrypoints **194.1 → 189.4 KB (−2.4%)**, references **479.7 → 485.3 KB (+1.2%)**,
+  **agent roles 41.0 → 48.7 KB (+18.8%)**. Of 7,490 inserted lines, 6,480 are records/evals, 195 are
+  tests, **815 are doctrine prose**. The method improved faster than the artifact: the instruments are
+  genuinely new and found eight real defects nobody would have found by reading, but **the framework
+  got bigger on a day when Anthropic's own Claude-5 guidance says good ones shrink.**
+  → **The highest-value next work is subtraction**, specifically the deferred gotcha-vs-inferable
+  audit of role prose — the roster is exactly what grew most. Do it as a **pilot on one role**:
+  `context-cost.js` before, cut what Opus 5 infers from context anyway, `context-cost.js` after, run
+  that role's eval. PASS → a method for the rest; FAIL → it cost one role. Two hard constraints stand:
+  every cut is **per-harness** (the Codex twins run on non-Claude models where this prose is the only
+  backstop), and the spine `SPEC → HUMAN → VERIFIED → GATED` is permanently out of scope — it encodes
+  authority, not capability.
+
+  **Two structural weaknesses worth naming, neither addressed:** most new rules are promoted from
+  **n=1** (rules 9 and 10 of `deciding-under-uncertainty.md` each came from a single run), and the
+  framework has **no routine retirement mechanism** — `prompt-anchor` was retired only because someone
+  deliberately designed an experiment to test whether it was still needed.
+
+  **Human decisions taken this session:** roster Q1 = (a) lead spawns; `designer` gets browser tools
+  **and** `Bash`; `chrome-devtools` MCP becomes a **hard requirement on UI repos** (chosen against my
+  recommendation, recorded as the human's call); `prompt-anchor` **retired** and `enforce/*` deleted
+  (SHAs preserved in the spec — deleting a branch removes the only ref); prose audit deferred.
+
+- 2026-07-26 (earlier): **1.17.1** (`6147346`; the plugin clone on
   this machine is synced to it). Session end state: `main` clean, `npm test` green, evals 27 fresh /
   4 stale / 0 dirty. **Next up is 1.18.0 — `researcher` (no `Agent`), `explorer` + `WebSearch`,
   `eval-runner` as a skill — and nothing blocks it.** 1.17.0 was *deciding under
