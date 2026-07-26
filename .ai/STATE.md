@@ -168,21 +168,39 @@
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-07-26 (**resume here — read the three "start here" items below first**): **1.21.0 is on
-  production**, plugin clone synced, `main` clean, `npm test` green, evals 28 fresh / 4 stale.
-  Five releases this session: 1.17.0 → 1.21.0.
+- 2026-07-26 (**resume here**): **1.21.3 is on production**, plugin clone synced, `main` clean,
+  `npm test` green, **evals 31 fresh / 0 stale**. Eight releases this session: 1.17.0 → 1.21.3.
 
-  **START HERE, in this order:**
-  1. **Restart Claude Code before anything else.** `chrome-devtools` MCP was installed at user scope
-     this session but its tools are not in the current session's registry, and the role registry is
-     also stale. Nothing browser-related can be verified until then.
-  2. **Then run the three evals that were environment-blocked for weeks** — `devtools-evidence…`,
-     `integrity-gate…`, `qa-vision…` — and **verify the tool grants actually resolve** (1.21.0 added
-     `hover`, the perf pair, page management and `upload_file` to `qa`; none of it is verified).
-  3. **Then write the eval for the chrome-devtools hard requirement.** That change touched six files
-     and altered gate semantics — absence is now `ENV-DEFECT`, the UI gate does not pass, the
-     screenshot is no longer a fallback — and it shipped with **zero eval coverage**. Known debt,
-     created deliberately, named here so it is not discovered later.
+  **Everything the previous resume-marker listed is DONE.** The environment blocker is gone — the
+  `chrome-devtools` MCP is installed and, after a reload, its tools reach the roles. All three
+  long-blocked evals ran with the **real named roles through the real MCP surface**: `integrity-gate`
+  caught the control under a non-interactive overlay, `qa-vision` refused a green build + green suite
+  + `checker` APPROVE, `devtools-evidence` refused time pressure and found four defects a happy-path
+  click cannot reach. `adopt-builds-graph` re-ran green too. The 1.21.0 tool grants are verified from
+  inside the running role, along with the model pin and the absence of `Agent`.
+
+  **STOP HERE AND READ THIS BEFORE PICKING UP ANY BACKLOG ITEM.** The session ended on the human's
+  call, with a correct diagnosis worth preserving: *"mam wrażenie że kręcimy się w kółko… nie wiem czy
+  dobrze testujemy wszystko."* Both halves are right.
+
+  - **The loop is real and self-generating.** Each fix adds prose, prose adds surface, surface
+    produces the next finding. It does not converge on its own. Measured across this session: skill
+    entrypoints **−2.4%**, agent roles **+18.8%**. The framework grew on a day whose starting premise
+    was Anthropic's finding that good ones shrink.
+  - **What "31 of 32 fresh" does and does not mean.** It means freshness, not strength. About **30 of
+    32 grade text via stand-ins, not runtime**. Every one is n=1, model-graded, non-deterministic —
+    and this session measured **run-to-run variance exceeding the between-arm difference** (3.7× on
+    one agent, unchanged task). Fixtures were repeatedly the weak link, including one defect of mine
+    today. And the evals are written by whoever writes the doctrine: the isolation is **procedural,
+    not structural**.
+
+  **So the next high-value work is not another item — it is subtraction, and a harder question about
+  the net itself.** Do the deferred gotcha-vs-inferable audit as a **pilot on one role**
+  (`context-cost.js` before → cut what Opus 5 infers from context anyway → `context-cost.js` after →
+  run that role's eval). Constraints that stand: every cut is **per-harness** (the Codex twins run on
+  non-Claude models where this prose is the only backstop), and the spine
+  `SPEC → HUMAN → VERIFIED → GATED` is permanently out of scope — it encodes authority, not
+  capability. **Do not start it tired**; cutting is the operation whose mistakes are silent.
 
   **Then the direction question, which matters more than any single item.** Measured across this
   session: skill entrypoints **194.1 → 189.4 KB (−2.4%)**, references **479.7 → 485.3 KB (+1.2%)**,
