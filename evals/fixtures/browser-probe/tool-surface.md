@@ -48,6 +48,32 @@ Fixed in 1.21.0:
 | `take_heapsnapshot` | memory profiling is not `qa`'s lane, and no skill asks for it |
 | page management for `fe-dev` / `designer` | both inspect rather than drive; they do not follow popups |
 
+## Runtime verification — 2026-07-26, after the plugin reload
+
+The 1.21.0 grants were written to `agents/*.md` but could not be verified in the session that made
+them: the MCP server had just been installed and its tools were not yet in the session's registry.
+After `/plugin marketplace update` + `/reload-plugins`, the **real `qa` role** was spawned (not a
+stand-in — this is the case where a stand-in proves nothing, because what is under test *is* the
+runtime) and asked to enumerate its own tool surface.
+
+**All 26 granted tools present**, including every one added in 1.21.0: `hover`, `drag`,
+`upload_file`, `performance_stop_trace`, `performance_analyze_insight`, and all four of
+`list_pages` / `new_page` / `select_page` / `close_page`. `handle_dialog` from 1.17.1 likewise.
+
+Two invariants confirmed at runtime in the same pass:
+
+- **The model pin holds** — the role reported `claude-sonnet-5`, which is its frontmatter value, not
+  the session's model.
+- **`Agent` is absent** — `qa` cannot spawn. This is what makes depth-2 sub-teams safe by
+  configuration rather than by promise, and it had only ever been checked by reading `tools:` lists
+  and by `validate-frontmatter.test.js`. Now it has been checked from inside the role.
+
+**A third fact, unlooked-for:** the role reported `reasoning_effort=40` against its frontmatter
+`effort: high`. That confirms from the other direction what 1.16.2 recorded — **frontmatter `effort`
+is applied**, while the Agent *tool's* `effort` parameter is undeclared and silently does nothing.
+The numeric scale is not documented anywhere we can cite, so `40` is recorded as an observation, not
+interpreted.
+
 ## How to re-run this
 
 The probe is `evals/fixtures/browser-probe/` territory. Re-run it whenever the MCP server version

@@ -61,6 +61,24 @@ What has not changed: an unmeasured gate reported as passed is still *the* failu
 serves that better than a SKIP did, because a SKIP line sits inside an otherwise-complete run and
 reads like a completed one.
 
+**Two different absences, two different answers — do not conflate them** (added 2026-07-26 after a
+run made the distinction the doctrine had not):
+
+| What is missing | What it is | What you do |
+|---|---|---|
+| The **server** is not installed on the machine | an environment defect | `ENV-DEFECT` + the install line; the human installs it; the gate does not pass |
+| The server is running, but **your role's `tools:` omits it** | the **wrong role was dispatched** | Escalate to the lead — say plainly that this task needs a role carrying `mcp__chrome-devtools__*` (`qa`, `fe-dev`, `designer`). Do **not** call it an environment defect; nothing about the machine is wrong. |
+
+Check which one you are in before you name it: `claude mcp list` tells you whether the server is
+there, and your own tool list tells you whether you may call it. Reporting a missing grant as
+`ENV-DEFECT` sends the human to fix a machine that is fine, and hides a dispatch error that would
+otherwise be caught in one line.
+
+**Either way, measure what you legitimately can before you stop.** `evals/fixtures/browser-probe/run-probe.mjs`
+runs the same §1 probe out of this document over raw CDP and needs only `Bash` — it is not a
+substitute for the width sweep (it is fixed at one viewport and cannot do Check 6), but partial
+measured data plus an explicit list of what it did not cover beats an impression, and beats silence.
+
 **Backend-only repos are untouched** — no UI, no gate, no requirement.
 
 Tools referenced below, all `mcp__chrome-devtools__*`: `navigate_page`, `resize_page`, `emulate`,

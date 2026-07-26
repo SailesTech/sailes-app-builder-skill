@@ -4,6 +4,33 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.21.1 — 2026-07-26 · a missing tool grant is not an environment defect
+
+Both from the first integrity-gate run against the **real MCP tool surface**, with the real named
+roles rather than stand-ins.
+
+- **`browser-inspect.md` now distinguishes two absences that the doctrine had been treating as one.**
+  The **server missing from the machine** is an `ENV-DEFECT` — the human installs it, the gate does
+  not pass. **Your role's `tools:` omitting it** is a different thing entirely: nothing is wrong with
+  the machine, the **wrong role was dispatched**, and the correct move is to escalate to the lead and
+  name a role that carries `mcp__chrome-devtools__*`. Reporting the second as the first sends someone
+  to fix a healthy machine and hides a dispatch error that one line would have caught.
+- **And: measure whatever you legitimately can before you stop.** `run-probe.mjs` runs the same §1
+  probe out of the doc over raw CDP and needs only `Bash`. It is not a substitute for the width sweep
+  — one viewport, no Check 6 — but partial measured data plus an explicit list of what it did not
+  cover beats an impression, and beats silence.
+
+**Where this came from:** the eval's Arm B was written to create "the instrument is absent" and
+actually created "this role lacks the grant". The agent caught the distinction the fixture had missed
+— it ran `claude mcp list`, found the server connected, and located the absence in `checker.md` — and
+answered better than the criterion asked. Recorded as a fixture defect rather than smoothed over; the
+`ENV-DEFECT` path itself still needs a machine where the server is genuinely absent.
+
+**Also verified, not asserted:** the 1.21.0 tool grants now confirmed **from inside the running
+role** — all 26 present, the `claude-sonnet-5` pin holding, and `Agent` absent, which is the
+invariant that makes depth-2 sub-teams safe by configuration rather than by promise. Detail in
+`evals/fixtures/browser-probe/tool-surface.md`.
+
 ## 1.21.0 — 2026-07-26 · the browser instrument becomes required, and its tool surface is finally checked
 
 Two human decisions and the check that neither was possible without.
