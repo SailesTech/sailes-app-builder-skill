@@ -219,7 +219,23 @@
     and a merge; (2) re-run the three `lead-*` evals the instrument now flags STALE (the 1.15.0 debt,
     and the first real customer for the A/B protocol); (3) the `Files:` editorial pass over the
     remaining 24 scenarios, after which `--strict` becomes usable as a release gate.
-  - Housekeeping unchanged from below: the four `enforce/*` branches are still a week behind `main`
+  - **1.16.0 is MERGED and on production** (`92e6f48`, pushed 2026-07-26). The gate was re-run on the
+    merged result, not only on the branch — `npm test` exit 0, five stamps at 1.16.0, CHANGELOG
+    heading present. `./install.sh --force` was deliberately **not** run: it syncs `~/.claude/skills/`,
+    which does not exist on this machine, so it would be a first install rather than a post-release
+    sync — a machine-state change, not a release step.
+  - **Branches cleaned to `main` + the four `enforce/*`.** Eight remote branches deleted: six fully
+    merged (`feat/graphify-default-integration`, `feat/measurement-routing-subteams`,
+    `feat/sailes-migrate`, `kacper-dev`, `wayfinder-research`,
+    `worktree-ui-libraries-preline-astryx`) and two not merged in git terms but verified
+    file-by-file to be fully contained in `main`: `claude/context-engineering-framework-fc2507`
+    (its lesson was extracted onto the branch by hand) and `feat/sailes-migrate-clean` (superseded
+    by the merged `feat/sailes-migrate`). SHAs recorded before deletion; recovery is
+    `git push origin <sha>:refs/heads/<name>`:
+    `3287d3f` graphify · `e696678` measurement-routing · `4c9e87f` sailes-migrate ·
+    `b354e15` sailes-migrate-clean · `9d63e71` kacper-dev · `a118c13` wayfinder-research ·
+    `cccaa79` worktree-ui-libraries · `a5be071` context-engineering.
+  - Housekeeping: the four `enforce/*` branches are still behind `main`
     and `prompt-anchor` is still unresolved — untouched by this change-set.
 - 2026-07-25 (earlier session): audited the merged 1.14.0, shipped **1.14.1** and
   **1.15.0**, and closed both pending evals. All on `main` and deployed (`dcffed9`; `./install.sh
