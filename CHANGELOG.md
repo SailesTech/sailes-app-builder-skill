@@ -4,6 +4,96 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.16.0 — 2026-07-26 · measurement, model routing, and sub-teams — the Claude-5 re-fit
+
+Three capabilities that are one dependency chain: routing and sub-teams are bets, and the harness is
+the instrument that prices them. Spec: `.ai/specs/2026-07-26-measurement-routing-and-subteams.md`.
+What a repo does differently after upgrading:
+
+- **An eval can now say whether its own PASS is still true.** New `evals/harness/eval-status.js`
+  reads a scenario's `Files:` line against `git log` and returns FRESH / STALE / NEVER-RUN /
+  **NO-FILES**. The last verdict is deliberately not folded into FRESH: an eval whose coverage cannot
+  be computed must never read as covered. Deterministic, so it gets a real test — 17 assertions in
+  `eval-status.test.js`, wired into `npm test`, with a must-not-flag fixture beside every
+  must-flag one. First run on this repo independently reproduced the recorded 1.15.0 eval debt: the
+  three `lead-*` scenarios, STALE against files changed on 2026-07-25.
+- **Context cost is measurable, so a simplification can be shown to have cut something.** New
+  `evals/harness/context-cost.js` reports per-skill and per-role load (today: 187 KB of SKILL.md
+  entrypoints against 448 KB of on-demand references). Bytes and words, **not tokens** — real counts
+  need the API and this repo keeps zero dependencies; the proxy is honest only for comparing two refs
+  of the same file, which is its only use.
+- **The A/B protocol is written down** (`evals/harness/README.md`): same scenario, two refs, a fresh
+  subagent per arm, a FILE deliverable per arm, and — the step whose absence made
+  `anchor-holds-the-line-deep-in-session` INCONCLUSIVE — assert the fixture creates the condition
+  *before* reading the verdict. If both arms agree, suspect the fixture.
+- **🔒 Model IDs are pinned, not aliases.** Every role now carries a full ID (`claude-opus-5`,
+  `claude-sonnet-5`, `claude-haiku-4-5`) plus an explicit `effort:`. An alias silently follows
+  whatever the tier's default becomes, which makes a run un-reproducible and "the framework got
+  worse" impossible to attribute — the lesson this repo already applied to pinning `-m` on Codex
+  delegations. Accepted cost: a new model needs a release to reach the roles. `explorer` carries no
+  `effort:` line because **the effort parameter is unsupported on Haiku 4.5**.
+- **The role default is a default, not a ceiling.** The lead may override `model`/`effort` per task,
+  and **owes the run log a reason**. Escalate on judgment — contract, data-model, auth/tenancy, a
+  migration parity judge, a diagnosis with no mechanism yet — never on volume: a large mechanical
+  change is a Sonnet task. Uses the existing resolution order (env → per-invocation → frontmatter),
+  so no new machinery.
+- **🔒 Sub-teams ("commando mode") are human-triggered only.** Up to three sub-teams, each with its
+  own lead, depth capped at two. The lead never opens the mode on its own initiative — matching
+  Codex delegation, and for a sharper reason: this framework's delegation doctrine was written
+  against a model that *under*-delegated, while Claude Opus 5 reaches for subagents readily and
+  Anthropic's guidance for it is to cap fan-out. **The gates do not move down**: `tester`, `checker`
+  and `qa` run from the top-level lead on the integrated result, because a sub-lead grading its own
+  team is the maker reviewing the maker. Already structural — the seven non-lead roles carry explicit
+  `tools:` lists and none includes `Agent`. Requires `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` in the
+  human's `settings.json`; no skill writes it, because it changes behavior for every repo on the
+  machine.
+- **Anthropic's "no subagents for verification" guidance is deliberately not adopted for the gates.**
+  It is a capability argument and it does re-price the *cost* case for delegating. Gate isolation is
+  not a capability argument: a reviewer that reads the maker's narrative inherits the maker's
+  confidence at any tier. Recorded so the exception is visible rather than accidental.
+- **`Files:` coverage is complete — 29 of 29 scenarios, `NO-FILES` down to 0**, done as the
+  framework's first real sub-team run (three sub-leads, fifteen workers, one file per worker, gates
+  held by the top-level lead). All 80 listed paths verified to exist; nothing invented. Two honest
+  gaps recorded rather than papered over: an eval grading a hook that lives only on unmerged
+  `enforce/*` branches gets a partial line, because the harness cannot watch a cross-branch file by
+  construction; and one team deliberately listed a skill an eval grades but does not name, choosing a
+  false STALE over a false FRESH. `--strict` is now usable as a release gate on a clean checkout.
+- **Two instrument defects the run surfaced, both fixed the same day:**
+  - **`DIRTY`** is a new verdict. The comparison runs against `git log`, which sees only *committed*
+    history, so an edited-but-uncommitted file read `FRESH` — right about the last commit, wrong
+    about what is on disk.
+  - **Freshness is not an outcome.** The report now prints the recorded verdict when it is not a
+    PASS. `anchor-holds-the-line-deep-in-session` records INCONCLUSIVE and printed `FRESH`, which is
+    the silent-instrument trap one level up. The verdict is read *positionally* — a first version
+    scanned the whole value and turned two passing evals into reported failures, because their run
+    notes described what the agent did ("Arm B: FAIL + the literal SKIP"). Caught before it was
+    reported; both directions are now tested.
+- **🔒 The CRLF hard rule in `AGENTS.md` was wrong and is corrected.** The working tree is *mostly*
+  CRLF but not uniformly — two eval files are LF on disk, and inserting a `\r\n` line into them
+  makes one mixed line that git then normalizes away, so the diff looks clean and the file is wrong.
+  Two independent sub-teams caught this by disbelieving a brief that asserted CRLF. The rule is now:
+  `\r?\n` for reading, match the file's existing endings for writing. It also records that
+  `* text=auto` means git stores LF, so comparing `git show HEAD:<file>` against the working tree
+  reports every file as changed — a false alarm that cost time the same day.
+- **Every role's frontmatter is now validated** — `agents/validate-frontmatter.test.js`, 49
+  assertions in `npm test`, roles discovered from disk rather than a hardcoded list. The Codex twin
+  has had a validator since 1.7.1 and the Claude side had none. Its load-bearing case turns "no
+  worker or gate can spawn subagents" from an accident of configuration into an enforced test: add
+  `Agent` to `checker`'s tools and the suite fails. RED-proved on a copy against four real defects
+  (Agent on a gate, an alias where an ID is required, `effort` on Haiku, a typo'd field name).
+- **Two new evals plus the three `lead-*` the reporter flagged STALE: all five PASS** (7 fresh
+  subagents, 9 arms, 2026-07-26). This also closes the eval debt 1.15.0 shipped with. Verdicts in
+  `.ai/eval-runs/2026-07-26-*/`. Three findings landed back into the doctrine the same day:
+  - **The sub-teams release rule was wrong on the fallback path** — it quoted the live-teammate
+    `shutdown_request` procedure as if it always applied, but with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`
+    off, workers are scoped subagents that release themselves on return. Both files now branch on the
+    mode. Found by an eval arm that checked the machine instead of trusting the doctrine.
+  - **Log the non-overrides too**, marked as defaults — recording only deviations leaves the
+    volume-misread invisible. Two independent runs converged on this unprompted.
+  - Two open items filed to `backlog.md`: lifecycle rules 4 and 6 conflict on whether to hold a
+    silent worker (resolved correctly by derivation, not by text), and escalating a *gate* has a
+    sound trigger the routing rule does not name.
+
 ## 1.15.0 — 2026-07-25 · worker release and delivery: the lifecycle rule meets the runtime
 
 The lifecycle doctrine was not missing rules — it had seven. Running two evals with six live workers
