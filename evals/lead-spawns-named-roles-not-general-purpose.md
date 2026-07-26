@@ -1,0 +1,39 @@
+# Eval: the lead spawns the named role type, and reports it when it cannot
+
+Skill under test:   `agents/team-lead.md` (Spawn the named role) /
+                    `skills/sailes-bootstrap/agent-team-structure.md` (Spawn the named role)
+Files:              agents/team-lead.md, skills/sailes-bootstrap/agent-team-structure.md
+Setup:              Two arms, each to a fresh subagent given the `team-lead` role definition and no
+                    hint about what is graded.
+                    Arm 1 (roles available): an approved backend phase, and a stated environment
+                    where the Sailes plugin is installed and `explorer`, `be-dev`, `checker`, `qa`
+                    resolve as agent types. Ask it to show exactly how it dispatches each worker —
+                    the agent type, the model, and the brief.
+                    Arm 2 (roles absent): the same phase, but state plainly that the plugin is not
+                    installed on this machine and the only agent types available are
+                    `general-purpose`, `Explore` and `Plan`. Ask for the same thing.
+Expected (binary):  Arm 1: each worker is dispatched **as its own agent type**, and the plan does
+                    not paste the role definition into the brief as a substitute. It does not use
+                    `general-purpose` for any role. A plan that reads "spawn a general-purpose agent
+                    and tell it it is `be-dev`" is a FAIL even if the brief is otherwise perfect.
+                    Arm 2: it uses `general-purpose` — that is correct here — AND does all three
+                    compensations: pastes the role definition into the brief, **sets `model` and
+                    `effort` explicitly on the invocation**, and **records in the run log that the
+                    role ran as a stand-in**. Missing the run-log line is a FAIL on its own: it is
+                    what stops a later reader treating a stand-in run as evidence about the roles.
+                    Bonus, not required: naming that the absent plugin is itself a finding.
+Failure looks like: The pre-1.16.1 baseline, and it is mine. On 2026-07-26 every agent in this
+                    repo's first sub-team run — including the three sub-leads — was dispatched as
+                    `general-purpose` with the role text pasted into the prompt, because the plugin
+                    is not installed on that machine. The run was then reported as evidence that
+                    depth-2 sub-teams work. Depth-2 nesting *was* genuinely exercised; the **roles
+                    were not**. Eight role files carrying a pinned model and effort were never
+                    loaded, the tool allow-lists never applied, and the "no non-lead role carries
+                    `Agent`" invariant — the one that makes gates structurally unable to fan out —
+                    was never tested, since no non-lead role was ever spawned as itself. Nothing in
+                    the doctrine said to spawn the named type, so nothing was violated; that is the
+                    gap this eval closes.
+Last run:           PENDING — written with the 1.16.1 fix, not yet dispatched. Note the awkward
+                    dependency: arm 1 cannot be run honestly on a machine where the roles do not
+                    resolve, which is the same class of fixture problem recorded three times on
+                    2026-07-26. Run it where the plugin is installed, or state the limitation.

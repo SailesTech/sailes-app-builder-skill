@@ -107,6 +107,38 @@ A verifier grades honestly only on a clean context. The failure mode this sectio
 - **`checker` never re-checks what the toolchain enforces.** Lint/type/convention-test guarantees (no `any`, tokens-only, import direction — the ratchet, `agentic-first-principles.md` §B.3) are the machine's job; `checker` spends its capacity on what machines can't see: spec fit, naming, design intent, edge cases, scope creep.
 - **ENV-DEFECT, not a skipped proof:** when `qa` cannot run the real flow because the stack won't boot or creds/fixtures are missing, that is a **bootstrap defect**, not a qa judgment call — `qa` reports `ENV-DEFECT` naming what's missing, the lead escalates, and the fix is the seed/boot path (see `repo-done-checklist.md` Environment block). A faked or skipped pass is never the answer to a broken environment.
 
+## Spawn the named role, not a generic agent wearing its instructions
+
+**Every worker is spawned as its own agent type — `be-dev`, `checker`, `qa`, `team-lead` — never as
+`general-purpose` with the role definition pasted into the brief.** The role file is not a prompt
+template. It carries three things a brief cannot: the pinned `model` and `effort`, the `tools`
+allow-list, and the name that hooks and the run log see. A generic agent handed the same prose has
+none of them.
+
+What is silently lost when a generic agent stands in for a role:
+
+- **The model routing does not happen.** A `general-purpose` agent runs on the session's inherited
+  model at the session's effort. `be-dev`'s `claude-sonnet-5 · high` and `team-lead`'s
+  `claude-opus-5 · high` are never consulted, so the routing rule above is bypassed in the exact
+  place it was supposed to apply — and nothing reports it.
+- **The tool restrictions do not apply.** `checker` is read-only *because its definition says so*;
+  a generic stand-in can write. The invariant that no non-lead role can spawn subagents holds
+  because those roles omit `Agent` from `tools` — a generic agent has it, so a stand-in "checker"
+  can fan out. Configuration you bypass is not enforcement.
+- **The gate stops being the gate.** A reviewer that could edit the diff, on the maker's model, is
+  not an independent gate no matter what its brief says.
+
+**`general-purpose` is a last resort, and it is a *reported* one.** It is legitimate exactly when the
+named role does not resolve — the plugin is not installed on that machine, or the type is otherwise
+unavailable. Then, and only then: paste the role definition into the brief, **set `model` and
+`effort` explicitly on the invocation** (nothing else will), and **record in the run log that the
+role ran as a stand-in** — because a run staffed by stand-ins tested the briefs, not the roles, and a
+later reader must not mistake one for the other.
+
+**If the roles do not resolve, that is the finding.** The roles ship with the plugin; a machine that
+never ran `enable-plugin.sh` has none of them, and every "team" it runs is a team of generic agents.
+Check before concluding anything about the framework's behaviour from such a run.
+
 ## Worker brief — the self-contained handover
 
 A worker has no shared memory with the lead beyond what the brief contains. "Explicit scope" means a brief that stands alone — the worker should never have to guess product intent or hunt for the contract. Minimal format:

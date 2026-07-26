@@ -78,8 +78,8 @@
 ## General rules
 - Every framework change lands as: proposal spec (root `.ai/specs/`) → human answers Open
   Questions → edits with binary Done-when outputs pasted → evals updated → CHANGELOG entry →
-  VERSION bump (all four manifests **+ the AGENTS.md stamp**) → push `main` → post-merge
-  `./install.sh --force`.
+  VERSION bump (all five stamps) → merge to `main`, which IS the deploy — the marketplace plugin
+  auto-updates from it, and there is no post-merge install step.
 - A measuring instrument gets a fixture for **both** directions: one that must be flagged, and one
   that must not. A defect-only fixture proves detection and says nothing about invention, and an
   instrument that flags correct work is worse than none — the gate gets argued with, then ignored.
@@ -187,12 +187,22 @@
     merging to `main` deploys to Jacek's machine and any other that installed the plugin, but not to
     this one. `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2` was set in `~/.claude/settings.json` on
     2026-07-26 (backup: `settings.json.bak-2026-07-26`); it needs a session restart to take effect.
-  - **Sub-teams ran for real, and the machinery held.** Depth-2 exercised on an actual backlog item
-    (the `Files:` migration): three sub-leads spawned **15 workers** between them, **every one
-    returned a report and none returned empty** — against 2026-07-25, where four of six went silent.
-    The difference is the one 1.15.0 predicted: every brief named a FILE deliverable. Scope held —
+  - **Sub-teams ran, and the run proved less than it was reported to prove.** Depth-2 nesting was
+    genuinely exercised: three sub-leads spawned 15 workers between them, **every one returned a
+    report and none returned empty** — against 2026-07-25, where four of six went silent. The
+    difference is the one 1.15.0 predicted: every brief named a FILE deliverable. Scope held —
     nothing outside the 24 target files changed, verified against a pre-run `git status` snapshot.
-    Release was a non-issue on the fallback path, exactly as the corrected doctrine now says.
+    **But every agent was dispatched as `general-purpose` with the role text pasted into the
+    prompt**, because the plugin is not installed on this machine and the Sailes roles resolve
+    nowhere here. So the run tested the *briefs*, not the *roles*: the eight role files carrying a
+    pinned `claude-opus-5` / `claude-sonnet-5` and an explicit effort were never loaded, the
+    `tools` allow-lists never applied, and the invariant that makes gates structurally unable to
+    fan out — no non-lead role lists `Agent` — was never exercised, since no non-lead role was
+    ever spawned as itself. **The 1.16.0 model routing has therefore still never run.** Raised by
+    the human, not caught by me, and closed doctrinally in 1.16.1: spawn the named role type;
+    `general-purpose` is a last resort that must set model/effort on the invocation and be
+    recorded in the run log as a stand-in. Eval: `evals/lead-spawns-named-roles-not-general-purpose.md`
+    (PENDING — arm 1 needs a machine where the roles resolve).
   - **The gate caught more in the instrument than in the work.** Three real defects, all fixed same
     day: `eval-status.js` reads only committed history (uncommitted edits read FRESH → new `DIRTY`
     verdict); freshness was conflating with outcome (an INCONCLUSIVE eval printed FRESH → the

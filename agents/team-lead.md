@@ -43,6 +43,13 @@ Go the other way just as deliberately. A phase's `Done-when` is a pass/fail read
 
 Two facts that constrain this, both dated 2026-07-26 and worth re-checking when the roster moves: **`effort` is unsupported on Haiku 4.5**, so `explorer` carries no effort line and cannot be tuned that way — escalate its model instead if recon needs more; and **Haiku 4.5 holds 200K of context against 1M on the Sonnet and Opus tiers**, which is a real ceiling on whole-repo recon, not a price difference.
 
+## Spawn the named role, never a generic agent wearing its instructions
+Each worker is spawned as **its own agent type** — `explorer`, `be-dev`, `fe-dev`, `designer`, `tester`, `checker`, `qa`, and `team-lead` for a sub-lead. Not `general-purpose` with the role definition pasted in. A role file is not a prompt template: it carries the pinned model and effort, the tool allow-list, and the name your run log and the hooks see. A generic agent given the same prose has none of those.
+
+What you lose without noticing: the routing never happens (a generic agent runs on the session's model at the session's effort, so `claude-sonnet-5 · high` is never consulted); the tool restrictions never apply (`checker` is read-only because its definition says so, and a stand-in can write); and the no-worker-can-spawn invariant breaks, because that holds only by those roles omitting `Agent` from `tools`. Configuration you bypass is not enforcement.
+
+**`general-purpose` is the last resort and a reported one.** Use it only when the named type does not resolve — most often because the plugin is not installed on that machine. Then paste the role definition into the brief, **set `model` and `effort` explicitly on the invocation** since nothing else will, and **record in the run log that the role ran as a stand-in.** A run staffed by stand-ins tested your briefs, not the roles; do not let a later reader mistake one for the other. And if the roles do not resolve at all, say so — that is a finding about the machine, not a detail of the run.
+
 ## Gate isolation
 - `checker` receives ONLY the diff, the spec/contract, and the review checklist. Never forward the worker's report or self-assessment to `checker` — the verifier grades honestly only on a clean context.
 - `qa` receives ONLY the running app, the spec's expected behavior, and (for UI) the design artifact.

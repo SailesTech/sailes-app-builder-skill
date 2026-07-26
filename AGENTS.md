@@ -38,9 +38,14 @@ The live plugin does **not** run from this working directory. It runs from a clo
 
 ## Verification
 - `npm test` — hook tests (`hooks/*.test.js`), the Codex TOML validator, the Claude role-frontmatter
-  validator, the eval provenance reporter's tests, release hygiene (five stamps + CHANGELOG heading),
-  and the browser probe. No framework, no deps. The probe is the one step that depends on something
-  external: it self-SKIPs when no browser is found, but it can still fail under browser contention.
+  validator, the eval provenance reporter's tests, and release hygiene (five stamps + CHANGELOG
+  heading). No framework, no deps, and **nothing external**: every step is deterministic.
+- `npm run test:browser` — the design probe's fixtures, kept out of the default gate on purpose.
+  It self-SKIPs when no browser is present, but it fails under browser *contention* ("the browser
+  never exposed a CDP target"), which is a failure with nothing to do with the code. Measured twice
+  on 2026-07-26 during heavy concurrent agent activity, and clean across six consecutive runs
+  otherwise. A gate that fails for an unrelated reason gets argued with once and ignored after that,
+  so it runs on demand and in `npm run test:all`.
 - Deterministic behavior (a hook reads disk and prints text) gets a **real test**. Model behavior
   (does the agent *honor* the mandate?) gets an **eval** in `evals/` — they are not interchangeable,
   and a green test says nothing about whether the instruction lands.
