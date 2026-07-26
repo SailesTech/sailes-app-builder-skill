@@ -7,6 +7,32 @@
 
 ## Lessons
 
+### 2026-07-26 — the mitigation that was named and never promoted is the one that kept failing
+
+- **Context:** on 2026-07-20 a defect class produced three mitigations. Two were written into
+  AGENTS.md §Hard safety rules — verify a scripted edit landed, use `\r?\n` not `\n`. The third —
+  *stop pushing prose through a shell, use the file-writing tools* — was written into a **narrative
+  sentence in `.ai/STATE.md:162`** and nowhere else. On 2026-07-26 it was broken **three times in one
+  session**, by the agent that had written all three.
+- **Problem:** two separate failures, and only the second is interesting. The first is placement: a
+  rule recorded in a session-summary paragraph is not a rule, it is a memory, and it dies with the
+  reader. The second is that the prose stated the **injunction without the mechanism** — "don't push
+  prose through a shell" gives nothing to recognise in the moment. The actual mechanism is sharp and
+  memorable once seen: **an apostrophe closes a single-quoted shell string.** Prose is dense with
+  them (`scenario's`, `don't`), so the quote terminates mid-sentence, the remainder is parsed as
+  shell, and backticks inside it become command substitution. The failure is loud but late.
+- **Rule:** when an incident yields several mitigations, **promote all of them to the same place, in
+  the same pass** — a split leaves the unpromoted one looking handled. And write the *mechanism*, not
+  only the prohibition: a rule you cannot feel is one you break under fatigue, which is exactly when
+  it matters. Now in AGENTS.md §Hard safety rules with the mechanism attached.
+- **Applies-to:** every `.ai/lessons.md` entry and every STATE.md session summary. The header of this
+  file already says to prefer an enforced check over more prose — this entry is what happens when
+  prose is not even filed where prose is read.
+- **Still open, and it is the real fix:** this is enforceable. A `PreToolUse` hook could refuse a
+  Bash call that writes sentences into a `.md` file. It is not shipped, because hooks in this repo
+  reach **every machine running the plugin**, and that blast radius is the human's call — not a
+  papercut's.
+
 ### 2026-07-26 — an agent's own run-data section is a claim, and it is the one claim with no artifact behind it
 - **Context:** an A/B comparing two `researcher` architectures. Arm B reported a tidy instrumentation
   table — "7 gatherers, 38k–61k tokens each (~366k total), individual durations 50–125s, wall-clock

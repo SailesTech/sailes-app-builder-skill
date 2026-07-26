@@ -4,6 +4,29 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.21.3 — 2026-07-26 · the mitigation that was named and never promoted
+
+A rule this repo has been breaking is now where rules are read, with the mechanism attached.
+
+On 2026-07-20 one defect class produced three mitigations. Two went into AGENTS.md §Hard safety rules
+— verify a scripted edit landed, use `\r?\n` not `\n`. The third, *stop pushing prose through a
+shell*, went into a **narrative sentence in `.ai/STATE.md`** and nowhere else. It was then broken
+**three times in one session** on 2026-07-26, by the agent that wrote all three.
+
+- **Now in §Hard safety rules, with the mechanism** — because the injunction alone gave nothing to
+  recognise in the moment. **An apostrophe closes a single-quoted shell string.** Prose is dense with
+  them (`scenario's`, `don't`), so the quote terminates mid-sentence, the remainder parses as shell,
+  and backticks inside it become command substitution. The only safe way to pass prose through Bash
+  is a heredoc with a **quoted** delimiter; a single-quoted `-c` / `-e` argument is not one and never
+  becomes one. Use Write/Edit.
+- **The transferable rule, in `.ai/lessons.md`:** when an incident yields several mitigations,
+  promote **all of them to the same place in the same pass** — a split leaves the unpromoted one
+  looking handled. And write the mechanism, not only the prohibition.
+
+**Not shipped, deliberately:** this is enforceable — a `PreToolUse` hook could refuse a Bash call
+that writes sentences into a `.md` file. Hooks in this repo reach every machine running the plugin,
+and that blast radius is a human decision, not a papercut's.
+
 ## 1.21.2 — 2026-07-26 · every eval accounted for, and a rule for what a run leaves behind
 
 **All 32 scenarios accounted for; 31 fresh.** The three that had been environment-blocked for weeks

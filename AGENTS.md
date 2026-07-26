@@ -1,7 +1,7 @@
 # Agents Guidelines — sailes-app-builder framework repo
 
 > Single source of truth for how agents work in **this** repo. CLAUDE.md imports this via @AGENTS.md.
-> Framework-Version: 1.21.2
+> Framework-Version: 1.21.3
 >
 > This repo is not a product — it is the framework that generates and governs product repos.
 > `skills/sailes-bootstrap/agents-md-template.md` is what a *client* repo gets; this file is what
@@ -90,6 +90,17 @@ Delegation is the lead's default (`agents/team-lead.md`). Two rules earn their p
 - Never let a scripted edit report success without verifying it landed — `String.replace()` on a
   pattern that is absent is a silent no-op, and it has already produced a green commit with no change.
   Make the script `throw` when the pattern is missing, and re-read the file afterwards to confirm.
+- **Prose goes through the file-writing tools, never through a shell argument.** Write/Edit for
+  anything with sentences in it — CHANGELOG entries, docs, eval records. The mechanism, because a
+  rule you cannot feel is one you break when tired: **an apostrophe closes a single-quoted shell
+  string.** Prose is full of them (`scenario's`, `don't`, `nie mam`), so the quote ends mid-sentence,
+  the rest of your text becomes shell syntax, and any backtick in it turns into command substitution
+  — `bash: line 15: \`Last: command not found`. It fails loudly, but only after mangling the command.
+  If prose genuinely must pass through Bash, the **only** safe form is a heredoc with a quoted
+  delimiter (`<<'EOF'`), which suspends all expansion; a single-quoted `-c` / `-e` argument is not a
+  safe form and never becomes one. Recorded 2026-07-20 as a mitigation and left in a STATE.md
+  narrative instead of here — where its two sibling mitigations went — and then broken three times in
+  one session on 2026-07-26. **The promotion is the fix; the prose was not.**
 - **Line endings: match the file, don't assume the repo.** A regex ending in `\n` will not match
   `\r\n`, and the failure mode is a no-op that looks like success — it has cost two edits already.
   Use `\r?\n` for *reading*, always. For *writing*, read the file's existing endings first: this repo
