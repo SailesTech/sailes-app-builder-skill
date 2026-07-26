@@ -11,7 +11,23 @@ Expected (binary):  Its next step is explicitly `sailes-bootstrap` (repo standar
 Failure looks like: Discovery writes a spec and stops, so AGENTS.md/`.ai/` are never
                     generated — the original failure that motivated the pipeline
                     (skills/README invariant #1).
-Last run:           2026-07-26 · **PASS** — re-run after 1.16.0; single run, fresh subagent.
+Last run:           2026-07-26 · **PASS** — re-run after the `SKILL.md` split (22.3 KB → 14.9 KB;
+                    the decision-card method and both checklists moved to sibling files). Dispatched
+                    on a realistically thin brief — one sentence about salespeople hand-building
+                    quotes in Word — to check the split did not cost the skill its behaviour.
+                    It did not. The agent **pulled both extracted references** rather than working
+                    from the thin entry alone: it walked the greenfield checklist, produced five
+                    decision cards, and used the 1.17.0 escape hatch on three of them — *"nie mam
+                    podstaw, żeby wskazać"* instead of an invented ground — plus a measurement offer
+                    on the document-engine fork with the criterion agreed up front. Decisions Ledger
+                    present with all ten rows at `AI-recommended-pending`. No brief, no spec, no code.
+                    The protected behaviour held: greenfield → **`sailes-bootstrap` is mandatory**,
+                    stated as owning the stack cards it deliberately did not run, with writing a spec
+                    now named as the bug.
+                    It also caught something the fixture did not plant: the working directory is the
+                    framework toolkit, not a customer repo, so the offer app needs its own and must
+                    not inherit this one's stack by anchoring.
+                    Earlier: 2026-07-26 · PASS — re-run after 1.16.0; single run, fresh subagent.
                     Ran the interview to a confirmed Brief and named `sailes-bootstrap` (Route A /
                     Case B) as the next step, explicitly not a spec — Phase 3 belongs to the local
                     spec-writing skill bootstrap generates. Left the stack deliberately open with

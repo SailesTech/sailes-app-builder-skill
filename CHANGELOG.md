@@ -4,6 +4,30 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.20.0 — 2026-07-26 · `sailes-discovery` gets progressive disclosure — and two skills prove they should not
+
+The backlog asked for three monolithic skills to be split the way `sailes-bootstrap` already is. One
+was; the other two were **measured and deliberately left alone**, which is the more useful result.
+
+- **`sailes-discovery` split: 22.3 KB → 14.9 KB entry (−33%).** The decision-card method moves to
+  `decision-card.md` (read it when a fork appears, not before) and both elicitation checklists to
+  `checklists.md` — a session walks greenfield **or** brownfield, never both, which is what made this
+  content genuinely extractable. `SKILL.md` keeps the spine: variant, orientation, the four steps,
+  ledger, handoff, red flags.
+- **`sailes-async` and `sailes-design`: not split, on measurement.** async's `## Workflow` is 8.3 KB of
+  15.9 — but it is six sequential phases of 1–2 KB, so extracting them yields six files you read
+  anyway. design's two heaviest sections are the **mandatory** physical-integrity gate and the Common
+  Mistakes table, both on every run's path; its genuinely conditional content is ~12%, which does not
+  pay for the indirection. **The criterion is not "large" — it is "not needed on this run."**
+- **Verified, not asserted:** `discovery-chains-into-bootstrap` re-run against a realistically thin
+  brief. The agent pulled both extracted files rather than working from the thin entry alone, ran the
+  checklist, produced five decision cards — three of them using the 1.17.0 escape hatch, *"nie mam
+  podstaw, żeby wskazać"*, and one offering to settle the fork by measurement — and held the protected
+  behaviour: greenfield hands off to `sailes-bootstrap`, and writing a spec instead is the bug.
+
+**Upgrade-actionable:** if you vendored `sailes-discovery/SKILL.md`, it now has two siblings; copying
+the entry alone loses the checklists.
+
 ## 1.19.1 — 2026-07-26 · the Codex twin can no longer silently fall a rule behind
 
 `codex-agents/parity.test.js`, wired into `npm test`. Closes W4 from the 2026-07-20 pre-implement:
