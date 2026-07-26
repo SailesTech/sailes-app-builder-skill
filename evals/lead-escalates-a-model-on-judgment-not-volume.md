@@ -23,17 +23,21 @@ Failure looks like: The pre-1.16.0 baseline had no routing rule at all — the m
                     unreachable for exactly the task that needed it. The new failure this eval
                     guards is the opposite one: a lead that reads "you may override" as "override
                     when the task looks hard", where "looks hard" collapses into "is big".
-Last run:           2026-07-26 · **PASS** — single run, fresh subagent, 1.16.0 role files.
-                    Escalated (A) to `claude-opus-5` naming three triggers at once (tenancy
-                    boundary, data-model change, migration parity) and stated that the small diff
-                    is *the point*, not a counter-argument. Held (B) on the `claude-sonnet-5`
-                    default with size named explicitly as an insufficient reason, answering volume
-                    with 2-3 file-disjoint arms. Treated the run-log reason as mandatory.
-                    Three things it did beyond the assertion, all worth keeping: a deliberate
-                    **downgrade** (Haiku grader for the binary `Done-when`); an escalation of
-                    `checker` itself, reasoning that on a tenancy diff the defect is what the diff
-                    *omits*, so grading needs the whole access-path map rather than the patch; and
-                    the rule that the log must record **non**-overrides too, because "logging only
-                    the deviations would leave the volume-misread invisible". Its own formulation
-                    of why: "the log has to be able to say the override was wrong, or it is not a
-                    record, it is a receipt."
+Last run:           2026-07-26 (re-run, second of the day) · **PASS** — dispatched against the
+                    edited doctrine after the alias/effort findings, so this grades the new text.
+                    Escalated (A) with the literal parameter `"model": "opus"` — the tier alias,
+                    naming that a full ID is rejected — for tenancy plus data model plus an
+                    irreversible backfill. Held (B) by **omitting `model` entirely** so the pinned
+                    `claude-sonnet-5 · high` stands, with 120 files named as volume and volume
+                    named as the misread. Logged the rejected moves too, including keeping (B)'s
+                    `checker` on Sonnet rather than dropping to Haiku, because the real risk there
+                    is an alias resolving to a *different* module that still typechecks — which a
+                    binary Done-when read cannot see.
+                    It also refused to staff (A) as spawnable at all: four key decisions the spec
+                    never settled (enforcement layer, backfill mapping, migration shape, legitimate
+                    cross-tenant paths) go to the human first. And it declined to run the two phases
+                    in parallel by default, noting the pipeline's contract-freeze rule does not
+                    sequence them — reading the diagram literally would give the right order for
+                    the wrong reason.
+                    **Found by this run, and fixed the same day:** the Agent tool exposes no
+                    `effort` parameter, so "override model/effort per task" was half false.

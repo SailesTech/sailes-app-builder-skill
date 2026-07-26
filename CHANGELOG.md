@@ -4,6 +4,30 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.16.2 — 2026-07-26 · an escalation buys a tier, not a version — and not effort at all
+
+The human decided the open routing conflict (option A). Both halves were then measured against the
+live tool rather than read from documentation, and they fail in opposite ways:
+
+- **`model` fails loudly.** The Agent tool accepts only the tier aliases `sonnet`/`opus`/`haiku`/
+  `fable`; a full ID is rejected with `InputValidationError`. So an override trades the pinned
+  `claude-sonnet-5` for whatever `sonnet` resolves to at that moment. **Accepted deliberately:** the
+  pin's value sits on the default path where nearly every run lives, escalations are rare and
+  already logged with a reason, and the alternative — a twin role file per escalated role —
+  reintroduces the duplication that already drifted across three copies of one table here.
+- **`effort` fails silently, which is worse.** It is not a declared parameter of the Agent tool, yet
+  passing it raises no error, so a lead cannot tell whether it applied. **Effort is frontmatter-only**
+  from now on; 1.16.0's "override `model`/`effort` per task" was half false.
+
+Two obligations ship with the decision: **log the alias you passed**, not merely that you escalated,
+or the attribution the pinning protects is lost anyway; and when a role is escalated routinely — or
+needs a different effort — promote it to its own pinned definition instead of overriding forever,
+which is the graduation rule this framework already applies to configuration.
+
+Both findings came from evals reading the tool schema instead of the neighbouring paragraph. The
+escalation eval was re-run against the edited text and **PASSes**: it escalated with the literal
+`"model": "opus"` and held the other phase by *omitting* `model` so the pin stands.
+
 ## 1.16.1 — 2026-07-26 · what the roles actually enforce, and a phantom agent nobody could see
 
 Everything here was found by *installing the plugin and running the roles*, which had never been
