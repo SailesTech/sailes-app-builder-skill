@@ -85,10 +85,20 @@ function parseFrontmatter(text) {
   return fields;
 }
 
+/**
+ * EVERY `.md` here is a role. No exclusions — that is the point.
+ *
+ * This function used to skip `README.md`, which institutionalised a shipped defect: Claude Code
+ * registers every `.md` in a plugin's `agents/` directory as an agent, frontmatter or not, so the
+ * README shipped as a phantom agent type named `README` on every machine with the plugin — no
+ * description to choose it by, and no `tools` list, so it inherited everything including `Agent`.
+ * The validator's own exclusion is why no test ever saw it. Found 2026-07-26 by installing the
+ * plugin and reading `claude plugin details`: **Agents (9)** for eight roles.
+ */
 function roleFiles() {
   return fs
     .readdirSync(AGENTS_DIR)
-    .filter((f) => f.endsWith('.md') && f !== 'README.md')
+    .filter((f) => f.endsWith('.md'))
     .sort();
 }
 
@@ -96,6 +106,19 @@ const files = roleFiles();
 
 test('there are role files to validate at all', () => {
   assert.ok(files.length >= 8, `expected at least 8 roles, found ${files.length}`);
+});
+
+test('agents/ contains ONLY roles — a stray .md ships as a phantom agent', () => {
+  // Documentation belongs in docs/. Anything here is registered as an agent type.
+  const strays = files.filter((f) => {
+    const text = fs.readFileSync(path.join(AGENTS_DIR, f), 'utf8');
+    return !/^---\r?\n/.test(text);
+  });
+  assert.deepStrictEqual(
+    strays,
+    [],
+    `these have no frontmatter and would register as phantom agent types: ${strays.join(', ')}`
+  );
 });
 
 for (const file of files) {
