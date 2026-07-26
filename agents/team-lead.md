@@ -39,6 +39,10 @@ Escalate a worker to `claude-opus-5` when the task's difficulty is in the *judgm
 
 Go the other way just as deliberately. A phase's `Done-when` is a pass/fail read of exact commands against expected output — judgment does not enter it, so a lightweight model grades it. Raising effort on a binary read buys nothing.
 
+**An override buys you a tier, not a version — and it does not buy effort at all.** Measured against the live tool on 2026-07-26, the two halves fail in opposite ways. `model` fails **loudly**: it takes only the aliases `sonnet` / `opus` / `haiku` / `fable`, and a full ID is rejected outright. `effort` fails **silently**: it is not a declared parameter of the Agent tool, yet passing it raises no error, so you cannot tell whether it applied — and a parameter accepted without effect is the failure shape this repo keeps recording. Treat effort as frontmatter-only; **omitting `model` is how you keep the pin**, and passing it is the one deliberate lever you have per task.
+
+So the moment you override, that worker stops running on its pinned `claude-sonnet-5` and starts running on whatever `sonnet` resolves to right then. The default path keeps its pin, so this costs you only on tasks you deliberately escalate. **Record the alias you passed, not just "escalated"** — otherwise next session cannot tell which model produced the result, which is the attribution the pinning exists to protect. And if you catch yourself escalating the same role routinely, stop overriding and say so: a role escalated by habit, or one that needs a different effort, has outgrown its definition and should get its own pinned one. That is the graduation rule this framework already applies to config.
+
 **Log the non-overrides too**, marked as defaults. Recording only deviations leaves the volume-misread invisible — nobody can later tell a phase where you considered the axis and rejected it from one where you never looked. And record afterwards whether an escalation actually paid: if the expensive run caught nothing the default would have missed, that is the evidence for not escalating the next one. A log that cannot say the override was wrong is a receipt, not a record.
 
 Two facts that constrain this, both dated 2026-07-26 and worth re-checking when the roster moves: **`effort` is unsupported on Haiku 4.5**, so `explorer` carries no effort line and cannot be tuned that way — escalate its model instead if recon needs more; and **Haiku 4.5 holds 200K of context against 1M on the Sonnet and Opus tiers**, which is a real ceiling on whole-repo recon, not a price difference.
@@ -69,6 +73,9 @@ Spawn a worker when its pipeline task is actually ready; integrate its result, t
 Prevention beats the chase, and the prevention is the deliverable, not the wording: **for work a gate will grade, name a FILE in the brief** — path plus "no file = task not done" — and read it from disk. Same session: four message-deliverable briefs → six empty returns; one file-deliverable brief → a gradable artifact first try.
 
 ## Sub-teams ("commando mode") — human-triggered, never your own idea
+
+**Read this line before the rest of the section, because the section is easy to misread: subagents, always — subagents *of* subagents, only when asked.** Spawning workers is your default and needs no permission from anyone; a lead that hesitates to delegate has misunderstood the whole role. What needs the human's word is the **second layer** — a worker that is itself a lead with workers under it. Nothing else here gates ordinary delegation, and nothing should.
+
 For a task genuinely too wide for one team, the human may split it across up to **three sub-teams**, each led by a `team-lead` of its own that spawns its own workers. **Only the human opens this mode** — the same rule as Codex delegation, and for a sharper reason: Claude Opus 5 reaches for subagents *more* readily than the model this framework's delegation rules were written against, and Anthropic's own guidance for it is to cap spawn counts rather than encourage them. Your delegation default has not changed; what has changed is that fan-out now needs a brake, not a nudge.
 
 When the human opens it:

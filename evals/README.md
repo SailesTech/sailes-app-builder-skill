@@ -4,6 +4,27 @@ TDD-for-skills used to live in the chat that ran it — the RED/GREEN scenarios 
 session, so a skill edit could silently regress a behavior a previous edit had fixed. This
 directory is the persisted form: **one markdown scenario per protected behavior.**
 
+## Which agent type to dispatch — and why an eval is the exception
+
+`agent-team-structure.md` requires real work to be delegated to the **named role type**, never to
+`general-purpose` wearing pasted instructions. **Eval dispatch is the deliberate exception**, and the
+reason is mechanical rather than convenient: the plugin serves role definitions from `main`, while the
+text an eval usually grades is the edit sitting in your working tree. Spawn `sailes-app-builder:team-lead`
+and you get the *deployed* system prompt plus whatever file you asked it to read — two versions of the
+doctrine in one context, and a verdict about neither.
+
+So: **dispatch evals to a fresh generic subagent and point it at the working-tree files.** That is what
+every `Setup:` line here means by "give a fresh subagent the role definition".
+
+Two obligations, because this is the same stand-in the doctrine otherwise restricts:
+
+- **Say so in the `Last run:` line.** A stand-in run grades the *text*; it does not exercise the role's
+  pinned model, its tool allow-list, or its inability to spawn. Recording "PASS" without that
+  qualification is how a text result gets read as a runtime result.
+- **When the behaviour under test IS the runtime** — does the pin apply, does the allow-list hold, can
+  a gate fan out — a stand-in proves nothing. Spawn the real type and accept that you are grading the
+  deployed version. `.ai/eval-runs/2026-07-26-role-runtime-audit/` is what that looks like.
+
 ## How to run a scenario
 
 1. Dispatch the `Setup` prompt to a **fresh subagent with clean context** — no extra

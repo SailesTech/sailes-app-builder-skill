@@ -4,6 +4,30 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.16.2 — 2026-07-26 · an escalation buys a tier, not a version — and not effort at all
+
+The human decided the open routing conflict (option A). Both halves were then measured against the
+live tool rather than read from documentation, and they fail in opposite ways:
+
+- **`model` fails loudly.** The Agent tool accepts only the tier aliases `sonnet`/`opus`/`haiku`/
+  `fable`; a full ID is rejected with `InputValidationError`. So an override trades the pinned
+  `claude-sonnet-5` for whatever `sonnet` resolves to at that moment. **Accepted deliberately:** the
+  pin's value sits on the default path where nearly every run lives, escalations are rare and
+  already logged with a reason, and the alternative — a twin role file per escalated role —
+  reintroduces the duplication that already drifted across three copies of one table here.
+- **`effort` fails silently, which is worse.** It is not a declared parameter of the Agent tool, yet
+  passing it raises no error, so a lead cannot tell whether it applied. **Effort is frontmatter-only**
+  from now on; 1.16.0's "override `model`/`effort` per task" was half false.
+
+Two obligations ship with the decision: **log the alias you passed**, not merely that you escalated,
+or the attribution the pinning protects is lost anyway; and when a role is escalated routinely — or
+needs a different effort — promote it to its own pinned definition instead of overriding forever,
+which is the graduation rule this framework already applies to configuration.
+
+Both findings came from evals reading the tool schema instead of the neighbouring paragraph. The
+escalation eval was re-run against the edited text and **PASSes**: it escalated with the literal
+`"model": "opus"` and held the other phase by *omitting* `model` so the pin stands.
+
 ## 1.16.1 — 2026-07-26 · what the roles actually enforce, and a phantom agent nobody could see
 
 Everything here was found by *installing the plugin and running the roles*, which had never been
@@ -44,6 +68,28 @@ done on this machine. Reading the configuration had been enough to be confident 
   IDs for reproducibility, but the Agent tool's `model` parameter accepts only aliases, so the
   documented escalation path un-pins what the pinning was for — silently, because the alias
   resolves to a working model. Four options in `.ai/backlog.md`, **awaiting human**.
+
+### Also in 1.16.2 — four defects found by *running* the bootstrap skill, not reading it
+
+The `bootstrap-generates-code-map` eval was unrunnable until `graphify` was installed on 2026-07-26.
+Its first real run — a fresh repo, 74 tool calls — produced a code map that answers queries, and four
+defects that had been shipping:
+
+- **The done-checklist's drift check shipped broken.** `grep -oE 'pnpm [a-z:-]+'` drops digits, so
+  `pnpm test:e2e` truncated to `test:e` and the checklist reported DRIFT on a script that exists. Now
+  `[a-z0-9:-]`, with pnpm's own builtins excluded (`pnpm install` is in the template's Key Commands and
+  is not a package script). Covered by `repo-done-checklist.test.js`, which **extracts the pattern from
+  the document** rather than copying it — a copy would drift from what ships.
+- **`graphify-setup.md` never committed `.gitattributes`**, so the union-merge driver `graphify hook
+  install` registers stayed on one machine and everyone else kept getting conflict markers in
+  `graph.json` — precisely what the driver exists to prevent.
+- **The dated snapshot directory was not ignored.** `graphify update .` writes a full duplicate of the
+  map per run; uncommitted it is noise, committed it is a copy of the whole graph per update day.
+- **🔒 A presence-only checklist passed a repo that cannot boot.** Every mandatory row went green while
+  the app had no dependencies and no seeded user, so `qa` could not log in. The Environment block catches
+  this but sits outside the scripted set by necessity — it needs a running app. The checklist now states
+  that presence and boot are **two results reported as two sentences**, because collapsing them into one
+  green is how an unusable repo gets handed over.
 
 ## 1.16.0 — 2026-07-26 · measurement, model routing, and sub-teams — the Claude-5 re-fit
 

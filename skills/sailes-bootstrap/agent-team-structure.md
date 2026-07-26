@@ -60,6 +60,38 @@ with its reason**; an unlogged escalation cannot be told apart from drift.
 Downgrade with the same deliberateness. A `Done-when` is a pass/fail read of exact commands against
 expected output, so a lightweight model grades it — raising effort on a binary read buys nothing.
 
+**An override buys a tier, not a version — and it does not buy effort at all.** Both halves were
+measured against the live tool on 2026-07-26 rather than read from documentation, and they fail in
+opposite ways:
+
+- **`model` fails loudly.** It accepts only the tier aliases `sonnet` / `opus` / `haiku` / `fable`; a
+  full ID is rejected with `InputValidationError`. So overriding trades the pinned `claude-sonnet-5`
+  for whatever `sonnet` resolves to at that moment.
+- **`effort` fails silently, which is worse.** It is not among the Agent tool's declared parameters,
+  yet passing it raises no error. Whether it takes effect is **unverified** — and a parameter that is
+  accepted without applying is exactly the shape of failure this repo keeps recording: the lead
+  believes it set the effort, nothing contradicts them, and the worker runs at the role file's level.
+  **Treat effort as frontmatter-only.** If a task genuinely needs a different effort, that is not an
+  override — it is a role that has outgrown its definition.
+
+The practical consequence: **omitting `model` is how you keep the pin.** Passing it is the deliberate
+act, and the only thing you can change per task.
+
+This is a **decided trade-off, not an oversight** (2026-07-26). The pin's value is on the default
+path, where nearly every run lives and where it stays fully intact; escalations are rare, deliberate
+and already logged with a reason, so attribution survives at the decision level even when exact
+version does not. The alternative — a twin role file per escalated role — reintroduces duplication in
+a repo that has already had one table drift across three copies.
+
+Two obligations come with taking it:
+
+- **Log the alias, not just the fact.** "Escalated to `opus`" is the record; "escalated" is not.
+  Without the alias, a later reader cannot tell which model produced the result, which is the very
+  attribution the pinning exists to protect.
+- **Escalating the same role routinely is a signal, not a habit.** When it recurs, promote that role
+  to its own pinned definition instead of overriding forever — the graduation rule this framework
+  already applies to configuration. Do it on evidence from the run log, not in anticipation.
+
 **Log the non-overrides too.** Recording only the deviations leaves the volume-misread invisible: a
 reader cannot tell a phase where the escalation axis was considered and rejected from one where nobody
 looked. Write the tier for every worker, and mark the defaults as defaults. The log also has to be able
@@ -232,6 +264,14 @@ Enable teams with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/setting
 Delegation is **one-directional by design**: the Claude-side lead can hand a task to Codex; the Codex-side lead has no matching hand-off back to Claude. Symmetry would quietly make the second vendor a *requirement* instead of an option, which is the opposite of the point — each runtime already runs the whole pipeline alone (`agents/` and `codex-agents/` are the same eight roles, two harnesses). Delegation is an extra that a both-quota human may reach for, never a dependency; a Claude-only or Codex-only user loses nothing by never using it.
 
 ## Sub-teams ("commando mode") — a human-triggered widening, not a default
+
+> **The rule in one line, because this section is easy to misread: subagents, always — subagents *of*
+> subagents, only when asked.** Delegating work to a worker is the lead's default and requires nobody's
+> permission; the doctrine above says so at length, and a lead that hesitates to spawn has
+> misunderstood the role. What the human must open is the **second layer** — a worker that is itself a
+> lead with workers beneath it. If any sentence below reads as though ordinary delegation needs
+> approval, this line wins.
+
 
 For a task genuinely too wide for one team, the human may split it across up to **three sub-teams**,
 each with its own `team-lead` that spawns its own workers. Depth stops at two: lead → sub-leads →

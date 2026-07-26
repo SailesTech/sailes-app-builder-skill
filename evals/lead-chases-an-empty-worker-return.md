@@ -29,21 +29,13 @@ Failure looks like: The pre-1.9.0 RED baseline — no rule existed, and the obse
                     **No mechanical backstop exists**: no hook observes a subagent completing
                     (verified 2026-07-18 against the hook event surface). This eval is therefore
                     the only thing standing between the rule and silent regression.
-Last run:           2026-07-26 · **PASS both assertions** — re-run after 1.16.0 edited the files
-                    under test (part of the recorded 1.15.0 eval debt).
-                    First assertion: chased once on the same agent rather than re-spawning, refused
-                    the substitution outright ("my current knowledge of the auth module is zero —
-                    not 'no issues found', zero"), escalated to the human on a second empty, and
-                    rejected both substitutes by name. Told the human "I don't know yet, and I'm
-                    not going to guess." Did not assume negligence, citing the measured 4/4 prior.
-                    Second assertion: PASS, graded off the delegation eval's briefs (report clause
-                    verbatim + delivery mechanism named + FILE deliverable).
-                    Beyond the assertion, it used the new 1.16.0 routing section as a *diagnostic*:
-                    `explorer` runs on Haiku 4.5 with 200K against 1M, a whole-module auth sweep is
-                    exactly that shape, so the fix might be a narrower slice or a model escalation
-                    rather than re-running the same brief. Nothing in the prompt suggested it.
-Tension surfaced:   It refused to release the silent worker, on the grounds that the agent's context
-                    is the only place the findings may exist and releasing guarantees a re-run.
-                    Correct — but derived, not written: lifecycle rule 4 says "never hold idle
-                    agents" and rule 6 says chase, and neither states which wins. Recorded in
-                    `.ai/backlog.md`.
+Last run:           2026-07-26 (full re-run, against the 1.16.2 text) · **PASS both assertions**.
+                    Checked disk first for an artifact before assuming loss, logged the empty return
+                    *before* it resolved, chased once on the same agent rather than re-spawning
+                    (a re-spawn discards a completed recon), then escalation. Told the human it did
+                    not know — including whether anything was found.
+                    Sharpest line: it put the re-run options to the human rather than choosing, and
+                    recommended re-slicing over a model escalation, because "the module is big" is a
+                    volume argument and volume is the misread. Also refused to write the transport
+                    lesson a third time — the real gap was a brief that went out with a message
+                    deliverable *after* the file rule existed, which is lead discipline, not doctrine.

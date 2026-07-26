@@ -84,6 +84,15 @@ fi
 
 ## Environment block — time-to-verdict (verify once the app skeleton runs)
 
+> **A green scripted block is not a usable repo, and must never be handed off as one.**
+> Everything above is a **presence** check: it proves a file or a hook exists, never that the
+> thing runs. Measured 2026-07-26 — a full bootstrap passed every mandatory row while the app
+> could not boot and `qa` could not log in, because no dependencies were installed and no user
+> was seeded. The two rows below are what catch that, and they sit outside the script by
+> necessity: they need a running app. So report the two results **separately** — "presence: all
+> OK" and "boot: not established" are two sentences, and collapsing them into one green is how
+> an unusable repo gets handed over.
+
 Agent productivity is dominated by how fast and unambiguously the environment says "wrong".
 Verify these with outputs pasted (at bootstrap completion for the skeleton; re-verify when the
 first real feature lands):
@@ -111,7 +120,12 @@ grep -oE '[A-Za-z0-9_./-]+\.(md|ts|tsx|json|yml)' AGENTS.md | sort -u | while re
   [ -e "$p" ] || echo "DRIFT: AGENTS.md references missing path $p"
 done
 # commands referenced in Key Commands exist as package scripts
-grep -oE 'pnpm [a-z:-]+' AGENTS.md | sort -u | sed 's/pnpm //' | while read -r s; do
+# The class MUST carry digits: without them `pnpm test:e2e` truncates to `test:e` and this
+# check reports DRIFT on a script that exists. Found 2026-07-26 by running the skill, not
+# by reading it. The grep -vE drops pnpm's own builtins — they are not package scripts,
+# and `pnpm install` appears in the template's own Key Commands.
+grep -oE 'pnpm [a-z0-9:-]+' AGENTS.md | sort -u | sed 's/pnpm //' \
+  | grep -vE '^(install|add|remove|dlx|exec|run|why|update|outdated)$' | while read -r s; do
   grep -q "\"$s\"" package.json || echo "DRIFT: AGENTS.md references missing script $s"
 done
 ```
