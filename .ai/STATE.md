@@ -76,6 +76,19 @@
   concurrent, 200 per session. **Plugin subagents cannot carry `hooks`, `mcpServers`, or
   `permissionMode`** — those fields are ignored, and we ship as a plugin. **`effort` is unsupported
   on Haiku 4.5**, which is why `explorer` has no `effort:` line.
+- **Role enforcement audited by running the roles, 2026-07-26** — the first time the 1.16.0 routing
+  ever executed, because until the plugin was installed here every "team" was `general-purpose`
+  stand-ins. Spawned `checker` and `explorer` as their real types and asked what they could do.
+  **Enforced:** the model pin (`explorer` = `claude-haiku-4-5`, `checker` = `claude-sonnet-5`,
+  each matching its frontmatter), the tool allow-list (`checker` had exactly Glob/Grep/Read/Bash —
+  `Write` and `Edit` absent from the schema, not merely unused), and **the absence of `Agent`**,
+  which is what makes depth-2 sub-teams safe and is now verified rather than read off a file.
+  **NOT enforced: "read-only".** Both roles wrote a file through `Bash` on the first attempt, no
+  friction. Every gate carries Bash because the job needs it (lint/types/suite for `checker`,
+  driving the app for `qa`), and `permissionMode` is ignored for plugin subagents, so there is no
+  shippable lever. The gate's integrity never rested on the write restriction — it rests on the
+  inputs being limited to diff + spec + checklist. Doctrine corrected to say which half is which.
+  Evidence: `.ai/eval-runs/2026-07-26-role-runtime-audit/`, both claims re-verified on disk by the lead.
 - **The gates cannot spawn, by configuration rather than by promise.** All seven non-lead roles carry
   an explicit `tools:` list and none includes `Agent`; only `team-lead` inherits the full pool. This
   is what makes depth-2 sub-teams safe to enable — turning nesting on cannot make a worker or a gate
