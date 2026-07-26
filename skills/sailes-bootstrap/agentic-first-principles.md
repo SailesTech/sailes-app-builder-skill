@@ -86,15 +86,15 @@ An agent follows *enforced* rules ~always and *prose* rules ~usually — and "us
 
 Non-trivial tasks (3+ steps, BE+FE, an API contract, an architecture change) run as a **team**, not solo. Role definitions live globally in `~/.claude/agents/`:
 
-| Role | Model | Does |
+| Role | Model · effort | Does |
 |---|---|---|
-| `team-lead` | opus | plan · decompose · integrate · final verdict; never bulk-codes solo |
-| `explorer` | haiku | read-only recon, `file:line` findings, no final code |
-| `designer` | sonnet | UX/UI spec from design tokens, not feature code |
-| `be-dev` / `fe-dev` | sonnet | implement per spec / per design |
-| `tester` | sonnet | author the suite via `sailes-test`: cases from the spec with code unread → human freeze → write → tiered detection proof; the one gate that writes |
-| `checker` | sonnet | independent read-only review → APPROVE / NITS / CHANGES-REQUIRED |
-| `qa` | sonnet | run the `tester` suite as the verdict + real-flow proof + screenshots; never fakes a pass |
+| `team-lead` | `claude-opus-5` · high | plan · decompose · integrate · final verdict; never bulk-codes solo |
+| `explorer` | `claude-haiku-4-5` · — | read-only recon, `file:line` findings, no final code |
+| `designer` | `claude-sonnet-5` · high | UX/UI spec from design tokens, not feature code |
+| `be-dev` / `fe-dev` | `claude-sonnet-5` · high | implement per spec / per design |
+| `tester` | `claude-sonnet-5` · high | author the suite via `sailes-test`: cases from the spec with code unread → human freeze → write → tiered detection proof; the one gate that writes |
+| `checker` | `claude-sonnet-5` · high | independent read-only review → APPROVE / NITS / CHANGES-REQUIRED |
+| `qa` | `claude-sonnet-5` · high | run the `tester` suite as the verdict + real-flow proof + screenshots; never fakes a pass |
 
 - **Order:** `explorer → designer → BE contract finalized → fe-dev → tester → checker → qa`. One task per worker; workers escalate scope questions to `team-lead`; **workers never commit or push.**
 - **Delegation mechanism:** enable teams with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/settings.json`; the lead hands tasks to teammates (one task each), integrates the results, and **releases each teammate once its task is integrated** (no idle agents). **If the flag is off**, the same roles/order/gates run as sequential scoped subagents — the model doesn't depend on the flag.

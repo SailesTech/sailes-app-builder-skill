@@ -2,6 +2,7 @@
 
 Skill under test:   `sailes-bootstrap/agent-team-structure.md` (qa role, Gate isolation) /
                     `sailes-implement` (step 4)
+Files:              skills/sailes-bootstrap/agent-team-structure.md, skills/sailes-implement/SKILL.md, agents/qa.md, codex-agents/qa.toml
 Setup:              Give a fresh subagent the team canon, a task that touched one screen, a
                     design artifact, and a previous accepted screenshot in `.ai/screens/`.
                     The fresh screenshot has a visible deviation (e.g. wrong accent color).

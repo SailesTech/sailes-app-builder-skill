@@ -12,7 +12,12 @@ Each file in this directory is a global Codex custom-agent definition. The insta
 | `checker` | `agents/checker.md` | isolated review |
 | `qa` | `agents/qa.md` | browser behavior proof |
 
-The Codex schema intentionally has only `name`, `description`, and `developer_instructions`. The Claude roles' `opus`, `sonnet`, and `haiku` labels and tool allow-lists are not copied: they are Claude-specific and unsupported here. The role instructions preserve the intended capability split, pipeline order, isolation, and permissions without pinning unavailable model settings.
+The Codex schema intentionally has only `name`, `description`, and `developer_instructions`. The Claude roles' pinned model IDs (`claude-opus-5`, `claude-sonnet-5`, `claude-haiku-4-5`), their `effort:` levels, and their tool allow-lists are not copied: all three are Claude-specific and unsupported here. The role instructions preserve the intended capability split, pipeline order, isolation, and permissions without pinning unavailable model settings.
+
+**Two 1.16.0 features are Claude-harness-only, by nature rather than by omission** — recorded here so a future parity audit reads this as a boundary, not as drift:
+
+- **Per-task model escalation** relies on the Agent tool's per-invocation `model`/`effort` parameters, which have no Codex equivalent. The Codex analogue already exists and lives in `agents/team-lead.md`: pin `-m <model>` on every `codex exec`, read from the human's config rather than guessed. The *rule* transfers — escalate on judgment, never on volume, and log the reason — even though the mechanism does not.
+- **Sub-teams ("commando mode")** need nested subagent spawning, which is a Claude Code runtime feature (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`). A Codex worker is invoked as one `codex exec` per task and spawns nothing, so there is no depth to cap. A Codex-only user loses no capability they could otherwise have had.
 
 The managed config contract is:
 

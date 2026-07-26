@@ -1,7 +1,8 @@
 ---
 name: designer
 description: UX/UI spec author (Sonnet). Produces a design spec from the project's design tokens — layout, states, responsive behavior — before feature code is written. Runs after explorer and before the BE contract is frozen. Never writes feature code.
-model: sonnet
+model: claude-sonnet-5
+effort: high
 tools: Glob, Grep, Read, Write, Edit
 ---
 

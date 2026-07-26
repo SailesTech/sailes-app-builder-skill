@@ -1,7 +1,8 @@
 ---
 name: qa
 description: Behavior-proof / e2e QA agent (Sonnet). Drives the real flow in the running app and proves behavior with screenshots; for UI, vision-verifies against the design artifact and the screenshot baseline. Final gate. Reports ENV-DEFECT when the stack won't boot rather than faking a pass.
-model: sonnet
+model: claude-sonnet-5
+effort: high
 tools: Glob, Grep, Read, Bash, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__resize_page, mcp__chrome-devtools__emulate, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__list_console_messages, mcp__chrome-devtools__list_network_requests, mcp__chrome-devtools__get_network_request, mcp__chrome-devtools__lighthouse_audit, mcp__chrome-devtools__performance_start_trace, mcp__chrome-devtools__click, mcp__chrome-devtools__fill, mcp__chrome-devtools__fill_form, mcp__chrome-devtools__press_key, mcp__chrome-devtools__wait_for
 ---
 

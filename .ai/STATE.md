@@ -44,6 +44,25 @@
   shipped: below-the-fold content read as off-canvas, ellipsis truncation read as clipping, and
   controls in a closed `display:none` menu read as unclickable. The runner now reads the probe out
   of the doc's code block, and the clean-page fixture is the half that catches invention.
+- **Eval staleness is now measurable, and the instrument reproduced the known debt on its first run**
+  (1.16.0). `node evals/harness/eval-status.js` reads a scenario's `Files:` line against `git log`;
+  the three `lead-*` evals came back STALE against files changed 2026-07-25 — exactly the debt this
+  file already recorded, arrived at independently. 17 assertions in `eval-status.test.js`, in
+  `npm test`. **Only 3 of 27 scenarios carry `Files:`**; the other 24 report NO-FILES, which is the
+  instrument declining to compute rather than passing them.
+- **Claude Code 2.1.220 facts that the design depends on** (dated — two of them changed within the
+  last few releases): subagent frontmatter supports `model` (alias, full ID, or `inherit` — default
+  `inherit`) **and** `effort` (`low`…`max`); resolution is `CLAUDE_CODE_SUBAGENT_MODEL` →
+  per-invocation parameter → frontmatter. **Nested spawning is OFF by default** and needs
+  `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`; from v2.1.172–v2.1.216 it was on by default up to five
+  layers, so "it worked without config" is a true memory about a version we are not on. Caps: 20
+  concurrent, 200 per session. **Plugin subagents cannot carry `hooks`, `mcpServers`, or
+  `permissionMode`** — those fields are ignored, and we ship as a plugin. **`effort` is unsupported
+  on Haiku 4.5**, which is why `explorer` has no `effort:` line.
+- **The gates cannot spawn, by configuration rather than by promise.** All seven non-lead roles carry
+  an explicit `tools:` list and none includes `Agent`; only `team-lead` inherits the full pool. This
+  is what makes depth-2 sub-teams safe to enable — turning nesting on cannot make a worker or a gate
+  fan out. Evidence: `agents/*.md` frontmatter, verified 2026-07-26.
 - **A dev server cannot produce an absolute performance verdict** — unminified HMR bundle, no CDN,
   no prod cache headers. `lighthouse_audit` excludes performance by design; dev CWV numbers are a
   *relative* signal only. Geometry and contrast, by contrast, are valid on dev.
@@ -119,7 +138,90 @@
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-07-25 (later session — **resume here**): audited the merged 1.14.0, shipped **1.14.1** and
+- 2026-07-26 (**resume here**): shipped **1.16.0** on branch `feat/measurement-routing-subteams` —
+  measurement, model routing, and sub-teams, as one dependency chain (spec:
+  `.ai/specs/2026-07-26-measurement-routing-and-subteams.md`, gate cleared by the human same day,
+  D1–D4 answered, D5–D6 assumed and recorded). **Not merged — `main` is a live deploy and both new
+  evals are PENDING.**
+  - **Harness (D1):** `evals/harness/{eval-status.js,context-cost.js,README.md}` + 17 assertions in
+    `npm test`. First run reproduced the recorded 1.15.0 eval debt independently. The A/B protocol is
+    written down, including the step whose absence made the anchor eval INCONCLUSIVE — assert the
+    fixture creates the condition *before* reading the verdict.
+  - **Routing (D2+D4):** pinned model IDs + explicit `effort:` on all eight roles; the role default
+    is a default, not a ceiling, and an override owes the run log a reason. Escalate on judgment,
+    never on volume.
+  - **Sub-teams (D3):** human-triggered only, depth 2, **gates stay with the top-level lead**.
+  - **The one deliberate divergence from Anthropic's Opus 5 guidance**, recorded so it stays visible:
+    that guidance says not to use subagents for verification. Not adopted for `tester`/`checker`/`qa`,
+    because it is a capability argument and gate isolation is not — a reviewer that reads the maker's
+    narrative inherits the maker's confidence at any tier.
+  - **All five evals dispatched and PASS (7 fresh subagents, 9 arms).** Two new
+    (`lead-escalates-a-model-on-judgment-not-volume`, `lead-does-not-open-a-swarm-unprompted`) plus
+    the three `lead-*` the reporter flagged STALE — which closes the recorded 1.15.0 eval debt.
+    Verdict files under `.ai/eval-runs/2026-07-26-*/`; per-eval detail in each `Last run:` line.
+    Worth carrying forward: the 1.16.0 sections were used **unprompted in evals that do not test
+    them** — the fan-out brake appeared in the README-typo arm, the Haiku 200K ceiling in the
+    empty-return arm. That is the text landing, not merely existing.
+  - **An eval found a defect in the same day's text, which is the point of running them.** The
+    sub-teams section quoted the live-teammate release procedure as if it always applied; with
+    `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` unset (the actual state of this machine) workers are
+    scoped subagents that release themselves on return, so the rule was, in the agent's words, "a
+    plan that reads correct and cannot be run". Fixed in both files the same day.
+  - **Re-run debt, stated so it is not mistaken for coverage:** the five PASS verdicts graded the text
+    as it stood at dispatch. Three same-day edits landed afterwards — the release-mode fix above, and
+    a "log the non-overrides too" clause added to both routing sections after two independent runs
+    converged on it. The edits encode what the agents already did, so a regression is unlikely, but
+    unlikely is not measured. `eval-status.js` will not flag it (same-day commits count as covered by
+    design), which makes this the one gap the instrument cannot see.
+  - **Machine reality differs from what this file implied.** `~/.claude/skills`, `~/.claude/agents`
+    and a `sailes` marketplace entry do **not** exist on karol's machine — `enable-plugin.sh` was
+    never run here, and `settings.local.json` still points at `/c/Users/Jacek/.claude/skills`. So
+    merging to `main` deploys to Jacek's machine and any other that installed the plugin, but not to
+    this one. `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2` was set in `~/.claude/settings.json` on
+    2026-07-26 (backup: `settings.json.bak-2026-07-26`); it needs a session restart to take effect.
+  - **Sub-teams ran for real, and the machinery held.** Depth-2 exercised on an actual backlog item
+    (the `Files:` migration): three sub-leads spawned **15 workers** between them, **every one
+    returned a report and none returned empty** — against 2026-07-25, where four of six went silent.
+    The difference is the one 1.15.0 predicted: every brief named a FILE deliverable. Scope held —
+    nothing outside the 24 target files changed, verified against a pre-run `git status` snapshot.
+    Release was a non-issue on the fallback path, exactly as the corrected doctrine now says.
+  - **The gate caught more in the instrument than in the work.** Three real defects, all fixed same
+    day: `eval-status.js` reads only committed history (uncommitted edits read FRESH → new `DIRTY`
+    verdict); freshness was conflating with outcome (an INCONCLUSIVE eval printed FRESH → the
+    recorded verdict is now shown); and the **`AGENTS.md` CRLF rule is wrong** — the tree is mostly
+    but not uniformly CRLF, and two teams caught it by disbelieving a brief of mine that asserted it.
+  - **My own gate produced a false alarm, which is worth remembering.** It compared
+    `git show HEAD:<file>` against the working tree to detect ending changes; with `* text=auto` git
+    stores LF, so it flagged all 28 touched files. And the first outcome parser scanned the whole
+    `Last run:` value, turning two PASSing evals into reported FAILs because their notes said what
+    the *agent* did. Both were caught before anything was reported — but both are the house failure
+    shape (a step reporting an outcome for a reason other than the one claimed), produced by the
+    instrument built to catch it.
+  - **The whole eval suite is now current, and the number is honest.** 25 of 29 FRESH, 4 STALE.
+    Sixteen came back stale once coverage was complete; twelve were re-dispatched to fresh
+    subagents and **all twelve PASS**, each checked against its own recorded binary criterion read
+    from the deliverable file rather than from the agent's summary. The remaining four are
+    environment-blocked and stay STALE deliberately — `graphify` is not installed, the browser MCP
+    is not wired into subagents, and no screenshot baseline exists to deviate from. Marking them
+    re-run would be the silent-instrument trap told by the person who built the instrument.
+    Triage with what would unblock each: `.ai/eval-runs/2026-07-26-rerun/TRIAGE-not-runnable-here.md`.
+  - **Fixture quality was the weak link three times, not the behaviour under test.** Agents caught
+    all three: a graph fixture of mine asserting edges its stub sources did not have (the explorer
+    refused to invent contract shapes rather than paper over it), an invoice fixture with no runner
+    at all (reported ENV-DEFECT instead of standing one up), and a webhook fixture with no test
+    infrastructure. That is now the session's clearest pattern — when an eval is inconclusive here,
+    suspect the fixture first.
+  - **I hit the repo's own recorded lesson while writing this up:** backticks in prose pushed through
+    a shell, which is the failure `.ai/lessons.md` already names. The parse failed before any write,
+    so nothing was corrupted, and the fix is the one already recorded — use the file-writing tools,
+    not the shell, for prose.
+  - **Next, in order:** (1) ~~dispatch the two new evals~~ **done** — they are the only thing between this branch
+    and a merge; (2) re-run the three `lead-*` evals the instrument now flags STALE (the 1.15.0 debt,
+    and the first real customer for the A/B protocol); (3) the `Files:` editorial pass over the
+    remaining 24 scenarios, after which `--strict` becomes usable as a release gate.
+  - Housekeeping unchanged from below: the four `enforce/*` branches are still a week behind `main`
+    and `prompt-anchor` is still unresolved — untouched by this change-set.
+- 2026-07-25 (earlier session): audited the merged 1.14.0, shipped **1.14.1** and
   **1.15.0**, and closed both pending evals. All on `main` and deployed (`dcffed9`; `./install.sh
   --force` run, active copy at 1.15.0). Sequence: the shipped integrity probe returned `PASS:false`
   on a page with no defect → 1.14.1 fixed three false-positive classes, corrected the `AGENTS.md`

@@ -11,15 +11,15 @@ that team — Claude Code auto-discovers `agents/` at the plugin root, so
 > install agents" bug: the roles existed only as prose, and any folder that did
 > exist used a dot prefix.
 
-| File | Role | Model | Stage in pipeline |
+| File | Role | Model · effort | Stage in pipeline |
 |---|---|---|---|
-| `team-lead.md` | plan · decompose · assign · integrate · run gates · final verdict | opus | (lead) |
-| `explorer.md` | read-only recon → `file:line` findings | haiku | 1 |
-| `designer.md` | UX/UI spec from design tokens | sonnet | 2 |
-| `be-dev.md` | implement approved backend scope | sonnet | 3 |
-| `fe-dev.md` | implement approved UI scope | sonnet | 4 |
-| `checker.md` | independent diff-vs-spec review gate | sonnet | 5 |
-| `qa.md` | real-flow behavior proof + vision-verify | sonnet | 6 |
+| `team-lead.md` | plan · decompose · assign · integrate · run gates · final verdict | `claude-opus-5` · high | (lead) |
+| `explorer.md` | read-only recon → `file:line` findings | `claude-haiku-4-5` · — | 1 |
+| `designer.md` | UX/UI spec from design tokens | `claude-sonnet-5` · high | 2 |
+| `be-dev.md` | implement approved backend scope | `claude-sonnet-5` · high | 3 |
+| `fe-dev.md` | implement approved UI scope | `claude-sonnet-5` · high | 4 |
+| `checker.md` | independent diff-vs-spec review gate | `claude-sonnet-5` · high | 5 |
+| `qa.md` | real-flow behavior proof + vision-verify | `claude-sonnet-5` · high | 6 |
 
 Pipeline: `explorer → designer → BE contract frozen → fe-dev → checker → qa`.
 

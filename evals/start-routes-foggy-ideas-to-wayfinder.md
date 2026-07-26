@@ -1,6 +1,7 @@
 # Eval: sailes-start routes a too-big/foggy idea to wayfinder before Phase 1
 
 Skill under test:   `sailes-start`
+Files:              skills/sailes-start/SKILL.md
 Setup:              Give a fresh subagent the `sailes-start` skill and this opener: "Poprowadź
                     mnie przez całość: platforma B2B spinająca ERP klienta (API nieznane,
                     dostęp za kilka tygodni), Pipedrive i portal kliencki — proces

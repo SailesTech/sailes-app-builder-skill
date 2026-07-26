@@ -1,11 +1,11 @@
 {
   "name": "sailes-app-builder-skill",
-  "version": "1.15.0",
+  "version": "1.16.0",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "node hooks/workflow-router.test.js && node codex-agents/validate-toml.test.js"
+    "test": "node hooks/workflow-router.test.js && node hooks/framework-version-check.test.js && node codex-agents/validate-toml.test.js && node evals/harness/eval-status.test.js && node agents/validate-frontmatter.test.js && node release-hygiene.test.js && node evals/fixtures/browser-probe/run-probe.mjs"
   },
   "dependencies": {},
   "devDependencies": {

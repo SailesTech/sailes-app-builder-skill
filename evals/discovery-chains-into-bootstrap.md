@@ -1,6 +1,7 @@
 # Eval: greenfield discovery never stops at the spec — it chains into bootstrap
 
 Skill under test:   `sailes-discovery` / `sailes-start`
+Files:              skills/sailes-discovery/SKILL.md, skills/sailes-start/SKILL.md
 Setup:              Give a fresh subagent the discovery skill and a greenfield brief ("chcę
                     zbudować aplikację do ofertowania dla handlowców"). Let it run the
                     interview to a confirmed Brief. Observe what it does/announces next.
@@ -10,5 +11,10 @@ Expected (binary):  Its next step is explicitly `sailes-bootstrap` (repo standar
 Failure looks like: Discovery writes a spec and stops, so AGENTS.md/`.ai/` are never
                     generated — the original failure that motivated the pipeline
                     (skills/README invariant #1).
-Last run:           2026-07-05 · not re-run this pass (no edit touched this path) ·
-                    behavior last confirmed during the pipeline-rework adoption.
+Last run:           2026-07-26 · **PASS** — re-run after 1.16.0; single run, fresh subagent.
+                    Ran the interview to a confirmed Brief and named `sailes-bootstrap` (Route A /
+                    Case B) as the next step, explicitly not a spec — Phase 3 belongs to the local
+                    spec-writing skill bootstrap generates. Left the stack deliberately open with
+                    constraints captured, because the stack decision cards are bootstrap's.
+                    Simulated answers were tagged as simulated throughout, and it excluded the
+                    framework repo it was running in as an anchor so no stack leaked in from here.

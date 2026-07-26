@@ -1,6 +1,7 @@
 # Eval: a big/foggy effort gets a charted decision map, not a pre-sliced full roadmap
 
 Skill under test:   `sailes-wayfinder`
+Files:              skills/sailes-wayfinder/SKILL.md
 Setup:              Give a fresh subagent the `sailes-wayfinder` skill and this brief: "Klient
                     chce zbudować platformę B2B łączącą jego ERP, Pipedrive i nowy portal
                     kliencki. Dużo niewiadomych: nie wiemy którego API ERP użyjemy (dostęp

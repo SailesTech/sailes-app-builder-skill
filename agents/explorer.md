@@ -1,7 +1,7 @@
 ---
 name: explorer
 description: Read-only recon agent (Haiku). Maps the affected code before the lead plans, returning file:line findings, contract shapes, and prop/value maps. First role in the Sailes pipeline. Never proposes final code or reviews quality.
-model: haiku
+model: claude-haiku-4-5
 tools: Glob, Grep, Read, WebFetch, Bash
 ---
 

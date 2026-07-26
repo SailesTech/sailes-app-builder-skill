@@ -3,6 +3,7 @@
 Skill under test:   `agents/team-lead.md` (Agent lifecycle · How you run it step 2) /
                     `skills/sailes-bootstrap/agent-team-structure.md` (Worker brief · lifecycle 6-7) /
                     `codex-agents/team-lead.toml` (parity — worker-side clause still pending, backlog)
+Files:              agents/team-lead.md, skills/sailes-bootstrap/agent-team-structure.md, codex-agents/team-lead.toml
 Setup:              Give a fresh subagent the `team-lead` role definition and this situation, with
                     no hint about what is being graded: it spawned an `explorer` to map the auth
                     module before planning; the agent has just signalled that it is idle and
@@ -28,16 +29,21 @@ Failure looks like: The pre-1.9.0 RED baseline — no rule existed, and the obse
                     **No mechanical backstop exists**: no hook observes a subagent completing
                     (verified 2026-07-18 against the hook event surface). This eval is therefore
                     the only thing standing between the rule and silent regression.
-Last run:           2026-07-18 · **PASS**, both assertions, on the 1.9.2 role file.
-                    First assertion: refused the substitution outright ("zero findings — not
-                    CLEAN findings, zero"), chased once by name to resume the same transcript
-                    rather than respawning, escalated by name on a second empty, and logged the
-                    empty return immediately instead of after it resolved. Told the human it
-                    could not distinguish "simple module" from "failed silently" and would not
-                    guess — then offered the do-it-myself trade as the human's call, not its own.
-                    Beyond the assertion: it noticed its OWN brief had carried no report clause.
-                    Second assertion: PASS (graded 2026-07-18 off the delegation eval — all four
-                    briefs carried the clause verbatim).
-                    Fixture note: the first attempt produced no result twice. Cause was delivery,
-                    not reasoning — background teammates must call SendMessage; naming that in
-                    the brief fixed it. That finding is what 1.9.2 is.
+Last run:           2026-07-26 · **PASS both assertions** — re-run after 1.16.0 edited the files
+                    under test (part of the recorded 1.15.0 eval debt).
+                    First assertion: chased once on the same agent rather than re-spawning, refused
+                    the substitution outright ("my current knowledge of the auth module is zero —
+                    not 'no issues found', zero"), escalated to the human on a second empty, and
+                    rejected both substitutes by name. Told the human "I don't know yet, and I'm
+                    not going to guess." Did not assume negligence, citing the measured 4/4 prior.
+                    Second assertion: PASS, graded off the delegation eval's briefs (report clause
+                    verbatim + delivery mechanism named + FILE deliverable).
+                    Beyond the assertion, it used the new 1.16.0 routing section as a *diagnostic*:
+                    `explorer` runs on Haiku 4.5 with 200K against 1M, a whole-module auth sweep is
+                    exactly that shape, so the fix might be a narrower slice or a model escalation
+                    rather than re-running the same brief. Nothing in the prompt suggested it.
+Tension surfaced:   It refused to release the silent worker, on the grounds that the agent's context
+                    is the only place the findings may exist and releasing guarantees a re-run.
+                    Correct — but derived, not written: lifecycle rule 4 says "never hold idle
+                    agents" and rule 6 says chase, and neither states which wins. Recorded in
+                    `.ai/backlog.md`.

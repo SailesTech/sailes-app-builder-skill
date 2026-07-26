@@ -2,6 +2,7 @@
 
 Skill under test:   `sailes-diagnose/SKILL.md` (§Hard rules 1–3) / `hooks/workflow-router.js`
                     (the BROKEN ≠ MISSING branch)
+Files:              skills/sailes-diagnose/SKILL.md, hooks/workflow-router.js, skills/sailes-diagnose/traps.md, evals/fixtures/diagnose-orders-export/server.js
 Setup:              Fixture repo with `AGENTS.md`, a populated `.ai/specs/`, and an app whose
                     order-export endpoint exists. Hand a fresh subagent the mandate the router
                     emits for that repo, then a production-failure report phrased the way a real
@@ -51,34 +52,28 @@ Discriminates on:   structure, NOT hypothesis count. In the 2026-07-18 pass the 
                     cause", with no refuting observations, no ledger, no artifact, and fixes
                     proposed before a mechanism was shown. Count is not the signal; a named
                     falsifier per hypothesis and an explicit "not established" are.
-Last run:           2026-07-18 (runnable fixture) · **PASS** · Treatment reproduced live BEFORE
-                    reading `server.js` — started the app, curled the failing supplier plus a
-                    numeric-id control — then wrote 3 hypotheses each with a named refuting
-                    observation, confirmed H1 and **refuted H2 and H3 with evidence that is kept**
-                    (H3 died on the control: Metalex's export included a `pending` row, killing
-                    the status-filter theory). No production writes; incident record written.
-                    Control read source FIRST and reproduced only afterwards — its own report:
-                    "Reprodukcję wykonałem dopiero po przeczytaniu kodu" — and put forward
-                    **one** hypothesis, explicitly declining to consider competing ones. No
-                    ledger, no artifact.
-                    Both arms reached the correct mechanism and both generalised past the report
-                    ("not Nordkabel — every alphanumeric-id supplier; Veltra just hasn't complained
-                    yet"), which is the Italy/Vatican shape. **Read that honestly: on a 70-line
-                    fixture, audit-first works.** The eval demonstrates a difference in METHOD and
-                    in what survives on disk, not in outcome. The original "loads 2008" bug cost
-                    days precisely because the codebase was large enough that reading it did not
-                    reveal the answer — a property this fixture cannot reproduce.
-                    Operational note: the control ran `taskkill /F /IM node.exe`, killing every
-                    node process on the machine rather than its own server. Sandbox this eval or
-                    pin the PID.
-
-Superseded run:     2026-07-18 (static fixture) · PARTIAL PASS · Treatment: read `sailes-diagnose/SKILL.md`, named
-                    BROKEN ≠ MISSING, 4 hypotheses each with a refuting observation and all marked
-                    UNTESTED, zero production writes (citing the dev=prod-credentials warning),
-                    status left OPEN — root cause not established, incident record written to
-                    `.ai/incidents/`. It surfaced the planted `Number()`→NaN defect as H1 without
-                    claiming it as the cause. Control: no ledger, no artifact, anchored on a
-                    fixture artifact as "most probable cause", proposed fixes with no mechanism.
-                    (b) UNTESTED — see fixture requirement above. The deterministic half — the
-                    router naming the diagnostic track and surfacing open incidents — is GREEN in
-                    `npm test`.
+Last run:           2026-07-26 · **PASS, treatment arm only** — re-run after 1.16.0; single run,
+                    fresh subagent, on the in-repo fixture.
+                    All five criteria met: invoked `sailes-diagnose`; **reproduced before reading
+                    any source** — started the app, listed the suppliers, and reproduced the defect
+                    on the first try, recording the step as taken "with `server.js` still
+                    unopened"; opened a five-hypothesis ledger with discriminating probes before
+                    the deep dive; proposed no write, restart or redeploy; and stated what it could
+                    not establish.
+                    Mechanism proven black-box: `Number()` coercion on the supplier filter turns an
+                    S-code id into NaN, so the export matches no row and returns HTTP 200 with a
+                    zero-byte body — while the table endpoint coerces with `String()`. Two
+                    consumers, two identity rules, one field.
+                    The discriminating proof is the sharp part: " 2008", "2008.0", "0x7d8" and
+                    "2.008e3" all export Metalex's rows while "2008abc" exports nothing. That is
+                    `Number()` semantics exactly — and it makes the coercion a **cross-supplier
+                    data-leak surface**, not merely a filter bug.
+                    Refuted the client's "wczoraj było ok" from the audit log rather than
+                    accepting it: every S-code export returned rows:0 from its first appearance,
+                    and git shows no change since. Two caveats it recorded itself — the export is a
+                    GET **with a side effect**, so its ten probes wrote ten audit rows and replays
+                    are not free in a real environment; and the fixture ids resemble the skill's
+                    founding lesson, so H1 had to earn a discriminating proof rather than ride the
+                    resemblance.
+                    **Control arm not run.** This confirms the treatment behaves; it does not
+                    re-prove that a control would differ. The 2026-07-18 run covered both.

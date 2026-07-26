@@ -3,6 +3,7 @@
 Skill under test:   `agents/team-lead.md` (When to convene a team) /
                     `skills/sailes-bootstrap/agent-team-structure.md` (When a team — and when not) /
                     `codex-agents/team-lead.toml` (parity)
+Files:              agents/team-lead.md, skills/sailes-bootstrap/agent-team-structure.md, codex-agents/team-lead.toml
 Setup:              Give a fresh subagent the `team-lead` role definition and an approved spec
                     phase that is comfortably above one file but well short of an epic — e.g.
                     "Faza 1: endpoint GET /api/orders/export (CSV, filtr po dacie) + jego testy",
@@ -23,12 +24,21 @@ Failure looks like: The pre-1.7.0 RED baseline: "In between (a small, single-sur
                     expensive tier typed implementation a sonnet worker would have produced for a
                     fraction of the cost. The failure is invisible in the artifact: the work still
                     ships and the gates still pass; only the bill differs.
-Last run:           2026-07-18 · **PASS** (both arms, fresh subagents on the 1.9.1 role file).
-                    Main arm: handed the 3-file phase to one `be-dev` — one worker, not three,
-                    reasoning that route/service/tests are a single contract-shaped unit and
-                    concurrent workers would collide on the same service signature. Named the
-                    delegation choice explicitly rather than defaulting into it. Inverse arm:
-                    refused to spawn for a README typo, gave the overhead reason, and said there
-                    was no brief to show BECAUSE there was no brief — then found the premise was
-                    false (the typo is not in this repo) and stopped instead of editing something
-                    adjacent. The fixture was mine and wrong; the assertion still binds.
+Last run:           2026-07-26 · **PASS both arms** — re-run after 1.16.0 edited the files under
+                    test (the reporter flagged it STALE against the 2026-07-25 changes; this closes
+                    part of the recorded 1.15.0 eval debt).
+                    Main arm: handed the three-file phase to one `be-dev`, reasoning that route and
+                    service are a single contract-shaped slice and that splitting them buys two
+                    briefs and two integrations to save nothing — the same conclusion as the
+                    2026-07-18 run, reached against a role file two sections longer. Named the
+                    delegation choice explicitly. Every brief carried the report clause verbatim,
+                    the delivery mechanism, and a FILE deliverable for gate-graded work, which is
+                    also the **second assertion of `lead-chases-an-empty-worker-return`** (PASS).
+                    Inverse arm: refused to spawn a worker for a one-word README typo and gave the
+                    overhead reason ("the brief would be longer than the diff"). Sharpened the rule
+                    in a direction the doctrine does not state: it kept the *review* delegated at
+                    the cheapest tier, because on a task that small the lead is the maker and a
+                    maker grading itself is what the gates exist to prevent — "the work is not worth
+                    delegating and the review is". Also caught that the misspelling could be a real
+                    identifier and escalated that as the human's decision rather than its own.
+                    Both arms quoted the new fan-out brake and applied it to themselves unprompted.

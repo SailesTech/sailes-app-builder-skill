@@ -1,7 +1,7 @@
 # Agents Guidelines — sailes-app-builder framework repo
 
 > Single source of truth for how agents work in **this** repo. CLAUDE.md imports this via @AGENTS.md.
-> Framework-Version: 1.15.0
+> Framework-Version: 1.16.0
 >
 > This repo is not a product — it is the framework that generates and governs product repos.
 > `skills/sailes-bootstrap/agents-md-template.md` is what a *client* repo gets; this file is what
@@ -70,8 +70,18 @@ Delegation is the lead's default (`agents/team-lead.md`). Two rules earn their p
 - Never let a scripted edit report success without verifying it landed — `String.replace()` on a
   pattern that is absent is a silent no-op, and it has already produced a green commit with no change.
   Make the script `throw` when the pattern is missing, and re-read the file afterwards to confirm.
-- **This repo is CRLF on disk.** A regex ending in `\n` will not match `\r\n`, and the failure mode
-  is a no-op that looks like success — it has cost two edits already. Use `\r?\n`, always.
+- **Line endings: match the file, don't assume the repo.** A regex ending in `\n` will not match
+  `\r\n`, and the failure mode is a no-op that looks like success — it has cost two edits already.
+  Use `\r?\n` for *reading*, always. For *writing*, read the file's existing endings first: this repo
+  is mostly CRLF in the working tree but **not uniformly** — measured 2026-07-26, at least
+  `evals/diagnose-runs-live-case-before-audit.md` and `evals/session-start-routes-from-repo-state.md`
+  are LF on disk, and inserting a `\r\n` line into them produces a single mixed line that git then
+  normalizes away, so the diff looks clean and the file is wrong. Two independent sub-teams caught
+  this by disbelieving a brief that asserted CRLF; the brief was mine and it was wrong.
+  Note also that `.gitattributes` sets `* text=auto`, so **git stores LF** and checks out CRLF here:
+  `git show HEAD:<file>` returns the normalized LF blob. Comparing that against the working tree to
+  "detect" an ending change reports every file as changed — a false alarm that also cost time on
+  2026-07-26. Compare disk against disk, or check a file for internal consistency.
 - `.ai/` is memory, not scratch: STATE.md, lessons.md and backlog.md are read by the next session.
 
 ## Task router
