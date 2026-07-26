@@ -69,6 +69,28 @@ done on this machine. Reading the configuration had been enough to be confident 
   documented escalation path un-pins what the pinning was for — silently, because the alias
   resolves to a working model. Four options in `.ai/backlog.md`, **awaiting human**.
 
+### Also in 1.16.2 — four defects found by *running* the bootstrap skill, not reading it
+
+The `bootstrap-generates-code-map` eval was unrunnable until `graphify` was installed on 2026-07-26.
+Its first real run — a fresh repo, 74 tool calls — produced a code map that answers queries, and four
+defects that had been shipping:
+
+- **The done-checklist's drift check shipped broken.** `grep -oE 'pnpm [a-z:-]+'` drops digits, so
+  `pnpm test:e2e` truncated to `test:e` and the checklist reported DRIFT on a script that exists. Now
+  `[a-z0-9:-]`, with pnpm's own builtins excluded (`pnpm install` is in the template's Key Commands and
+  is not a package script). Covered by `repo-done-checklist.test.js`, which **extracts the pattern from
+  the document** rather than copying it — a copy would drift from what ships.
+- **`graphify-setup.md` never committed `.gitattributes`**, so the union-merge driver `graphify hook
+  install` registers stayed on one machine and everyone else kept getting conflict markers in
+  `graph.json` — precisely what the driver exists to prevent.
+- **The dated snapshot directory was not ignored.** `graphify update .` writes a full duplicate of the
+  map per run; uncommitted it is noise, committed it is a copy of the whole graph per update day.
+- **🔒 A presence-only checklist passed a repo that cannot boot.** Every mandatory row went green while
+  the app had no dependencies and no seeded user, so `qa` could not log in. The Environment block catches
+  this but sits outside the scripted set by necessity — it needs a running app. The checklist now states
+  that presence and boot are **two results reported as two sentences**, because collapsing them into one
+  green is how an unusable repo gets handed over.
+
 ## 1.16.0 — 2026-07-26 · measurement, model routing, and sub-teams — the Claude-5 re-fit
 
 Three capabilities that are one dependency chain: routing and sub-teams are bets, and the harness is

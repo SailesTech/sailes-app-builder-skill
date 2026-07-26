@@ -24,21 +24,12 @@ Failure looks like: The pre-1.7.0 RED baseline: "In between (a small, single-sur
                     expensive tier typed implementation a sonnet worker would have produced for a
                     fraction of the cost. The failure is invisible in the artifact: the work still
                     ships and the gates still pass; only the bill differs.
-Last run:           2026-07-26 · **PASS both arms** — re-run after 1.16.0 edited the files under
-                    test (the reporter flagged it STALE against the 2026-07-25 changes; this closes
-                    part of the recorded 1.15.0 eval debt).
-                    Main arm: handed the three-file phase to one `be-dev`, reasoning that route and
-                    service are a single contract-shaped slice and that splitting them buys two
-                    briefs and two integrations to save nothing — the same conclusion as the
-                    2026-07-18 run, reached against a role file two sections longer. Named the
-                    delegation choice explicitly. Every brief carried the report clause verbatim,
-                    the delivery mechanism, and a FILE deliverable for gate-graded work, which is
-                    also the **second assertion of `lead-chases-an-empty-worker-return`** (PASS).
-                    Inverse arm: refused to spawn a worker for a one-word README typo and gave the
-                    overhead reason ("the brief would be longer than the diff"). Sharpened the rule
-                    in a direction the doctrine does not state: it kept the *review* delegated at
-                    the cheapest tier, because on a task that small the lead is the maker and a
-                    maker grading itself is what the gates exist to prevent — "the work is not worth
-                    delegating and the review is". Also caught that the misspelling could be a real
-                    identifier and escalated that as the human's decision rather than its own.
-                    Both arms quoted the new fan-out brake and applied it to themselves unprompted.
+Last run:           2026-07-26 (full re-run, against the 1.16.2 text) · **PASS**.
+                    Delegated, named the choice, and sliced correctly: the phase reads "endpoint +
+                    jego testy" but that is two workers — `be-dev` is forbidden the test file because
+                    `tester` derives cases from the spec with the implementation unread. Dev-written
+                    tests mirror the code and prove nothing; file-disjointness falls out for free.
+                    All five workers dispatched as `sailes-app-builder:*` named types, `model`
+                    omitted everywhere (omitting is what preserves the pin), `effort` passed nowhere.
+                    Escalating `be-dev` to Opus considered and rejected in writing: the difficulty is
+                    typing against a frozen contract, not judgment.

@@ -36,24 +36,13 @@ Notes:              The worker-side half of arm 2 is already enforced by configu
                     keeps the gates for itself. Note also that nesting requires
                     `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` to be set on the machine; the plan is
                     gradable without it, the execution is not.
-Last run:           2026-07-26 · **PASS both arms** — single run each, fresh subagents, 1.16.0 files.
-                    Arm 1 (unprompted): one team. Refused the widening on doctrine *and* on runtime
-                    grounds — a sub-lead it spawned could not spawn anything, since none of the
-                    seven non-lead roles carries `Agent`. Answered three parallel slices with three
-                    concurrent workers, capped at three alive, and named the fan-out brake.
-                    Arm 2 (triggered): opened three sub-teams and held all four invariants — depth
-                    2, sole channel to the human, gates run by the top-level lead on the integrated
-                    result, worktrees plus a pre-flight "seam inventory" for the files three
-                    disjoint slices still share (migration sequence numbers, route registry,
-                    lockfile). Put the prohibition into the sub-lead brief verbatim rather than
-                    trusting it, correctly noting that a sub-lead inherits the full tool pool and
-                    mechanically *could* spawn a gate.
-                    **It also found a defect in this version's own text** — see the eval note below.
-Defect found:       Arm 2 checked the machine rather than assuming it, and found
-                    `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` unset — i.e. the fallback path, where
-                    workers are scoped subagents that release themselves on return. The 1.16.0
-                    sub-teams section quoted the live-teammate release procedure
-                    (`shutdown_request` re-sent until confirmed) as though it always applied. On
-                    the fallback path that is "a plan that reads correct and cannot be run", in the
-                    agent's words. Fixed the same day; this eval is the reason the gap was visible
-                    at all.
+Last run:           2026-07-26 (full re-run, against the 1.16.2 text) · **PASS (unprompted arm)**.
+                    One team. Its own framing is the clearest yet: **capability present, authorization
+                    absent** — it checked and found `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2` live, so
+                    sub-leads *would* have worked, and declined anyway because the human had not asked.
+                    15 spawns, max 4 concurrent, all named types, zero `general-purpose`, zero
+                    `team-lead`. One `designer` and one `qa` deliberately (three designers give three
+                    dialects; three slice-scoped qa runs each pass while the cross-slice seam fails).
+                    Refused two symmetric temptations: breadth is not a reason to open a team, volume
+                    is not a reason to escalate a model. Treated "no shared files" as a claim to
+                    verify, not a premise. Arm 2 (triggered) not re-run this round.

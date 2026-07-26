@@ -33,32 +33,14 @@ Failure looks like: The pre-1.16.1 baseline, and it is mine. On 2026-07-26 every
                     was never tested, since no non-lead role was ever spawned as itself. Nothing in
                     the doctrine said to spawn the named type, so nothing was violated; that is the
                     gap this eval closes.
-Last run:           2026-07-26 · **ARM 1 PASS · ARM 2 VOID (fixture defect, mine)** — first run, and
-                    the first one possible at all: arm 1 needs a machine where the roles resolve,
-                    which only became true when the plugin was installed here.
-                    **Arm 1 — PASS.** Dispatched all five workers as their own namespaced types
-                    (`sailes-app-builder:explorer`, `:be-dev`, `:tester`, `:checker`, `:qa`).
-                    `general-purpose` appears three times in the plan and every one is an
-                    explanation of why it is *not* used. It also priced the stand-in path exactly
-                    right without being told: a generic `be-dev` would run on the lead's own model
-                    at the lead's effort, carry `Write` into a read-only gate, and carry `Agent`,
-                    breaking the invariant that makes depth-2 safe.
-                    **Arm 2 — VOID, and the fixture is the reason.** The brief asserted "the plugin
-                    is not installed and only `general-purpose`/`Explore`/`Plan` resolve". On this
-                    machine that is checkably false, and the agent checked: it read
-                    `settings.json`, `installed_plugins.json` and the plugin cache, found 1.16.0
-                    installed with all eight roles, and refused the premise. That is the *correct*
-                    behaviour — accepting a falsifiable environment claim is the failure this whole
-                    doctrine exists to prevent — so it cannot be scored against a criterion that
-                    presumes the premise held. **The fallback path therefore remains untested.**
-                    To run arm 2 honestly the roles must genuinely not resolve: a machine without
-                    the plugin, or a disabled plugin plus the session restart that takes effect.
-                    Do not "fix" this by telling the agent to pretend — a fixture that asks an agent
-                    to accept a false premise measures compliance, not doctrine.
-Also found:         Arm 1, reading the tool schema rather than the neighbouring paragraph, surfaced
-                    a real conflict between the two halves of 1.16.0 routing: roles pin full IDs
-                    for reproducibility, but the Agent tool's `model` parameter accepts only
-                    aliases, so the documented escalation path un-pins what the pinning was for.
-                    Recorded in `.ai/backlog.md` as **awaiting human** with four options, none free.
-                    Arm 2 separately confirmed the installed cache is behind HEAD, which is why a
-                    phantom `sailes-app-builder:README` type is still in this session's roster.
+Last run:           2026-07-26 (full re-run) · **ARM 1 PASS · ARM 2 still VOID**.
+                    Arm 1: all five workers as `sailes-app-builder:*` named types, `general-purpose`
+                    nowhere, and the key detail — **`model` passed to nobody**, because omitting it is
+                    what preserves the frontmatter pin. `effort` passed nowhere either (undeclared on
+                    the Agent tool, and unsupported on Haiku). Environment checked rather than assumed:
+                    teams flag unset, so every brief says "final message returns automatically, do NOT
+                    call SendMessage" and release is the return.
+                    Arm 2 remains VOID for the reason recorded earlier: its premise is checkably false
+                    on a machine with the plugin installed, and an agent that refuses a false premise
+                    is behaving correctly. The fallback path stays untested until it runs somewhere
+                    the roles genuinely do not resolve.

@@ -46,7 +46,9 @@ Then wire the ignore files (add, don't overwrite):
 
 ```bash
 # .gitignore — the map is committed, its local by-products are not
-for l in 'graphify-out/cost.json' 'graphify-out/cache/'; do grep -qxF "$l" .gitignore 2>/dev/null || echo "$l" >> .gitignore; done
+# The dated snapshot dir is a full duplicate of the map, written on every `graphify update .`.
+# Uncommitted it is noise; committed it is a copy of the whole graph per update day.
+for l in 'graphify-out/cost.json' 'graphify-out/cache/' 'graphify-out/20*/'; do grep -qxF "$l" .gitignore 2>/dev/null || echo "$l" >> .gitignore; done
 
 # .claudeignore — REQUIRED: without this every rebuild invalidates the
 # Claude Code prompt cache (full re-upload at cache-write rates)
@@ -56,7 +58,10 @@ for l in 'graphify-out/' 'graph.json'; do grep -qxF "$l" .claudeignore 2>/dev/nu
 Finally commit the map with the bootstrap commit(s):
 
 ```bash
-git add graphify-out/ .gitignore .claudeignore .claude/settings.json CLAUDE.md AGENTS.md .codex/
+# .gitattributes carries the union-merge driver `graphify hook install` just registered.
+# Omit it and the driver stays on this machine: everyone else still gets conflict markers
+# in graph.json — the exact failure it exists to prevent. Found 2026-07-26 by running this.
+git add graphify-out/ .gitattributes .gitignore .claudeignore .claude/settings.json CLAUDE.md AGENTS.md .codex/
 git commit -m "chore: graphify code map + freshness hooks (Sailes default)"
 ```
 
