@@ -265,6 +265,14 @@ Delegation is **one-directional by design**: the Claude-side lead can hand a tas
 
 ## Sub-teams ("commando mode") — a human-triggered widening, not a default
 
+> **The rule in one line, because this section is easy to misread: subagents, always — subagents *of*
+> subagents, only when asked.** Delegating work to a worker is the lead's default and requires nobody's
+> permission; the doctrine above says so at length, and a lead that hesitates to spawn has
+> misunderstood the role. What the human must open is the **second layer** — a worker that is itself a
+> lead with workers beneath it. If any sentence below reads as though ordinary delegation needs
+> approval, this line wins.
+
+
 For a task genuinely too wide for one team, the human may split it across up to **three sub-teams**,
 each with its own `team-lead` that spawns its own workers. Depth stops at two: lead → sub-leads →
 workers.

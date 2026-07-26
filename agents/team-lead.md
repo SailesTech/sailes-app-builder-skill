@@ -73,6 +73,9 @@ Spawn a worker when its pipeline task is actually ready; integrate its result, t
 Prevention beats the chase, and the prevention is the deliverable, not the wording: **for work a gate will grade, name a FILE in the brief** — path plus "no file = task not done" — and read it from disk. Same session: four message-deliverable briefs → six empty returns; one file-deliverable brief → a gradable artifact first try.
 
 ## Sub-teams ("commando mode") — human-triggered, never your own idea
+
+**Read this line before the rest of the section, because the section is easy to misread: subagents, always — subagents *of* subagents, only when asked.** Spawning workers is your default and needs no permission from anyone; a lead that hesitates to delegate has misunderstood the whole role. What needs the human's word is the **second layer** — a worker that is itself a lead with workers under it. Nothing else here gates ordinary delegation, and nothing should.
+
 For a task genuinely too wide for one team, the human may split it across up to **three sub-teams**, each led by a `team-lead` of its own that spawns its own workers. **Only the human opens this mode** — the same rule as Codex delegation, and for a sharper reason: Claude Opus 5 reaches for subagents *more* readily than the model this framework's delegation rules were written against, and Anthropic's own guidance for it is to cap spawn counts rather than encourage them. Your delegation default has not changed; what has changed is that fan-out now needs a brake, not a nudge.
 
 When the human opens it:

@@ -26,49 +26,65 @@ session. Each role's description rides along whether or not it is used.
 
 ## Decisions so far, and what is still open
 
-**Answered 2026-07-26 by the human — Q5: (b), and it reframes the whole spec.** `researcher` is not
-a new role. It is `explorer`, widened from repo-only recon to general reconnaissance including the
-outside world. The reason given matters more than the answer: **the audience is people other than
-the person who wrote this.** A roster of ten roles with subtle distinctions is harder to use than
-eight with obvious lanes, and "which of these two do I reach for" is a tax paid by every newcomer,
-forever, so that the author can avoid one merge.
+**Two answers from the human on 2026-07-26, and the second supersedes the first.**
 
-That principle now cuts against the *other* half of this spec, and it would be dishonest not to say
-so — see Q1 below.
+First: `researcher` should not be a peer of `explorer`, because a roster of ten roles with subtle
+distinctions is harder to use than eight with obvious lanes — **the framework is used by people
+other than its author**, and "which of these two do I reach for" is a tax every newcomer pays
+forever so the author can avoid one merge. That principle stands and now governs this spec.
+
+Then, refining it: **`explorer` stays on Haiku and feeds `researcher`, which runs Opus and
+synthesises what several explorers bring back.** That is not a widening — it is a tier above. Cheap
+fan-out gathering, one expensive synthesis.
+
+**Why this survives the audience test where my version did not.** Two peer recon roles force a
+choice at every use ("is this an explorer job or a researcher job?"). A gatherer and a synthesiser
+do not: you always start with explorers, and you add a researcher when there is more coming back
+than one head should hold. The distinction is about *volume and altitude*, which a newcomer can
+see, rather than about *subject matter*, which they cannot.
+
+**It also fixes the model problem cleanly.** Judging whether a source is trustworthy is not a Haiku
+job — but it does not have to happen in the gatherer. Explorers stay pinned, cheap and parallel;
+the judgment lives once, at the top, where it is paid for once.
 
 ### Still open
 
-**Q1 — Given the audience, should `eval-runner` ship as a role at all?** Running `evals/` is
-**framework-maintenance work**. The people this framework is for are building client apps; most of
-them will never dispatch an eval. Shipping a ninth role puts its description in every session on
-every machine, forever, to serve a job almost none of those sessions will do.
-- (a) **A skill, not a role** — `sailes-eval`, loaded by whoever is maintaining the framework.
-  Costs nothing when unused. Loses the isolation argument: the author could still grade their own
-  doctrine, which is exactly what went wrong today. *(recommended on the audience argument)*
-- (b) **A role, but repo-local** — lives in this repo's `.claude/agents/`, not in the shipped
-  plugin. Keeps the isolation, costs client repos nothing. Costs: it is then not a Sailes role,
-  and nothing keeps it in step with the eight that are.
-- (c) **A shipped role**, accepting the always-on cost for everyone so the framework's own net
-  stays honest.
+**Q1 — Who spawns the explorers?** This is the sharpest question in the spec and it is a safety
+question, not an ergonomics one.
+- (a) **The lead spawns them; `researcher` only synthesises** what it is handed. The invariant
+  verified by runtime audit today — no non-lead role carries `Agent`, which is what makes depth-2
+  sub-teams safe — stays intact. Cost: the lead does the fan-out coordination, so the method is
+  split across two agents. *(recommended: the invariant is worth more than the tidiness)*
+- (b) **`researcher` spawns its own explorers.** One coherent method, and it matches how the job
+  actually feels. Cost: a second role gains `Agent`, and the invariant becomes "two roles may spawn"
+  — which then needs its own eval and its own depth accounting.
 
-**Q2 — How far does `explorer` widen, and does it stay on Haiku?** Today it is pinned
-`claude-haiku-4-5` (no `effort` — unsupported there) and already carries `WebFetch`. General recon
-adds judging whether a source is trustworthy, which is not obviously a Haiku job.
-- (a) **Widen the lane and the tools** (add `WebSearch`), keep the Haiku pin; when research needs
-  judgment the lead escalates that one task with `model: "opus"`, which is exactly the mechanism
-  1.16.2 just settled. *(recommended — keeps the cheap common case cheap)*
-- (b) Widen and move it to `claude-sonnet-5`, accepting a higher floor on every recon.
+**Q2 — How is this not `team-lead` integration under another name?** The lead already spawns
+explorers and integrates what they return. The honest distinction: the lead integrates **to act** —
+it plans, freezes contracts, assigns. `researcher` integrates **to know** — its deliverable is a
+findings artifact with provenance and confidence, and it decides nothing. If that line cannot be
+stated in one sentence a newcomer believes, the role fails the audience test and should not ship.
+- (a) Ship it with that line stated explicitly in the role file
+- (b) Drop it; the lead already does this and a second integrator is the overlap we just refused
 
-**Q3 — What is the role called after widening?** `explorer` describes the repo job. A newcomer
-reading "explorer" will not guess it also checks vendor docs and package registries.
-- (a) Keep `explorer`, fix the description *(no migration, no drift)*
-- (b) Rename to `scout` / `recon`, and carry the rename through `codex-agents/`, three role tables,
-  and every eval that names it — a real cost for a clearer word
+**Q3 — What is `researcher`'s deliverable?** Proposal: a FILE, always — findings with, per claim,
+where it came from and how confident it is, and an explicit list of what could **not** be
+established. The last part is the one today kept proving matters: several times the useful output
+was "this cannot be determined here".
 
-**Q4 — Codex parity for the widened `explorer`?** `codex-agents/explorer.toml` mirrors it today.
-The widened lane transfers (Codex can read the web); the model pin does not, as ever.
+**Q4 — Does `explorer` change at all?** Under this design, barely: it keeps its Haiku pin, its
+read-only lane and its `file:line` discipline. The only open bit is whether it gains `WebSearch` so
+a gatherer can fetch external material for the synthesiser, or stays repo-only with external
+gathering being `researcher`'s own work.
 
-~~Q5 — separate role vs. widening~~ **answered: widening.**
+**Q5 — Does `eval-runner` ship at all?** Unchanged and still open — running evals is
+framework-maintenance work, and most people using this are building client apps. Options: a skill,
+a repo-local role, or shipped anyway. Recommended: a skill, with what that loses named — the
+isolation that failed today, when the author of the doctrine also graded it.
+
+**Q6 — Codex parity.** `researcher` transfers in principle; the model pin never does.
+
+~~Earlier Q5 — separate role vs. widening~~ **superseded by the gatherer/synthesiser design above.**
 
 ## §1 What each role is, in one paragraph
 
