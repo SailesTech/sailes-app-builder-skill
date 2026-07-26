@@ -7,6 +7,46 @@
 
 ## Lessons
 
+### 2026-07-25 — half our prose is a bet on model unreliability, and the bet has an expiry date
+- **Context:** Anthropic's "new rules of context engineering for Claude 5 generation models" reports
+  removing **>80% of Claude Code's system prompt** with no measurable loss on coding evals, via five
+  shifts: rules → judgment, examples → tool-schema design, upfront load → progressive disclosure,
+  repetition → a single description, manual CLAUDE.md memory → auto-memory. Read against this repo,
+  measured the same day: `skills/**/*.md` = **656 KB**; `sailes-discovery/SKILL.md` 21 KB / 3 293
+  words, `sailes-design` 18 KB, `sailes-async` 16 KB — each loaded whole on trigger, while
+  `sailes-bootstrap` already does the opposite (thin SKILL.md + 20 on-demand references).
+- **Problem:** two of our patterns are 4.x-era bets that nobody has re-priced. (a) The spine is
+  repeated **verbatim in three places** (`AGENTS.md:12`, `hooks/workflow-router.js`,
+  `agents-md-template.md`) plus injected at SessionStart — exactly the redundancy shift #4 calls an
+  artifact of older models' unreliability. `prompt-anchor` is the maximal form of that bet
+  (re-injection on *every* prompt), and it is the top item on STATE.md's resume list. (b) Three
+  skills are monoliths in a repo that already contains the progressive-disclosure pattern.
+- **Rule:** the durable test the article gives us is **gotcha vs. inferable** — spend tokens on what
+  the model cannot derive from the repo (`\r?\n` because this repo is CRLF; `main` is production;
+  five files carry the version, not four), delete prose that merely corrects behavior a capable model
+  gets right from context. This is our existing ratchet (`agentic-first-principles.md` §B.3) extended
+  from lint-enforceable rules to judgment. **Two constraints on applying it, both of which invert the
+  obvious order:**
+  1. **Policy is not capability.** The article is about un-hobbling *skill*. `SPEC → HUMAN →
+     VERIFIED → GATED` encodes *authority* — better judgment is precisely why HUMAN exists, since a
+     model that guesses the stack correctly still must not choose it. The spine is out of scope for
+     any simplification pass.
+  2. **We cannot currently measure what a deletion costs.** 9 of 27 evals are stale and 1.15.0
+     shipped without re-running three evals naming the files it edited. "Simplify aggressively" on
+     that base is not un-hobbling, it is blind removal — the same shape as the six recorded silent
+     failures. Eval debt is a *prerequisite* to cutting, not parallel work.
+- **Applies-to:** `skills/sailes-{discovery,design,async}/SKILL.md` (split candidates); `agents/*.md`
+  and AGENTS.md prose (gotcha audit); the `prompt-anchor` eval, which needs a **second arm** — a
+  control without the anchor on Opus 5. Without it we would prove the anchor holds while never
+  testing whether it is still needed, and a green single-arm result would read as justification.
+- **Caveat that limits the whole transfer, and does not appear in the article:** their evidence is
+  their system prompt, on their coding evals, on Claude 5. **We ship into three harnesses** —
+  `agents/` (Claude), `codex-agents/` (Codex CLI, non-Claude models), `.github/copilot-instructions.md`.
+  Prose that Opus 5 no longer needs is the only backstop the Codex twin has. Any cut is per-harness,
+  never global — and `main` auto-deploys everywhere, so a wrong cut is immediate and machine-wide.
+- **Not a defect:** nothing shipped broken. Recorded because the cost is silent — tokens and
+  competing instructions — and because the article dates our assumptions rather than refuting them.
+
 ### 2026-07-25 — silence from a worker has two causes, and they need different fixes
 - **Context:** six workers spawned for two eval runs. Four went idle having said nothing. The
   doctrine (`team-lead.md:40`, `agent-team-structure.md:115`) says that means the worker *failed

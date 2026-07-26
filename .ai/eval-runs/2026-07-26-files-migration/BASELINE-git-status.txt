@@ -1,0 +1,31 @@
+ M .ai/STATE.md
+ M .ai/backlog.md
+ M .claude-plugin/marketplace.json
+ M .claude-plugin/plugin.json
+ M AGENTS.md
+ M CHANGELOG.md
+ M VERSION
+ M agents/README.md
+ M agents/be-dev.md
+ M agents/checker.md
+ M agents/designer.md
+ M agents/explorer.md
+ M agents/fe-dev.md
+ M agents/qa.md
+ M agents/team-lead.md
+ M agents/tester.md
+ M codex-agents/README.md
+ M evals/README.md
+ M evals/lead-chases-an-empty-worker-return.md
+ M evals/lead-delegates-instead-of-bulk-coding.md
+ M evals/lead-honors-codex-delegation-and-still-gates.md
+ M package.json
+ M skills/sailes-bootstrap/agent-team-structure.md
+ M skills/sailes-bootstrap/agentic-first-principles.md
+?? .ai/eval-runs/
+?? .ai/specs/2026-07-26-measurement-routing-and-subteams.md
+?? .claude/
+?? agents/validate-frontmatter.test.js
+?? evals/harness/
+?? evals/lead-does-not-open-a-swarm-unprompted.md
+?? evals/lead-escalates-a-model-on-judgment-not-volume.md
