@@ -168,7 +168,10 @@
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-07-26 (**resume here**): **1.17.0 is on production** (`68a8366`, pushed) — *deciding under
+- 2026-07-26 (**resume here**): **1.17.1 is on production** (`6147346`, pushed; the plugin clone on
+  this machine is synced to it). Session end state: `main` clean, `npm test` green, evals 27 fresh /
+  4 stale / 0 dirty. **Next up is 1.18.0 — `researcher` (no `Agent`), `explorer` + `WebSearch`,
+  `eval-runner` as a skill — and nothing blocks it.** 1.17.0 was *deciding under
   uncertainty*, plus two real defect fixes and the A/B that settled roster Q1.
   - **New doctrine:** `skills/sailes-bootstrap/deciding-under-uncertainty.md`. The decision card had
     no escape hatch — `Rekomendacja: <A/B> — bo <ground>` is mandatory, so a fork with no available
