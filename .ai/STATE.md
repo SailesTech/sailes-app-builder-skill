@@ -194,12 +194,14 @@
   - **Plugin clone on this machine was 9 commits behind** and `autoUpdate` had not pulled it; brought
     to `68a8366` manually. The stale in-session agent registry still lists `sailes-app-builder:README`
     — that clears on restart, not before.
-  - **Open, verified today, unfixed (both real):** `sailes-design/browser-inspect.md:264` instructs
-    `handle_dialog`, which is absent from that file's own tool list (L59-62) **and** from the `tools:`
-    allow-lists of `qa` and `fe-dev` — prose instructing a call the configuration forbids, the same
-    class as the phantom agent. And **Stryker is the one mandated tool with no absence path**:
-    `sailes-test/SKILL.md:107` requires it for tier A, while graphify and chrome-devtools both carry
-    explicit SKIP protocols and Stryker carries none.
+  - **Both defects FIXED in 1.17.1, same day.** `handle_dialog` was instructed by
+    `browser-inspect.md` while absent from that file's own tool list and from every role's `tools:` —
+    prose instructing a call the configuration forbids, the same class as the phantom agent. Granted
+    to **`qa` only**, deliberately: it drives real flows and can hit a modal; `fe-dev` inspects and
+    does not. And **Stryker was the one mandated tool with no absence path** — required for tier A
+    (money/auth/tenancy) while graphify and chrome-devtools both ship explicit SKIP protocols — so on
+    a machine lacking it, tier A silently degraded to tier B. Now `ENV-DEFECT` + explicit SKIP +
+    tier-A proof marked UNVERIFIED.
   - **Next (1.18.0), unblocked by Q1:** `researcher` (no `Agent`), `explorer` + `WebSearch`,
     `eval-runner` as a **skill** rather than a role.
 

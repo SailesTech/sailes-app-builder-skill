@@ -4,6 +4,27 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.17.1 — 2026-07-26 · two tools the docs mandated and the machine could not deliver
+
+Both found by the A/B recon sweep that shipped in 1.17.0, both the same shape: a document instructing
+something nothing behind it provides.
+
+- **`handle_dialog` was uncallable.** `sailes-design/browser-inspect.md` told the agent to use it when
+  a modal freezes the session — while that file's own tool list named fifteen tools without it, and no
+  role's `tools:` allow-list carried it. Added to **`qa` only** (the role that drives real flows and
+  can hit a dialog); `fe-dev` inspects rather than interacts and does not get it. The file now says to
+  check the allow-list before quoting a recovery step, because prose cannot grant a capability.
+- **Stryker had no absence path.** `sailes-test` mandates it for tier A — money, auth, tenancy,
+  idempotency, irreversible outbound writes — while every comparable tool (graphify, chrome-devtools
+  MCP) ships an explicit SKIP protocol. On a machine without it, tier A had no stated behaviour, so it
+  would quietly degrade to tier B. Now: `ENV-DEFECT` with the install line for the human, an explicit
+  `SKIP stryker (not installed)` in the test plan, and the tier-A proof marked **UNVERIFIED** rather
+  than absent. Never block, never skip silently.
+
+**Upgrade-actionable:** an adopted repo whose `qa` role file predates this will fail to recover from a
+browser dialog, and a tier-A phase run without Stryker may have been recorded as proven when it was
+not — re-check any tier-A detection proof taken on a machine that lacks it.
+
 ## 1.17.0 — 2026-07-26 · when you cannot ground a recommendation, propose a measurement
 
 The decision card mandates `Rekomendacja: <A/B> — bo <reason grounded in THEIR answers>`. For a fork

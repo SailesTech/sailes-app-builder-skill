@@ -59,7 +59,13 @@ an explicit SKIP is not.
 Tools referenced below, all `mcp__chrome-devtools__*`: `navigate_page`, `resize_page`, `emulate`,
 `evaluate_script`, `take_snapshot`, `take_screenshot`, `list_console_messages`,
 `list_network_requests`, `get_network_request`, `lighthouse_audit`, `performance_start_trace`,
-`click`, `fill`, `fill_form`, `wait_for`.
+`click`, `fill`, `fill_form`, `wait_for`, `handle_dialog`.
+
+`handle_dialog` is on **`qa`'s allow-list only** — it is the role that drives real flows and can
+therefore hit a modal dialog that freezes the session. `fe-dev` inspects rather than interacts and
+does not carry it. A tool this file instructs you to use but your role's `tools:` omits cannot be
+called at all, so check the allow-list before quoting a recovery step (found 2026-07-26: this list
+named fifteen tools and the prose used a sixteenth that no role could invoke).
 
 ---
 

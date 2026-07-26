@@ -108,6 +108,16 @@ you may raise it, you may never lower it, and a raise is recorded in the plan wi
 | **B — standard** | ordinary business logic, internal writes | per-B-ID mutation: break exactly that behavior, show that ID's test go red, revert, suite green again |
 | **C — low** | reads, UI, formatting, cosmetics | green suite; per-B-ID proof only for behaviors the human marked material |
 
+**If Stryker is not installed, tier A does not silently become tier B.** Every other mandated tool in
+this framework carries an absence path and Stryker carried none until 2026-07-26 — which left the one
+tier covering money, auth and tenancy with no stated behaviour on the machine that lacks it. The
+behaviour is the same shape as everywhere else: **never block, never skip silently.** Report
+`ENV-DEFECT` with the one-line install (`pnpm add -D @stryker-mutator/core`) for the human to approve,
+record an explicit `SKIP stryker (not installed)` in the test plan, and mark the tier-A detection
+proof **UNVERIFIED** rather than absent. Do not stand it up yourself — that is the same stack decision
+the no-test-infrastructure rule above reserves for the human. An unmeasured tier-A gate reported as
+passed is the failure this whole step exists to prevent.
+
 Tier B is a **proxy, not mutation testing** — say so, never dress it up as more. Its value is that
 the frozen list picks the mutants, so you cannot cherry-pick a fault your test already catches.
 Always revert and re-run green: an un-reverted break proves nothing about the shipped state.
