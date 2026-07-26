@@ -37,7 +37,10 @@ The live plugin does **not** run from this working directory. It runs from a clo
    the human answers (`skills/sailes-bootstrap/spec-writing-template.md`).
 
 ## Verification
-- `npm test` — hook tests (`hooks/*.test.js`) + the Codex TOML validator. No framework, no deps.
+- `npm test` — hook tests (`hooks/*.test.js`), the Codex TOML validator, the Claude role-frontmatter
+  validator, the eval provenance reporter's tests, release hygiene (five stamps + CHANGELOG heading),
+  and the browser probe. No framework, no deps. The probe is the one step that depends on something
+  external: it self-SKIPs when no browser is found, but it can still fail under browser contention.
 - Deterministic behavior (a hook reads disk and prints text) gets a **real test**. Model behavior
   (does the agent *honor* the mandate?) gets an **eval** in `evals/` — they are not interchangeable,
   and a green test says nothing about whether the instruction lands.
@@ -53,7 +56,19 @@ The marketplace one has drifted twice and the stamp twice (1.13.0, 1.14.0); a st
 framework. Every standard change needs a `CHANGELOG.md`
 entry, because `adopt-existing-repo.md` Upgrade mode computes what an older-stamped repo is missing
 by reading that file: a change with no entry is a change no repo will ever be told about.
-After merging: `./install.sh --force`.
+
+**There is no post-merge step.** Distribution is the marketplace: a push to `main` is the deploy,
+and every machine that ran `enable-plugin.sh` once picks up `skills/`, `agents/` and `hooks/` from
+the plugin with `autoUpdate: true`. This corrects a line that stood here until 2026-07-26 telling
+you to run `./install.sh --force` after merging — eight lines below the paragraph stating there is
+no install step, in the same file.
+
+`install.sh` is the **pre-plugin path** and it is not a sync: it copies `skills/` only — a third of
+what the plugin ships — into `~/.claude/skills/`, where it stays frozen at whatever version you last
+ran it. Running both leaves two copies of the same skill names on one machine, one of them auto-
+updating from `main` and the other silently ageing, with nothing comparing them. Use it only on a
+machine that deliberately wants skills **without** the plugin, and know that it shadows rather than
+supplements.
 
 ## Delegation
 Delegation is the lead's default (`agents/team-lead.md`). Two rules earn their place from failures:

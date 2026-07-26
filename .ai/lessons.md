@@ -7,6 +7,28 @@
 
 ## Lessons
 
+### 2026-07-26 — a file can contradict itself eight lines apart and survive four releases
+- **Context:** AGENTS.md §`main` is production said "A push to `main` deploys — automatically…
+  There is no install step and no confirmation." Its §Release section, eight lines later, said
+  "After merging: `./install.sh --force`." Both had been there since 1.9.1. STATE.md carried the
+  same split as two adjacent **verified facts**: the active copy is `~/.claude/skills/` synced by
+  install.sh, and the live plugin runs from the marketplace clone.
+- **Problem:** they are two competing distribution paths, not two views of one. The plugin sources
+  `"./"` and ships `skills/`, `agents/` and `hooks/`, auto-updating from `main`. `install.sh`
+  copies `skills/` only, once, into a user-scope directory that then ages in place. Running both —
+  which the release ritual instructed — leaves two copies of the same skill names on one machine,
+  one auto-updating and one frozen, with nothing comparing them. Nobody noticed because the human
+  had moved to the marketplace and simply stopped running the documented step.
+- **Rule:** when a doc states a mechanism, the mechanism is a **claim with a location** — check it
+  against the file that implements it, not against the neighbouring paragraph. `install.sh:17-18`
+  and `enable-plugin.sh:2-4` settle this in ten seconds; four releases of prose did not.
+- **Applies-to:** every "after merging / after installing" instruction, and any STATE.md entry
+  filed under Verified facts — an entry that contradicts its neighbour is evidence that neither was
+  re-checked, not that one of them is right.
+- **Not a defect that shipped:** the marketplace path always worked. What shipped was a ritual step
+  that quietly built a shadow copy for anyone who followed it — and the correction only surfaced
+  because the human said "we do it through the marketplace" in passing.
+
 ### 2026-07-25 — half our prose is a bet on model unreliability, and the bet has an expiry date
 - **Context:** Anthropic's "new rules of context engineering for Claude 5 generation models" reports
   removing **>80% of Claude Code's system prompt** with no measurable loss on coding evals, via five

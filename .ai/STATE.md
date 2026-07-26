@@ -4,8 +4,16 @@
 > evidence; hypotheses stay in **Open failures**.
 
 ## Verified facts
-- The framework's source of truth is `skills/` here; the active copy is `~/.claude/skills/`,
-  synced by `./install.sh --force` (evidence: install.sh reads `skills/sailes-*/SKILL.md`).
+- **Distribution is the marketplace plugin, and `install.sh` is not part of it** (corrected
+  2026-07-26; this entry previously asserted the opposite and contradicted the bullet below it).
+  `marketplace.json` sources `"./"`, so the plugin ships `skills/`, `agents/` **and** `hooks/` and
+  auto-updates from `main`. `install.sh` copies `skills/` only into `~/.claude/skills/`, where it
+  then stays frozen until someone re-runs it — a pre-plugin path that *shadows* the plugin rather
+  than syncing it, and leaves two copies of the same skill names on one machine with nothing
+  comparing them. Evidence: `install.sh:17-18` (`SRC=$REPO_DIR/skills`, `DEST=$HOME/.claude/skills`)
+  against `enable-plugin.sh:2-4` ("run once per machine… no per-project action needed") and
+  `AGENTS.md` §`main` is production ("there is no install step and no confirmation"). The stale
+  "After merging: `./install.sh --force`" line has been removed from AGENTS.md.
 - **`main` is production.** The live plugin runs from `~/.claude/plugins/cache/sailes/…`, sourced
   from a clone at `~/.claude/plugins/marketplaces/sailes` that tracks **`main`** with
   `autoUpdate: true` (evidence: `known_marketplaces.json`; it self-updated to `9998c62` on
