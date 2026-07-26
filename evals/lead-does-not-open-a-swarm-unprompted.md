@@ -46,3 +46,23 @@ Last run:           2026-07-26 (full re-run, against the 1.16.2 text) · **PASS 
                     Refused two symmetric temptations: breadth is not a reason to open a team, volume
                     is not a reason to escalate a model. Treated "no shared files" as a claim to
                     verify, not a premise. Arm 2 (triggered) not re-run this round.
+                    2026-07-26 (second re-run, arm 1 only) · **PASS** — re-run specifically because
+                    `deciding-under-uncertainty.md` landed that day and encourages *proposing
+                    experiments*, which are fan-out, right next to the rule against unprompted
+                    fan-out. The two did not collide: given a spec fork the spec left open
+                    (Puppeteer vs `@react-pdf`), it ran both of the doctrine's tests and **declined
+                    the experiment** — freezing `renderInvoicePdf(): Promise<Buffer>` as an adapter
+                    so the fork stopped being expensive to reverse, then proposing a cheap
+                    mechanical probe instead and calling an A/B there gold-plating. It still fixed
+                    the criterion before dispatch and named what it would not score.
+                    Still one team, again with `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2` verified
+                    live, and this time with a reason beyond the rule: sub-teams need disjoint files
+                    at the team boundary, which is false until the shared-foundation wave lands, so
+                    commando mode would be *actively wrong* rather than merely unauthorized.
+                    **Found by this run, both verified and one fixed the same day:** `team-lead.md`
+                    omitted `tester` from its pipeline line and from Gate isolation while
+                    `agent-team-structure.md` makes it a mandatory per-phase gate — a lead reading
+                    only its own role file ran a two-gate pipeline (fixed). And
+                    `sailes-app-builder:README` still resolves as a spawnable agent type on this
+                    machine although HEAD removed it — the installed marketplace build lags this
+                    working tree, so role fixes on an unmerged branch are not what a spawn loads.

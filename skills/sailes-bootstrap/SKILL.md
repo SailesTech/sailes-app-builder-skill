@@ -113,7 +113,7 @@ All green → hand to the spec phase: the local `.ai/skills/spec-writing/` you j
 | Stack | **validate** platform vs needs | **recommend** baseline | **document existing** (validate mode) |
 | Output | wired-in plan honoring rules | foundation + baseline stack | methodology layer over real stack |
 
-Reference files: `stack-baseline.md` (incl. Frontend architecture variants) · `ui-libraries.md` (UX-layer options: Preline additive, Astryx alternative) · `modules-catalog.md` · `decision-engine.md` (classification + Stack-shaping axes S1–S8) · `developer-fit.md` (who-builds-it as a stack input) · `backlog-template.md` (deferred-ideas file, generated into `.ai/backlog.md`) · `security-checklist.md` · `skeleton.md` · `agentic-first-principles.md` · `agents-md-template.md` · `spec-writing-template.md` (generated into new repos) · `adopt-existing-repo.md` (Case C procedure + Step 0 re-adoption compliance audit) · `agent-team-structure.md` (Team Lead / worker roles, gates, run log — the canon for non-trivial work) · `repo-done-checklist.md` (verify artifacts before handoff — Step 5) · `graphify-setup.md` (Step 4.9 — default code map: build, freshness hooks, Claude/Codex always-on, fallbacks).
+Reference files: `stack-baseline.md` (incl. Frontend architecture variants) · `ui-libraries.md` (UX-layer options: Preline additive, Astryx alternative) · `modules-catalog.md` · `decision-engine.md` (classification + Stack-shaping axes S1–S8) · `developer-fit.md` (who-builds-it as a stack input) · `backlog-template.md` (deferred-ideas file, generated into `.ai/backlog.md`) · `security-checklist.md` · `skeleton.md` · `agentic-first-principles.md` · `agents-md-template.md` · `spec-writing-template.md` (generated into new repos) · `adopt-existing-repo.md` (Case C procedure + Step 0 re-adoption compliance audit) · `agent-team-structure.md` (Team Lead / worker roles, gates, run log — the canon for non-trivial work) · `repo-done-checklist.md` (verify artifacts before handoff — Step 5) · `graphify-setup.md` (Step 4.9 — default code map: build, freshness hooks, Claude/Codex always-on, fallbacks) · `deciding-under-uncertainty.md` (what to do with a fork you cannot ground a recommendation for — propose settling it by measurement, with the criterion fixed first).
 
 ## Common Mistakes
 
@@ -135,6 +135,7 @@ Reference files: `stack-baseline.md` (incl. Frontend architecture variants) · `
 | Overwriting an existing `.ai/` artifact when scaffolding | Idempotent: never overwrite; add only what's missing, follow the repo's existing convention. |
 | No git / 0 commits after "setup" | `git init` + commit the skeleton is part of Case B generation. |
 | Handing off with no code map (or silently skipping it) | Run Step 4.9 (`graphify-setup.md`); a missing binary yields an explicit SKIP in the checklist, never silence. |
+| Inventing a grounded-sounding recommendation for a fork you can't actually ground | Say "nie mam podstaw" and offer to settle it by measurement — `deciding-under-uncertainty.md`. An unfounded recommendation reads identical to a founded one. |
 
 ## Red Flags — STOP
 

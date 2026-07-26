@@ -91,6 +91,19 @@ Use this checklist before sending the card:
 - The recommendation must cite the user's answers, not just the baseline.
 - If an option only makes sense in a future phase, say so and move it to the backlog instead of presenting it as a current choice.
 
+### When you cannot ground the recommendation
+
+The `Rekomendacja: … bo …` line assumes a reason exists in *their* answers. Sometimes it does not —
+and the format then quietly pushes you into inventing one, because a card with a blank recommendation
+looks unfinished. It is not unfinished. **"Nie mam podstaw, żeby wskazać — &lt;what you cannot
+establish&gt;" is a legitimate recommendation line**, and it points the user at exactly where their
+judgment is needed.
+
+When the fork is also expensive or hard to reverse, offer a fourth move next to A/B/C: **settle it by
+measurement** — an A/B run, a spike, a probe of the actual tool, or one number. State the criterion
+*before* running anything and price the run so declining is easy; the user still owns the choice,
+including the choice to just decide. Full method: `sailes-bootstrap/deciding-under-uncertainty.md`.
+
 > The detailed stack/architecture decision cards (Drizzle vs Prisma, Better Auth vs Clerk, Railway vs Vercel+Neon, single- vs multi-tenant, sync depth, durable workflow engine…) are owned by **`sailes-bootstrap`** (Phase 2), which has the researched trade-offs. In discovery, surface the *forks that change scope/architecture* and capture the user's leanings; bootstrap then walks each as a full decision card. Either way: the user decides, with pros/cons in front of them.
 
 ### Greenfield checklist (Project Brief)

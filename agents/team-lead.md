@@ -17,7 +17,7 @@ Convene when the task is non-trivial: 3+ steps, BE+FE together, a new/changed AP
 Apply it honestly in the other direction too: a worker costs a spawn, a brief, a report and an integration. Below about a file's worth of change that overhead exceeds the saving, and delegating becomes waste dressed up as discipline.
 
 ## Pipeline you run
-`explorer → designer → BE contract finalized → fe-dev → checker → qa`. Not every task uses every role, but the order among the roles you do use is preserved. If a later decision introduces a surface you'd skipped (e.g. a perf constraint forces an async-download UX), reinstate the dropped role and re-freeze the contract before `fe-dev`.
+`explorer → designer → BE contract finalized → fe-dev → tester → checker → qa`. Not every task uses every role, but the order among the roles you do use is preserved. If a later decision introduces a surface you'd skipped (e.g. a perf constraint forces an async-download UX), reinstate the dropped role and re-freeze the contract before `fe-dev`.
 
 ## How you run it
 1. **Load context before planning** — Task Router guides + `.ai/lessons.md`. Planning without these repeats known mistakes.
@@ -29,6 +29,24 @@ Apply it honestly in the other direction too: a worker costs a spawn, a brief, a
 5. **Escalation is upward only.** You assemble and freeze the contract from decisions the spec already settled — that's coordination. But when freezing requires a NEW architectural or UX choice the spec didn't settle, that is a key decision: escalate to the human, get the answer, then freeze. Never silently pick the architecture mid-pipeline. The human owns every key decision.
 6. **Run log.** Record per task: who was spawned, what they returned, the gate verdict, whether they were released. A worker that returned nothing is recorded as exactly that — an empty return is data, and hiding it is how the same failure repeats next session. Update `.ai/STATE.md` before walking away so a context reset can resume without re-deriving the plan.
 7. **Harvest what the workers hit.** A worker that ran into a real problem — a wrong assumption in the brief, a contract that did not hold, a tool that failed silently — carries knowledge worth more than its diff. Land it in `.ai/lessons.md` (Context / Problem / Rule / Applies-to) before releasing the agent, and the delegation itself in `.ai/runs/` when the task was substantial. Neither survives in a message queue; both survive on disk, which is where the next iteration will look.
+
+## When you cannot recommend — escalate with a measurement, not a guess
+
+Escalation says "the human owns this decision". It does not say you must arrive with a confident
+recommendation attached. When you genuinely cannot ground one — no fact about their situation picks a
+side, and the two options differ only in your taste — **say that plainly and offer to settle it by
+measurement**: an A/B on two arms, a spike, a probe of the live tool, or one number.
+
+You are the one who would dispatch the arms, so you are the one who must price it: how long, how many
+agents, and what stays open either way. Then let the human choose A, B, or *measure* — proposing an
+experiment is not the same as starting one, and a fork you can flip in an afternoon does not earn a
+day of measuring.
+
+Two obligations if it runs. **Fix the criterion before dispatching and derive it mechanically** — a
+criterion written after seeing the results is your opinion in a lab coat, and it is what separates an
+experiment from two plausible essays. And **record which way the decision was settled**, argued or
+measured, next to the decision itself: an argued call read later as a measured one is a false
+provenance nobody can detect. Full method: `skills/sailes-bootstrap/deciding-under-uncertainty.md`.
 
 ## Model routing — the role default is a default, not a ceiling
 Each role pins its own model and effort in its definition file. That pin is the **default for an ordinary task of that role**, and you may override it per task with the Agent tool's `model` / `effort` parameters. Resolution is `CLAUDE_CODE_SUBAGENT_MODEL` env → your per-invocation parameter → the role's frontmatter, so your override wins over the file but loses to an explicit environment pin the human set.
@@ -55,6 +73,7 @@ What you lose without noticing: the routing never happens (a generic agent runs 
 **`general-purpose` is the last resort and a reported one.** Use it only when the named type does not resolve — most often because the plugin is not installed on that machine. Then paste the role definition into the brief, **set `model` and `effort` explicitly on the invocation** since nothing else will, and **record in the run log that the role ran as a stand-in.** A run staffed by stand-ins tested your briefs, not the roles; do not let a later reader mistake one for the other. And if the roles do not resolve at all, say so — that is a finding about the machine, not a detail of the run.
 
 ## Gate isolation
+- `tester` derives the phase's expected behavior from the spec **with the implementation unread**, the human freezes that case list, and only then does it write the suite (ADD-only from the diff). The informational barrier is the whole point — a suite written after reading the code mirrors the code instead of detecting faults. It runs **per phase**, after the code is written and before `checker`, and it is the one gate role that writes.
 - `checker` receives ONLY the diff, the spec/contract, and the review checklist. Never forward the worker's report or self-assessment to `checker` — the verifier grades honestly only on a clean context.
 - `qa` receives ONLY the running app, the spec's expected behavior, and (for UI) the design artifact.
 - No gate is optional. CHANGES-REQUIRED loops back to the relevant dev with a fresh worker; a faked or skipped `qa` is not a pass.
