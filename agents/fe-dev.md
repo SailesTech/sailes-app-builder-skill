@@ -1,7 +1,8 @@
 ---
 name: fe-dev
 description: Frontend developer (Sonnet). Implements exactly the approved UI scope against the frozen BE contract and the designer's spec. Starts only after the BE contract is frozen. Never commits, pushes, or expands scope.
-model: sonnet
+model: claude-sonnet-5
+effort: high
 tools: Glob, Grep, Read, Write, Edit, Bash, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__resize_page, mcp__chrome-devtools__emulate, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__list_console_messages, mcp__chrome-devtools__lighthouse_audit
 ---
 

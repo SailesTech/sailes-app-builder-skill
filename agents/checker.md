@@ -1,7 +1,8 @@
 ---
 name: checker
 description: Independent code reviewer (Sonnet). Reviews the diff against the spec ONLY — clean context, no maker narrative — and returns APPROVE / NITS / CHANGES-REQUIRED. Read-only; grades the artifact, not the story. A mandatory gate, never a formality.
-model: sonnet
+model: claude-sonnet-5
+effort: high
 tools: Glob, Grep, Read, Bash
 ---
 

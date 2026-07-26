@@ -26,15 +26,52 @@ is called done. The gate scales down; it never disappears.
 
 Role definitions ship with this plugin in `agents/` (auto-discovered on `plugin install`) and can also be copied to `~/.claude/agents/` for global use. The lead is the single point of contact for the human.
 
-| Role | Model | Does | Never |
+| Role | Model · effort | Does | Never |
 |---|---|---|---|
-| `team-lead` | opus | plan · decompose into one-task units · assign · integrate results · final verdict; reads Task Router + `.ai/lessons.md` before planning | bulk-codes the feature solo on a large task; lets a worker decide a **key** decision |
-| `explorer` | haiku | read-only recon → `file:line` findings, contract shapes, prop/value maps | propose final code; review quality |
-| `designer` | sonnet | UX/UI spec from design tokens (layout, states, responsive) | write feature code |
-| `be-dev` / `fe-dev` | sonnet | implement exactly the approved scope, per spec / per design | commit, push, or expand scope |
-| `tester` | sonnet | author the phase's suite via `sailes-test`: derive cases from the spec with the code UNREAD → human freezes `.ai/test-plans/<spec>.md` → write → ADD-only from the diff → tiered detection proof. The **one gate role that writes** | read the implementation before deriving cases; weaken a frozen assertion; lower its own risk tier; commit or push |
-| `checker` | sonnet | independent read-only review of the diff vs. spec → APPROVE / NITS / CHANGES-REQUIRED; input = diff + spec + checklist ONLY (see Gate isolation) | grade on reasoning instead of result; read the maker's narrative; touch code |
-| `qa` | sonnet | run the `tester` suite on the live app as the gate verdict + real-flow proof + screenshots; behavior before diff; vision-verify vs design artifact + `.ai/screens/` baseline | fake a pass when stack/creds are missing |
+| `team-lead` | `claude-opus-5` · high | plan · decompose into one-task units · assign · integrate results · final verdict; reads Task Router + `.ai/lessons.md` before planning | bulk-codes the feature solo on a large task; lets a worker decide a **key** decision |
+| `explorer` | `claude-haiku-4-5` · — | read-only recon → `file:line` findings, contract shapes, prop/value maps | propose final code; review quality |
+| `designer` | `claude-sonnet-5` · high | UX/UI spec from design tokens (layout, states, responsive) | write feature code |
+| `be-dev` / `fe-dev` | `claude-sonnet-5` · high | implement exactly the approved scope, per spec / per design | commit, push, or expand scope |
+| `tester` | `claude-sonnet-5` · high | author the phase's suite via `sailes-test`: derive cases from the spec with the code UNREAD → human freezes `.ai/test-plans/<spec>.md` → write → ADD-only from the diff → tiered detection proof. The **one gate role that writes** | read the implementation before deriving cases; weaken a frozen assertion; lower its own risk tier; commit or push |
+| `checker` | `claude-sonnet-5` · high | independent read-only review of the diff vs. spec → APPROVE / NITS / CHANGES-REQUIRED; input = diff + spec + checklist ONLY (see Gate isolation) | grade on reasoning instead of result; read the maker's narrative; touch code |
+| `qa` | `claude-sonnet-5` · high | run the `tester` suite on the live app as the gate verdict + real-flow proof + screenshots; behavior before diff; vision-verify vs design artifact + `.ai/screens/` baseline | fake a pass when stack/creds are missing |
+
+## Model routing — the role default is a default, not a ceiling
+
+The `Model · effort` column above is what each role's definition file pins, and it is the default for
+an **ordinary task of that role**. The lead may override it for a single task with the Agent tool's
+`model` / `effort` parameters. Resolution order is `CLAUDE_CODE_SUBAGENT_MODEL` env → the
+per-invocation parameter → the role's frontmatter, so a lead's override beats the file and loses to an
+environment pin the human set deliberately.
+
+**Model IDs are pinned, not aliases** (`claude-sonnet-5`, not `sonnet`). An alias silently follows
+whatever the tier's default becomes, which makes a run un-reproducible and makes "the framework got
+worse" impossible to attribute — the same lesson this repo already applies to pinning `-m` on a Codex
+delegation. The cost is real and accepted: a new model needs a framework release to reach the roles.
+If an org's `availableModels` allowlist excludes a pinned ID, Claude Code skips it and runs the role on
+the inherited model rather than failing.
+
+**Escalate on judgment, not on volume.** Opus for a contract, data-model, auth or tenancy surface; a
+migration parity judge; a diagnosis with no reproducible mechanism yet; a change too entangled to slice
+cleanly. A large but mechanical change is a Sonnet task — reaching for the expensive tier because the
+diff is big is the same misread as the lead bulk-coding it. **Every override is recorded in the run log
+with its reason**; an unlogged escalation cannot be told apart from drift.
+
+Downgrade with the same deliberateness. A `Done-when` is a pass/fail read of exact commands against
+expected output, so a lightweight model grades it — raising effort on a binary read buys nothing.
+
+**Log the non-overrides too.** Recording only the deviations leaves the volume-misread invisible: a
+reader cannot tell a phase where the escalation axis was considered and rejected from one where nobody
+looked. Write the tier for every worker, and mark the defaults as defaults. The log also has to be able
+to say an override was *wrong* — whether the expensive run actually caught something the default would
+have missed — or it is not a record, it is a receipt.
+
+Two dated constraints (2026-07-26, re-check when the roster moves): **`effort` is unsupported on
+Haiku 4.5**, so `explorer` carries no `effort:` line and is tuned by changing its model, not its
+effort; and **Haiku 4.5 holds 200K of context against 1M on the Sonnet and Opus tiers**, a real
+ceiling on whole-repo recon rather than a price difference. Note also that Claude Code's own built-in
+`Explore` agent stopped defaulting to Haiku and now inherits the session model — `explorer` staying on
+Haiku is a deliberate divergence from the platform default, not a match to it.
 
 ## Order of work (the pipeline)
 
@@ -128,6 +165,66 @@ Enable teams with `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `~/.claude/setting
 **Handing one task to another runtime.** The human may hand a single task to a different runtime — "use Codex for the backend", "let Codex review this". This is **human-triggered only**: a lead never routes work to another runtime on its own initiative. A cross-runtime worker is an **ordinary worker** — one self-contained brief in, one report out — and **the gates do not move**: `checker` still receives diff + spec + checklist only, never the worker's report, whichever runtime produced it. A maker is a maker; the engine it ran on earns no exemption. Operational detail (commands, model pinning, brief format) lives in `agents/team-lead.md`.
 
 Delegation is **one-directional by design**: the Claude-side lead can hand a task to Codex; the Codex-side lead has no matching hand-off back to Claude. Symmetry would quietly make the second vendor a *requirement* instead of an option, which is the opposite of the point — each runtime already runs the whole pipeline alone (`agents/` and `codex-agents/` are the same eight roles, two harnesses). Delegation is an extra that a both-quota human may reach for, never a dependency; a Claude-only or Codex-only user loses nothing by never using it.
+
+## Sub-teams ("commando mode") — a human-triggered widening, not a default
+
+For a task genuinely too wide for one team, the human may split it across up to **three sub-teams**,
+each with its own `team-lead` that spawns its own workers. Depth stops at two: lead → sub-leads →
+workers.
+
+**Only the human opens this mode.** The rule matches human-triggered Codex delegation, and the reason
+is sharper here. This framework's delegation doctrine was written against a model whose measured
+failure was a lead that *under*-delegated and bulk-coded solo. Claude Opus 5 fails the other way — it
+reaches for subagents readily, and Anthropic's published guidance for it is to cap spawn counts, keep
+fan-out low, and commit to a delegation instead of re-deriving it. So the default stays "delegate", and
+what gets added is a brake, not an invitation.
+
+**Anthropic's guidance for this model also says not to use subagents for review or verification —
+and that does not apply to the gates here.** The distinction is the one this repo already relies on:
+that guidance is about *capability*, and it re-prices the cost argument for delegating. Gate isolation
+is not a capability argument. A reviewer that reads the maker's narrative inherits the maker's
+confidence and grades the story instead of the artifact — that is true of a more capable model too.
+`tester`, `checker` and `qa` stay.
+
+What holds when the mode is open:
+
+- **The top-level lead is still the only one who talks to the human.** Sub-leads escalate to the lead;
+  the lead escalates key decisions to the human. `SPEC → HUMAN → VERIFIED → GATED` does not bend for a
+  wider team — it encodes authority, not capability, so a more capable model earns no exemption.
+- **The gates belong to the top-level lead**, and run on the integrated result — never to a sub-lead on
+  its own slice, which would be the maker reviewing the maker. This is structural rather than a
+  promise: all seven non-lead role definitions carry an explicit `tools:` list and **none includes
+  `Agent`**, so with nesting on, no worker or gate can spawn anything. Only `team-lead` inherits the
+  full tool pool. Removing `Agent` from a role is one line; adding it is a deliberate act.
+- **Teams own disjoint files, not just workers.** The existing no-two-workers-on-one-file rule has to
+  hold at the team boundary. Where the slicing cannot achieve it the teams are not parallel — run them
+  sequentially or give each a worktree (`isolation: worktree` is a supported frontmatter field).
+- **The two measured failure modes multiply rather than add — but only one of them exists in both
+  modes.** Check which path you are on before quoting a release procedure, because the doctrine's
+  release rule is written for live teammates and is not runnable without them.
+  - **With `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` off** (the fallback path), sub-leads and workers are
+    scoped subagents: each returns once and ends, so release is the return and there is nothing to
+    confirm. Unreleased-worker risk is near zero. **Silent returns are the risk that remains, and
+    fan-out is exactly what multiplies it.**
+  - **With the flag on**, release is an act you confirm — `shutdown_request` re-sent until the runtime
+    reports the termination — and at depth two a sub-lead must release its own workers *and* be
+    released, so a half-completed shutdown leaves a live sub-tree. Reconstruct the live set from the
+    run log before each release round, never from memory.
+  The prevention for the mode-independent half is unchanged and already shipped: every brief names a
+  FILE deliverable, and "released" is recorded only for a termination actually observed — a returned
+  result on the fallback path, a confirmed shutdown on the live one.
+
+**Enabling it is a machine-level act the human performs**, not something the framework turns on:
+nesting is off by default and requires `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` in `settings.json`
+(`"2"` for this design; a third layer then cannot spawn at all). It changes agent behavior for **every
+repo on that machine**, which is why no skill writes it. Two related caps worth knowing: 20 concurrent
+subagents (`CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS`) and 200 per session
+(`CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`). *Dated 2026-07-26, Claude Code 2.1.220* — between v2.1.172
+and v2.1.216 subagents nested **by default** up to five layers with no way to change it, so a memory of
+"it just worked" is true about a version we are no longer on.
+
+If the human has not asked for sub-teams, run one team. A wide task is not by itself a reason to open a
+second one.
 
 ## Fallback — when agent-teams mode is unavailable
 
