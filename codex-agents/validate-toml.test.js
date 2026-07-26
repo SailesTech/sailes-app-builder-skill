@@ -23,7 +23,7 @@ const path = require('path');
 
 const REPO = path.join(__dirname, '..');
 const SCRIPT = path.join(REPO, 'enable-codex-agents.sh');
-const ROLES = ['team-lead', 'explorer', 'designer', 'be-dev', 'fe-dev', 'checker', 'qa', 'tester'];
+const ROLES = ['team-lead', 'explorer', 'researcher', 'designer', 'be-dev', 'fe-dev', 'checker', 'qa', 'tester'];
 
 let failures = 0;
 

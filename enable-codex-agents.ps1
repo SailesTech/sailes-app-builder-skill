@@ -13,7 +13,15 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$RoleNames = @('team-lead', 'explorer', 'designer', 'be-dev', 'fe-dev', 'checker', 'qa')
+# Derived from disk, never hardcoded. A literal list here silently skipped `tester` from the day it
+# was added until 2026-07-26 — Codex users got a pipeline with no test gate and no error to notice it
+# by. Same shape as the 2026-07-20 lesson: a hardcoded list that a loop iterates is a silent skip
+# waiting to happen. Adding a role file is now the whole of adding a role here.
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RoleNames = @(Get-ChildItem -Path (Join-Path $ScriptDir 'codex-agents') -Filter '*.toml' -ErrorAction SilentlyContinue | ForEach-Object { $_.BaseName })
+if ($RoleNames.Count -eq 0) {
+  throw "No role definitions found in $(Join-Path $ScriptDir 'codex-agents')"
+}
 $RoleOwnerMarker = '# sailes-app-builder managed agent'
 $BeginMarker = '# BEGIN sailes-app-builder managed agents'
 $EndMarker = '# END sailes-app-builder managed agents'
@@ -331,10 +339,10 @@ try {
     if (Test-Path $stageRoot) { Remove-Item -Recurse -Force $stageRoot }
   }
 
-  Write-Host 'INSTALLED: 7 Sailes Codex agents'
+  Write-Host "INSTALLED: $($RoleNames.Count) Sailes Codex agents ($($RoleNames -join ', '))"
   Write-Host "Config backup: $(if ($backupPath) { [IO.Path]::GetFullPath($backupPath) } else { 'not needed' })"
   Write-Host 'Next: start a fresh Codex session and invoke team-lead for non-trivial work.'
-  Write-Host "Verify: Get-ChildItem $agentDir/*.toml | Where-Object Name -in @('team-lead.toml','explorer.toml','designer.toml','be-dev.toml','fe-dev.toml','checker.toml','qa.toml')"
+  Write-Host "Verify: Get-ChildItem $agentDir/*.toml"
 } catch {
   Write-Error $_.Exception.Message
   exit 1

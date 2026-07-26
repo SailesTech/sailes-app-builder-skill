@@ -4,6 +4,43 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.19.0 — 2026-07-26 · the roster spec ships — and Codex users had no test gate
+
+The roster spec (`.ai/specs/2026-07-26-roster-for-people-who-are-not-you.md`) implemented, with Q1
+settled by the A/B experiment rather than by argument.
+
+- **New role `researcher`** (Opus · high) — synthesises what several explorers brought back into one
+  findings artifact: provenance per claim, confidence, and an explicit **could-not-establish** list.
+  It **has no `Agent` and cannot spawn**, which is Q1's measured answer: when gatherers are spawned a
+  level down, their cost is invisible to the run log *and* to the agent that spawned them, and the
+  rule that the log record whether an escalation paid cannot then be satisfied. The line that keeps it
+  from being `team-lead` twice: **the lead integrates to act; `researcher` integrates to know**, and it
+  decides nothing. Its verification pass is the job, not a formality — across four measured runs the
+  decisive finding came from the synthesiser's own cross-cutting sweep every time, never from a
+  gatherer.
+- **`explorer` gains `WebSearch`** so a gatherer can fetch external material. Same discipline as
+  `file:line`: report the URL and the quoted line, and leave judging the source to synthesis.
+- **New skill `sailes-eval-runner`** — a skill and not a role deliberately, since a role's description
+  loads in every session and almost nobody using this framework maintains it. Carries the two
+  distinctions this repo's own author kept losing in one day: **stand-in vs named role** (a stand-in
+  grades the text, never the pin or the allow-list) and **blocked vs run**.
+- **Fixed: Codex users have been installing a pipeline with no test gate.** Both enable scripts
+  hardcoded seven role names; `codex-agents/tester.toml` has existed since 1.10.x and neither script
+  ever copied it. Silent — the install reported success and printed "7 agents". Both now derive the
+  list from `codex-agents/*.toml`, so **adding a role file is the whole of adding a role**. Exactly
+  the 2026-07-20 lesson (a hardcoded list a loop iterates is a silent skip waiting to happen), which
+  had been recorded and then repeated in two other files.
+- **`enforce/*` update — the anchor's premise did not reproduce.** The control arm was finally run at
+  *real* context distance (a 254k-token, 53-tool-call inventory, then the hostile brief as a separate
+  message, **no anchor**) and it held completely: cited the spec-first rule for agent definitions,
+  refused to treat a coordinator's instruction as the human's approval, and found the nine
+  registration surfaces a quick add would miss. See `evals/anchor-holds-the-line-deep-in-session.md`.
+  The four branches are candidates for **retirement rather than rebase** — a human call.
+
+**Upgrade-actionable:** re-run `enable-codex-agents.sh` / `.ps1` — if you installed before this, you
+are missing `tester` (and now `researcher`) and your Codex pipeline has been running without the test
+gate.
+
 ## 1.18.0 — 2026-07-26 · `designer` can measure, and the roster stops existing in triplicate
 
 - **`designer` gains browser tools *and* `Bash`** (human decision, the open D5 from the browser-

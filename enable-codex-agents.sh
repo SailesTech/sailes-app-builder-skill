@@ -4,7 +4,20 @@
 
 set -euo pipefail
 
-roles=(team-lead explorer designer be-dev fe-dev checker qa)
+# Derived from disk, never hardcoded. A literal list here silently skipped `tester` from the day it
+# was added until 2026-07-26 — Codex users got a pipeline with no test gate and no error to notice it
+# by. Same shape as the 2026-07-20 lesson: a hardcoded list that a loop iterates is a silent skip
+# waiting to happen. Adding a role file is now the whole of adding a role here.
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+roles=()
+for f in "$script_dir"/codex-agents/*.toml; do
+  [ -e "$f" ] || continue
+  roles+=("$(basename "$f" .toml)")
+done
+if [ ${#roles[@]} -eq 0 ]; then
+  echo "ERROR: no role definitions found in $script_dir/codex-agents/" >&2
+  exit 1
+fi
 owner_marker='# sailes-app-builder managed agent'
 begin='# BEGIN sailes-app-builder managed agents'
 end='# END sailes-app-builder managed agents'
@@ -205,6 +218,6 @@ if (( config_changed )); then
 fi
 trap - EXIT
 cleanup_stage
-echo 'INSTALLED: 7 Sailes Codex agents'; echo "Config backup: ${backup:-not needed}"
+echo "INSTALLED: ${#roles[@]} Sailes Codex agents (${roles[*]})"; echo "Config backup: ${backup:-not needed}"
 echo 'Next: start a fresh Codex session and invoke team-lead for non-trivial work.'
-echo "Verify: ls $agents/{team-lead,explorer,designer,be-dev,fe-dev,checker,qa}.toml"
+echo "Verify: ls $agents/*.toml"

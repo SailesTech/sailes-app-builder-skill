@@ -1,6 +1,10 @@
 # Spec: two roles the framework has been doing without — `eval-runner` and `researcher`
 
-Status: draft
+Status: **implemented 1.19.0 (2026-07-26)** — `researcher` shipped without `Agent` (Q1=a),
+`explorer` gained `WebSearch` (Q4), `eval-runner` shipped as the skill `sailes-eval-runner` (Q5).
+Q3 (FILE deliverable with provenance) and Q6 (Codex twin, no model pin) implemented as proposed.
+Eval `researcher-reports-provenance-and-does-not-decide` written; **PENDING dispatch** — the role
+being on disk is not evidence its lanes hold.
 Date: 2026-07-26
 Related: `.ai/lessons.md` 2026-07-26 entries, `agents/`, `evals/README.md`,
 `skills/sailes-bootstrap/agent-team-structure.md`

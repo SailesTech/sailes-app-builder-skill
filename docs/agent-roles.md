@@ -18,8 +18,8 @@ that team — Claude Code auto-discovers `agents/` at the plugin root, so
 > install agents" bug: the roles existed only as prose, and any folder that did
 > exist used a dot prefix.
 
-Eight files, one per role: `team-lead.md`, `explorer.md`, `designer.md`, `be-dev.md`, `fe-dev.md`,
-`tester.md`, `checker.md`, `qa.md`.
+Nine files, one per role: `team-lead.md`, `explorer.md`, `researcher.md`, `designer.md`, `be-dev.md`,
+`fe-dev.md`, `tester.md`, `checker.md`, `qa.md`.
 
 **What each role does, and what model and effort it is pinned to, lives in exactly one place:**
 `skills/sailes-bootstrap/agent-team-structure.md`. Do not restate it here. That table used to exist in
