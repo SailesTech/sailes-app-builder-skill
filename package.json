@@ -1,6 +1,6 @@
 {
   "name": "sailes-app-builder-skill",
-  "version": "1.21.3",
+  "version": "1.22.0",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
