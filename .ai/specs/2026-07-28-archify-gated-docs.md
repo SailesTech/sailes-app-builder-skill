@@ -60,8 +60,13 @@ STATE.md — wybrane przez człowieka z kosztami na stole.
 - **D6 — paczka kliencka generowana AUTOMATYCZNIE przy każdym release gate** — wybór
   człowieka wbrew rekomendacji (na żądanie + twarda linia przy oddaniu); koszt przyjęty:
   share-cardy/eksporty per spec, których nikt nie ogląda między oddaniami. Konsekwencja
-  projektowa: paczka musi być tania (bez WebM; PNG share card + HTML set) i nadpisywana
+  projektowa: paczka musi być tania (bez WebM; HTML set) i nadpisywana
   w miejscu (`docs/architecture/client-package/`), nie akumulowana per spec.
+  Korekta faktograficzna z implementacji (2026-07-28): archify NIE ma komendy CLI do
+  share-cardów/PNG — eksporty są funkcją czytnika w wygenerowanym HTML (viewer-runtime).
+  Paczka przy gate = 5 samodzielnych HTML (automatyzowalne); share-card PNG powstaje
+  z poziomu viewera przy oddaniu projektu (krok handoverowy, udokumentowany w skillu).
+  Intencja D6 (świeża paczka przy każdym gate) zachowana.
 
 ## Proposed Solution
 

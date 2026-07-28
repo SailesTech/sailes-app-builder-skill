@@ -116,9 +116,9 @@ ls ~/.agents/skills      # → sailes-discovery sailes-bootstrap sailes-start �
 
 Skills and agents are installed separately: `enable-codex.ps1` / `.sh` installs the
 `sailes-*` **skills**, while the commands below install the global Codex
-**subagent roles** — every `.toml` in `codex-agents/`, today nine: `team-lead`,
+**subagent roles** — every `.toml` in `codex-agents/`, today ten: `team-lead`,
 `explorer`, `researcher`, `designer`, `be-dev`, `fe-dev`, `tester`, `checker`,
-and `qa`. The installer reads that directory rather than a list, so a new role
+`qa`, and `docs-author`. The installer reads that directory rather than a list, so a new role
 file is installed by existing; a hardcoded list here silently skipped `tester`
 until 2026-07-26. Codex must support local agent TOML configuration; start a
 fresh Codex session after installing them.
