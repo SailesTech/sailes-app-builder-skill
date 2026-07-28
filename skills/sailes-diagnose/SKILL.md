@@ -146,6 +146,12 @@ Hold two things in tension deliberately: prefer the simple explanation, *and* ke
 you find one. A system can have several contributing factors at once, and the search for a single
 tidy root cause reliably terminates on whatever is easiest to blame.
 
+A proven mechanism MAY additionally be drawn as an archify `sequence`/`lifecycle` diagram
+attached to the incident record (`sailes-docs/references/authoring.md`) — a failure path a
+human can trace beats a paragraph when the incident goes to the client. **Optional garnish,
+never a required step**: it happens after the mechanism is proven, never instead of proving it,
+and a missing archify changes nothing here.
+
 **Do not use "5 whys".** It has no evidence base, a substantial critical literature, and its
 dominant failure mode — a fluent single-thread causal chain generated from insufficient knowledge
 — is precisely what a language model produces natively. Record **contributing factors, plural**,

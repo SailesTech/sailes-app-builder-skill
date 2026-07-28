@@ -95,6 +95,22 @@ local, no API key.
 - Case C (adopt): the same procedure runs even earlier — see `adopt-existing-repo.md` step 2,
   the graph is built BEFORE reverse-engineering conventions.
 
+## Step 4.10 — Documentation set (archify via `sailes-docs`) — DEFAULT for every repo
+
+Every Sailes repo ships with the five-diagram archify set (`docs/architecture/` — architecture,
+workflow, sequence, dataflow, lifecycle; JSON + HTML committed). `docs-author` authors it from
+repo evidence per `sailes-docs/references/authoring.md`; setup, the >= 2.12 version floor and
+the ignore wiring are `sailes-docs/references/archify-setup.md`.
+
+- **Label language is a decision card, not a default:** język etykiet = język klienta projektu
+  (PL/EN/…), asked here and recorded in the Decisions Ledger. The diagrams are also the client
+  deliverable, so the client's language wins over the codebase's.
+- Runs after Step 4.9 — the graphify map is `docs-author`'s first evidence source.
+- Archify missing or below floor? The explicit-SKIP protocol in `archify-setup.md` — a
+  `SKIP archify` line + `.ai/STATE.md` entry, **never block, never skip silently.**
+- From here on the set is maintained by the pipeline: every spec closure runs the docs-delta
+  step (`sailes-docs/references/delta-at-gate.md`) — that is what keeps this from rotting.
+
 ## Step 5 — Handoff (verify artifacts FIRST)
 
 Methodology absorbed/established ✓, module manifest set ✓, stack locked ✓, design artifact present ✓.
