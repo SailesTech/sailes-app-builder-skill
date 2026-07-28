@@ -159,6 +159,17 @@ test('no version appears twice in the CHANGELOG', () => {
   assert.deepStrictEqual([...new Set(dupes)], [], `duplicate CHANGELOG headings: ${dupes.join(', ')}`);
 });
 
+// The framework's own archify docs set (spec 2026-07-28-archify-gated-docs, D4): presence only.
+// Freshness is owned by the release procedure + the gate eval — an mtime check here would flake.
+test('the self-docs set is present — five sources, five rendered pages', () => {
+  const DOCS = path.join(REPO, 'docs', 'architecture');
+  const TYPES = ['architecture', 'workflow', 'sequence', 'dataflow', 'lifecycle'];
+  for (const t of TYPES) {
+    assert.ok(fs.existsSync(path.join(DOCS, `${t}.json`)), `docs/architecture/${t}.json missing`);
+    assert.ok(fs.existsSync(path.join(DOCS, `${t}.html`)), `docs/architecture/${t}.html missing`);
+  }
+});
+
 console.log(
   failures === 0
     ? `\nrelease-hygiene: all tests passed (five stamps at ${version})`
