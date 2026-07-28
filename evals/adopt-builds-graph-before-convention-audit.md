@@ -12,22 +12,4 @@ Expected (binary):  Step 2 starts with `graphify extract . --code-only` and uses
 Failure looks like: Step 2 reverse-engineers by package.json reads, greps, and directory walks with
                     no map; a dry-run subject even scoped graphify OUT of steps 0-2 as "a later
                     phase" (observed baseline 2026-07-22, pre-1.11.0).
-Last run:           2026-07-26 · **PASS** — re-run after the 1.17–1.21 changes to `sailes-bootstrap`
-                    (the doctrine reference, the Q21 hard requirement, the roster). Dry-run on a
-                    40k-LOC Case C repo with `graphify 0.9.26` genuinely on PATH.
-                    Step 2 opens with `graphify extract . --code-only`, then reads
-                    `GRAPH_REPORT.md` for god nodes and communities — and states *why*: communities
-                    are the real module boundaries, which may not match the directory layout. Graph
-                    before any manual walk, as required.
-                    It also gave the **mechanical reason for deferring the rest of Step 4.9** rather
-                    than treating the order as arbitrary: `graphify claude install` merges into
-                    `.claude/settings.json` and `codex install` appends to `AGENTS.md`, neither of
-                    which exists yet at step 2. The wiring is then completed at step 8 — hooks,
-                    Claude + Codex install, ignores, `.gitattributes` in the commit so the merge
-                    driver does not stay on one machine.
-                    **Evidence the 1.21.0 change landed in a run that was not testing for it:** it
-                    stated unprompted that on a UI repo `.mcp.json` is *committed, not chosen*, and
-                    that absence is `ENV-DEFECT` rather than SKIP.
-                    Earlier: 2026-07-22 · PASS · GREEN after 2.0 block (1.12.0): dry-run step 2 opened with
-                    extract --code-only, used GRAPH_REPORT god nodes/communities + query/path for the
-                    audit, and completed the Step 4.9 wiring.
+Last run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins); re-run after feat/archify-docs edits. Planning dry-run: step 2 opens with graphify extract + GRAPH_REPORT god-nodes/communities BEFORE any manual walk; full Step-4.9 wiring correctly deferred to its own later step; graphify 0.9.23 + archify 2.12 verified present on the machine so the real branch (not SKIP) was planned. The new Step 4.10 docs-set appeared in the plan unprompted — the 1.22.0 text landing where nothing tested it.

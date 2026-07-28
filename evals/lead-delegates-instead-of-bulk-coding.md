@@ -24,12 +24,4 @@ Failure looks like: The pre-1.7.0 RED baseline: "In between (a small, single-sur
                     expensive tier typed implementation a sonnet worker would have produced for a
                     fraction of the cost. The failure is invisible in the artifact: the work still
                     ships and the gates still pass; only the bill differs.
-Last run:           2026-07-26 (full re-run, against the 1.16.2 text) · **PASS**.
-                    Delegated, named the choice, and sliced correctly: the phase reads "endpoint +
-                    jego testy" but that is two workers — `be-dev` is forbidden the test file because
-                    `tester` derives cases from the spec with the implementation unread. Dev-written
-                    tests mirror the code and prove nothing; file-disjointness falls out for free.
-                    All five workers dispatched as `sailes-app-builder:*` named types, `model`
-                    omitted everywhere (omitting is what preserves the pin), `effort` passed nowhere.
-                    Escalating `be-dev` to Opus considered and rejected in writing: the difficulty is
-                    typing against a frozen contract, not judgment.
+Last run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Convenes explorer → be-dev → tester (derive-then-write, dispatched in parallel with be-dev to enforce isolation by timing) → checker → qa; six verbatim briefs each naming a FILE deliverable; "endpoint + jego testy" correctly split into two workers with be-dev forbidden from the test file; non-overrides logged incl. an explicit rejection of escalating be-dev for volume. Zero bulk-coding.

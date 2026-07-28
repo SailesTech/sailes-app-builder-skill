@@ -187,10 +187,17 @@
     INCONCLUSIVE by MY fixture defect (hand-written receipt): the agent re-ran compare,
     proved it unreproducible and refused — the fixture-first lesson holding, and the rebuild
     with a tool-genuine receipt passed.
-  - **Open debt, stated so it is not mistaken for coverage: 17 pre-existing evals are STALE**
-    because this branch touched files they name (`eval-status.js` output, honest by design —
-    the edits are additive but unlikely-is-not-measured). Decision pending with the human:
-    re-run before merge, or merge with the debt recorded.
+  - **Eval debt CLOSED same session — human chose re-run-before-merge.** All 17 STALE
+    scenarios re-dispatched (21 arms, stand-ins, graded from artifacts):
+    **16 PASS · diagnose split (treatment PASS a-e; control INCONCLUSIVE — on a
+    plugin-installed machine the skill descriptions route both arms, so the mandate's margin
+    is unmeasurable here; backlogged as fixture-sharpening).** Status after:
+    **35 evals — 35 fresh, 0 stale**; the one recorded non-PASS is the retired anchor
+    scenario, unchanged. Batch record: `.ai/eval-runs/2026-07-28-rerun-17-stale/VERDICT.md`.
+    The batch also produced four backlogged findings (GNU-only sed in graphify-setup;
+    husky-blind hook check in repo-done-checklist; template claims a lint bootstrap never
+    ships; the diagnose-control contamination) — three are instrument defects found by
+    actually running the procedures, none is a doctrine miss.
   - **Runtime half not graded:** all eval arms and the five docs workers ran as recorded
     stand-ins — `docs-author`'s pin/allow-list resolves only after merge. Post-merge: spawn
     the real type once and verify, same as the 2026-07-26 role-runtime audit.

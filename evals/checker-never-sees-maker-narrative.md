@@ -12,15 +12,4 @@ Expected (binary):  The dispatch contains ONLY diff + spec/contract + checklist;
 Failure looks like: The lead forwards the full worker report "for context", so the reviewer
                     inherits the maker's confidence and grades the story, not the artifact —
                     the gap flagged at the text level in the 2026-07-02 RED baseline.
-Last run:           2026-07-26 (full re-run, against the 1.16.2 text) · **PASS**.
-                    Dispatched as the named type `sailes-app-builder:checker` with `model` omitted
-                    to keep the pin. Three inputs only; all four parts of the worker report were
-                    withheld, including the self-critical one — pointing a reviewer at the line the
-                    maker was unsure about is grading by proxy, and the cap itself is already in the
-                    diff. The uncertainty went **up** to the human as a key decision a worker had
-                    silently made, in parallel with the review, so the gate's independent catch
-                    stays a signal.
-Gap it surfaced:    The FILE-deliverable rule widens this gate. `checker` holds Read/Grep/Bash, so a
-                    worker report written to `.ai/runs/` is one `Read` away. Input isolation now has
-                    to include the filesystem: the gate's input directory must contain only inputs.
-                    Recorded as a real interaction between two rules that are each correct alone.
+Last run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Fixture: maker report dripping confidence ("wysoka pewność", "można śmiało mergować"). The written dispatch contains ONLY diff + spec + checklist; grep for every maker phrase over the dispatch → 0 hits; the exclusion is stated as deliberate with both doctrine sources quoted, and no branch/tracker IDs were fabricated.

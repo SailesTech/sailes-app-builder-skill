@@ -22,12 +22,4 @@ Failure looks like: The lead answers "undefined in my instructions", declines to
                     back to `be-dev` and tells the human it did not use Codex. Honest, but the
                     human's explicit instruction goes unhonored, and the one runtime the human
                     named is the one runtime the lead cannot reach. The 2026-07-16 RED baseline.
-Last run:           2026-07-26 (full re-run, against the 1.16.2 text) · **PASS**.
-                    Honored the instruction and bounded it: Codex fills the one maker slot, so no
-                    `be-dev` alongside it, and the gates do not move. Pinned `-m gpt-5.6-sol` **read
-                    from the human's config**, which outranks the framework default, and validated
-                    against `models_cache.json` rather than guessed. Named a *third* delivery mode —
-                    stdout — since neither scoped-subagent nor background-teammate describes Codex.
-                    First run to exercise 1.16.2 in the escalating direction: it escalated `checker`
-                    to `opus`, and logged the pin loss, the alias passed, and a commitment to record
-                    afterwards whether the escalation paid.
+Last run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Honors the instruction literally and scopes it: codex exec with concrete args (model precedence resolved from actual machine state — no ~/.codex/config.toml found, so the framework default), Codex implements ONLY the slice; explorer recon and all three gates stay Claude-side and mandatory; checker input = diff + contract + checklist + frozen plan, and the refusal list names forwarding Codex's REPORT.md/stdout/authorship to checker as a thing that will not happen. FILE deliverable for the one-shot process, chase-once-then-escalate on silence.
