@@ -8,7 +8,11 @@ Brief: `.ai/briefs/2026-07-28-archify-docs.md` (Decisions Ledger zatwierdzony 20
 `architecture` (zweryfikowane: `bin/archify.mjs:18`, `delta/architecture-delta.mjs`).
 
 > Open Questions zamknięte 2026-07-28 (Q1–Q5 = rekomendacja, Q6 = wybór człowieka wbrew
-> rekomendacji). Spec czeka na `Status: approved` od człowieka przed implementacją.
+> rekomendacji). Approved przez człowieka 2026-07-28.
+> Pre-implement 2026-07-28: **READY-WITH-FIXES**, 5 poprawek naniesionych (INVARIANTS +
+> ROLES jako wymuszone edycje testów; opisy plugin/marketplace; .claudeignore dla HTML;
+> Done-when przez `git grep` — `.claude/worktrees/` zatruwa zwykłe grepy; Done-when
+> Phase 2 bez nieistniejącego walidatora skilli). Zero Critical BC — zmiana addytywna.
 
 ## TLDR & Context
 
@@ -39,7 +43,9 @@ STATE.md — wybrane przez człowieka z kosztami na stole.
 
 - **D1 — pliki: `docs/architecture/` z commitowanymi JSON i HTML.** Żywy doc otwieralny
   od ręki dla zespołu i agentów; archify HTML jest samodzielne i deterministyczne.
-  Odrzucone: tylko-JSON (paczka wymagałaby kroku generacji).
+  Odrzucone: tylko-JSON (paczka wymagałaby kroku generacji). Pre-implement dodał:
+  generowane `*.html` idą do `.claudeignore` (u klienta i we frameworku) — JSON zostaje
+  czytelny dla agentów, HTML nie zaśmieca prompt-cache.
 - **D2 — `compare` biegnie ZAWSZE przy zamknięciu speca; pusta delta jest dowodem**
   („ten spec nie zmienił architektury"). Zero warunków do pamiętania i obchodzenia.
 - **D3 — `docs-author`: `claude-sonnet-5`, tools Glob/Grep/Read/Write/Edit/Bash, bez
@@ -139,18 +145,26 @@ fixtures w OBU kierunkach — wykrywa naruszenie / nie flaguje poprawnej pracy):
 
 ### Phase 2 — Skill `sailes-docs` + setup/SKIP
 SKILL.md + trzy references (setup z checkiem wersji D5, authoring, delta-at-gate z D2/D6).
-**Done-when:** `node -e` walidacja frontmatteru przechodzi w `npm test` → 0 failures;
-`grep -c "SKIP archify" skills/sailes-docs/references/archify-setup.md` → `>=1`;
-`grep -c "2.12" .../archify-setup.md` → `>=1`.
+**Done-when:** `npm test` → 0 failures; `git grep -c "SKIP archify" --
+skills/sailes-docs/references/archify-setup.md` → `>=1`; `git grep -c "2.12" --
+skills/sailes-docs/references/archify-setup.md` → `>=1`; frontmatter SKILL.md ma
+`name` + `description` (kształt jak istniejące skille).
 
 ### Phase 3 — Rola `docs-author` (D3)
 `agents/docs-author.md` (model `claude-sonnet-5`, jawny `effort`, tools bez `Agent`) +
-`codex-agents/docs-author.toml` + rejestracje rosteru (wszystkie miejsca, które dziś
-wymieniają role — znaleźć grepem, nie z pamięci: to była lekcja „nine registration surfaces").
-**Done-when:** `npm test` → 0 failures (walidator frontmatteru ról + walidator TOML);
-`grep -L "Agent" agents/docs-author.md` → plik wylistowany (brak `Agent` w tools);
-`grep -rl "docs-author" agents/ codex-agents/ skills/ | wc -l` ≥ liczba miejsc rejestracji
-ustalona grepem po istniejącej roli (np. `tester`).
+`codex-agents/docs-author.toml` (bez wzmianki o modelu Claude — parity to egzekwuje) +
+**obie wymuszone edycje testów**: `docs-author` do listy `ROLES` w
+`codex-agents/validate-toml.test.js` ORAZ wpis `INVARIANTS['docs-author']` w
+`codex-agents/parity.test.js` z twierdzeniami load-bearing roli:
+(1) nigdy nie edytuje kodu feature'u — defekt raportuje w górę,
+(2) receipt albo jawny SKIP, nigdy cisza,
+(3) autoruje z evidence repo, nie z pamięci/wyobraźni.
+Plus rejestracje prozą — znaleźć grepem po `tester` w plikach śledzonych gitem
+(`git grep -l "tester" -- agents/ codex-agents/ skills/ docs/ README.md`), nie z pamięci.
+**Done-when:** `npm test` → 0 failures (frontmatter + TOML + parity z nowym wpisem);
+`git grep -c "Agent" -- agents/docs-author.md` → `0` w polu tools (inspekcja frontmatteru);
+`git grep -l "docs-author" -- agents/ codex-agents/ skills/ docs/ README.md | wc -l` ≥
+liczba powierzchni ustalona grepem po `tester` minus ewale tester-specyficzne.
 
 ### Phase 4 — Wpięcia pipeline: bootstrap + implement + adopt + diagnose
 Kroki i karty wg Proposed Solution; `repo-done-checklist.md` dostaje linię
@@ -171,7 +185,8 @@ docs/architecture/*.html | wc -l` → `5`; `npm test` → 0 failures z nowym che
 ### Phase 6 — Werdykty evali + release
 Dispatch trzech evali przez `sailes-eval-runner` (świeże konteksty, werdykt z artefaktu
 nie z relacji agenta); CHANGELOG entry; pięć stampów wersji (`VERSION`, `package.json`,
-`plugin.json`, `marketplace.json`, stamp w AGENTS.md).
+`plugin.json`, `marketplace.json`, stamp w AGENTS.md); **aktualizacja opisów prozy
+w `plugin.json` i `marketplace.json`** (enumerują skille — dryf bez tego).
 **Done-when:** 3× PASS zapisane w plikach evali (`Last run:` z datą 2026-07-28+);
 `npm test` → 0 failures; `grep -c "<nowa wersja>"` po pięciu plikach → `1` w każdym.
 **Merge do `main` = deploy — wyłącznie decyzja człowieka, poza tym specem.**
