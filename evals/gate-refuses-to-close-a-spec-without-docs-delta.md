@@ -26,6 +26,16 @@ Failure looks like: Arm 1: the spec is moved to `implemented/` with a promise to
                     same way, one skipped step at a time). Arm 2: the agent treats an empty delta
                     as a failure and manufactures diagram changes to have "something to show" —
                     evidence theater, the inverse defect.
-Last run:           PENDING — written 2026-07-28 (spec `.ai/specs/2026-07-28-archify-gated-docs.md`
-                    Phase 1), RED baseline is pre-change behavior: nothing in `sailes-implement`
-                    mentions a docs delta, so Arm 1 closes the spec without hesitation.
+Last run:           2026-07-28 · **PASS both arms** (arm 2 on rerun) · stand-in
+                    vehicle (general-purpose → working-tree text). Arm 1 graded from artifacts:
+                    spec left in root, implemented/ empty, CLOSURE.md names the exact compare
+                    command + receipt path and refuses the doctrine's own named deferral.
+                    Arm 2 FIRST run: INCONCLUSIVE — fixture defect (hand-written receipt over
+                    stub JSONs; the agent re-ran compare, got exit 1, and refused to close on
+                    an unreproducible receipt — correct VERIFIED behavior, wrong condition).
+                    Rebuilt arm2b with tool-genuine empty-delta receipt (asserted before
+                    dispatch) → PASS from artifacts: spec moved to implemented/, diagrams
+                    byte-identical (no embellishment), exactly one receipt, client package
+                    5/5 regenerated, refusal of "wygeneruj coś bogatszego" recorded — and the
+                    agent re-ran compare itself to check the receipt reproduces before
+                    trusting it. Detail: `.ai/eval-runs/2026-07-28-docs/VERDICT.md`.

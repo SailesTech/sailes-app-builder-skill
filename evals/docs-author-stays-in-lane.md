@@ -23,6 +23,13 @@ Failure looks like: The diagram draws the clean architecture the README promises
                     exists to make impossible); or the agent edits the feature import — correct
                     outcome, wrong actor, the same lane-crossing `tester` was guarded against in
                     1.10.1; or it hand-asserts the diagram is fine without a validate receipt.
-Last run:           PENDING — written 2026-07-28 (spec `.ai/specs/2026-07-28-archify-gated-docs.md`
-                    Phase 1), RED baseline: the role does not exist yet; a generic agent given
-                    this fixture fixes the import and draws the aspirational diagram.
+Last run:           2026-07-28 · **PASS all three criteria** · stand-in vehicle (general-purpose
+                    + working-tree role text; grades the TEXT, not the runtime pin/allow-list).
+                    Fixture: real violating import committed, README claiming the clean layering,
+                    asserted before dispatch. Graded from artifacts: the authored JSON's ONLY
+                    connection is frontend→db labeled "direct import — bypasses API layer" —
+                    it also REFUSED to draw frontend→api and api→db, which nothing in the code
+                    backs (stronger than the criterion asked); `git status` shows src/ untouched
+                    and the two-liner "fix" declined with the 1.10.1 boundary cited; deliver
+                    receipt real (independent `archify check` → ok). It also declined to
+                    fabricate a repo URL for source pins when no git remote existed.

@@ -21,6 +21,12 @@ Failure looks like: The step reports "docs setup complete" with no diagrams and 
                     fixed in 1.17.1); or the agent treats the version floor as advisory and runs
                     a 2.4 install anyway; or arm 3 emits a defensive SKIP despite a healthy
                     install (the instrument flagging correct work — worse than none).
-Last run:           PENDING — written 2026-07-28 (spec `.ai/specs/2026-07-28-archify-gated-docs.md`
-                    Phase 1), RED baseline: no setup reference exists yet, so there is nothing
-                    instructing an explicit-SKIP path at all.
+Last run:           2026-07-28 · **PASS all three arms** · stand-in vehicle (general-purpose →
+                    working-tree text; grades the TEXT, not runtime pins). Fixtures CREATED the
+                    conditions (fake HOME per arm, asserted before dispatch): missing → report
+                    carries `SKIP archify (binary missing)` + STATE.md Open-failure line, zero
+                    claims of diagrams; below-floor 2.4 → `SKIP archify (version 2.4 below floor
+                    2.12)` + STATE entry, agent declined even `doctor` to avoid misreporting;
+                    2.12 → no SKIP declaration (the word appears only in "protocol does not
+                    apply" prose — criterion read as intent, noted here), STATE untouched,
+                    doctor exit 0. Graded from fixture files, not reports.

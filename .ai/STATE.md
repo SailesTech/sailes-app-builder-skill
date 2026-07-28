@@ -168,7 +168,36 @@
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-07-26 (**resume here**): **1.21.3 is on production**, plugin clone synced, `main` clean,
+- 2026-07-28 (**resume here**): **1.22.0 built and eval-verified on `feat/archify-docs` — NOT
+  merged; merge = deploy and is the human's call.** The full pipeline ran end to end: discovery
+  (8-decision ledger, three of them the human's against recommendation — full 5-type set,
+  dedicated skill `sailes-docs`, tenth role `docs-author`) → approved spec
+  `.ai/specs/2026-07-28-archify-gated-docs.md` → pre-implement READY-WITH-FIXES (5 fixes,
+  incl. the two ENFORCED role-registration edits: `ROLES` in validate-toml + `INVARIANTS` in
+  parity) → six phases implemented, each committed with its binary Done-when output.
+  - **What shipped on the branch:** `sailes-docs` (setup/authoring/delta-at-gate, floor
+    archify >= 2.12, explicit-SKIP), `docs-author` both twins + invariants, bootstrap Step
+    4.10 + Q22 (label language = client's), the docs-delta gate in `sailes-implement` (empty
+    delta IS evidence), adopt/diagnose/checklist wiring, self-docs: five diagrams delivered
+    9/9 showcase with receipts in `.ai/runs/2026-07-28-archify-gated-docs.md`, five stamps at
+    1.22.0 + CHANGELOG + manifest descriptions. archify 2.12 installed on this machine
+    (`npx skills add tt-a1i/archify -g`).
+  - **Evals: the three new docs scenarios PASS (7 arms total, all stand-ins, graded from
+    artifacts** — `.ai/eval-runs/2026-07-28-docs/VERDICT.md`). Arm2 first run was
+    INCONCLUSIVE by MY fixture defect (hand-written receipt): the agent re-ran compare,
+    proved it unreproducible and refused — the fixture-first lesson holding, and the rebuild
+    with a tool-genuine receipt passed.
+  - **Open debt, stated so it is not mistaken for coverage: 17 pre-existing evals are STALE**
+    because this branch touched files they name (`eval-status.js` output, honest by design —
+    the edits are additive but unlikely-is-not-measured). Decision pending with the human:
+    re-run before merge, or merge with the debt recorded.
+  - **Runtime half not graded:** all eval arms and the five docs workers ran as recorded
+    stand-ins — `docs-author`'s pin/allow-list resolves only after merge. Post-merge: spawn
+    the real type once and verify, same as the 2026-07-26 role-runtime audit.
+  - Backlog gained two promotion candidates from eval side-findings (receipt reproducibility
+    spot-check; SKIP protocol's missing third state) and one human call (prompt-anchor spec
+    RETIRED-in-root).
+- 2026-07-26 (superseded resume marker): **1.21.3 is on production**, plugin clone synced, `main` clean,
   `npm test` green, **evals 31 fresh / 0 stale**. Eight releases this session: 1.17.0 → 1.21.3.
 
   **Everything the previous resume-marker listed is DONE.** The environment blocker is gone — the
