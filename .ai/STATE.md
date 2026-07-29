@@ -168,7 +168,45 @@
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-07-29 (**resume here**): **1.22.0 IS on production** — PR #11 reviewed, tested against a
+- 2026-07-29 late (**resume here**): **1.23.1 is on production** (`0058a15`). Answer shape shipped
+  with two fixes found while proving it. Full day, in order: PR #11 → 1.22.0 → 1.22.1 → the ADHD
+  A/B → 1.23.0 → 1.23.1.
+  - **`## Answer shape` is doctrine now**, in `AGENTS.md` and `agents-md-template.md` (compressed
+    there; generated root file at 146 lines against its own ~150 budget). Spec
+    `.ai/specs/2026-07-29-answer-shape.md`, experiment `.ai/experiments/2026-07-29-adhd-mode/`,
+    eval `evals/answer-shape-hands-over-the-decision.md` with a real RED baseline.
+    **Rule 3 is WIDE by the human's call, against my recommendation** — any fork with more than one
+    defensible answer is theirs, made survivable by batching rather than by filtering.
+  - **The A/B did NOT separate its arms** (both 3/3) and says so. Placement was decided by
+    documented mechanism, not by the eval: only `CLAUDE.md`, unscoped `.claude/rules/*.md` and
+    auto-memory survive compaction; hooks are documented as "not context". Do not cite the A/B as
+    having chosen AGENTS.md — it did not.
+  - **Two defects of mine, both shipped before they were caught.** The 1.22.0 `$HOME` fix had an
+    MSYS bug of its own (`.join("/")` rewritten by Git Bash → a healthy archify reads as MISSING);
+    it survived because every verification ran under an `MSYS_NO_PATHCONV=1` I had exported. And
+    the docs-delta gate had no stop: an eval arm did every written step right and closed the spec
+    in the same motion, so the human never saw the delta. Both fixed in 1.23.1. **The lesson worth
+    carrying: a fix verified under an environment variable the reader does not have is not
+    verified.**
+  - **Eval batch `.ai/eval-runs/2026-07-29-stale-rerun/`: 4 PASS · 1 FAIL.** Three of five runs hit
+    a fixture defect of their own author's making and rebuilt rather than grading a run that did
+    not happen. `eval-status.js` was fixed mid-batch — it could not see a per-arm verdict, so a
+    recorded FAIL reported as no verdict and the summary understated the count.
+  - **Open debt, all of it visible on purpose:**
+    1. `gate-refuses-to-close-a-spec-without-docs-delta` — **FAIL against doctrine that has since
+       changed.** Needs a re-run to say anything. It reports FRESH only because the harness compares
+       dates and both the run and my edit landed the same day; that same-day granularity is itself
+       worth a look.
+    2. `auth-spec-generates-authz-matrix` and `qa-vision-verifies-against-baseline` went STALE from
+       the `sailes-implement` edit.
+    3. **`docs-author`'s runtime is still ungraded** — every eval arm all day was a stand-in.
+       Spawn the real role once in a fresh session and verify the pin and allow-list.
+    4. Still no staging channel, and still no test for trigger collisions between skill
+       descriptions (map: `.ai/experiments/2026-07-29-adhd-mode/trigger-collision-map.md`, 25 pairs,
+       13 detectable from text alone).
+    5. Opus 5 fit audit `.ai/audits/2026-07-29-opus-5-fit.md` — three proposals, none implemented,
+       awaiting the human. One effort-pin sweep named as a measurement rather than guessed.
+- 2026-07-29 (superseded): **1.22.0 IS on production** — PR #11 reviewed, tested against a
   real archify install, one defect fixed on the branch, merged to `main` (`72f392d`) and pushed.
   The merge is the deploy; every machine with the plugin now has `sailes-docs` and `docs-author`.
   - **What local testing added over the evals** (whose arms all ran as stand-ins): all five
