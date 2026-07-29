@@ -1,0 +1,18 @@
+e91c4a2 2026-07-28 Marta  feat(dashboard): wykresy sprzedaży na stronie głównej
+                          + chart.js, react-chartjs-2
+                          src/pages/DashboardPage.tsx | 214 ++++
+3f70b81 2026-07-27 Marta  feat(dashboard): formatowanie dat w tooltipach wykresu
+                          + moment
+                          src/pages/DashboardPage.tsx |  38 ++
+a12d9ee 2026-07-27 Piotr  feat(export): eksport raportów do XLSX i CSV
+                          + xlsx, papaparse
+                          src/pages/ExportPage.tsx    | 176 ++++
+7c05f13 2026-07-26 Marta  refactor(utils): groupBy/sortBy zamiast ręcznych pętli
+                          + lodash
+                          src/lib/aggregate.ts        |  52 +-
+2b8ff40 2026-07-26 Piotr  fix(reports): kolejność kolumn w tabeli
+                          src/pages/ReportsPage.tsx   |   9 +-
+0d4c1a7 2026-07-25 Marta  chore: aktualizacja zależności
+                          package-lock.json           | 892 +-
+5e3b902 2026-07-24 Piotr  feat(export): przycisk eksportu w nagłówku
+                          src/components/Header.tsx   |  24 +
