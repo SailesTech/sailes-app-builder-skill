@@ -1,6 +1,6 @@
 # Spec: Answer shape — the response format the human can actually act on
 
-Status: **draft — Open Questions gate OPEN, do not implement**
+Status: **draft — Open Questions answered 2026-07-29, awaiting the human's approval to implement**
 Date: 2026-07-29 · Branch: `feat/adhd-mode-ab`
 Experiment: `.ai/experiments/2026-07-29-adhd-mode/` (README, SCENARIO, VERDICT, four graded answers)
 Requested by: the human, 2026-07-29 — *"opus 5 ma problem z zbyt wylewnym opisywaniem wszystkiego"*
@@ -59,73 +59,93 @@ graded: `.ai/experiments/2026-07-29-adhd-mode/arm-a-agents-md.md`.
 Three rules (only what changes the next action · offer depth, do not pour it · every decision for
 the human goes through the choice window), plus the two guards the experiment showed to matter:
 
-- **What is NOT a decision** — obvious default, already answered by the repo, right nine times in
-  ten. Make the call, say so in one line, keep going. Without this the rule inverts into a window
-  on every trivial fork, which trains the reader to click through windows.
+- **Forks batch, and a fork never interrupts** (D1). The width is deliberate — any fork with more
+  than one defensible answer belongs to the human — so the mechanism that keeps it usable is
+  grouping, not filtering. Carry on with everything that does not depend on the fork; surface the
+  accumulated set at the next natural stop, in one window. A class the human pre-delegates stops
+  being a fork until they say otherwise.
 - **When a rule fights the task, the task wins and the shape stays** — "explain this" gets the full
   explanation; a destructive action gets its confirmation; a question whose answer IS the option
   list gets the options.
+
+Note the Arm A text as graded contains a "what is NOT a decision" paragraph drawing the narrower
+line — option (a) of Q1. **D1 rejected that line**, so the text must be rewritten on this point
+before insertion; it may not be copied across unchanged.
 
 **Not proposed:** a `sailes-adhd` skill, a `SessionStart` hook, or an opt-in flag file. The arm
 that would have justified them measured no better and costs an 18th description in a routing pool
 a collision map found to hold 25 competing pairs already.
 
-## Open Questions — **answer before implementation**
+## Decisions (Open Questions answered 2026-07-29)
 
-**Q1 — Scope of "decision".** Rule 3 fires on decisions that are the human's. Where is the line?
-  - (a) Only forks the human's own doctrine already reserves — architecture, data model, scope,
-    trade-offs with a cost. Routine technical calls stay with the agent. *(recommended — it is the
-    line the deep-run agent drew unprompted, and it produced the "here is what I decided and why it
-    was not a decision" paragraph that impressed most)*
-  - (b) Any fork with more than one defensible answer, including small technical ones.
-  - (c) Something else you want to draw explicitly.
+- **D1 — scope of "decision": ANY fork with more than one defensible answer, including small
+  technical ones.** Human's choice, **against the recommendation**, with the cost named on the
+  table: a window per trivial fork trains the reader to click through windows, which destroys the
+  instrument. Recorded as the human's call, not a consensus.
+  **Consequence the choice forces, and the reason it is survivable: forks BATCH.** One window
+  carrying the several forks reached since the last one — not one window per fork. A fork found
+  mid-work does not interrupt: keep going on everything that does not depend on it, and surface it
+  with the others at the next natural stop. The human may also pre-delegate a *class* of forks
+  ("naming is yours"), which then stops being a fork until they say otherwise. This implements D1
+  at its stated width; it does not narrow it back to the rejected option (a).
+- **D2 — lead-to-human only.** Worker roles keep their existing report contracts; rule 3 has no
+  meaning when the reader is another agent. No change to the ten role definitions or their Codex
+  twins, which also keeps this spec out of the parity surface.
+- **D3 — ship as measured and watch the length.** No length cap in the section. The 163-vs-60
+  regression is recorded in the verdict as the thing to watch, not fixed pre-emptively — a hard cap
+  is the rule that would delete a real answer.
+- **D4 — CHANGELOG only for existing client repos.** They pick it up at their next adopt/Upgrade;
+  no walk of live repos now. *(recommendation taken by default)*
+- **D5 — promote the scenario to `evals/answer-shape-hands-over-the-decision.md`.** The fixture is
+  already at `evals/fixtures/adhd-mode/`, and `answers/control.md` is the recorded RED baseline.
+- **D6 — the section says nothing about language.** Answer in the language of the request, as now.
+  *(recommendation taken by default)*
 
-**Q2 — Does this bind subagents too?** Roles under `agents/` (`explorer`, `be-dev`, `checker`, …)
-report to the lead, not to you. Does the answer shape apply to their reports?
-  - (a) Lead-to-human only; worker reports keep their current contract. *(recommended — worker
-    report formats are already specified per role, and rule 3 is meaningless when the reader is
-    another agent)*
-  - (b) Everywhere, with the choice-window rule reading as "escalate the fork to the lead".
+## Phasing & Steps
 
-**Q3 — The length regression.** The deep run held all three rules and still ran 163 lines against
-60 at turn 1. Do we act on it now?
-  - (a) Ship as measured; watch it; revisit if it degrades. *(recommended — part of the growth was
-    responsive to context I added, and a hard length cap is exactly the rule that would delete a
-    real answer)*
-  - (b) Add an explicit length discipline to the section now.
-  - (c) Add a second eval scenario that measures compression at distance, before shipping.
+**Phase 1 — the section.** Write `## Answer shape` into `AGENTS.md` after "The spine", with the
+D1 width and the batching mechanic (NOT the graded text's narrower "what is not a decision"
+paragraph — see above). Mirror into `skills/sailes-bootstrap/agents-md-template.md`.
+`Done-when`:
+```
+git grep -c "Answer shape" -- AGENTS.md skills/sailes-bootstrap/agents-md-template.md
+   → 1 in each (git grep, not plain grep: .claude/worktrees/ poisons ordinary greps)
+awk 'END{print NR}' skills/sailes-bootstrap/agents-md-template.md
+   → printed, and the ≤150-line budget in its own header either still holds or the
+     overrun is stated and accepted in the run log
+npm test → green
+```
 
-**Q4 — Client repos.** The template reaches only repos generated or adopted *after* this ships.
-Existing client repos need an Upgrade pass, which reads the CHANGELOG entry.
-  - (a) CHANGELOG entry only; each repo picks it up at its next adopt/Upgrade. *(recommended)*
-  - (b) Also walk the existing client repos now and apply it.
+**Phase 2 — the eval.** Promote `SCENARIO.md` to
+`evals/answer-shape-hands-over-the-decision.md`, rewriting criterion (a) to the D1 width. The
+fixture stays at `evals/fixtures/adhd-mode/`. Record the RED baseline from `answers/control.md`,
+which failed (a) and (c) — a real recorded failure, not a described one.
+`Done-when`:
+```
+node evals/harness/eval-status.js → lists the new scenario, no error
+git grep -c "answers/control.md" -- evals/answer-shape-hands-over-the-decision.md → 1
+```
 
-**Q5 — Promotion to an eval.** `SCENARIO.md` currently lives in the experiment folder.
-  - (a) Promote to `evals/answer-shape-hands-over-the-decision.md` as a permanent regression, with
-    the fixture already at `evals/fixtures/adhd-mode/`. *(recommended — this repo's rule is that
-    model behavior gets an eval, and without one nothing detects the doctrine eroding)*
-  - (b) Leave it as an experiment record.
+**Phase 3 — release.** Five stamps + CHANGELOG entry. Per D4 the entry states explicitly that an
+adopted repo gains the section only at its next Upgrade pass, and that nothing else is required.
+`Done-when`:
+```
+npm test → "release-hygiene: all tests passed (five stamps at <version>)"
+```
 
-**Q6 — Language.** `AGENTS.md` is English; the human works in Polish and both graded answers were
-Polish. Does the section say anything about which language an answer uses?
-  - (a) Silent — answer in the language of the request, as now.
-  - (b) State it explicitly, since it is a rule about output form.
+## Integration Coverage
 
-## Phasing & Steps — *drafted, not final; may change with the answers above*
+No API or UI surface — this spec changes doctrine text only. The verification surface is:
+`npm test` (release hygiene + the repo-done checklist tests that read these files), and the Phase 2
+eval, which is the only instrument that can detect the rule eroding since a green test says nothing
+about whether the instruction lands.
 
-**Phase 1 — the section.** Insert into `AGENTS.md` after "The spine"; mirror into
-`agents-md-template.md` (respect its ≤150-line budget: this displaces nothing today, so confirm
-the budget still holds after insertion).
-`Done-when`: `git grep -c "Answer shape" AGENTS.md skills/sailes-bootstrap/agents-md-template.md`
-→ `1` in each; `npm test` green; the template's line count printed and under budget.
+## Backward-compatibility impact
 
-**Phase 2 — the eval** (only if Q5 = a). Promote `SCENARIO.md` to `evals/`, record the RED baseline
-from the control answer already on disk.
-`Done-when`: the scenario file exists with a `Last run:` line citing `answers/control.md` as the
-recorded FAIL, and `node evals/harness/eval-status.js` lists it as fresh.
-
-**Phase 3 — release.** Five stamps + CHANGELOG entry stating whether an adopted repo needs action.
-`Done-when`: `npm test` → `release-hygiene: all tests passed (five stamps at <version>)`.
+Additive. No existing rule is edited or removed, no role definition changes (D2), no Codex twin
+changes, no hook changes. The one interaction to watch is `agents-md-template.md`'s stated ≤150-line
+budget, whose own rule says a promoted rule should "displace or merge, not only append" — this
+appends, and Phase 1 must therefore report the resulting line count rather than assume it fits.
 
 ## Non-Goals
 
