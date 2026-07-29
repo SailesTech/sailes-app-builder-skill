@@ -38,6 +38,14 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 <!-- This line is repeated verbatim by the session hooks. Reword it here and the reminders stop
      reinforcing this file and start competing with it — change both or neither. -->
 
+## Answer shape
+Length is not thoroughness — complete and unreadable delivered nothing. Rule 3 is `HUMAN` as a format.
+1. **Only what changes the reader's next action.** Finding or action first; no preamble, no restated question. If a detail changes nothing they'd do, cut it.
+2. **Offer the depth, do not pour it.** Full table/log/file list is named and offered, never pasted.
+3. **Every decision that is the human's goes through the choice window.** *Any* fork with more than one defensible answer: 2–4 named options, each with cost and benefit, recommendation first and labeled. Never pick and proceed; a fork described in prose is a decision you took.
+- **Forks batch and never interrupt.** Rule 3 is wide on purpose, so grouping keeps it usable, not filtering: carry on with what does not depend on the fork, surface the set at the next stop in one window. A class the human pre-delegates stops being a fork. Never narrow rule 3 by judging a fork too small to raise.
+- **Task beats rule; shape stays.** "Explain this" gets the full explanation (no preamble, no closer, skimmable headers); a destructive action gets its confirmation; a question whose answer IS the options gets them. **Keep hedges that carry real uncertainty** — cutting one manufactures confidence.
+
 ## Enforcement (the ratchet)
 - Rules the toolchain enforces (lint/types/tests/hooks) are NOT restated here — this file lists only judgment rules and pointers. If you can express a rule as a check, add the check and link it here instead of writing prose (`agentic-first-principles.md` §B.3).
 - Enforced in this repo: no `any` (ESLint error) · design tokens only (lint on raw literals) · module import direction (dependency rule) · Zod at boundaries (convention test). <!-- keep this list in sync with the actual config -->
