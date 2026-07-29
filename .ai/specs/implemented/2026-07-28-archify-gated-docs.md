@@ -1,6 +1,6 @@
 # Spec: archify jako gate'owana dokumentacja projektów Sailes
 
-Status: approved
+Status: **implemented** — shipped 2026-07-29 in 1.22.0 (`72f392d`); closed 2026-07-29 with an EMPTY docs-delta (`.ai/docs-deltas/2026-07-29-archify-gated-docs-closure.json`). Closure was overdue: it sat in `.ai/specs/` root after shipping, so the SessionStart router reported it as in flight.
 Date: 2026-07-28 · approved 2026-07-28 · Branch: `feat/archify-docs`
 Brief: `.ai/briefs/2026-07-28-archify-docs.md` (Decisions Ledger zatwierdzony 2026-07-28)
 Źródło: https://github.com/tt-a1i/archify.git — MIT, v2.12; skill 5,2 MB, CLI Node bez kluczy

@@ -1,6 +1,6 @@
 # Spec: three guards for behaviors the model has and the doctrine does not name
 
-Status: **approved 2026-07-29** — no Open Questions gate; every fork was put to the human as a
+Status: **implemented** — 2026-07-29, released in 1.24.0 (`b8ae59f`). Docs-delta at closure: EMPTY (`.ai/docs-deltas/2026-07-29-opus-5-guards.json`), shown before the move. No Open Questions gate; every fork was put to the human as a
 choice and answered before this file existed (see Decisions).
 Date: 2026-07-29 · Branch: `feat/opus-5-guards`
 Audit: `.ai/audits/2026-07-29-opus-5-fit.md` (the analysis; this spec is only the build)
