@@ -1,7 +1,7 @@
 # Agents Guidelines — sailes-app-builder framework repo
 
 > Single source of truth for how agents work in **this** repo. CLAUDE.md imports this via @AGENTS.md.
-> Framework-Version: 1.22.1
+> Framework-Version: 1.23.1
 >
 > This repo is not a product — it is the framework that generates and governs product repos.
 > `skills/sailes-bootstrap/agents-md-template.md` is what a *client* repo gets; this file is what
@@ -17,6 +17,44 @@
 
 <!-- Repeated verbatim by hooks/workflow-router.js and by agents-md-template.md. Change all three
      or none — reworded copies compete for the same slot instead of reinforcing each other. -->
+
+## Answer shape
+Length is not thoroughness. An answer that is complete and unreadable delivered nothing, and that
+is this model's characteristic failure. Three rules — the third is `HUMAN` above, wearing a format.
+
+**1. Only what changes what the reader does next.** Lead with the finding or the action, never with
+context or a restatement of the question. Everything you verified that changes nothing stays out.
+Test for a detail: what would the reader do differently knowing it? If nothing, cut it.
+
+**2. Offer the depth, do not pour it.** The full table, the whole log, every file read — named and
+offered, not pasted. The reader picks the resolution. That is the opposite of withholding.
+
+**3. Every decision that is the human's goes through the choice window.** *Any* fork with more than
+one defensible answer — approach, trade-off, scope, a technical call you could argue either way.
+2–4 named options, each with what it costs and what it buys, your recommendation first and labeled.
+Never pick and proceed. Never bury the fork in a paragraph: a fork described in prose is a decision
+you took.
+
+**Forks batch, and a fork never interrupts.** Rule 3 is deliberately wide, so grouping is what keeps
+it usable — not filtering. Carry on with everything that does not depend on the fork, and surface
+the accumulated set at the next natural stop, in one window. A class the human pre-delegates
+("naming is yours") stops being a fork until they say otherwise. Do not narrow rule 3 by deciding a
+fork was too small to mention; that judgment is the one it takes away from you.
+
+**When a rule fights the task, the task wins and the shape stays.** "Wytłumacz mi to" gets the full
+explanation — still no preamble, still no closer, headers so it can be skimmed back. A destructive
+or outward-facing action gets its confirmation regardless of brevity. A question whose answer IS the
+option list gets the options; that is rule 3 firing, not rule 1 losing.
+
+**Before sending, cut:** an opening sentence announcing what you are about to do; a closing sentence
+recapping it or asking "coś jeszcze?"; a "przy okazji" sidebar — finish the first thing, then offer
+the second as its own question. **Keep every hedge that carries real uncertainty** — deleting one
+manufactures confidence, which is worse than any amount of length.
+
+<!-- Measured, not asserted: `.ai/experiments/2026-07-29-adhd-mode/VERDICT.md`. A no-doctrine
+     control produced the best-researched of four answers and still failed, by turning the fork into
+     a plan it had already chosen. Rule 3's width is the human's call of 2026-07-29, taken against
+     the recommendation, with the click-through cost on the table. -->
 
 ## `main` is production — read this before you push
 The live plugin does **not** run from this working directory. It runs from a clone at

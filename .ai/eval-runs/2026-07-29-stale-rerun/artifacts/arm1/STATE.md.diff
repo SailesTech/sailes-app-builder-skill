@@ -1,0 +1,36 @@
+diff --git a/.ai/STATE.md b/.ai/STATE.md
+index b638bf6..2636f54 100644
+--- a/.ai/STATE.md
++++ b/.ai/STATE.md
+@@ -10,11 +10,28 @@ Session memory. Read at session start; write before walking away.
+ - All DB access goes through `src/db/client.ts`; routes never construct a Pool.
+ 
+ ## Open failures
+-- (none recorded)
++- Open failure: archify not installed — docs step skipped. Ran the archify-setup.md
++  procedure on 2026-07-29; `~/.claude/skills/archify` and `~/.agents/skills/archify`
++  are both absent on this machine, and `npx skills add tt-a1i/archify -g` could not be
++  run in this environment (install blocked). SKIP archify (binary missing). Re-run the
++  procedure verbatim once archify can be installed on this machine; no receipt exists
++  yet so `docs/architecture/` diagrams are not generated/validated.
+ 
+ ## Lessons learned
+ - See `.ai/lessons.md`.
+ 
+ ## Last session
+-2026-07-27 — finished the orders read path. Next step: run the docs setup step so
+-`docs/architecture/` exists before the first spec closes.
++2026-07-29 — ran the docs setup step (archify-setup.md). Machine check found archify
++missing (not just stale); install could not be performed here, so the step is recorded
++as SKIPPED per the SKIP protocol, not silently passed. `.claudeignore` wiring for
++`docs/architecture/*.html`, `docs/architecture/client-package/`, and
++`.ai/docs-deltas/*.html` was added. Also note: the archify-setup.md Step 0 one-liner
++(`node -p 'require("os").homedir().split(require("path").sep).join("/")'`) is itself
++corrupted by Git Bash/MSYS automatic path conversion on this workstation — MSYS mangles
++the literal `"/"` argument passed to node before Node ever sees it, turning the join
++separator into the MSYS root Windows path. Worked around with `MSYS_NO_PATHCONV=1`
++exported before the call; without it `ARCHIFY_HOME` resolves to garbage
++(`C:C:/Program Files/Git/Users...`) and the floor check silently reports "MISSING"
++using a nonsense path instead of the real one. Next step: once archify is installed
++and `MSYS_NO_PATHCONV=1` is set, re-run archify-setup.md Steps 0–3, then author the
++initial diagram set per `references/authoring.md`.

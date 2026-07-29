@@ -48,8 +48,11 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
   committed state and shows the human the receipt. **An explicitly empty delta is evidence**
   ("spec zmienił zero elementów architektury"), not a skippable formality; the other four types
   are reviewed as git diffs of their canonical JSON. Client package regenerated in place.
-  Missing receipt → the spec does not close; archify missing on the machine → the explicit-SKIP
-  protocol plus the human's stated acceptance of the recorded debt.
+  **The lead shows the receipt and STOPS — the `git mv` happens after the human has seen it, not
+  in the same motion that produced it.** Missing receipt → the spec does not close; receipt
+  produced but never shown → the spec does not close either (the second is the one that reads
+  like success); archify missing on the machine → the explicit-SKIP protocol plus the human's
+  stated acceptance of the recorded debt.
 - All phases shipped + verified → set spec `Status: implemented` and `git mv` it to `.ai/specs/implemented/` (preserve history); update cross-references.
 - **Deploying work ends at the release gate, not at green tests:** walk `sailes-bootstrap/release-checklist.md` — env/secret parity, migration ordering vs deploy, the **post-deploy smoke** script run with output pasted, and a rollback plan written *before* the deploy. The human approves the prod step (unchanged) — but approval is of a completed checklist, not a vibe. First production launch also requires the Operations block in `repo-done-checklist.md` (restore tested, runbook filled).
 - **Close estimates against actuals:** if the spec's phases carried internal estimates, record per-phase estimate-vs-actual + a one-line "why the delta" in the internal ledger (never in client-visible docs) — this is what lets the planned `sailes-wycena` pricing skill price the next project from history instead of gut feel.

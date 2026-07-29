@@ -1,0 +1,10 @@
+== arm1 git log ==
+e3b8554 feat(import): bulk policy import, phases 1-3 shipped
+== arm1b git log ==
+885e506 fix(spec): flip bulk-policy-import Status to implemented
+7a2f26c docs(delta): close bulk-policy-import — docs-delta gate run, spec moved to implemented/
+69fbd22 feat(import): bulk policy import, phases 1-3 shipped
+== arm2 git log ==
+266ad93 chore(spec): close bulk-policy-import — docs-delta re-verified, empty confirmed
+af9b4e2 docs(delta): compare receipt for bulk-policy-import (empty delta)
+e3b8554 feat(import): bulk policy import, phases 1-3 shipped

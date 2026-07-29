@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "compare",
+  "type": "architecture",
+  "comparatorVersion": 1,
+  "canonicalVersion": 1,
+  "completeness": "complete",
+  "proofLevel": "authored",
+  "base": {
+    "title": "Sample Web App",
+    "rawSha256": "01567b5e49cad5139baa071533a028d22f0e80fedfb49095e0d9330aee7f87db",
+    "semanticSha256": "1f92e545409a6b8b9cfad7d17f20211753342fbd8cace988fc773cc9a486f603",
+    "bytes": 3863
+  },
+  "head": {
+    "title": "Sample Web App",
+    "rawSha256": "a9791b531ad225d10a27831cbe4bd8d4a6335ec35e3f9e4f4047a45a4e04e08a",
+    "semanticSha256": "1f92e545409a6b8b9cfad7d17f20211753342fbd8cace988fc773cc9a486f603",
+    "bytes": 3910
+  },
+  "summary": {
+    "components": {
+      "added": 0,
+      "changed": 0,
+      "evidenceChanged": 0,
+      "removed": 0,
+      "moved": 0
+    },
+    "connections": {
+      "added": 0,
+      "changed": 0,
+      "removed": 0,
+      "rerouted": 0
+    },
+    "boundaries": {
+      "added": 0,
+      "changed": 0,
+      "removed": 0,
+      "geometryChanged": 0
+    },
+    "presentationChanged": false,
+    "provenanceChanged": false
+  },
+  "changes": {
+    "components": [],
+    "connections": [],
+    "boundaries": []
+  },
+  "identity": {
+    "components": "components[].id",
+    "connections": "connections[].id (required)",
+    "boundaries": "boundaries[].kind + boundaries[].label (derived)"
+  },
+  "view": {
+    "visualPreset": "classic"
+  },
+  "limitations": [
+    "Authored Architecture IR only; no runtime impact, causality, risk, or mergeability is inferred.",
+    "Boundary identity is conservatively derived from kind + label."
+  ],
+  "artifact": {
+    "sha256": "78a245ff05ea5da8aee537b4400f9ecaa371802d73c89c9fefaf2bb18670fafa",
+    "bytes": 1774455
+  },
+  "validation": {
+    "checksPassed": 28,
+    "checkCount": 28,
+    "baseComposition": "pass",
+    "headComposition": "pass"
+  }
+}

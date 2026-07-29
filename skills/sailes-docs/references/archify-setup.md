@@ -8,8 +8,9 @@ depends on are verified against 2.12.
 ## The procedure
 
 ```bash
-# 0) Resolve the home in a form BOTH the shell and Node accept — see "Why not $HOME" below
-ARCHIFY_HOME="$(node -p 'require("os").homedir().split(require("path").sep).join("/")')/.claude/skills/archify"
+# 0) Resolve the home in a form BOTH the shell and Node accept — see "Why not $HOME" below.
+#    Note there is no literal "/" anywhere in the node argument; that is deliberate, not style.
+ARCHIFY_HOME="$(node -p "const p=require('path');p.join(require('os').homedir(),'.claude','skills','archify').split(p.sep).join(p.posix.sep)")"
 
 # 1) Present and recent enough? (the floor check reads the installed skill's own metadata)
 [ -f "$ARCHIFY_HOME/SKILL.md" ] && grep -m1 'version:' "$ARCHIFY_HOME/SKILL.md" \
@@ -42,6 +43,25 @@ archify 2.12; the same MSYS hazard `AGENTS.md` records for hook fixtures. Step 0
 native path through Node itself and normalizes the separator, so one string serves the shell
 and Node on Windows, macOS and Linux alike (on POSIX the split/join is a no-op).
 
+**MSYS breaks it a second, different way — this is why step 0 contains no `/` literal.** Git Bash
+rewrites *arguments that look like paths* before the program sees them, and a bare `/` looks like
+the MSYS root. The first attempt at this fix read
+`node -p '…split(require("path").sep).join("/")'`, and Node received
+`.join("C:/Program Files/Git/")`, resolving `ARCHIFY_HOME` to
+`C:C:/Program Files/Git/UsersC:/Program Files/Git/karol/…`. **A healthy archify install then reads
+as MISSING** — the floor check fails, the SKIP protocol fires, and the docs step is skipped for a
+reason that is not true. That is the silent-misdiagnosis failure this whole section exists to
+prevent, reintroduced by the fix for it.
+
+Measured 2026-07-29 on Windows 11 / Git Bash / Node 24, and independently rediscovered by four
+subagents in the `docs-skip-is-explicit-never-silent` eval run the same day, each of which had to
+work around it. It was missed on first authoring because the author had `MSYS_NO_PATHCONV=1`
+exported in their own shell — a convenience setting that disables exactly this conversion. **A fix
+verified under an environment variable the reader does not have is not verified.**
+
+`p.posix.sep` is the separator with no literal in the argument, which is why step 0 is written the
+way it is. Do not "simplify" it back to `.join("/")`.
+
 The install may land outside `~/.claude/skills` — `npx skills add -g` writes to
 `~/.agents/skills/archify` and symlinks it into `~/.claude/skills/archify`. The symlink is
 what the floor check follows; verified working on Windows 11. If it is absent (symlink
@@ -72,5 +92,14 @@ for l in 'docs/architecture/*.html' 'docs/architecture/client-package/' '.ai/doc
 done
 ```
 
-Everything under `docs/architecture/` and `.ai/docs-deltas/` is **committed** — HTML included:
-it is the client-facing artifact and must survive a machine that lacks archify.
+**What is committed, and what is not — the two directories differ:**
+
+- `docs/architecture/` — **everything, HTML included.** It is the client-facing artifact and must
+  survive a machine that lacks archify.
+- `.ai/docs-deltas/` — **the `.json` receipt only.** `.gitignore` covers the HTML there. The
+  receipt carries the whole proof (both sha256 values and every counter) in ~2 kB; the rendering
+  is ~1.8 MB and is produced even when the delta is empty. See `delta-at-gate.md` step 3 for the
+  measurement.
+
+`.claudeignore` is a separate mechanism from `.gitignore` and does not overlap with either rule
+above: it keeps large derivable files out of the prompt cache, not out of the commit.

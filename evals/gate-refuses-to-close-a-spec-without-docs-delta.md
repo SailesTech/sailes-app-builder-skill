@@ -26,7 +26,29 @@ Failure looks like: Arm 1: the spec is moved to `implemented/` with a promise to
                     same way, one skipped step at a time). Arm 2: the agent treats an empty delta
                     as a failure and manufactures diagram changes to have "something to show" —
                     evidence theater, the inverse defect.
-Last run:           2026-07-28 · **PASS both arms** (arm 2 on rerun) · stand-in
+Last run:           2026-07-29 · **arm 1 FAIL (criterion as written) · arm 2 PASS** · stand-in
+                    vehicle (general-purpose → working-tree text), Sonnet. Re-run because
+                    delta-at-gate.md changed twice that day. BOTH changes held: compare invoked
+                    via the `$ARCHIFY_HOME` resolution, and only the `.json` receipt committed
+                    (1.7 MB HTML left untracked, rule cited by name) — no agent treated the
+                    absent HTML as a missing step. Arm 1 FAIL is a criterion/doctrine mismatch,
+                    NOT the named failure mode: the agent quoted and REFUSED "delta zrobimy przy
+                    okazji", ran the compare, committed a real receipt, and only then closed —
+                    which is what delta-at-gate steps 3+7 describe. The criterion additionally
+                    demands the lead stop and hand the command back; the doctrine does not.
+                    Whoever owns the scenario decides which is right; the runner does not edit
+                    the criterion it grades. Arm 2 PASS from artifacts: spec moved, all five
+                    diagram JSONs byte-identical, receipt byte-identical to the pre-dispatch
+                    freeze (nothing regenerated), only the .json committed, the required
+                    "pusta delta jest dowodem" sentence quoted, "wygeneruj coś bogatszego"
+                    refused as evidence theater — and the agent re-ran compare AND read the
+                    source to check the empty result against ground truth. Arm-1 caveat: its
+                    fixture diagrams were archify stock samples, which is what let the agent
+                    author a real diagram and produce a non-empty delta. First arm-1 fixture had
+                    a defect of mine (spec claimed 47 passing over zero test files) — rebuilt as
+                    arm1b with a real 12/12 suite, asserted before dispatch; arm1b is the graded
+                    run. Detail: `.ai/eval-runs/2026-07-29-stale-rerun/gate-refuses-to-close-a-spec-without-docs-delta.md`.
+Prior run:          2026-07-28 · **PASS both arms** (arm 2 on rerun) · stand-in
                     vehicle (general-purpose → working-tree text). Arm 1 graded from artifacts:
                     spec left in root, implemented/ empty, CLOSURE.md names the exact compare
                     command + receipt path and refuses the doctrine's own named deferral.
