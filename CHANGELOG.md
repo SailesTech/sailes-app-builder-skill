@@ -4,6 +4,37 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.23.1 — 2026-07-29 · the gate was the stop, not the receipt
+
+**Adopted repos: no action required** — every change here is framework-side doctrine or tooling.
+
+- **`archify-setup.md` step 0 resolved to garbage in Git Bash, and 1.22.0 shipped it that way.**
+  MSYS rewrites arguments that look like paths, so the `.join("/")` in the resolver became
+  `.join("C:/Program Files/Git/")`. Consequence worse than the `$HOME` defect it replaced: the
+  floor check fails, **a healthy archify install reads as MISSING**, the SKIP protocol fires, and
+  the docs step is skipped for a reason that is not true — the silent misdiagnosis the section
+  exists to prevent, reintroduced by its own fix. Now resolved via `p.posix.sep` with no
+  forward-slash literal in the argument, verified in a default Git Bash. It was missed because the
+  author had `MSYS_NO_PATHCONV=1` exported; the file now records that **a fix verified under an
+  environment variable the reader does not have is not verified.**
+- **The docs-delta gate now requires the lead to STOP** (`delta-at-gate.md` step 4, mirrored in
+  `sailes-implement`). Showing the receipt and closing the spec were one motion; an eval arm did
+  every written step correctly — refused the "delta zrobimy przy okazji" shortcut, ran a real
+  compare, committed a genuine receipt — and closed anyway, so the human never got the look.
+  "Receipt produced but never shown" is now its own block beside "receipt missing", named as the
+  one that reads like compliance. The artifact was never the gate; the human seeing it is.
+- **`eval-status.js` could not see a per-arm verdict.** `arm 1 FAIL · arm 2 PASS` starts with
+  "arm", so the positional scan returned null and the summary reported one non-PASS when there
+  were two. Now falls back to arm markers and takes the **worst** outcome, with the 2026-07-26
+  false positive pinned by its own test so the fallback cannot re-open it.
+- `archify-setup.md` no longer contradicts `delta-at-gate.md` on what is committed: everything
+  under `docs/architecture/`, receipt-only under `.ai/docs-deltas/`.
+
+Eval batch behind these: `.ai/eval-runs/2026-07-29-stale-rerun/` — five scenarios re-run after the
+day's edits, **4 PASS · 1 FAIL**. The FAIL is the gate mismatch above, not a regression; the
+doctrine changed rather than the criterion, which makes that scenario stale and its recorded
+verdict superseded. It needs a re-run to say anything.
+
 ## 1.23.0 — 2026-07-29 · Answer shape — the HUMAN rule gets an output format
 
 Spec `.ai/specs/2026-07-29-answer-shape.md`. **An adopted repo gains this at its next Upgrade

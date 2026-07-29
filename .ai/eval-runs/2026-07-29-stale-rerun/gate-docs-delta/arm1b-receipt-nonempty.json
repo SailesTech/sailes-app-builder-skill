@@ -1,0 +1,420 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "compare",
+  "type": "architecture",
+  "comparatorVersion": 1,
+  "canonicalVersion": 1,
+  "completeness": "complete",
+  "proofLevel": "authored",
+  "base": {
+    "title": "Sample Web App",
+    "rawSha256": "01567b5e49cad5139baa071533a028d22f0e80fedfb49095e0d9330aee7f87db",
+    "semanticSha256": "1f92e545409a6b8b9cfad7d17f20211753342fbd8cace988fc773cc9a486f603",
+    "bytes": 3863
+  },
+  "head": {
+    "title": "PolisaFlow — Bulk Policy Import",
+    "rawSha256": "42d6a24f8ae3a30c328a5cf7877b3fae890290ef3c0ba41e2140b2adf753e0cb",
+    "semanticSha256": "bb3f91ba88453dbcfbbe65c355d053950ebf9e3a4486a10488ce7ec4df219f76",
+    "bytes": 3233
+  },
+  "summary": {
+    "components": {
+      "added": 4,
+      "changed": 1,
+      "evidenceChanged": 0,
+      "removed": 9,
+      "moved": 0
+    },
+    "connections": {
+      "added": 5,
+      "changed": 0,
+      "removed": 9,
+      "rerouted": 0
+    },
+    "boundaries": {
+      "added": 1,
+      "changed": 0,
+      "removed": 2,
+      "geometryChanged": 0
+    },
+    "presentationChanged": true,
+    "provenanceChanged": false
+  },
+  "changes": {
+    "components": [
+      {
+        "id": "api",
+        "baseLabel": "API Server",
+        "headLabel": "Import API",
+        "status": "changed",
+        "classifications": [
+          "geometry",
+          "semantic"
+        ],
+        "changedFields": [
+          "/label",
+          "/pos",
+          "/size",
+          "/sublabel"
+        ]
+      },
+      {
+        "id": "auth",
+        "baseLabel": "Auth Provider",
+        "status": "removed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "broker",
+        "headLabel": "Broker",
+        "status": "added",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "cache",
+        "baseLabel": "Redis",
+        "status": "removed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "cdn",
+        "baseLabel": "CloudFront",
+        "status": "removed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "db",
+        "baseLabel": "PostgreSQL",
+        "status": "removed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "lb",
+        "baseLabel": "Load Balancer",
+        "status": "removed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "policies",
+        "headLabel": "PostgreSQL",
+        "status": "added",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "queue",
+        "baseLabel": "SQS",
+        "status": "removed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "s3",
+        "baseLabel": "S3",
+        "status": "removed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "staging",
+        "headLabel": "Staging Table",
+        "status": "added",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "tenant",
+        "headLabel": "withTenant()",
+        "status": "added",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "users",
+        "baseLabel": "Users",
+        "status": "removed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "worker",
+        "baseLabel": "Worker",
+        "status": "removed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      }
+    ],
+    "connections": [
+      {
+        "id": "api-sql",
+        "base": {
+          "from": "api",
+          "to": "db",
+          "label": "SQL"
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "cache-read-through",
+        "base": {
+          "from": "api",
+          "to": "cache",
+          "label": "read-through"
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "cdn-to-lb",
+        "base": {
+          "from": "cdn",
+          "to": "lb",
+          "label": ""
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "commit-staged",
+        "head": {
+          "from": "staging",
+          "to": "policies",
+          "label": "commitStaged() — all or nothing"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "enqueue-job",
+        "base": {
+          "from": "api",
+          "to": "queue",
+          "label": "enqueue"
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "error-report",
+        "head": {
+          "from": "staging",
+          "to": "broker",
+          "label": "per-row error report"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "jwt-verification",
+        "base": {
+          "from": "auth",
+          "to": "api",
+          "label": "verify JWT"
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "lb-to-api",
+        "base": {
+          "from": "lb",
+          "to": "api",
+          "label": ""
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "open-tx",
+        "head": {
+          "from": "api",
+          "to": "tenant",
+          "label": "withTenant(tenantId)"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "queue-to-worker",
+        "base": {
+          "from": "queue",
+          "to": "worker",
+          "label": ""
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "stage-rows",
+        "head": {
+          "from": "tenant",
+          "to": "staging",
+          "label": "stagePolicy(row) per row"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "static-assets",
+        "base": {
+          "from": "cdn",
+          "to": "s3",
+          "label": "static"
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "upload-csv",
+        "head": {
+          "from": "broker",
+          "to": "api",
+          "label": "CSV upload"
+        },
+        "status": "added",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      },
+      {
+        "id": "users-to-cdn",
+        "base": {
+          "from": "users",
+          "to": "cdn",
+          "label": "HTTPS"
+        },
+        "status": "removed",
+        "classifications": [
+          "topology"
+        ],
+        "changedFields": []
+      }
+    ],
+    "boundaries": [
+      {
+        "key": "region:AWS Region: us-west-2",
+        "kind": "region",
+        "label": "AWS Region: us-west-2",
+        "status": "removed",
+        "classifications": [
+          "scope"
+        ],
+        "changedFields": []
+      },
+      {
+        "key": "security-group:sg-api :443/:8000",
+        "kind": "security-group",
+        "label": "sg-api :443/:8000",
+        "status": "removed",
+        "classifications": [
+          "scope"
+        ],
+        "changedFields": []
+      },
+      {
+        "key": "security-group:tenant_id scope (single transaction)",
+        "kind": "security-group",
+        "label": "tenant_id scope (single transaction)",
+        "status": "added",
+        "classifications": [
+          "scope"
+        ],
+        "changedFields": []
+      }
+    ]
+  },
+  "identity": {
+    "components": "components[].id",
+    "connections": "connections[].id (required)",
+    "boundaries": "boundaries[].kind + boundaries[].label (derived)"
+  },
+  "view": {
+    "visualPreset": "classic"
+  },
+  "limitations": [
+    "Authored Architecture IR only; no runtime impact, causality, risk, or mergeability is inferred.",
+    "Boundary identity is conservatively derived from kind + label."
+  ],
+  "artifact": {
+    "sha256": "6d8fab0343741ca9b9c3a62d76668ebf740e59e810646402445fc5f2afb62351",
+    "bytes": 1803458
+  },
+  "validation": {
+    "checksPassed": 28,
+    "checkCount": 28,
+    "baseComposition": "pass",
+    "headComposition": "pass"
+  }
+}

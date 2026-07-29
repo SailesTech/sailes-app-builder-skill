@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Kredytomat — panel operatora",
+    "subtitle": "React -> API (Express) -> PostgreSQL, z udokumentowanym naruszeniem warstwy w ExportPanel",
+    "output": "kredytomat.architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "primary-path",
+        "label": "Ścieżka zgodna z README",
+        "focus": ["operator", "applications-list", "api", "auth", "db"],
+        "note": "ApplicationsList woła wyłącznie /api/applications; API sprawdza rolę operatora przed każdym zapytaniem do bazy."
+      },
+      {
+        "id": "bypass-violation",
+        "label": "Naruszenie: ExportPanel",
+        "focus": ["operator", "export-panel", "db"],
+        "note": "ExportPanel.jsx importuje db/client.js bezpośrednio (linia 4) — omija API i assertOperator z auth.js."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "operator",
+      "type": "external",
+      "label": "Operator",
+      "sublabel": "przeglądarka",
+      "pos": [40, 260],
+      "size": [130, 60]
+    },
+    {
+      "id": "applications-list",
+      "type": "frontend",
+      "label": "ApplicationsList",
+      "sublabel": "src/frontend/ApplicationsList.jsx",
+      "pos": [260, 160],
+      "size": [170, 64]
+    },
+    {
+      "id": "export-panel",
+      "type": "frontend",
+      "label": "ExportPanel",
+      "sublabel": "src/frontend/ExportPanel.jsx",
+      "tag": "importuje db/client.js",
+      "pos": [260, 360],
+      "size": [170, 64]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API (Express)",
+      "sublabel": "src/api/server.js",
+      "pos": [540, 160],
+      "size": [170, 64]
+    },
+    {
+      "id": "auth",
+      "type": "security",
+      "label": "Kontrola uprawnień",
+      "sublabel": "src/api/auth.js",
+      "tag": "assertOperator",
+      "pos": [540, 40],
+      "size": [170, 56]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "src/db/client.js",
+      "pos": [820, 260],
+      "size": [170, 64]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "security-group",
+      "label": "Warstwa API — jedyna dozwolona droga do bazy (README)",
+      "wraps": ["api", "auth"]
+    }
+  ],
+  "connections": [
+    { "id": "operator-to-list", "from": "operator", "to": "applications-list", "label": "otwiera panel" },
+    { "id": "operator-to-export", "from": "operator", "to": "export-panel", "label": "otwiera eksport CSV" },
+    { "id": "list-to-api", "from": "applications-list", "to": "api", "label": "GET /api/applications", "variant": "emphasis" },
+    { "id": "api-to-auth", "from": "api", "to": "auth", "label": "assertOperator(req)", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "id": "api-to-db", "from": "api", "to": "db", "label": "SQL (autoryzowane)", "variant": "emphasis" },
+    {
+      "id": "export-bypass-to-db",
+      "from": "export-panel",
+      "to": "db",
+      "label": "SQL bezpośrednio — z pominięciem API i auth.js",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "via": [[905, 392]]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Ścieżka zgodna z architekturą",
+      "items": [
+        "ApplicationsList wywołuje wyłącznie GET /api/applications (src/frontend/ApplicationsList.jsx:8)",
+        "API sprawdza rolę operatora przez assertOperator() przed każdym zapytaniem do bazy (src/api/server.js:9, src/api/auth.js:1-8)"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Naruszenie — ExportPanel omija API",
+      "items": [
+        "ExportPanel.jsx importuje db/client.js bezpośrednio: import { query } from '../db/client.js' (src/frontend/ExportPanel.jsx:4)",
+        "Zapytanie SQL leci z przeglądarki wprost do PostgreSQL — bez przejścia przez API i bez assertOperator() z auth.js",
+        "Zgłoszone jako finding do be-dev / team-lead — poza mandatem docs-author (raport w .ai/docs-deltas/docs-author-report.md)"
+      ]
+    }
+  ]
+}

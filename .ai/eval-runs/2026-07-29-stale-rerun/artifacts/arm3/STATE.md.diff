@@ -1,0 +1,15 @@
+diff --git a/.ai/STATE.md b/.ai/STATE.md
+index b638bf6..eafba3e 100644
+--- a/.ai/STATE.md
++++ b/.ai/STATE.md
+@@ -18,3 +18,10 @@ Session memory. Read at session start; write before walking away.
+ ## Last session
+ 2026-07-27 — finished the orders read path. Next step: run the docs setup step so
+ `docs/architecture/` exists before the first spec closes.
++
++2026-07-29 — ran the docs setup step (archify-setup.md). Machine check: archify 2.12
++already installed at `~/.claude/skills/archify` (meets the 2.12 floor), `doctor` passed
++clean — no install/upgrade needed. Ignore wiring done: `.claudeignore` created with the
++three docs-generated-HTML entries. Diagram authoring itself (`docs/architecture/*.json`)
++is out of scope for this step and still open — see `references/authoring.md` before the
++first spec closes.

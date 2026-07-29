@@ -1,0 +1,35 @@
+diff --git a/.ai/STATE.md b/.ai/STATE.md
+index b638bf6..51dcaa4 100644
+--- a/.ai/STATE.md
++++ b/.ai/STATE.md
+@@ -10,11 +10,27 @@ Session memory. Read at session start; write before walking away.
+ - All DB access goes through `src/db/client.ts`; routes never construct a Pool.
+ 
+ ## Open failures
+-- (none recorded)
++- Open failure: archify not installed — docs step skipped. Installed archify at
++  `~/.claude/skills/archify` is version 2.4, below the framework's floor of 2.12 (treated
++  as missing per `archify-setup.md`). The upgrade one-liner `npx skills add tt-a1i/archify -g`
++  was blocked by this workstation's auto-mode permission classifier during this session, so
++  the reinstall could not be completed here. Re-run `npx skills add tt-a1i/archify -g`,
++  re-check the version floor, then re-run the docs setup step — see
++  `.ai/docs-setup-step.md` for the full record.
+ 
+ ## Lessons learned
+ - See `.ai/lessons.md`.
++- On this Windows/Git-Bash workstation, the ARCHIFY_HOME resolution one-liner from
++  `archify-setup.md` (`node -p '...split(require("path").sep).join("/")'`) is itself
++  corrupted by MSYS's automatic argument path-conversion: the literal `"/"` inside the `-p`
++  string gets rewritten to the Git-for-Windows install path (`C:/Program Files/Git`) before
++  Node ever sees it, producing a garbage homedir string. Fix: export `MSYS_NO_PATHCONV=1`
++  (or `MSYS2_ARG_CONV_EXCL='*'`) before any `node -p`/`node -e` call that embeds path
++  separators as string literals. See `.ai/docs-setup-step.md` for the measured before/after.
+ 
+ ## Last session
+-2026-07-27 — finished the orders read path. Next step: run the docs setup step so
+-`docs/architecture/` exists before the first spec closes.
++2026-07-29 — ran the docs setup step (see `.ai/docs-setup-step.md`). Result: SKIPPED —
++archify present but below the 2.12 version floor, and the reinstall command was blocked in
++this sandbox. `.claudeignore` wiring for `docs/architecture/` and `.ai/docs-deltas/` was
++completed. Next step: get archify to >= 2.12 on this machine, then re-run the docs setup
++step to generate the initial `docs/architecture/` diagram set.

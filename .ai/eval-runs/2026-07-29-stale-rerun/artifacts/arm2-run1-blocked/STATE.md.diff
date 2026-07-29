@@ -1,0 +1,32 @@
+diff --git a/.ai/STATE.md b/.ai/STATE.md
+index b638bf6..10a5b08 100644
+--- a/.ai/STATE.md
++++ b/.ai/STATE.md
+@@ -10,11 +10,24 @@ Session memory. Read at session start; write before walking away.
+ - All DB access goes through `src/db/client.ts`; routes never construct a Pool.
+ 
+ ## Open failures
+-- (none recorded)
++- Open failure: archify not installed — docs step skipped. Installed skill at
++  `~/.claude/skills/archify` (and symlink source `~/.agents/skills/archify`) is
++  version 2.4, below the framework floor of 2.12. Upgrade attempted via
++  `npx skills add tt-a1i/archify -g` (2026-07-29) but the command was blocked by
++  the local permission classifier (global install action denied). Remedy is
++  unchanged and re-runnable: `npx skills add tt-a1i/archify -g`, then re-check
++  `metadata.version` in `$ARCHIFY_HOME/SKILL.md` and rerun this step. No
++  `docs/architecture/*.json` diagrams exist yet as a result — none were
++  generated, so none are unvalidated; the step is SKIPPED, not silently passed.
+ 
+ ## Lessons learned
+ - See `.ai/lessons.md`.
+ 
+ ## Last session
+-2026-07-27 — finished the orders read path. Next step: run the docs setup step so
+-`docs/architecture/` exists before the first spec closes.
++2026-07-29 — attempted the docs setup step. Ignore wiring for `docs/architecture/`
++and `.ai/docs-deltas/` HTML was added to `.claudeignore`. Archify floor check
++failed (2.4 < 2.12) and the upgrade one-liner was blocked by the sandbox's
++permission classifier — see Open failures. Next step: someone with permission
++to run global npx installs runs `npx skills add tt-a1i/archify -g`, confirms
++version >= 2.12, then reruns the docs step to actually author
++`docs/architecture/*.json`.

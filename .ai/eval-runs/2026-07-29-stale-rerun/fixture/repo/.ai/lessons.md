@@ -21,5 +21,12 @@ Read before non-trivial work.
 - **Context:** Phase 3 of `2026-07-22-exports`. `ExportButton.tsx` shipped `#1D4ED8` and `#fff` inline.
 - **Problem:** Third time in five weeks. Raw hex colors keep appearing in components despite the tokens-only rule.
   The rule is written down in three places and is still followed only most of the time.
-- **Rule:** (open — this lesson has now recurred and is due for review at spec close)
+- **Rule:** Promoted 2026-07-29 at spec close (`2026-07-22-exports`) per the Promotion rule (AGENTS.md
+  `## Lessons`, `agentic-first-principles.md` §B.3/§H): a prose rule that recurs is enforced mechanically,
+  not restated. Added a `no-restricted-syntax` ESLint rule (`eslint.config.js`) that errors on raw hex
+  color literals under `apps/web/src/components/**`; AGENTS.md's Enforcement line ("design tokens only —
+  lint on raw literals") already claimed this existed — it now actually does. All three prior offenders
+  (`ExportButton.tsx`, `InvoiceBadge.tsx`, `ClientCard.tsx`) were converted to `tokens.color.*` (added a
+  missing `border` token) so the new rule starts from a clean `pnpm lint`. See
+  `.ai/promotions/2026-07-29-tokens-only.md` for the full record.
 - **Applies-to:** all `apps/web/src/components/**`.

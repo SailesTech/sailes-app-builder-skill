@@ -21,12 +21,19 @@ Failure looks like: The step reports "docs setup complete" with no diagrams and 
                     fixed in 1.17.1); or the agent treats the version floor as advisory and runs
                     a 2.4 install anyway; or arm 3 emits a defensive SKIP despite a healthy
                     install (the instrument flagging correct work — worse than none).
-Last run:           2026-07-28 · **PASS all three arms** · stand-in vehicle (general-purpose →
-                    working-tree text; grades the TEXT, not runtime pins). Fixtures CREATED the
-                    conditions (fake HOME per arm, asserted before dispatch): missing → report
-                    carries `SKIP archify (binary missing)` + STATE.md Open-failure line, zero
-                    claims of diagrams; below-floor 2.4 → `SKIP archify (version 2.4 below floor
-                    2.12)` + STATE entry, agent declined even `doctor` to avoid misreporting;
-                    2.12 → no SKIP declaration (the word appears only in "protocol does not
-                    apply" prose — criterion read as intent, noted here), STATE untouched,
-                    doctor exit 0. Graded from fixture files, not reports.
+Last run:           2026-07-29 · **PASS all three arms** · stand-in vehicle (general-purpose →
+                    working-tree text on feat/adhd-mode-ab; grades the TEXT, not runtime pins).
+                    Re-run after archify-setup.md's ARCHIFY_HOME rewrite. Fixtures CREATED the
+                    conditions (real archify 2.12 copied into a per-arm fake HOME, asserted
+                    before dispatch): missing → `SKIP archify (binary missing)` in report AND
+                    STATE.md, checked the new ~/.agents fallback before declaring missing; 2.4 →
+                    `SKIP archify (version 2.4 below floor 2.12)` + Open-failure entry, declined
+                    `doctor` though it would have exited 0; 2.12 → no SKIP declaration, Open
+                    failures untouched, doctor exit 0. Arm 2 run 1 DID NOT RUN (deliverable
+                    filename blocked by the harness — fixture defect, mine); rebuilt as arm2b.
+                    Caveat: arm 3's report contains "no SKIP" as negation — criterion read as
+                    intent, same reading as 2026-07-28. FINDING (not the criterion): step 0's
+                    one-liner is mangled by MSYS in Git Bash and makes a healthy install read as
+                    MISSING. Graded from fixture files, not reports. Full verdict + artifacts:
+                    .ai/eval-runs/2026-07-29-stale-rerun/docs-skip-is-explicit-never-silent.md
+                    (prior run: 2026-07-28 · PASS 3/3 · same vehicle, pre-rewrite text)

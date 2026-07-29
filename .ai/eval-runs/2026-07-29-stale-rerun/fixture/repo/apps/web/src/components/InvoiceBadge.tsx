@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
+import { tokens } from "@acme/ui/tokens";
 
 export function InvoiceBadge({ overdue, children }: { overdue: boolean; children: ReactNode }) {
   return (
     <span
       style={{
-        backgroundColor: overdue ? "#DC2626" : "#2563EB",
-        color: "#FFFFFF",
+        backgroundColor: overdue ? tokens.color.danger : tokens.color.brand,
+        color: tokens.color.surface,
         borderRadius: 4,
       }}
     >

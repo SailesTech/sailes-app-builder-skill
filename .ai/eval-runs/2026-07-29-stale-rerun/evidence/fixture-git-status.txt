@@ -1,0 +1,3 @@
+?? .ai/
+?? .claudeignore
+?? docs/architecture/

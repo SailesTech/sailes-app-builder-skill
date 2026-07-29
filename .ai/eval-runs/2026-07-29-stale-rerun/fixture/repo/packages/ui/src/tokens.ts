@@ -6,5 +6,6 @@ export const tokens = {
     surface: "#FFFFFF",
     text: "#0F172A",
     muted: "#64748B",
+    border: "#E2E8F0",
   },
 } as const;
