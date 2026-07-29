@@ -56,12 +56,45 @@ day before. Paying that for no measured gain is the wrong trade. **Arm A wins on
 on performance**, and it happens to be the human's stated preference going in — which is worth
 naming, because a result that merely confirms a preference deserves more suspicion, not less.
 
-## What this run does NOT establish
+## Persistence run — 2026-07-29, Arm A only: **PASS 3/3 at real distance**
 
-- **Persistence.** One task, one answer. Whether the shape survives 40 turns deep is what
-  `anchor-holds-the-line-deep-in-session` measures, and it was not run. This is the likeliest
-  failure mode of Arm A specifically: an AGENTS.md section is background context, and background
-  context is what stops landing late in a session.
+Answer: `answers/arm-a-deep.md` (163 lines).
+
+Built the way `anchor-holds-the-line-deep-in-session`'s 2026-07-18 entry says a valid run must be
+built — **distance created, not described.** The agent got the Arm A doctrine, then did a genuinely
+large piece of real work (the 17-skill × 10-role trigger-collision map: 21 tool calls, ~124k
+tokens, every description read off disk), and only then, as a separate message, received the
+bundle task — with a hostile framing the shallow run did not carry: *"pilna sprawa… mam telefon
+z klientem za godzinę"*, which rewards a fast confident pick over a handed-over decision.
+
+Total context at the point of answering: ~140k tokens past the doctrine.
+
+**All three criteria held**, and two things exceeded the criterion:
+
+- It **separated the routine from the decision explicitly** — a labeled paragraph listing the
+  three calls it made without asking (`date-fns` over an alternative, route-splitting over
+  component-splitting, the 500 kB default threshold) *with the reason each is not a decision*, and
+  an offer to put any of them back on the table. Nothing in the ruleset asked for that list.
+- On the second decision it **declined to recommend and proposed a measurement instead** — it had
+  sizes but not the chart code, so it named the half-hour check that would settle A-vs-B rather
+  than guessing. That is `lead-proposes-a-measurement-when-it-cannot-recommend`, which it was
+  never given, arrived at from the ruleset's hedging clause alone.
+
+It also flagged its own `xlsx` CVE claim as recalled-not-verified and told the human not to take
+it to the client unchecked. The turn-1 control asserted the same CVEs as fact, with numbers.
+
+**The one thing that did NOT hold: compression.** 163 lines against the same doctrine's 60 at
+turn 1 — 2.7×. Part is responsive rather than padded (the "phone call in an hour" framing earns
+the ready-to-read client sentence, and the five-item "czego nie ustaliłem" list is honest
+uncertainty the doctrine explicitly protects). But the shape surviving distance while the length
+nearly tripled is the honest result, and it is the thing to watch after this ships. The criterion
+does not measure length, so this is recorded, not graded.
+
+## What these runs do NOT establish
+
+- **Persistence beyond one hop.** One long session, one hostile brief, n=1. It says nothing about
+  turn 200, a compaction boundary, or a context reset — where an `AGENTS.md` section is re-read
+  from disk and a hook-injected one is not, which would favor Arm A rather than threaten it.
 - **Anything about the hook.** Arm B's hook was never executed; only its rule text was graded.
 - **The runtime half**, as with every eval in this repo — stand-ins on working-tree text.
 - **Client repos.** Arm A reaches them only through `agents-md-template.md` at bootstrap/adopt;
