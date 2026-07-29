@@ -20,19 +20,22 @@ and the same boundary `tester` earned in 1.10.1.
 
 ## The authoring loop (archify fast path, held to receipts)
 
+`$ARCHIFY_HOME` is resolved once per session by step 0 of `archify-setup.md` — a bare `$HOME`
+breaks every call below on Windows, and the reason is recorded there.
+
 1. Pick the type (`architecture | workflow | sequence | dataflow | lifecycle`); when unsure,
-   `node "$HOME/.claude/skills/archify/bin/archify.mjs" guide "<scenario>" --json`.
+   `node "$ARCHIFY_HOME/bin/archify.mjs" guide "<scenario>" --json`.
 2. Read ONE matching schema in archify's `schemas/` + one example. Author fresh JSON:
    stable IDs (they survive re-authoring — the delta depends on them), domain wording,
    **label language = the repo's bootstrap decision** (see `decision-engine.md`), at most
    12 primary nodes, `meta.quality_profile: "showcase"`.
 3. Validate after every edit and before any handoff:
-   `node "$HOME/.claude/skills/archify/bin/archify.mjs" validate <type> <candidate.json> --quality showcase --json`
+   `node "$ARCHIFY_HOME/bin/archify.mjs" validate <type> <candidate.json> --quality showcase --json`
    A showcase pass reports **all 9 artifact checks, 0 errors, 0 warnings**. Repair only the
    diagnosed `subject`, one geometry control per repair; if two consecutive rounds do not
    improve the error count, stop and report the diagnostics truthfully.
 4. Final acceptance is `deliver` (never `render` alone):
-   `node "$HOME/.claude/skills/archify/bin/archify.mjs" deliver <type> <src.json> <out.html> --quality showcase --json`
+   `node "$ARCHIFY_HOME/bin/archify.mjs" deliver <type> <src.json> <out.html> --quality showcase --json`
    Non-zero exit is never success. The receipt (SHA-256 + byte counts) goes into the run
    log; a passing final validation freezes the candidate — never edit it afterward.
 

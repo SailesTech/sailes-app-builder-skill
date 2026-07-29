@@ -14,6 +14,12 @@ them the human's against recommendation — full 5-type set, a dedicated skill, 
   evidence, held to validate/deliver receipts. References: `archify-setup.md` (machine prereq
   `npx skills add tt-a1i/archify -g`, version floor **>= 2.12**, explicit-SKIP protocol),
   `authoring.md` (evidence discipline, the five types), `delta-at-gate.md` (the gate step).
+- **Windows-safe CLI invocation**: every archify call goes through `$ARCHIFY_HOME`, resolved
+  via Node's own `os.homedir()` with the separator normalized. A bare `$HOME` is an MSYS path
+  in Git Bash — the shell resolves it, Node does not, so every call died with
+  `Cannot find module 'D:\c\Users\…'` on a machine where archify was installed and passing its
+  floor check. Also records that `npx skills add -g` installs to `~/.agents/skills/` and
+  symlinks into `~/.claude/skills/`.
 - **New role `docs-author`** (tenth; Sonnet · medium, no `Agent`) + Codex twin + parity
   invariants: documents the code **as it is**; never edits feature code; receipt or explicit
   SKIP, never silence.

@@ -12,9 +12,10 @@ delta proves, and a conditional step is a skipped step.
    ```bash
    git show HEAD:docs/architecture/architecture.json > /tmp/arch-base.json
    ```
-3. **Compare** (architecture is the one type upstream supports):
+3. **Compare** (architecture is the one type upstream supports). `$ARCHIFY_HOME` comes from
+   step 0 of `archify-setup.md` — a bare `$HOME` fails on Windows, reason recorded there:
    ```bash
-   node "$HOME/.claude/skills/archify/bin/archify.mjs" compare architecture \
+   node "$ARCHIFY_HOME/bin/archify.mjs" compare architecture \
      /tmp/arch-base.json docs/architecture/architecture.json \
      .ai/docs-deltas/{YYYY-MM-DD}-{spec-slug}.html \
      --receipt .ai/docs-deltas/{YYYY-MM-DD}-{spec-slug}.json --json
