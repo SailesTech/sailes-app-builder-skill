@@ -1,6 +1,6 @@
 # Spec: Answer shape — the response format the human can actually act on
 
-Status: **approved 2026-07-29 · all three phases implemented on `feat/adhd-mode-ab`, awaiting merge**
+Status: **implemented** — 2026-07-29, released in 1.23.0/1.23.1 (`0058a15`). Docs-delta at closure: EMPTY (`.ai/docs-deltas/2026-07-29-gate-stop.json`), shown to the human before this move.
 Date: 2026-07-29 · Branch: `feat/adhd-mode-ab`
 Experiment: `.ai/experiments/2026-07-29-adhd-mode/` (README, SCENARIO, VERDICT, four graded answers)
 Requested by: the human, 2026-07-29 — *"opus 5 ma problem z zbyt wylewnym opisywaniem wszystkiego"*
