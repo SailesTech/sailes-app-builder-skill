@@ -229,6 +229,32 @@ test('parseOutcome returns null when no verdict was recorded', () => {
   assert.strictEqual(lib.parseOutcome('2026-07-13'), null);
 });
 
+// The mirror image of the two cases above: a per-arm verdict is a real recorded outcome that a
+// prefix-anchored scan read as *no* outcome. Measured 2026-07-29 — the run below reported
+// "arm 1 FAIL · arm 2 PASS", parseOutcome returned null, and the summary line said one non-PASS
+// when there were two. A verdict the machine cannot see is debt that looks like its absence,
+// which is worse than a verdict it reads wrongly: nothing prompts anyone to check.
+test('a per-arm verdict is not invisible — the worst arm wins', () => {
+  assert.strictEqual(
+    lib.parseOutcome('2026-07-29 · **arm 1 FAIL (criterion as written) · arm 2 PASS** · stand-in'),
+    'FAIL'
+  );
+  assert.strictEqual(
+    lib.parseOutcome('2026-07-28 · arm1 PASS · arm2 INCONCLUSIVE — fixture defect, MINE'),
+    'INCONCLUSIVE'
+  );
+  assert.strictEqual(lib.parseOutcome('2026-07-29 · **arm 1 PASS · arm 2 PASS**'), 'PASS');
+});
+
+// The severity order must not let a later PASS bury an earlier FAIL, and must not resurrect the
+// false positives the leading-verdict rule was built to stop.
+test('a leading verdict still wins over verdict words later in the prose', () => {
+  assert.strictEqual(
+    lib.parseOutcome('2026-07-25 · **PASS (both arms)** · Arm B (no instrument): FAIL + the literal SKIP'),
+    'PASS'
+  );
+});
+
 test('an INCONCLUSIVE eval whose files are untouched is FRESH but carries its outcome', () => {
   const dir = makeRepo();
   commit(dir, 'agents/role.md', 'v1\n', '2026-07-10T12:00:00Z');

@@ -97,11 +97,33 @@ function parseRunDate(raw) {
  * "Arm B: FAIL + the literal SKIP" and "a Slack-first implementation would FAIL B2/B4" both
  * turned PASSing evals into reported failures. The instrument produced exactly the class of
  * false positive it exists to prevent; caught before it was reported, on 2026-07-26.
+ *
+ * The positional rule then produced the mirror defect: a **per-arm** verdict
+ * (`2026-07-29 · **arm 1 FAIL · arm 2 PASS**`) starts with "arm", so nothing matched and the
+ * outcome came back `null` — the run was reported as carrying no verdict at all. A recorded FAIL
+ * that the machine cannot see is worse than one it reads wrongly: a misread prompts an argument,
+ * an invisible one prompts nothing, and the summary line understated the non-PASS count without
+ * anyone noticing. So: still positional first, but when the leading token is an arm marker rather
+ * than a verdict, scan the arm verdicts and take the WORST — a split run is not a pass.
  */
+const OUTCOME_SEVERITY = ['PASS', 'PENDING', 'INCONCLUSIVE', 'FAIL'];
+
 function parseOutcome(raw) {
   if (raw === null) return null;
-  const m = raw.match(/^\s*(?:\d{4}-\d{2}-\d{2}\s*(?:·|-|—)?\s*)?\*{0,2}\s*(PASS|FAIL|INCONCLUSIVE|PENDING)\b/i);
-  return m ? m[1].toUpperCase() : null;
+  const leading = raw.match(
+    /^\s*(?:\d{4}-\d{2}-\d{2}\s*(?:·|-|—)?\s*)?\*{0,2}\s*(PASS|FAIL|INCONCLUSIVE|PENDING)\b/i
+  );
+  if (leading) return leading[1].toUpperCase();
+
+  // No leading verdict. Only then consider per-arm markers — `arm 1 FAIL`, `arm2 PASS`, `Arm B:
+  // INCONCLUSIVE`. Requiring the arm marker immediately before the verdict is what keeps this
+  // from re-opening the 2026-07-26 false positive: prose like "would FAIL B2/B4" has no marker.
+  const arms = [...raw.matchAll(/\barms?\s*[A-Za-z0-9]+\s*[:·—-]?\s*\*{0,2}\s*(PASS|FAIL|INCONCLUSIVE|PENDING)\b/gi)]
+    .map((m) => m[1].toUpperCase());
+  if (arms.length === 0) return null;
+  return arms.reduce((worst, o) =>
+    OUTCOME_SEVERITY.indexOf(o) > OUTCOME_SEVERITY.indexOf(worst) ? o : worst
+  );
 }
 
 /** Paths with uncommitted modifications, staged or not. `git log` cannot describe these. */
