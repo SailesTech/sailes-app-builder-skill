@@ -4,6 +4,26 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.22.1 — 2026-07-29 · the entry point, and two skills the table never listed
+
+- **`CLAUDE.md` → `@AGENTS.md` now exists in the framework repo.** Claude Code reads
+  `CLAUDE.md`, not `AGENTS.md` — and only project-root `CLAUDE.md`, unscoped
+  `.claude/rules/*.md` and auto-memory are re-injected from disk after a compaction (hooks are
+  explicitly "not context"). `repo-done-checklist.md:14` has always made this a MUST row for
+  every generated repo and line 52 greps for it, so **client repos were never affected**; the
+  framework repo was the only one breaking its own row, while `AGENTS.md:3` asserted the import
+  existed. Until now the spine reached a session here only because the SessionStart hook said to
+  read the file — once, as tool output, gone at the first compaction.
+- **`skills/README.md` lists all 17 skills.** `sailes-test` and `sailes-docs` had no row;
+  `sailes-docs` shipped that morning and appeared only in prose. The table is what a session
+  consults when two descriptions claim one trigger, and a collision map built the same day found
+  25 competing pairs — five pointed here for a ruling the file could not give. Both new rows
+  carry a disambiguating clause naming the sibling they compete with (`sailes-test` ↔
+  `sailes-eval-runner` share the "przetestuj" stem), the pattern `sailes-migrate` already used
+  against `sailes-database`.
+
+**Nothing here changes what a generated repo contains** — no adopt/Upgrade action is required.
+
 ## 1.22.0 — 2026-07-28 · documentation that cannot rot and cannot lie (archify)
 
 Spec `.ai/specs/2026-07-28-archify-gated-docs.md` (discovery ledger: 8 decisions, three of
