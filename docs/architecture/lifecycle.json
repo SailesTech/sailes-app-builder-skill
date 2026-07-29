@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "A Spec's Life",
+    "subtitle": "Draft to implemented or archived, with the docs-delta gate and the eval-inconclusive recovery loop",
+    "output": "docs/architecture/lifecycle.html",
+    "viewBox": [980, 660],
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "main-rail", "label": "Main rail", "focus": ["draft", "approved", "in-progress", "docs-delta-gate", "implemented"], "note": "The five ordered phases from Open Questions to a shipped, verified spec." },
+      { "id": "closure-gate", "label": "Closure gate", "focus": ["docs-delta-gate", "implemented", "superseded", "archived"], "note": "The docs-delta gate runs before every git mv, whichever closure follows." },
+      { "id": "eval-recovery", "label": "Eval recovery loop", "focus": ["in-progress", "eval-inconclusive"], "note": "A premise-fails eval re-opens the decision instead of shipping — the prompt-anchor case." }
+    ]
+  },
+  "lanes": [
+    { "id": "main", "label": "Spec phases" },
+    { "id": "recovery", "label": "Eval recovery" },
+    { "id": "terminal", "label": "Alternate closure" }
+  ],
+  "states": [
+    { "id": "draft", "type": "start", "label": "Draft", "sublabel": "Open Questions open", "lane": "main", "col": 0, "step": "01", "tag": ".ai/specs/" },
+    { "id": "approved", "type": "waiting", "label": "Approved", "sublabel": "Open Questions answered", "lane": "main", "col": 1, "step": "02", "tag": "human gate" },
+    { "id": "in-progress", "type": "active", "label": "In Progress", "sublabel": "implementation underway", "lane": "main", "col": 2, "step": "03", "tag": ".ai/specs/" },
+    { "id": "docs-delta-gate", "type": "decision", "label": "Docs-Delta Gate", "sublabel": "diagrams + receipt", "lane": "main", "col": 3, "step": "04", "tag": "before git mv" },
+    { "id": "implemented", "type": "success", "label": "Implemented", "sublabel": "shipped and verified", "lane": "main", "col": 4, "step": "05", "tag": "implemented/" },
+    { "id": "eval-inconclusive", "type": "failure", "label": "Eval Inconclusive", "sublabel": "premise did not reproduce", "lane": "recovery", "col": 0, "tag": "D3 re-opened" },
+    { "id": "superseded", "type": "neutral", "label": "Superseded", "sublabel": "replaced by newer spec", "lane": "terminal", "col": 1, "tag": "Superseded-by" },
+    { "id": "archived", "type": "neutral", "label": "Archived", "sublabel": "kept for history", "lane": "terminal", "col": 2, "tag": "archived/" }
+  ],
+  "transitions": [
+    { "id": "eval-runs", "from": "in-progress", "to": "eval-inconclusive", "label": "depth eval runs", "labelAt": [402, 202], "variant": "security", "route": "straight", "fromSide": "bottom", "toSide": "top" },
+    { "id": "eval-reopens", "from": "eval-inconclusive", "to": "in-progress", "label": "D3 re-opened", "labelAt": [20, 202], "note": "prompt-anchor: Phase 5 inconclusive 2026-07-18, hook does not ship", "variant": "emphasis", "fromSide": "left", "toSide": "top", "via": [[20, 307], [20, 80], [402, 80]] },
+    { "id": "gate-supersedes", "from": "docs-delta-gate", "to": "superseded", "label": "spec superseded", "labelAt": [556, 202], "variant": "security", "route": "straight", "fromSide": "bottom", "toSide": "top" },
+    { "id": "supersede-archive", "from": "superseded", "to": "archived", "variant": "default", "route": "straight", "fromSide": "right", "toSide": "left" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Main Rail", "items": ["Five ordered phases carry the spec from Open Questions to shipped code", "Approved is a human gate, not an automatic step", "The docs-delta gate runs before every git mv, not only at a happy-path finish"] },
+    { "dot": "amber", "title": "Recovery Loop", "items": ["A depth eval can return inconclusive instead of green", "That re-opens the deferred decision rather than silently shipping", "Grounded in the prompt-anchor case: Phase 5 was inconclusive on 2026-07-18, so D3 triggered and the hook never shipped"] },
+    { "dot": "rose", "title": "Alternate Closure", "items": ["A spec can be superseded by a newer one instead of implemented", "Superseded specs still pass the docs-delta gate before their git mv", "git mv to archived/ preserves history; the file becomes read-only context after that"] }
+  ]
+}

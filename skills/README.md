@@ -38,6 +38,11 @@ Every repo the pipeline produces carries a graphify code map (built in bootstrap
 kept fresh by post-commit hooks) — explorer, pre-implement, diagnose, and Route C adoption
 query it before grepping. See `skills/sailes-bootstrap/graphify-setup.md`.
 
+It also carries the archify documentation set (bootstrap Step 4.10, `sailes-docs`): five
+diagrams authored from repo evidence by `docs-author`, held to validate/deliver receipts,
+compared at every spec closure — the delta is gate evidence, and an empty delta is a
+positive assertion. Docs that cannot rot and cannot lie.
+
 Each skill is **independently callable** — use `sailes-discovery` alone for a scope interview, `sailes-design` alone for a UI direction, etc. `sailes-start` just sequences them with hard gates.
 
 ## The skills

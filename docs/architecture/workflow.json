@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Sailes Pipeline Workflow",
+    "subtitle": "Build track from entry to release, gated by tester/checker/qa and two human approvals — with the diagnose branch that runs instead when something is broken",
+    "output": "docs/architecture/workflow.html",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "build-track", "label": "The build track, start to release", "focus": ["sailes_start", "discovery", "bootstrap", "spec", "pre_implement", "implement", "release_gate"], "note": "The one main path: orchestrator through discovery, bootstrap, an approved spec, readiness, implementation, and the release gate." },
+      { "id": "human-gates", "label": "Where a human must approve", "focus": ["spec", "release_gate"], "note": "No feature code before spec approval; no production deploy without the completed release checklist." },
+      { "id": "broken-not-missing", "label": "Broken ≠ missing", "focus": ["sailes_start", "diagnose", "spec"], "note": "A failing system routes to diagnose instead of the build pipeline; a proven mechanism re-enters as a fix spec." },
+      { "id": "quality-gates", "label": "Per-phase quality gates", "focus": ["implement", "phase_gates", "release_gate"], "note": "tester, checker, and qa all run every phase before the release gate is reachable." }
+    ]
+  },
+  "lanes": [
+    { "id": "routing", "label": "Entry & Routing" },
+    { "id": "wayfinder_lane", "label": "Wayfinder" },
+    { "id": "incident", "label": "Incident Track", "variant": "exception" },
+    { "id": "elicitation", "label": "Discovery" },
+    { "id": "repo_setup", "label": "Bootstrap" },
+    { "id": "design_lane", "label": "Design" },
+    { "id": "spec_lane", "label": "Specification" },
+    { "id": "readiness", "label": "Pre-Implementation" },
+    { "id": "conditional", "label": "Database & Async" },
+    { "id": "implementation", "label": "Implementation" },
+    { "id": "gates_lane", "label": "Phase Gates" },
+    { "id": "release_lane", "label": "Release" }
+  ],
+  "phases": [
+    { "id": "intake", "label": "Intake & Setup", "fromCol": 0, "toCol": 2 },
+    { "id": "commit", "label": "Spec & Readiness", "fromCol": 3, "toCol": 4, "variant": "emphasis" },
+    { "id": "build_release", "label": "Build & Release", "fromCol": 5, "toCol": 5, "variant": "dashed" }
+  ],
+  "mainPath": ["sailes_start", "discovery", "bootstrap", "spec", "pre_implement", "implement", "release_gate"],
+  "nodes": [
+    { "id": "sailes_start", "lane": "routing", "col": 0, "type": "frontend", "label": "Sailes Start", "tag": "thin orchestrator" },
+    { "id": "wayfinder", "lane": "wayfinder_lane", "col": 1, "type": "external", "label": "Wayfinder", "sublabel": "decision map", "tag": "Phase 0 · optional", "width": 110 },
+    { "id": "diagnose", "lane": "incident", "col": 0, "type": "security", "label": "Diagnose", "tag": "BROKEN ≠ MISSING" },
+    { "id": "discovery", "lane": "elicitation", "col": 1, "type": "frontend", "label": "Discovery", "sublabel": "Brief interview", "tag": "Phase 1", "width": 120 },
+    { "id": "bootstrap", "lane": "repo_setup", "col": 2, "type": "backend", "label": "Bootstrap", "sublabel": "stack + repo", "tag": "Phase 2", "width": 110 },
+    { "id": "design", "lane": "design_lane", "col": 2, "type": "frontend", "label": "Design", "sublabel": "visual direction", "tag": "Phase 2.5 · UI apps", "width": 125 },
+    { "id": "spec", "lane": "spec_lane", "col": 3, "type": "security", "label": "Spec", "sublabel": "phased plan", "tag": "human: approve spec", "width": 100 },
+    { "id": "pre_implement", "lane": "readiness", "col": 4, "type": "backend", "label": "Pre-Implement", "sublabel": "BC + risk + gaps", "tag": "readiness report", "width": 125 },
+    { "id": "conditional_work", "lane": "conditional", "col": 4, "type": "database", "label": "DB / Async", "sublabel": "schema | durable", "tag": "when applicable", "width": 120 },
+    { "id": "implement", "lane": "implementation", "col": 5, "type": "backend", "label": "Implement", "sublabel": "per phase", "tag": "per spec phase" },
+    { "id": "phase_gates", "lane": "gates_lane", "col": 5, "type": "security", "label": "Phase Gates", "sublabel": "tester → checker → qa", "tag": "all three, every phase" },
+    { "id": "release_gate", "lane": "release_lane", "col": 5, "type": "security", "label": "Release Gate", "sublabel": "checklist + docs-delta", "tag": "human: approve prod deploy" }
+  ],
+  "edges": [
+    { "from": "sailes_start", "to": "discovery", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "discovery", "to": "bootstrap", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "bootstrap", "to": "spec", "label": "repo ready", "route": "outside-right", "fromSide": "right", "toSide": "top" },
+    { "from": "spec", "to": "pre_implement", "variant": "emphasis", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "pre_implement", "to": "implement", "label": "readiness confirmed", "route": "outside-right", "fromSide": "right", "toSide": "top" },
+    { "from": "implement", "to": "release_gate", "variant": "emphasis", "route": "outside-right", "fromSide": "right", "toSide": "top" },
+
+    { "from": "sailes_start", "to": "wayfinder", "role": "branch", "variant": "dashed", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "wayfinder", "to": "discovery", "role": "return", "variant": "dashed", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+
+    { "from": "sailes_start", "to": "diagnose", "role": "branch", "variant": "security", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "diagnose", "to": "spec", "label": "fix spec", "role": "return", "variant": "dashed", "route": "return-left", "fromSide": "left", "toSide": "left" },
+
+    { "from": "bootstrap", "to": "design", "role": "branch", "variant": "dashed", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "design", "to": "spec", "role": "return", "variant": "dashed", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+
+    { "from": "pre_implement", "to": "conditional_work", "role": "branch", "variant": "dashed", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "conditional_work", "to": "implement", "role": "return", "variant": "dashed", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+
+    { "from": "implement", "to": "phase_gates", "role": "branch", "variant": "security", "route": "drop", "fromSide": "bottom", "toSide": "top" },
+    { "from": "phase_gates", "to": "implement", "role": "return", "route": "return-left", "fromSide": "left", "toSide": "left" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "The Build Track", "items": ["sailes-start shows the map and routes A/B/C before Phase 1 begins", "Discovery, Bootstrap (with Design for UI apps), Spec, Pre-Implement, and Implement run in order, each gated", "The release gate closes with a checklist plus the docs-delta receipt"] },
+    { "dot": "cyan", "title": "Human Approval Gates", "items": ["The spec must be approved by the human before any feature code is written", "Production deploy is approved against a completed release checklist, not a vibe", "Every key decision inside a phase escalates to the human rather than being picked for them"] },
+    { "dot": "rose", "title": "Broken ≠ Missing", "items": ["A failing system routes to sailes-diagnose INSTEAD of the discovery-to-implement pipeline", "Diagnosis is read-only on production and ends at a proven mechanism, never a merged fix", "A confirmed mechanism re-enters the build track as a fix — a one-liner if it truly is one, a spec if it is not"] }
+  ]
+}

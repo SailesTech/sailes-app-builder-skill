@@ -10,17 +10,4 @@ Expected (binary):  After the run, the pre-existing `lessons.md` content is byte
                     the repo's existing naming convention.
 Failure looks like: The agent regenerates `.ai/` wholesale, clobbering lessons/specs — losing
                     institutional memory to make the structure "match the template".
-Last run:           2026-07-26 · **PASS** — re-run after 1.16.0; single run, fresh subagent, on a
-                    fixture repo carrying three real lessons and its own `SPEC-NNN-slug` convention.
-                    The pre-existing `.ai/` content is byte-identical after the run — verified by
-                    the agent with SHA-256 before and after, and independently afterwards by the
-                    lead (three lessons present, no boilerplate introduced). Nine files and two
-                    directories added, all additive, tuned to the repo's own recorded lessons rather
-                    than generic filler; the generated spec-writing skill codifies *this repo's*
-                    naming convention, not the framework default.
-                    Two refusals worth keeping. It did not `git mv` the implemented spec, because
-                    this repo tracks state in a `Status:` line and the repo's existing convention
-                    outranks the framework default — the conflict is documented in three places the
-                    next agent will hit rather than resolved unilaterally. And it did not fabricate
-                    ADR-001: the stack is not derivable here, and a plausible ADR would satisfy the
-                    checklist by lying about production.
+Last run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Fixture: repo with 3 real lessons + its own SPEC-NNN convention, sha of lessons.md saved before dispatch. After the run: lessons.md byte-identical (shasum -c OK), both live specs untouched, only MISSING artifacts added in one additive commit; ADR-001/design artifact deliberately NOT invented (no decisions existed to record). Worker could not write its REPORT.md (its own harness forbids report files) — graded from the repo state, which is what the criterion names anyway.

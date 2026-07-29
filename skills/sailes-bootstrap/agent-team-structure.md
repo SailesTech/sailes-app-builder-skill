@@ -41,6 +41,7 @@ Add a role, change a pin or change a lane **here only**.
 | `tester` | `claude-sonnet-5` · high | author the phase's suite via `sailes-test`: derive cases from the spec with the code UNREAD → human freezes `.ai/test-plans/<spec>.md` → write → ADD-only from the diff → tiered detection proof. The **one gate role that writes** | read the implementation before deriving cases; weaken a frozen assertion; lower its own risk tier; commit or push |
 | `checker` | `claude-sonnet-5` · high | independent read-only review of the diff vs. spec → APPROVE / NITS / CHANGES-REQUIRED; input = diff + spec + checklist ONLY (see Gate isolation) | grade on reasoning instead of result; read the maker's narrative; touch code |
 | `qa` | `claude-sonnet-5` · high | run the `tester` suite on the live app as the gate verdict + real-flow proof + screenshots; behavior before diff; vision-verify vs design artifact + `.ai/screens/` baseline | fake a pass when stack/creds are missing |
+| `docs-author` | `claude-sonnet-5` · medium | author the archify diagram set from repo evidence (`sailes-docs`); every diagram held to a validate/deliver receipt; runs at bootstrap/adopt and before the docs-delta step of spec closure — outside the phase order above | edit feature code (findings are reported upward); hand off without a receipt; call a `SKIP archify` a pass |
 
 ## Model routing — the role default is a default, not a ceiling
 

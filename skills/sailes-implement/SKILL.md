@@ -42,6 +42,14 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 - **Behavior proof** — `qa` runs the `tester` suite against the live app as the gate verdict, then drives the real flow. Address findings; re-verify. Don't mark done with open Critical findings.
 
 ## On completion
+- **Docs-delta step — runs at EVERY spec closure, before the `git mv`** (`sailes-docs`,
+  `references/delta-at-gate.md`): `docs-author` refreshes the diagrams the spec touched (each
+  with its deliver receipt), then the lead runs `archify compare architecture` against the last
+  committed state and shows the human the receipt. **An explicitly empty delta is evidence**
+  ("spec zmienił zero elementów architektury"), not a skippable formality; the other four types
+  are reviewed as git diffs of their canonical JSON. Client package regenerated in place.
+  Missing receipt → the spec does not close; archify missing on the machine → the explicit-SKIP
+  protocol plus the human's stated acceptance of the recorded debt.
 - All phases shipped + verified → set spec `Status: implemented` and `git mv` it to `.ai/specs/implemented/` (preserve history); update cross-references.
 - **Deploying work ends at the release gate, not at green tests:** walk `sailes-bootstrap/release-checklist.md` — env/secret parity, migration ordering vs deploy, the **post-deploy smoke** script run with output pasted, and a rollback plan written *before* the deploy. The human approves the prod step (unchanged) — but approval is of a completed checklist, not a vibe. First production launch also requires the Operations block in `repo-done-checklist.md` (restore tested, runbook filled).
 - **Close estimates against actuals:** if the spec's phases carried internal estimates, record per-phase estimate-vs-actual + a one-line "why the delta" in the internal ledger (never in client-visible docs) — this is what lets the planned `sailes-wycena` pricing skill price the next project from history instead of gut feel.

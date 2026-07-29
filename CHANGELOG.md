@@ -4,6 +4,42 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.22.0 — 2026-07-28 · documentation that cannot rot and cannot lie (archify)
+
+Spec `.ai/specs/2026-07-28-archify-gated-docs.md` (discovery ledger: 8 decisions, three of
+them the human's against recommendation — full 5-type set, a dedicated skill, a tenth role).
+
+- **New skill `sailes-docs`** — the docs layer of every Sailes repo: archify diagram set under
+  `docs/architecture/` (JSON + HTML committed, HTML `.claudeignore`d), authored from repo
+  evidence, held to validate/deliver receipts. References: `archify-setup.md` (machine prereq
+  `npx skills add tt-a1i/archify -g`, version floor **>= 2.12**, explicit-SKIP protocol),
+  `authoring.md` (evidence discipline, the five types), `delta-at-gate.md` (the gate step).
+- **Windows-safe CLI invocation**: every archify call goes through `$ARCHIFY_HOME`, resolved
+  via Node's own `os.homedir()` with the separator normalized. A bare `$HOME` is an MSYS path
+  in Git Bash — the shell resolves it, Node does not, so every call died with
+  `Cannot find module 'D:\c\Users\…'` on a machine where archify was installed and passing its
+  floor check. Also records that `npx skills add -g` installs to `~/.agents/skills/` and
+  symlinks into `~/.claude/skills/`.
+- **New role `docs-author`** (tenth; Sonnet · medium, no `Agent`) + Codex twin + parity
+  invariants: documents the code **as it is**; never edits feature code; receipt or explicit
+  SKIP, never silence.
+- **The docs-delta gate**: `sailes-implement` "On completion" now runs `archify compare
+  architecture` at EVERY spec closure, before the `git mv` — the receipt goes to
+  `.ai/docs-deltas/`, the human sees added/removed/changed, **an empty delta is evidence**.
+  Client package (five HTML) regenerated in place at each gate; share-card PNG is an
+  in-viewer export at handover (no CLI for it upstream).
+- **Bootstrap Step 4.10** — a new repo gets the five-diagram set at birth; `decision-engine.md`
+  **Q22**: diagram label language = the client's language (a decision card, not a default).
+  Adopt mode authors the set as the adoption's own audit artifact; `sailes-diagnose` may attach
+  a mechanism diagram as optional garnish, never a required step.
+- **Self-docs**: this repo now carries its own five diagrams (all delivered 9/9 showcase,
+  receipts in `.ai/runs/2026-07-28-archify-gated-docs.md`); AGENTS.md §Release regenerates
+  them per release; `release-hygiene.test.js` checks presence (freshness stays procedural).
+- **Three new evals**: gate-refuses-to-close-a-spec-without-docs-delta ·
+  docs-skip-is-explicit-never-silent · docs-author-stays-in-lane.
+- Upgrade action for an older-stamped repo: run bootstrap Step 4.10 (the docs set + Q22),
+  add the `.claudeignore` lines, and adopt the docs-delta step at spec closure.
+
 ## 1.21.3 — 2026-07-26 · the mitigation that was named and never promoted
 
 A rule this repo has been breaking is now where rules are read, with the mechanism attached.

@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Closing a Spec (with the Docs-Delta Gate)",
+    "subtitle": "team-lead delegates the diagram refresh, shows the human a receipted delta, then moves the spec to implemented/",
+    "output": "docs/architecture/sequence.html",
+    "viewBox": [840, 1000],
+    "visual_preset": "signal-flow",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "author-and-validate", "label": "Author and validate", "focus": ["team-lead", "docs-author", "archify-cli"], "note": "docs-author refreshes touched diagrams; each edit is validated before it counts." },
+      { "id": "evidence-and-compare", "label": "Evidence and compare", "focus": ["team-lead", "archify-cli", "docs-deltas"], "note": "The lead compares architecture base-vs-head and receipts the delta." },
+      { "id": "approve-and-close", "label": "Approve and close", "focus": ["team-lead", "human", "repo"], "note": "The human sees the delta before the spec moves to implemented/." }
+    ]
+  },
+  "participants": [
+    { "id": "human", "type": "external", "label": "Human", "sublabel": "spec approver" },
+    { "id": "team-lead", "type": "backend", "label": "Team Lead", "sublabel": "pipeline coordinator" },
+    { "id": "docs-author", "type": "backend", "label": "docs-author", "sublabel": "diagram author" },
+    { "id": "archify-cli", "type": "backend", "label": "Archify CLI", "sublabel": "validate / deliver / compare" },
+    { "id": "docs-deltas", "type": "database", "label": "docs-deltas/", "sublabel": ".ai/docs-deltas/" },
+    { "id": "repo", "type": "database", "label": "Repo", "sublabel": "specs + client package" }
+  ],
+  "segments": [
+    { "from": 150, "to": 450, "label": "Author and validate" },
+    { "from": 456, "to": 620, "label": "Evidence and compare" },
+    { "from": 626, "to": 800, "label": "Approve and close" }
+  ],
+  "messages": [
+    { "id": "refresh-diagrams", "from": "team-lead", "to": "docs-author", "y": 180, "label": "refresh touched diagrams", "variant": "emphasis" },
+    { "id": "validate-diagram", "from": "docs-author", "to": "archify-cli", "y": 222, "label": "validate --quality showcase", "variant": "default" },
+    { "id": "validate-receipt", "from": "archify-cli", "to": "docs-author", "y": 264, "label": "9/9 checks, 0 errors", "variant": "return" },
+    { "id": "deliver-diagram", "from": "docs-author", "to": "archify-cli", "y": 306, "label": "deliver diagram", "variant": "default" },
+    { "id": "deliver-receipt", "from": "archify-cli", "to": "docs-author", "y": 348, "label": "receipt: sha256 + bytes", "variant": "return" },
+    { "id": "missing-receipt", "from": "docs-author", "to": "team-lead", "y": 390, "label": "receipt missing", "variant": "dashed", "note": "Spec does NOT close — name the missing artifact and command." },
+    { "id": "diagrams-ready", "from": "docs-author", "to": "team-lead", "y": 432, "label": "diagrams + receipts ready", "variant": "return" },
+    { "id": "compare-architecture", "from": "team-lead", "to": "archify-cli", "y": 474, "label": "compare architecture base vs head", "variant": "emphasis" },
+    { "id": "store-delta", "from": "archify-cli", "to": "docs-deltas", "y": 516, "label": "write delta receipt + HTML", "variant": "default" },
+    { "id": "delta-stored", "from": "docs-deltas", "to": "archify-cli", "y": 558, "label": "delta stored", "variant": "return" },
+    { "id": "delta-receipt", "from": "archify-cli", "to": "team-lead", "y": 600, "label": "delta receipt: added/removed/changed", "variant": "return" },
+    { "id": "show-delta", "from": "team-lead", "to": "human", "y": 642, "label": "show delta (empty delta = evidence)", "variant": "emphasis" },
+    { "id": "approve-closure", "from": "human", "to": "team-lead", "y": 684, "label": "approve closure", "variant": "return" },
+    { "id": "move-spec", "from": "team-lead", "to": "repo", "y": 726, "label": "git mv spec to implemented/", "variant": "emphasis" },
+    { "id": "regen-client-package", "from": "team-lead", "to": "repo", "y": 768, "label": "regenerate client package", "variant": "default" }
+  ],
+  "activations": [
+    { "participant": "team-lead", "from": 174, "to": 438, "type": "backend" },
+    { "participant": "docs-author", "from": 186, "to": 438, "type": "backend" },
+    { "participant": "archify-cli", "from": 216, "to": 270, "type": "backend" },
+    { "participant": "archify-cli", "from": 300, "to": 354, "type": "backend" },
+    { "participant": "team-lead", "from": 468, "to": 780, "type": "backend" },
+    { "participant": "archify-cli", "from": 468, "to": 606, "type": "backend" },
+    { "participant": "docs-deltas", "from": 510, "to": 564, "type": "database" },
+    { "participant": "human", "from": 636, "to": 690, "type": "external" },
+    { "participant": "repo", "from": 720, "to": 774, "type": "database" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Evidence Over Aspiration", "items": ["Diagrams are refreshed from repo evidence, not memory or the previous diagram alone", "Every diagram carries a validate + deliver receipt (9/9 checks, 0 errors, 0 warnings)", "An empty delta is shown as evidence — spec zmienił zero elementów architektury"] },
+    { "dot": "rose", "title": "Missing Receipt Blocks Closure", "items": ["No deliver receipt for the spec means the spec does not close", "Archify missing on the machine triggers the explicit SKIP archify protocol", "Silence is never accepted as the human's acceptance of recorded debt"] },
+    { "dot": "emerald", "title": "Human Owns the Approval", "items": ["The human is shown the delta receipt before closure, not after", "Approval precedes the git mv to .ai/specs/implemented/", "The client package regenerates in place, never accumulating per spec"] }
+  ]
+}

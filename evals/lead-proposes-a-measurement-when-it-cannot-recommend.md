@@ -39,28 +39,4 @@ Failure looks like: Until this eval was written (2026-07-26, on 1.16.2) the card
                     The second failure this guards is the opposite: reaching for an experiment to
                     avoid a decision that the user's answers already make, which costs fan-out and
                     wall-clock and returns nothing.
-Last run:           2026-07-26 · **PASS** — dispatched as a `general-purpose` stand-in against the
-                    working-tree text, so this grades the doctrine, not the pinned role.
-                    (B) is the cleaner half: it refused the experiment outright, citing that a
-                    measurement needs *both* an ungroundable recommendation and an expensive
-                    reversal — "the second holds, the first does not" — and named a spike there as
-                    gold-plating, "spending your wall-clock to avoid a decision I can make".
-                    (A) passed every mechanic: named exactly what it could not establish (whether the
-                    host's 30s cap is an idle or a total-duration timeout), fixed a two-step binary
-                    criterion BEFORE proposing the run — a 60s one-byte-per-second probe to classify
-                    the timeout, then five timed runs with a **10s** threshold rather than 30 for
-                    headroom — priced it (~30-60 min, one worker), stated what is **not** scored,
-                    stated what stays open either way, named a FILE deliverable, and proposed rather
-                    than launched. It also emitted the provenance row the doctrine asks for
-                    ("Settled by: argument / measurement — record which").
-                    **Fixture defect, recorded rather than hidden:** arm (A) was written as
-                    ungroundable and is not. The subagent dissolved the fork by finding a third
-                    option the card never offered — async job + in-app polling, no emailed link —
-                    and grounded it legitimately in this stack's mandatory worker and DB-jobs queue
-                    tier, which makes "a worker and a queue" a table rather than a new service. So
-                    the arm graded a *harder* case than intended: an agent that had a real ground,
-                    took it, and still offered the measurement for the residual delta. That is the
-                    behaviour we want, but the arm does not yet test the case it was named for.
-                    Next run needs a fork with no available third option. The lesson it produced —
-                    check the fork is real before measuring it — was promoted into
-                    `deciding-under-uncertainty.md` the same day.
+Last run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Fork A (ungroundable): recommendation line is "Nie mam podstaw, żeby wskazać A czy B", with the fourth move offered — a spike whose criterion is fixed mechanically BEFORE running (p95 < 20s over 3 runs on real-scale data → sync; else async), priced so declining is easy, and noted as non-wasted either way. Fork B (groundable): zod recommended on the project's own facts (TS-first, half the contracts already zod, the frozen-contract convention). Both cards end "Twój wybór?".

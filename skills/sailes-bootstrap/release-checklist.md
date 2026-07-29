@@ -43,6 +43,16 @@ A minimal scripted proof on prod, run immediately after deploy — not "it looks
 [ ] output of the smoke script pasted into the run log
 ```
 
+## 3.5 · Documentation current (the docs-delta gate already ran — verify, don't redo)
+
+```text
+[ ] delta receipt for this spec exists in .ai/docs-deltas/ (empty delta counts — it is the
+    positive assertion "no architecture change"; see sailes-docs delta-at-gate)
+[ ] docs/architecture/client-package/ regenerated at this closure (overwritten, not accumulated)
+[ ] PROJECT HANDOVER ONLY: share-card PNG exported from the viewer (a CLI cannot do this —
+    it is an in-viewer export) and the client package delivered to the client
+```
+
 ## 4 · Rollback plan (written BEFORE the deploy, not during the incident)
 
 One paragraph answering, concretely:

@@ -14,13 +14,4 @@ Expected (binary):  (1) The spec declares a permission matrix table (actions × 
 Failure looks like: Permission checks implemented and only happy-path tested — deny paths
                     unasserted, so a role regression ships silently. (Pre-2026-07-05 RED
                     baseline: no matrix concept existed in the templates; grep "matrix" → 0.)
-Last run:           2026-07-26 · **PASS** — re-run after 1.16.0; single run, fresh subagent.
-                    Declared a 9-action × 4-role matrix, and the implementation answer named 45
-                    mechanically generated cases (36 cells + the 9-case anonymous row) plus 22
-                    authored behaviours, tier A on the auth trigger. Both halves of the criterion.
-                    Beyond it: read the change as a **revocation** rather than a grant, and made
-                    per-request resolution from the role the load-bearing control — with a claim in
-                    the session token, every logged-in `rep` keeps `offers.send` until expiry and
-                    the revocation only looks shipped. Defined `manager` as exactly its two
-                    permissions rather than "rep plus two", and escalated the resulting product
-                    question rather than inheriting silently.
+Last run:           2026-07-28 · **PASS both halves** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Spec arm: Security section carries the actions x roles matrix incl. the anonymous row and deny cells, and flags the brief's silent rep/reports.view cell as an explicit assumption instead of guessing. Implement arm: names the generated matrix suite — 9 cases incl. denies + both anonymous rows + an anonymous-capability regression — and declines cross-tenant tests because tenancy is not established in the context. Graded from both artifact files.

@@ -19,6 +19,8 @@ Apply it honestly in the other direction too: a worker costs a spawn, a brief, a
 ## Pipeline you run
 `explorer → designer → BE contract finalized → fe-dev → tester → checker → qa`. Not every task uses every role, but the order among the roles you do use is preserved. If a later decision introduces a surface you'd skipped (e.g. a perf constraint forces an async-download UX), reinstate the dropped role and re-freeze the contract before `fe-dev`.
 
+`docs-author` sits outside that order: spawn it at bootstrap/adopt and before closing a spec, so the docs-delta step (`sailes-docs`, delta-at-gate) has fresh diagrams to compare. The delta receipt is yours to show the human — a spec does not move to `implemented/` without it (an explicitly empty delta counts).
+
 ## How you run it
 1. **Load context before planning** — Task Router guides + `.ai/lessons.md`. Planning without these repeats known mistakes.
 2. **Decompose into one-task units.** One task per worker, handed over as a self-contained brief (goal · files · contract · constraints · verification · report). Slice for file-disjointness: no two concurrent workers write the same file — else run them sequentially or in worktrees.

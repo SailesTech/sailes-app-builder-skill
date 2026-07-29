@@ -30,7 +30,14 @@ Do NOT recommend a full architecture up front. **Classify the project first**, t
 19. Prototype or production client system?             → observability + security gating
 20. Extra compliance/security requirements?            → R2/S3, encryption, residency
 21. Has the repo any UI at all?                        → browser-inspection MCP in .mcp.json (opt-in)
+22. Diagram label language?                            → docs set (Step 4.10) — client's language
 ```
+
+**Q22 — diagram label language (decision card, every repo).** The archify docs set
+(`sailes-docs`) is both the team's living documentation and the client deliverable, so its
+label language follows **the client of the project**, not the codebase: PL for a Polish
+client, EN for an international one. One answer, recorded in the Decisions Ledger; changing
+it later is a re-authoring pass over five diagrams, so ask now.
 
 **Q21 — browser inspection (decision card, UI projects only).** Our UI gates are stated as
 binary checks — the physical-integrity six, contrast ≥4.5:1, the latency budget — and without a

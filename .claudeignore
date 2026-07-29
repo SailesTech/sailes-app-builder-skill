@@ -1,0 +1,3 @@
+docs/architecture/*.html
+docs/architecture/client-package/
+.ai/docs-deltas/*.html

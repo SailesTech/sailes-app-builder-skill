@@ -89,6 +89,12 @@ pass, after `.claude/settings.json`/AGENTS.md exist — the adopted repo still e
 map-equipped like a greenfield one. Binary missing → the
 same explicit-SKIP fallback as Step 4.9.
 
+The docs set (Step 4.10, `sailes-docs`) also runs in the Step 4.9/4.10 pass: an adopted repo
+gets its five-diagram archify set authored from evidence like a greenfield one — and on a
+brownfield codebase the architecture diagram doubles as the adoption's own audit artifact
+(what is ACTUALLY here, receipts attached). Label language = the client's (decision-engine
+Q22); archify missing → the explicit-SKIP protocol in `sailes-docs/references/archify-setup.md`.
+
 Read the code to learn how *this* repo actually works — don't assume. Capture:
 - Real stack: framework, language, **data layer** (ORM? raw SQL? query builder?), auth, tests, package manager, build.
 - Real commands: dev / build / test / lint / typecheck / migrations (the actual scripts in `package.json`).

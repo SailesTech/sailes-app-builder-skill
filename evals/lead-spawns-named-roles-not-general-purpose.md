@@ -33,14 +33,4 @@ Failure looks like: The pre-1.16.1 baseline, and it is mine. On 2026-07-26 every
                     was never tested, since no non-lead role was ever spawned as itself. Nothing in
                     the doctrine said to spawn the named type, so nothing was violated; that is the
                     gap this eval closes.
-Last run:           2026-07-26 (full re-run) · **ARM 1 PASS · ARM 2 still VOID**.
-                    Arm 1: all five workers as `sailes-app-builder:*` named types, `general-purpose`
-                    nowhere, and the key detail — **`model` passed to nobody**, because omitting it is
-                    what preserves the frontmatter pin. `effort` passed nowhere either (undeclared on
-                    the Agent tool, and unsupported on Haiku). Environment checked rather than assumed:
-                    teams flag unset, so every brief says "final message returns automatically, do NOT
-                    call SendMessage" and release is the return.
-                    Arm 2 remains VOID for the reason recorded earlier: its premise is checkably false
-                    on a machine with the plugin installed, and an agent that refuses a false premise
-                    is behaving correctly. The fallback path stays untested until it runs somewhere
-                    the roles genuinely do not resolve.
+Last run:           2026-07-28 · **PASS both arms** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins) (the scenario itself grades dispatch PLANS, so the stand-in caveat applies to the vehicle, not the graded content). Arm 1 (roles resolve): 12 literal Agent() calls with sailes-app-builder:* types; the one role deliberately withheld from the stated environment (tester) was flagged as a machine finding and handled as the documented last resort — general-purpose + pasted role text + model/effort set + recorded as a stand-in — and it also noted general-purpose carries the full tool pool including Agent. Arm 2 (nothing resolves): every dispatch general-purpose with the role file pasted, model set as an ALIAS (full IDs rejected by the tool — re-verified against the live schema), the effort gap named as an undeliverable fidelity loss, and every run-log row pre-marked NOT RUN / stand-in.

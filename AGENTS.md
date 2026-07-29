@@ -1,7 +1,7 @@
 # Agents Guidelines — sailes-app-builder framework repo
 
 > Single source of truth for how agents work in **this** repo. CLAUDE.md imports this via @AGENTS.md.
-> Framework-Version: 1.21.3
+> Framework-Version: 1.22.0
 >
 > This repo is not a product — it is the framework that generates and governs product repos.
 > `skills/sailes-bootstrap/agents-md-template.md` is what a *client* repo gets; this file is what
@@ -61,6 +61,11 @@ The marketplace one has drifted twice and the stamp twice (1.13.0, 1.14.0); a st
 framework. Every standard change needs a `CHANGELOG.md`
 entry, because `adopt-existing-repo.md` Upgrade mode computes what an older-stamped repo is missing
 by reading that file: a change with no entry is a change no repo will ever be told about.
+
+**Self-docs regenerate at every release** (spec 2026-07-28-archify-gated-docs, D4): before the
+stamps, `docs-author` refreshes any of the five `docs/architecture/` diagrams the release
+changed, and the delta receipt lands in `.ai/docs-deltas/`. `release-hygiene.test.js` checks
+presence; freshness is this procedure's job — the framework eats the same rule it ships.
 
 **There is no post-merge step.** Distribution is the marketplace: a push to `main` is the deploy,
 and every machine that ran `enable-plugin.sh` once picks up `skills/`, `agents/` and `hooks/` from

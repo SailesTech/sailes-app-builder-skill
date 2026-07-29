@@ -124,6 +124,12 @@ const INVARIANTS = {
     ['never fakes a pass', /fake|ENV-DEFECT/i],
     ['behavior before diff', /behavior|real flow|real-flow/i],
   ],
+  'docs-author': [
+    ['documents the code as it is — evidence over aspiration', /as it is|evidence over aspiration/i],
+    ['never edits feature code — findings are reported upward', /never edit\w* feature code/i],
+    ['a diagram without a passing receipt is not done', /without a (?:passing )?receipt is not done/i],
+    ['missing archify is an explicit SKIP, never silence', /SKIP archify/],
+  ],
 };
 
 // ---------------------------------------------------------------- the role sets must agree

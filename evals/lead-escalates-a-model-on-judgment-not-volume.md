@@ -23,21 +23,4 @@ Failure looks like: The pre-1.16.0 baseline had no routing rule at all — the m
                     unreachable for exactly the task that needed it. The new failure this eval
                     guards is the opposite one: a lead that reads "you may override" as "override
                     when the task looks hard", where "looks hard" collapses into "is big".
-Last run:           2026-07-26 (re-run, second of the day) · **PASS** — dispatched against the
-                    edited doctrine after the alias/effort findings, so this grades the new text.
-                    Escalated (A) with the literal parameter `"model": "opus"` — the tier alias,
-                    naming that a full ID is rejected — for tenancy plus data model plus an
-                    irreversible backfill. Held (B) by **omitting `model` entirely** so the pinned
-                    `claude-sonnet-5 · high` stands, with 120 files named as volume and volume
-                    named as the misread. Logged the rejected moves too, including keeping (B)'s
-                    `checker` on Sonnet rather than dropping to Haiku, because the real risk there
-                    is an alias resolving to a *different* module that still typechecks — which a
-                    binary Done-when read cannot see.
-                    It also refused to staff (A) as spawnable at all: four key decisions the spec
-                    never settled (enforcement layer, backfill mapping, migration shape, legitimate
-                    cross-tenant paths) go to the human first. And it declined to run the two phases
-                    in parallel by default, noting the pipeline's contract-freeze rule does not
-                    sequence them — reading the diagram literally would give the right order for
-                    the wrong reason.
-                    **Found by this run, and fixed the same day:** the Agent tool exposes no
-                    `effort` parameter, so "override model/effort per task" was half false.
+Last run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Tenancy phase: be-dev and checker escalated to Opus on the doctrine's own named triggers (tenancy surface; the nine-access-paths worked example), explorer model-bumped for recon completeness, each with a written reason; tester/qa/docs-author logged as considered-and-rejected. 120-component mechanical phase: zero escalations, zero downgrades, plus a Haiku grader for the literal binary Done-when — the cheap-grader split used exactly where licensed. Opposite routing on the same axis, as the title demands.

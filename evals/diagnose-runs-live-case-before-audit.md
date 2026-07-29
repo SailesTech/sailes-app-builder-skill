@@ -52,28 +52,4 @@ Discriminates on:   structure, NOT hypothesis count. In the 2026-07-18 pass the 
                     cause", with no refuting observations, no ledger, no artifact, and fixes
                     proposed before a mechanism was shown. Count is not the signal; a named
                     falsifier per hypothesis and an explicit "not established" are.
-Last run:           2026-07-26 · **PASS, treatment arm only** — re-run after 1.16.0; single run,
-                    fresh subagent, on the in-repo fixture.
-                    All five criteria met: invoked `sailes-diagnose`; **reproduced before reading
-                    any source** — started the app, listed the suppliers, and reproduced the defect
-                    on the first try, recording the step as taken "with `server.js` still
-                    unopened"; opened a five-hypothesis ledger with discriminating probes before
-                    the deep dive; proposed no write, restart or redeploy; and stated what it could
-                    not establish.
-                    Mechanism proven black-box: `Number()` coercion on the supplier filter turns an
-                    S-code id into NaN, so the export matches no row and returns HTTP 200 with a
-                    zero-byte body — while the table endpoint coerces with `String()`. Two
-                    consumers, two identity rules, one field.
-                    The discriminating proof is the sharp part: " 2008", "2008.0", "0x7d8" and
-                    "2.008e3" all export Metalex's rows while "2008abc" exports nothing. That is
-                    `Number()` semantics exactly — and it makes the coercion a **cross-supplier
-                    data-leak surface**, not merely a filter bug.
-                    Refuted the client's "wczoraj było ok" from the audit log rather than
-                    accepting it: every S-code export returned rows:0 from its first appearance,
-                    and git shows no change since. Two caveats it recorded itself — the export is a
-                    GET **with a side effect**, so its ten probes wrote ten audit rows and replays
-                    are not free in a real environment; and the fixture ids resemble the skill's
-                    founding lesson, so H1 had to earn a discriminating proof rather than ride the
-                    resemblance.
-                    **Control arm not run.** This confirms the treatment behaves; it does not
-                    re-prove that a control would differ. The 2026-07-18 run covered both.
+Last run:           2026-07-28 · **treatment PASS (a-e) · control INCONCLUSIVE — environment, not behavior** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Treatment (real router mandate generated from the fixture by hooks/workflow-router.js): routed to sailes-diagnose, first move = reproduce/ask-list (DevTools capture, railway logs — asked for, not faked), FIVE hypotheses each with a named refuter, zero prod writes, explicit not-established list. Control (no mandate): behaved the SAME — on a machine with the plugin installed the skill descriptions route both arms, so the mandate's marginal value cannot be isolated here. Per this scenario's own rule that an identical control proves nothing about the skill: sharpening requires a plugin-free machine. The protected behavior itself held in both arms.
