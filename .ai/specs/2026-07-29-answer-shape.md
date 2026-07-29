@@ -1,6 +1,6 @@
 # Spec: Answer shape — the response format the human can actually act on
 
-Status: **draft — Open Questions answered 2026-07-29, awaiting the human's approval to implement**
+Status: **approved 2026-07-29 · all three phases implemented on `feat/adhd-mode-ab`, awaiting merge**
 Date: 2026-07-29 · Branch: `feat/adhd-mode-ab`
 Experiment: `.ai/experiments/2026-07-29-adhd-mode/` (README, SCENARIO, VERDICT, four graded answers)
 Requested by: the human, 2026-07-29 — *"opus 5 ma problem z zbyt wylewnym opisywaniem wszystkiego"*

@@ -4,6 +4,36 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.23.0 — 2026-07-29 · Answer shape — the HUMAN rule gets an output format
+
+Spec `.ai/specs/2026-07-29-answer-shape.md`. **An adopted repo gains this at its next Upgrade
+pass; nothing else is required.**
+
+- **New `## Answer shape` section in `AGENTS.md` and in `agents-md-template.md`** (full text in the
+  framework, compressed in the client template — the generated root file has a ~150-line budget and
+  landed at 146). Three rules: only what changes the reader's next action · offer the depth, do not
+  pour it · **every decision that is the human's goes through the choice window**. The third is the
+  spine's `HUMAN` rule expressed as a format, which is why it is doctrine and not a preference.
+- **Rule 3 ships WIDE by the human's decision (2026-07-29), against the recommendation**: *any* fork
+  with more than one defensible answer belongs to them, including small technical calls. The
+  mechanic that makes that width usable is **batching** — group the forks, never interrupt with one,
+  and never narrow the rule by judging a fork too small to raise.
+- **New eval `answer-shape-hands-over-the-decision.md`** with a real RED baseline: a no-doctrine
+  control on the same fixture produced the best-*researched* of four answers — it found the raised
+  `chunkSizeWarningLimit`, both charting libraries and a CVE no fixture file mentions — and still
+  failed, by turning the fork into a plan it had already chosen and closing with "daj znać, czy mam
+  zacząć". Reusable fixture at `evals/fixtures/adhd-mode/`.
+- Experiment record, including what it could **not** settle: `.ai/experiments/2026-07-29-adhd-mode/`.
+  The A/B could not separate its two placements (both passed 3/3) — the placement was decided by
+  documented mechanism instead, since only `CLAUDE.md`, unscoped `.claude/rules/*.md` and
+  auto-memory are re-injected after a compaction. A skill + `SessionStart` hook was **rejected**: no
+  measured gain, and an 18th description in a routing pool already holding 25 competing pairs.
+
+Docs-delta for this release (`AGENTS.md` §Release, D4): **empty — zero architecture elements
+changed**, receipt `.ai/docs-deltas/2026-07-29-answer-shape.json`, the other four types
+byte-identical. A doctrine section adds no component; the empty delta is the positive assertion,
+not a skipped step. *(1.22.1 shipped without running this step — the gate was missed, not waived.)*
+
 ## 1.22.1 — 2026-07-29 · the entry point, and two skills the table never listed
 
 - **`CLAUDE.md` → `@AGENTS.md` now exists in the framework repo.** Claude Code reads
