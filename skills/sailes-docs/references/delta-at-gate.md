@@ -20,6 +20,12 @@ delta proves, and a conditional step is a skipped step.
      .ai/docs-deltas/{YYYY-MM-DD}-{spec-slug}.html \
      --receipt .ai/docs-deltas/{YYYY-MM-DD}-{spec-slug}.json --json
    ```
+   **Only the `.json` receipt is committed.** The CLI always writes the HTML — it is a positional
+   argument, not an option — but `.gitignore` covers `.ai/docs-deltas/*.html`. Measured 2026-07-29:
+   an **empty** delta still rendered **1.8 MB** of HTML, against a 1.9 kB receipt carrying the whole
+   proof (both sha256s and every counter). Under the always-run rule that is ~1.8 MB of history per
+   release including releases that touch no architecture. Open the HTML locally when a non-empty
+   delta is worth looking at; do not add it to the commit.
 4. **Show the human** the receipt's added/removed/changed/moved counts plus the rendered
    delta HTML path. **An empty delta is stated in exactly these terms: "spec zmienił zero
    elementów architektury — pusta delta jest dowodem, nie brakiem kroku."** Do not
