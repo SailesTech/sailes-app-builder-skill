@@ -4,6 +4,32 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.24.0 — 2026-07-29 · three guards for behaviors the doctrine did not name
+
+Spec `.ai/specs/2026-07-29-opus-5-behavioral-guards.md`, from the audit
+`.ai/audits/2026-07-29-opus-5-fit.md`. **An adopted repo gains these at its next Upgrade pass.**
+
+Three paragraphs extend `AGENTS.md` §Answer shape (1.23.0) and its client-template mirror:
+
+- **Deliverable length is a separate rule from answer length.** 1.23.0 governs conversation;
+  almost everything a Sailes repo produces is a *file*. Match it to the task — no filler sections,
+  no redundant summaries, no boilerplate. **Not a cap**, for the reason 1.23.0 rejected one: a
+  document that omits something load-bearing to hit a length is worse than one that runs long.
+- **Deliver the scope you were asked for.** Routine judgment calls made rather than asked;
+  disagreement stated in a sentence and the task continued *as asked*; the whole task finished,
+  with anything left undone named. `checker` still catches scope creep — it is now the backstop
+  rather than the only line of defence.
+- **Correct only what changes the reader's decisions.** Combined, not enumerated; no apologies, no
+  tallying past errors. Two clauses carry their weight: a follow-up question is not by itself
+  evidence of an error, and none of it applies inside thinking blocks.
+
+**The client template's line budget is now spent — 149 of ~150.** Its own ratchet already says a
+promoted rule must displace or merge rather than only append; the next one has no room to append
+into. Stated here so the next author meets that deliberately instead of discovering it.
+
+Docs-delta: **empty** — zero components, zero connections, identical `semanticSha256`. Receipt
+`.ai/docs-deltas/2026-07-29-opus-5-guards.json`.
+
 ## 1.23.1 — 2026-07-29 · the gate was the stop, not the receipt
 
 **Adopted repos: no action required** — every change here is framework-side doctrine or tooling.

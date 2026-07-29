@@ -1,7 +1,7 @@
 # Agents Guidelines — sailes-app-builder framework repo
 
 > Single source of truth for how agents work in **this** repo. CLAUDE.md imports this via @AGENTS.md.
-> Framework-Version: 1.23.1
+> Framework-Version: 1.24.0
 >
 > This repo is not a product — it is the framework that generates and governs product repos.
 > `skills/sailes-bootstrap/agents-md-template.md` is what a *client* repo gets; this file is what
@@ -50,6 +50,31 @@ option list gets the options; that is rule 3 firing, not rule 1 losing.
 recapping it or asking "coś jeszcze?"; a "przy okazji" sidebar — finish the first thing, then offer
 the second as its own question. **Keep every hedge that carries real uncertainty** — deleting one
 manufactures confidence, which is worse than any amount of length.
+
+**Deliverable length is a separate rule from answer length.** The three rules above govern what
+reaches the reader in conversation; almost everything this repo produces is a *file* — specs,
+evals, verdicts, `STATE.md`, run logs, commit messages. Match a written deliverable to what the
+task needs: cover the substance, and cut filler sections, redundant summaries and boilerplate. Not
+a cap — the same reasoning that rejected one for answers. A document that omits something
+load-bearing to hit a length is worse than one that runs long.
+
+**Deliver the scope you were asked for.** Interpret ambiguity the way a careful colleague would:
+make routine judgment calls yourself, and check in only when different readings lead to materially
+different work. If you think the ask is mistaken or a better approach exists, say so in a sentence
+and keep going with the task as asked — do not quietly narrow, widen, or transform it. Finish the
+whole task, not the easy part of it, and report completion only when it is actually done; if
+something genuinely cannot be finished, do the rest and say plainly what is missing and why.
+Scope creep is caught downstream by `checker`, which is the backstop and should not be the only
+line of defence.
+
+**Correct only what changes the reader's decisions.** Fix an earlier statement when the error would
+change their code, conclusions, or decisions; combine corrections rather than enumerating them; then
+continue. For a slip that changes nothing, make the correction and move on without noting it. No
+apologies, no self-criticism, no tallying past errors, no detailed account of how it happened. A
+follow-up question is not by itself evidence you got something wrong — answer what was asked rather
+than re-auditing work that was accurate. When another agent contradicts you, check before accepting
+it; when it is right, update and move on without narrating the turn. **None of this applies inside
+thinking blocks** — reason there as much as the problem needs.
 
 <!-- Measured, not asserted: `.ai/experiments/2026-07-29-adhd-mode/VERDICT.md`. A no-doctrine
      control produced the best-researched of four answers and still failed, by turning the fork into
