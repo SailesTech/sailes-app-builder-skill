@@ -168,7 +168,38 @@
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-07-28 (**resume here**): **1.22.0 built and eval-verified on `feat/archify-docs` — NOT
+- 2026-07-29 (**resume here**): **1.22.0 IS on production** — PR #11 reviewed, tested against a
+  real archify install, one defect fixed on the branch, merged to `main` (`72f392d`) and pushed.
+  The merge is the deploy; every machine with the plugin now has `sailes-docs` and `docs-author`.
+  - **What local testing added over the evals** (whose arms all ran as stand-ins): all five
+    committed diagram sources pass `validate --quality showcase` — 9/9 checks, 0 errors,
+    0 warnings — so the receipts reproduce independently of the run that made them. The delta
+    gate was driven end to end: an empty delta returns all-zero counts with an identical
+    `semanticSha256`, a one-field change returns `components.changed: 1` with a differing sha.
+    A fresh `deliver` is byte-identical to the committed HTML after line-ending normalization
+    and git stores the same blob, so regeneration adds nothing to history — the one-time ~3 MB
+    stands, the per-release churn does not. Both hooks exit 0 on real stdin JSON.
+  - **Defect found and fixed before merge (`d64b0ac`): a bare `$HOME` is unusable for Node.**
+    Every archify invocation was written `node "$HOME/.claude/skills/archify/bin/archify.mjs"`.
+    In Git Bash `$HOME` is `/c/Users/you` — the shell resolves it, so `[ -f … ]` and `grep` pass
+    and the setup reads healthy, but Node resolves it drive-relative and dies with
+    `Cannot find module 'D:\c\Users\…'`. The docs step failed on Windows **with archify
+    installed and passing its own floor check**, which reads like a broken tool rather than a
+    broken path. Fix: resolve `ARCHIFY_HOME` once via Node's `os.homedir()` with the separator
+    normalized (`split(path.sep).join('/')`) — one string both the shell and Node accept on all
+    three platforms. Also recorded that `npx skills add -g` installs to `~/.agents/skills/` and
+    symlinks into `~/.claude/skills/`. **This is the MSYS hazard AGENTS.md already documents for
+    hook fixtures, reproduced in a new skill — the doctrine did not carry to a new author.**
+  - **Two gaps named, neither fixed — both are structural, not this PR's debt:**
+    1. **No staging channel.** `.claude-plugin/marketplace.json` pins no ref, so the plugin
+       always tracks `main`. There is no way to install a version and exercise it before it is
+       on every machine. This is why the runtime half — `docs-author`'s model pin and tool
+       allow-list — is *still* ungraded: spawn the real role in a fresh session and verify.
+    2. **No test for trigger collisions between skill descriptions.** Nothing checks whether 17
+       skills compete for the same routing. The evidence is already in hand: the diagnose eval's
+       control arm went INCONCLUSIVE *because* other skills' descriptions routed both arms. That
+       was filed as fixture-sharpening; it is a missing class of test.
+- 2026-07-28 (superseded): **1.22.0 built and eval-verified on `feat/archify-docs` — NOT
   merged; merge = deploy and is the human's call.** The full pipeline ran end to end: discovery
   (8-decision ledger, three of them the human's against recommendation — full 5-type set,
   dedicated skill `sailes-docs`, tenth role `docs-author`) → approved spec
