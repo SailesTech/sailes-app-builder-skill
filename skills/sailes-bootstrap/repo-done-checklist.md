@@ -142,6 +142,38 @@ done
 Run it at bootstrap handoff and again whenever closing a spec (it is also the payload of any
 periodic maintenance pass). A `DRIFT` line means the doc is actively misleading future agents.
 
+**Same pass, second sweep — comments that justified an absence.** A capability that has just landed
+makes every comment explaining its absence a lie:
+
+```bash
+grep -rn "DOES NOT EXIST\|NIE ISTNIEJE\|AT INTEGRATION\|PRZY INTEGRACJI\|TODO\|for now\|na razie" \
+  --include=*.ts --include=*.tsx src apps packages
+```
+
+Measured 2026-07-30: a comment claimed the files package did not exist a **week** after it shipped,
+and the erasure path silently left objects in the bucket the whole time. Each hit is a claim that
+was true when written; the sweep asks whether it still is.
+
+## Every reader has a proven writer
+
+A surface that something **reads** and nothing provably **writes** is a feature that only looks
+finished. Required at spec closure, alongside the drift pass:
+
+```text
+[ ] every append-only table with a reader in the API has a test proving a REAL flow puts a row
+    in it — "insertable from a test" and "appears in practice" are different claims
+[ ] the list of such surfaces is DERIVED from a registry the repo already has, never hand-typed,
+    with a canary asserting it against a frozen literal (a new one added without proof breaks
+    the canary instead of slipping past)
+[ ] same question asked of queues (consumer, no producer) and events (subscriber, no emitter)
+```
+
+Measured 2026-07-30: a table shipped with partitions, an append-only trigger, a field registry, a
+write function, a `GET` route and passing authorization tests on that route — and **zero rows**.
+**Three gates passed it and each was correct about its own fragment**; none asked whether anything
+arrives. The defect was in no diff, which is why no per-phase review can find it and why it belongs
+on a closure checklist instead. Mechanism: `sailes-test/references/techniques.md` § The proven writer.
+
 ## Operations block — before PRODUCTION launch (with the release checklist)
 
 Building it is half the deliverable; running it is the other half. Required for a production

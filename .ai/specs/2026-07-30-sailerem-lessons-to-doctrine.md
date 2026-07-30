@@ -373,7 +373,31 @@ Dwa znaleziska, oba przyjęte i naprawione:
 
 Po naprawie: `npm test` 9/9 zielone, nowy test ma **11 przypadków** (było 7).
 
-F2–F6: nierozpoczęte.
+**F2 — DONE 2026-07-30.**
+
+| Krok | Plik(i) | Stan |
+|---|---|---|
+| 2.1 | `sailes-test/SKILL.md` (nowa sekcja + wiersz Quick Reference), `references/techniques.md` (§ The proven writer + wiersz w tabeli wyboru), `repo-done-checklist.md` (nowa sekcja przy domykaniu specu) | ✅ klasa nazwana szerzej niż tabele append-only: kolejka bez producenta, event bez emitera. Zgodnie z D4 framework wymaga **wyprowadzania listy z rejestru + kanarka**, mechanizm zostaje repo |
+| 2.2 | `references/techniques.md` (§ Recording deliberate debt), `sailes-test/SKILL.md` (§ Never), `backlog-template.md` (dwukierunkowy link + kolumna Status) | ✅ z fallbackiem dla runnerów bez `it.fails`/`it.failing`: test asertujący aktualne złe zachowanie z linkiem w nazwie — własność do utrzymania to „w dniu zmiany zachowania coś czerwienieje" |
+| 2.3 | `references/techniques.md` (§ Table or separate blocks + § The border) | ✅ wyzwalacz, granica i **dwa warunki wejścia** (nazwa mówi który wiersz padł; liczba przypadków asertowana przeciw literałowi — inaczej źródło dające zero wierszy produkuje zieleń nad niczym) |
+| 2.4 | `sailes-implement/SKILL.md` (On completion), `repo-done-checklist.md` (przy paszu dryfu) | ✅ gotowa komenda `grep -rn`, dwujęzyczna, uruchamiana raz na dowiezioną zdolność — nie na commit |
+
+**Done-when F2 — wynik:**
+```
+npm test                                          → 9/9 plików zielone
+node skills/sailes-bootstrap/repo-done-checklist.test.js → passed (dopisania nie ruszyły skanu dryfu)
+grep "it.fails"          → techniques 4 · SKILL 1 · backlog-template 2 ✅
+grep "proof mutation still produce red"  → 1 (kryterium rozstrzygające granicy) ✅
+grep "AT INTEGRATION"    → sailes-implement 2 · repo-done-checklist 1 ✅
+grep "proven writer"     → SKILL 3 · techniques 2 · repo-done-checklist 2 ✅
+```
+
+**Uwaga do 2.3, warta zapamiętania przy F5.** Granica („iteruj po źródle" ≠ „licz oczekiwanie ze
+źródła") jest zapisana z pytaniem rozstrzygającym, nie jako zasada do zapamiętania: *czy mutacja
+dowodowa nadal daje czerwień*. Reguła bez testu rozstrzygającego staje się kwestią gustu przy
+pierwszym sporze.
+
+F3–F6: nierozpoczęte.
 
 ## Non-Goals
 

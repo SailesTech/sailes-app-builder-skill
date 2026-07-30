@@ -56,7 +56,17 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 - All phases shipped + verified → set spec `Status: implemented` and `git mv` it to `.ai/specs/implemented/` (preserve history); update cross-references. **The status line carries pasted gate evidence, not an assertion:** `Status: implemented — evidence: <command> → <result> · checker: <verdict> · qa: <verdict>`. Measured 2026-07-30: a spec claimed "`qa` PASS 4/4" while `qa` was still running and then returned CHANGES-REQUIRED. You can write an assertion ahead of the fact; you cannot paste a verdict that does not exist yet — that gap is the whole mechanism, so filling it from expectation defeats the format entirely.
 - **Deploying work ends at the release gate, not at green tests:** walk `sailes-bootstrap/release-checklist.md` — env/secret parity, migration ordering vs deploy, the **post-deploy smoke** script run with output pasted, and a rollback plan written *before* the deploy. The human approves the prod step (unchanged) — but approval is of a completed checklist, not a vibe. First production launch also requires the Operations block in `repo-done-checklist.md` (restore tested, runbook filled).
 - **Close estimates against actuals:** if the spec's phases carried internal estimates, record per-phase estimate-vs-actual + a one-line "why the delta" in the internal ledger (never in client-visible docs) — this is what lets the planned `sailes-wycena` pricing skill price the next project from history instead of gut feel.
-- Push deferred follow-ups / tech debt discovered during build to `.ai/backlog.md` (don't lose them).
+- **Delivered a CAPABILITY? Sweep the repo for comments that justified its absence** — before closing:
+  ```bash
+  grep -rn "DOES NOT EXIST\|NIE ISTNIEJE\|AT INTEGRATION\|PRZY INTEGRACJI\|TODO\|for now\|na razie" --include=*.ts --include=*.tsx src apps packages
+  ```
+  Every hit is a claim that was true when written and may not be now. Measured 2026-07-30: a comment
+  read *"call the storage adapter AT INTEGRATION — `packages/files` DOES NOT EXIST"*; the package had
+  existed for a week, `deleteObject` included, and the erasure path was leaving files in the bucket
+  indefinitely. **One sweep on the day `packages/files` landed would have found it that day instead
+  of a week later.** The sweep is cheap because it runs once per capability, not once per commit —
+  and it is the only step that connects "the dependency arrived" to "the things waiting on it".
+- Push deferred follow-ups / tech debt discovered during build to `.ai/backlog.md` (don't lose them). Where the debt is a wrong behavior you are deliberately keeping, the row's other half is an `it.fails` test linking back to it (`sailes-test/references/techniques.md`) — a marker that removes itself when the debt is paid.
 - Record any correction-worthy lesson in `.ai/lessons.md` (Context/Problem/Rule/Applies-to); check lessons for **promotion candidates** (recurring → preferably an enforced check, else AGENTS.md/Task Router rule). A defect that escaped the gates additionally gets its **gate autopsy** (`Escaped-defect:` entry — which gate missed it + what check that gate now gains).
 - **Update `.ai/STATE.md` (write before walking away):** move what this run proved into Verified facts (with evidence), record unresolved problems in Open failures, set Last session. Do this **also when a session is interrupted mid-spec** — it's what makes the work resumable.
 - Hand off per the repo's PR workflow (label `review`).

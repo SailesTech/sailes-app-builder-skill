@@ -146,6 +146,26 @@ suite that flickers gets disabled, and then the whole investment protects nothin
 
 Details: `references/browser-e2e.md`.
 
+## Anything with a reader must have a proven writer
+
+**Every append-only table with a reader in the API gets a test proving a REAL flow produces a row in
+it.** "You can insert one from a test" and "one appears in practice" are two different sentences.
+
+This is the one defect class a per-phase review structurally cannot catch. Measured 2026-07-30:
+a table shipped with partitions, an append-only trigger, a field registry, a write function, a
+`GET` route and authorization tests on that route — **and zero rows**, because nothing called the
+write function. Three gates passed it and each was right about its own fragment: the table phase
+graded the table, the route phase graded the route, the matrix gate proved authorization on the
+route. None asked whether anything arrives. The defect was in **no diff** — it lived between them.
+
+Generalize past append-only tables: a queue with a consumer and no producer, an event with
+subscribers and no emitter. Wherever the phase list gives you a reader, ask what proves the writer
+runs. **Derive the list of such surfaces from whatever registry the repo already has, never by
+hand,** and guard it with a canary against a frozen literal — a new one added without proof should
+break the canary rather than slip past it. Mechanism is the repo's call; the requirement is not.
+
+Full rationale and the border cases: `references/techniques.md` § The proven writer.
+
 ## External systems
 
 One blanket policy is wrong for at least one of your integrations — Slack and a payment provider
@@ -167,6 +187,11 @@ property-based tests. Asserting exact LLM output is not a test.
   the test itself stubbed, no snapshot as the only assertion for logic.
 - **Never claim a manual step was performed.** Emit it as a checklist item and report the behavior
   UNVERIFIED until a human confirms.
+- **Never record deliberate debt as a comment or a `skip`.** Use `it.fails` (Vitest; `it.failing` on
+  Jest 28+) with the backlog link in the name: the suite stays green, the debt is executable, and the
+  day someone pays it off the test *unexpectedly passes* and fails, demanding the marker come off.
+  `skip` is invisible and never notices the problem went away; a comment is read only by whoever is
+  already in that file. See `references/techniques.md` § Recording deliberate debt.
 
 ## Quick Reference
 
@@ -176,6 +201,7 @@ property-based tests. Asserting exact LLM output is not a test.
 | Freeze | human approves; plan says `FROZEN`; **hard block** |
 | Write | one test per frozen ID, ID in the test name |
 | Amend | diff may ADD cases only — never weaken, never delete to go green |
+| Cover | every reader has a proven writer — a real flow puts the row there, not a test insert |
 | Prove | tier A Stryker · tier B per-B-ID break → red → revert → green · tier C green suite |
 | Hand off | `checker` (diff + tests), then `qa` (runs it as the verdict) |
 

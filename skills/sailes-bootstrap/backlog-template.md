@@ -37,6 +37,20 @@ producer was unwired four commits after it was wired and proven by a test.
 difference: an item with no trigger is a wish, an item whose trigger is a named dependency fires
 by itself the day that dependency lands.
 
+### Debt that can be a failing test should be one — and link both ways
+
+Where the debt is a behavior the code gets wrong on purpose, the backlog row is only half of it. The
+other half is a test marked **`it.fails`** (Vitest; `it.failing` on Jest 28+) carrying this row's
+link in its name. The suite stays green, the debt is **executable**, and the day someone fixes it
+the test *unexpectedly passes* and fails — demanding the marker be removed. It corrects itself at
+zero maintenance cost, which no row in a table can do.
+
+Link both directions: the row names the test file, the test name carries the row. A row whose test
+has vanished, or a marker whose row was closed, is drift you want to be able to see.
+
+Not every item qualifies — a deferred feature has no behavior to assert yet. Use it wherever the
+debt *is* a wrong behavior you have chosen to keep.
+
 ## Features / ideas (deferred)
 | Item | Why deferred | Source (brief/spec) | Status |
 |---|---|---|---|
@@ -45,7 +59,7 @@ by itself the day that dependency lands.
 ## Tech debt
 | Item | Impact | Trigger to return | Source | Status |
 |---|---|---|---|---|
-| {shortcut taken / thing to harden} | {what it risks} | {the named dependency or event that makes this due — "when packages/files exists", not "later"} | {link} | parked / next |
+| {shortcut taken / thing to harden} | {what it risks} | {the named dependency or event that makes this due — "when packages/files exists", not "later"} | {link} | parked / next · `it.fails` at {test path}, if the debt is an asserted wrong behavior |
 
 ## Later phases (from specs)
 | Phase / feature | From spec | Trigger to start |
