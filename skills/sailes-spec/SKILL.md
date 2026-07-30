@@ -55,7 +55,17 @@ Status: draft | approved | in-progress | implemented | superseded
 - `draft` — being written / Open Questions open.
 - `approved` — signed off, ready to implement (the gate before coding).
 - `in-progress` — implementation underway.
-- `implemented` — all phases shipped & verified.
+- `implemented` — all phases shipped & verified. **Requires quoted gate evidence, not an assertion:**
+
+  ```
+  Status: implemented — evidence: <command> → <result> · checker: <verdict> · qa: <verdict>
+  ```
+
+  Measured 2026-07-30 on a client repo: a spec carried `Status: implemented` and "`qa` PASS 4/4"
+  while `qa` was still running, and returned `CHANGES-REQUIRED` on the fourth flow. An assertion can
+  be written ahead of the fact; **a pasted verdict cannot, because there is nothing to paste yet.**
+  That is the whole mechanism — the format is not bookkeeping, it is what makes the lie impossible
+  to write early.
 - `superseded` — replaced by a newer spec (add `Superseded-by: <path>`).
 
 **2. Folders mark the lifecycle (move the file, don't just flip a label):**
@@ -90,6 +100,13 @@ Status: draft | approved | in-progress | implemented | superseded
 - **Integration Coverage** — affected API + UI paths, each with a test.
 - **Non-Goals** — what we explicitly are NOT building. Push deferred-but-worth-keeping items (later phases, tech debt) to `.ai/backlog.md` so they aren't lost in this one spec.
 
+**Every constraint in a spec carries its reason.** "No migrations" reads like a design principle and
+pushes the implementer into a workaround; "no migrations, **because numbers `00XX`–`00YY` are
+reserved for stage Z**" is a constraint they can reverse by raising it. Measured 2026-07-30: an
+unexplained "zero migrations" cost the atomicity of the path the architecture calls its most
+important code — the implementer could not add a grant, so they split the transaction. A constraint
+without a reason is not a tighter spec, it is a spec that has hidden its own escape hatch.
+
 ## Stack conventions (use the repo's locked stack; below is the baseline default)
 
 - ORM: Drizzle — explicit schema in TS, migrations committed + reviewed.
@@ -114,6 +131,7 @@ Status: draft | approved | in-progress | implemented | superseded
 - [ ] Integration coverage lists every affected API + key UI path, each with a test.
 - [ ] Phases leave the app working; each step is testable.
 - [ ] Every phase has a binary `Done-when` (exact commands + expected result), not a qualitative statement.
+- [ ] Every constraint states its reason — a bare prohibition is reversible only by guessing why it is there.
 - [ ] Non-goals stated; standard CRUD noise cut.
 - [ ] Canonical primitives used (no reinvented framework substitutes).
 
@@ -142,4 +160,6 @@ Status: draft | approved | in-progress | implemented | superseded
 - A phase leaves the app non-working, or a step has no test.
 - A phase's completion is described qualitatively ("improve", "polish", "works well") with no binary `Done-when`.
 - You're about to hand the spec to implementation with unanswered critical unknowns.
+- You wrote `Status: implemented` with a gate verdict you have not received yet — the format exists so this is unwritable, and filling it from expectation defeats it entirely.
+- A constraint in the spec says what is forbidden and not why, so the only way to challenge it is to break it.
 - Your Open Questions need research or client input that won't arrive this sitting and you're holding the spec open instead of escalating to `sailes-wayfinder`.

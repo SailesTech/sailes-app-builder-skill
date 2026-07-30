@@ -6,6 +6,8 @@ Do NOT recommend a full architecture up front. **Classify the project first**, t
 
 **Decision-card quality bar:** every option must state a concrete upside, a concrete cost, and the real trade-off it introduces in this project. If you cannot name both a believable pro and a believable con, don't present it as a choice yet. Ask a fact-finding question first, or defer the option to backlog/ADR.
 
+**An option that cites an existing mechanism must be checked against that mechanism FIRST.** Before writing "visibility via the X we already have", open X and confirm it does the thing you are about to claim. Measured 2026-07-30: a card offered "dead-letter plus visibility through a mechanism that already stands"; the mechanism turned out to be a process-liveness heartbeat with nothing to say about individual jobs, and **the human decided on a false premise** — a decision that then had to be taken again. **"I have no grounds for this" is a legal line in a recommendation.** An invented premise is not: it reads on the page exactly like a grounded one, so the reader has no way to discount it, and the honest hedge you skipped was the only signal they would have had.
+
 ## The classification questions (per project)
 
 ```text

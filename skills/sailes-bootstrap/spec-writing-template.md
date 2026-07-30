@@ -34,7 +34,9 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 
 ## Spec lifecycle
 
-`Status: draft | approved | in-progress | implemented | superseded`. Folders mark state: `.ai/specs/` = live; `.ai/specs/implemented/` = shipped; `.ai/specs/archived/` = abandoned/superseded. When a feature ships → `Status: implemented` + `git mv` to `implemented/`. When replaced → old gets `Status: superseded` + `Superseded-by:`, `git mv` to `archived/`; new gets `Supersedes:`. Root = the only live set. **Create** for new module / significant feature / multi-file architecture change; **skip** for typos, one-file refactors, small bug fixes.
+`Status: draft | approved | in-progress | implemented | superseded`. Folders mark state: `.ai/specs/` = live; `.ai/specs/implemented/` = shipped; `.ai/specs/archived/` = abandoned/superseded. When a feature ships → `Status: implemented` + `git mv` to `implemented/`.
+
+**`implemented` requires quoted gate evidence, not an assertion** — `Status: implemented — evidence: <command> → <result> · checker: <verdict> · qa: <verdict>`. An assertion can be written ahead of the fact; a pasted verdict cannot, because there is nothing to paste yet. Measured 2026-07-30: a spec claimed "`qa` PASS 4/4" while `qa` was still running and then returned CHANGES-REQUIRED. When replaced → old gets `Status: superseded` + `Superseded-by:`, `git mv` to `archived/`; new gets `Supersedes:`. Root = the only live set. **Create** for new module / significant feature / multi-file architecture change; **skip** for typos, one-file refactors, small bug fixes.
 
 ## Required sections
 
@@ -49,6 +51,8 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 - **Phasing & Steps** — stories → testable steps; **every phase has a binary `Done-when`** (exact commands + expected output). Each phase may carry an internal estimate (hours) — closed out against actuals at completion; never client-visible.
 - **Integration Coverage** — affected API + UI paths, each with a test.
 - **Non-Goals** — what we explicitly are NOT building.
+
+**Every constraint carries its reason.** "No migrations" reads like a design principle and pushes the implementer into a workaround; "no migrations, **because numbers `00XX`–`00YY` are reserved for stage Z**" is reversible by raising it. A constraint without a reason is a spec that has hidden its own escape hatch.
 
 ## Stack conventions  (adapt to this repo's locked stack)
 
@@ -72,6 +76,8 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 - [ ] Integration coverage lists every affected API + key UI path, each with a test.
 - [ ] Phases leave the app working; each step is testable.
 - [ ] Every phase has a binary `Done-when` (exact commands + expected result), not a qualitative statement.
+- [ ] Every constraint states its reason — a bare prohibition is reversible only by guessing why it is there.
+- [ ] `Status: implemented` carries pasted gate verdicts, never an assertion written ahead of the gate.
 - [ ] Non-goals stated; standard CRUD noise cut.
 - [ ] Canonical primitives used (no reinvented framework substitutes).
 

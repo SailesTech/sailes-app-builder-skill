@@ -8,9 +8,10 @@ but what they approve is a **completed checklist, not a vibe**.
 
 Generated into new repos as `.ai/checklists/deployment.md`'s backbone (idempotent — if the repo
 already has a deployment checklist, merge additively). `sailes-implement` runs this at the end of
-any deploying spec; the first production launch also requires the **Operations block** in
-`repo-done-checklist.md` (error tracking alerting a human, /health, backup with a tested restore,
-uptime check, runbook).
+any deploying spec. Two blocks of `repo-done-checklist.md` are pulled in here: the **Environment
+block** at **every** release (§1.1 — clean-clone boot, fixture users, fast verdict, complete
+`.env.example`) and the **Operations block** at the first production launch (error tracking
+alerting a human, /health, backup with a tested restore, uptime check, runbook).
 
 ## 1 · Environment parity (before anything ships)
 
@@ -20,6 +21,27 @@ uptime check, runbook).
     every var the app reads exists in prod; .env.example is the authoritative list)
 [ ] third-party callbacks (webhooks, OAuth redirect URIs) registered for the prod URLs
 ```
+
+### 1.1 · The Environment block is RUN here, not only at bootstrap
+
+Walk the **Environment block** in `repo-done-checklist.md` — the four rows with outputs pasted:
+one-command boot from a **clean clone**, fixture users per RBAC role, the fast-verdict command,
+and a complete `.env.example`. It is scoped there to bootstrap completion; that scoping is the
+defect this row closes.
+
+**A repo that booted in March does not have to boot in July.** Measured 2026-07-30: `qa` stood the
+stack up from a clean clone and hit five consecutive blockers — two env vars the code required and
+the template did not carry, an object-store credential mismatch between the template and
+`docker-compose.yml`, no automatic bucket creation, and a host trap. The hard rule *a feature you
+cannot run locally is not done* had therefore been broken **at the level of the whole repository,
+for weeks** — and **no agent could report it**, because nobody had stood the stack up from zero
+since bootstrap. Nothing about that is caught by a presence check, by a green suite, or by a
+staging environment that has been running continuously since it was first provisioned.
+
+Four of those five blockers needed an edit to a `.env*` file, which agents are denied by hook and
+by rule — correctly. So the finding shape is fixed: report it, with the exact lines to paste, and
+route it to the human (`repo-done-checklist.md`, Environment block). An agent that hits this has a
+prohibition and needs a path; leaving it with only the prohibition is what produced weeks of silence.
 
 ## 2 · Migration ordering vs deploy (extends sailes-database's safety rules to the timeline)
 
@@ -71,5 +93,9 @@ One paragraph answering, concretely:
 - **No automatic prod deploys; no prod migration without approval** (unchanged from the security
   checklist — this checklist structures the approval, it never replaces it).
 - **A deploy without a pre-written rollback plan is not approved.**
+- **A release whose Environment block was not RUN is not approved** (§1.1). Presence was checked at
+  bootstrap; this gate checks that it still boots. The framework has named this defect since 1.16.2
+  — *"presence-only checklist passed a repo that cannot boot"* — and scoping the block to bootstrap
+  is what let it keep happening.
 - **A "successful" deploy without pasted smoke output is not done** — behavior before diff
   applies to releases too.

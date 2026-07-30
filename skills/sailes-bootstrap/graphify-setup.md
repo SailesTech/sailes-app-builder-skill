@@ -85,6 +85,27 @@ NEVER block the phase. In order:
   `graphify update .` first (seconds, free) or fall back to grep for that question.
 - A refactor that DELETED files can leave ghost nodes: `graphify extract . --code-only --force`.
 
+## What the map does NOT see — and the one question where that costs you
+
+The graph is built from a tree-sitter AST pass over **application code**. It does not see raw SQL:
+migrations, triggers, functions, `CREATE OR REPLACE` bodies. For most recon that is irrelevant.
+For one question it is decisive.
+
+> **"Does anything write to table X" searches THREE surfaces:** application code · `.sql` files
+> (triggers, functions, `CREATE OR REPLACE`) · the graph. Searching the ORM identifier alone
+> returns **"no writers" for a table a database trigger keeps filling**.
+
+Measured 2026-07-30: a table was declared dead — and that claim written into the state file, the
+spec, the lessons and the backlog — on the strength of a grep for its Drizzle identifier, while two
+raw-SQL triggers were inserting into it. The state file being edited **already carried a warning
+that the map cannot see migrations**; the author walked into it while writing the section about
+invisible writes. Knowing the limitation is not the same as searching as if you knew it.
+
+**Empirical proof beats grep.** A red test answers "does anything write here" **without assuming
+anything about the search surface** — it asks the running system instead of asking your regex.
+Where the answer is load-bearing (a table you are about to call dead, a capability you are about
+to declare missing), get the red test rather than a better grep.
+
 ## Optional upgrades (documented, not bootstrap steps)
 
 - **Semantic docs pass** (links `.ai/` specs/ADRs ↔ code as rationale nodes; uses the IDE

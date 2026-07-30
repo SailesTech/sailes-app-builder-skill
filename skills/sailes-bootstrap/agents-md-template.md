@@ -42,7 +42,7 @@ Also scaffold (see `skeleton.md` for the full monorepo layout):
 Length is not thoroughness — complete and unreadable delivered nothing. Rule 3 is `HUMAN` as a format.
 1. **Only what changes the reader's next action.** Finding or action first; no preamble, no restated question. If a detail changes nothing they'd do, cut it.
 2. **Offer the depth, do not pour it.** Full table/log/file list is named and offered, never pasted.
-3. **Every decision that is the human's goes through the choice window.** *Any* fork with more than one defensible answer: 2–4 named options, each with cost and benefit, recommendation first and labeled. Never pick and proceed; a fork described in prose is a decision you took.
+3. **Every decision that is the human's goes through the choice window.** *Any* fork with more than one defensible answer: 2–4 named options, each with cost and benefit, recommendation first and labeled. Never pick and proceed; a fork described in prose is a decision you took. **An option citing an existing mechanism is checked against that mechanism BEFORE the window opens** — "I have no grounds" is a legal recommendation line; a fabricated premise is not, because it reads on the page exactly like a grounded one and the reader has no way to discount it.
 - **Forks batch and never interrupt.** Rule 3 is wide on purpose, so grouping keeps it usable, not filtering: carry on with what does not depend on the fork, surface the set at the next stop in one window. A class the human pre-delegates stops being a fork. Never narrow rule 3 by judging a fork too small to raise.
 - **Task beats rule; shape stays.** "Explain this" gets the full explanation (no preamble, no closer, skimmable headers); a destructive action gets its confirmation; a question whose answer IS the options gets them. **Keep hedges that carry real uncertainty** — cutting one manufactures confidence.
 - **Files are a separate rule from answers.** Match a written deliverable (spec, report, doc, commit message) to what the task needs; cut filler sections, redundant summaries, boilerplate. Not a cap — omitting something load-bearing to hit a length is worse than running long.
@@ -111,7 +111,7 @@ Length is not thoroughness — complete and unreadable delivered nothing. Rule 3
 ## Conventions
 - DB tables/columns: snake_case, tables plural. JS/TS identifiers: camelCase. UUID PKs.
 - Common columns: id, created_at, updated_at, deleted_at (+ organization_id if multi-tenant).
-- No hardcoded user-facing strings. No inline comments — self-documenting code.
+- No hardcoded user-facing strings. No inline comments — self-documenting code. **A deferral recorded only in a code comment does not exist:** it goes to `.ai/backlog.md` with the blocking dependency named as its trigger ("when `packages/files` exists"), so delivering that dependency fires the return. A comment is read only by someone already in that file — the last person who needs the reminder.
 
 ## Key Commands
 - `pnpm install` · `pnpm dev` · `pnpm build`
@@ -141,7 +141,7 @@ Length is not thoroughness — complete and unreadable delivered nothing. Rule 3
 ## Session Memory (`.ai/STATE.md`)
 - Five sections: **Verified facts** (checked, each with the command/evidence that proved it) · **General rules** (distilled from this project) · **Open failures** (unresolved problems + best diagnosis so far) · **Lessons learned** (pointers into `.ai/lessons.md`) · **Last session** (where work stopped + the next step).
 - **Read at session start** — before any non-trivial work, read STATE.md + lessons.md; otherwise you re-derive known state and repeat known dead ends.
-- **Write before walking away** — every working session ends by updating STATE.md: promote what you verified into Verified facts, record what's still broken in Open failures, update Last session. A session that ends without this write loses its memory. This applies on interruption too, not just on completion.
+- **Write before walking away** — every working session ends by updating STATE.md: promote what you verified into Verified facts, record what's still broken in Open failures, update Last session. A session that ends without this write loses its memory. This applies on interruption too, not just on completion. **Update the snapshot together with the history, or update neither:** a file whose top and bottom disagree is worse than a stale one, because the reader cannot tell which half to believe — and the session hook makes everyone read the top first.
 - **Facts vs hypotheses:** an entry enters Verified facts only with evidence attached; everything unproven stays in Open failures. Never let a hypothesis masquerade as a fact.
 
 ## Hard Safety Rules
