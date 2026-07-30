@@ -50,15 +50,25 @@ function test(name, fn) {
  * the synthetic fixtures alike — so the fixtures genuinely exercise the shipped logic rather than a
  * paraphrase of it.
  *
- * A status line qualifies when it declares `implemented` AND names at least one pasted gate verdict
- * under an evidence label. Deliberately loose on wording, strict on the one thing that cannot be
+ * A status line qualifies when it declares `implemented`, carries an evidence label, and names
+ * **both** gate verdicts. Deliberately loose on wording, strict on the one thing that cannot be
  * written in advance: a verdict that came back from a gate.
+ *
+ * Both, not either — found by `checker` on 2026-07-30, on this file's first version. An `or` here
+ * accepts a status line that quietly drops `qa:`, which is the more expensive gate and the one that
+ * returned CHANGES-REQUIRED in the incident this whole rule exists for. A check that permits
+ * omitting the gate that actually failed is not a check.
+ *
+ * A gate that does not apply is written `qa: n/a` and still appears. That is the framework's
+ * standing rule everywhere else — absence is recorded explicitly, never as silence (SKIP archify,
+ * SKIP stryker, ENV-DEFECT) — and it is exactly what a repo with no running app needs in order to
+ * state that honestly instead of leaving the reader to guess whether qa passed or never ran.
  */
 function carriesGateEvidence(text) {
   const line = (text.match(/^Status:.*$/m) || [''])[0];
   if (!/implemented/i.test(line)) return true; // not our case
   if (!/(evidence|dowody)\s*:/i.test(line)) return false;
-  return /(checker|qa)\s*:\s*\S/i.test(line);
+  return /checker\s*:\s*\S/i.test(line) && /qa\s*:\s*\S/i.test(line);
 }
 
 /** `2026-07-30-title.md` → `2026-07-30`; null when the name carries no date. */
@@ -85,6 +95,25 @@ test('an evidence label with no verdict behind it is REJECTED', () => {
     carriesGateEvidence('Status: implemented — evidence:\n'),
     false,
     'an empty evidence label is the assertion wearing the format; it must not qualify'
+  );
+});
+
+test('one verdict is not enough — dropping `qa:` is REJECTED', () => {
+  assert.strictEqual(
+    carriesGateEvidence('Status: implemented — evidence: npm test → 9/9 green · checker: APPROVE\n'),
+    false,
+    'accepting checker alone lets a spec omit the more expensive gate — and qa is the gate that ' +
+      'returned CHANGES-REQUIRED in the 2026-07-30 incident this rule exists for'
+  );
+});
+
+test('a gate that does not apply is stated, not omitted', () => {
+  assert.strictEqual(
+    carriesGateEvidence(
+      'Status: implemented — evidence: npm test → 9/9 green · checker: APPROVE · qa: n/a (no running app)\n'
+    ),
+    true,
+    'a repo with no app must be able to say so explicitly; absence is recorded, never silent'
   );
 });
 

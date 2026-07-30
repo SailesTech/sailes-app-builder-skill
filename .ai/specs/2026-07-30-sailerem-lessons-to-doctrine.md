@@ -356,6 +356,23 @@ niedowodu w pole dowodowe.
 `.ai/specs/`. Powód: `.ai/` to pamięć, nie kod, a `release-hygiene.test.js` — test tej samej klasy
 (higiena artefaktów repo) — leży w rootcie. Spec poprawiony.
 
+### Bramka `checker` — werdykt **NITS**, 2026-07-30
+
+Powołany w czystym kontekście na commit `a6078c2`: dostał diff, spec i checklistę, **bez narracji
+wykonawcy**. Odtworzył niezależnie mutację dowodową (dziesięć historycznych specow, zgodnie
+z opisem commita) i zmierzył blok szablonu w wersji `a6078c2^` **i** `a6078c2` — 149 linii w obu,
+więc „bez zmiany" jest dosłowne, nie zadeklarowane. Zero scope creepu: przegrepował diff za
+markerami F2–F6 i wszystkie trafienia leżą w dokumentach, żadne w pliku funkcjonalnym.
+
+Dwa znaleziska, oba przyjęte i naprawione:
+
+| # | Znalezisko | Naprawa |
+|---|---|---|
+| 1 | `carriesGateEvidence` akceptowała **jeden** werdykt zamiast obu — status z samym `checker:` przechodził. Osłabienie nośne: `qa` jest droższą bramką i to **ona** zwróciła CHANGES-REQUIRED w incydencie, dla którego cała reguła powstaje. Check przepuszczający pominięcie bramki, która faktycznie padła, nie jest checkiem | walidator wymaga **obu**; bramka niemająca zastosowania zapisywana jako `qa: n/a`, nigdy pomijana — zgodnie ze standardową regułą frameworku, że nieobecność jest zapisywana, nie przemilczana (SKIP archify, SKIP stryker, ENV-DEFECT). Dwa nowe fixture'y: jeden odrzucający, jeden akceptujący `n/a` |
+| 2 | Asymetria checklist: wiersz o wklejonych werdyktach wszedł do `spec-writing-template.md`, a nie do `sailes-spec/SKILL.md` — mimo że oba pliki mają się wzajemnie odzwierciedlać, a krok 1.8 trafił do obu. To ta sama klasa rozjazdu, przeciw której argumentuje reguła 1.2 dodana w tym samym diffie | wiersz dodany do obu, w brzmieniu wymagającym obu werdyktów |
+
+Po naprawie: `npm test` 9/9 zielone, nowy test ma **11 przypadków** (było 7).
+
 F2–F6: nierozpoczęte.
 
 ## Non-Goals
