@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: bfb7931
+Last-commit: 907a071
 
 > Read at session start; write before walking away. Facts enter **Verified facts** only with
 > evidence; hypotheses stay in **Open failures**.
@@ -177,6 +177,21 @@ Last-commit: bfb7931
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
+- 2026-07-31 late: **1.25.1 is on production** (`907a071`) — a patch on 1.25.0, found an hour
+  after it shipped **by running the convention instead of reading it**. The STATE.md snapshot check
+  compared `Last-commit:` to `git HEAD` for equality, and writing STATE.md means committing it, so
+  a repo following the convention *perfectly* sits one commit behind forever — the hook warned at
+  every session start. Cries-wolf, in the check whose own comments warn about cries-wolf.
+  - **The first fix was wrong in the opposite direction** and is the part worth remembering: "has
+    STATE.md been touched at all since `Last-commit`" goes *silent* however much work follows,
+    because the snapshot's own commit touches it. I swapped an always-fires alarm for a never-fires
+    one. **`hooks-template/hooks-template.test.js` caught it** — the suite written in F4 two hours
+    earlier, for exactly the surface that had never had a test.
+  - Right measure: **commits since `Last-commit` that are not the snapshot's own write.** The
+    snapshot commit subtracts itself, so the healthy steady state is silent; work that followed the
+    snapshot reports its count, and the warning names it.
+  - Adopted repos that never re-copied `session-start.sh` were never affected — the 1.25.0
+    distribution boundary limits a defect's blast radius as well as a feature's reach.
 - 2026-07-31 (**resume here**): **1.25.0 is on production** (`bfb7931`, pushed to `origin/main`).
   One day of Sailerem lessons validated and shipped — spec
   `.ai/specs/implemented/2026-07-30-sailerem-lessons-to-doctrine.md`, six phases, thirteen items.
