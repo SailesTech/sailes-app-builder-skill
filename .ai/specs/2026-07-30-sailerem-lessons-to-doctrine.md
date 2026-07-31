@@ -397,7 +397,31 @@ grep "proven writer"     → SKILL 3 · techniques 2 · repo-done-checklist 2 �
 dowodowa nadal daje czerwień*. Reguła bez testu rozstrzygającego staje się kwestią gustu przy
 pierwszym sporze.
 
-F3–F6: nierozpoczęte.
+**F3 — DONE 2026-07-30.**
+
+| Krok | Plik(i) | Stan |
+|---|---|---|
+| 3.1 | `sailes-spec/SKILL.md` (Data Model + checklist), `spec-writing-template.md` (oba), `agent-team-structure.md` | ✅ numery rozdawane w specu — zakres na fazę albo numer na migrację |
+| 3.2 | `agents/be-dev.md`, `agents/fe-dev.md`, `agent-team-structure.md` (linia `Blocked:`) | ✅ plus sprzężenie z 1.7 po stronie `be-dev`: „nie uzasadniaj decyzji zastępczej, nie sprawdziwszy, co robi drugi raz" |
+| 3.3 | `agent-team-structure.md` (linia `Forbidden:`) | ✅ z zapisanym drugim efektem — przekroczenie **nazwanej** granicy jest zgłaszane, przekroczenie domyślnej jest niewidzialne |
+| 3.4 | `agent-team-structure.md` (linia `Checkpoint:`), `agents/{be-dev,fe-dev}.md` | ✅ rozgraniczone od istniejącej reguły o pliku-deliverable: tamta pokrywa **wynik**, ta **przebieg**, i psują się inaczej |
+| 3.5 | `agents/qa.md`, `agents/team-lead.md`, `agent-team-structure.md`, `codex-agents/{qa,team-lead}.toml`, `codex-agents/parity.test.js` | ✅ + **nowy niezmiennik parytetu**, bo ta reguła nie ma żadnego strukturalnego backstopu: środowisko to jedyny zasób, którego worktree nie klonuje |
+
+**Done-when F3 — wynik:**
+```
+npm test                          → 9/9 zielone
+node agents/validate-frontmatter.test.js → passed
+node codex-agents/parity.test.js  → passed (10 ról, obie strony)
+grep "Forbidden:" / "Checkpoint:" → 2 / 2 ✅
+wyłączność w pięciu plikach       → qa.md · qa.toml · team-lead.md · team-lead.toml · agent-team-structure.md ✅
+```
+
+**Mutacja dowodowa nowego niezmiennika parytetu — pokazana.** Usunięcie reguły wyłączności z twina
+`qa.toml` (kopia zapasowa poza repo) → `FAIL qa: "holds the runtime environment exclusively"
+survives in BOTH twins`, `codex parity: 1 failing`. Przywrócone, zielone, `git diff --stat` pokazuje
+wyłącznie zamierzone +2 linie. Niezmiennik jest nośny, nie dekoracyjny.
+
+F4–F6: nierozpoczęte.
 
 ## Non-Goals
 

@@ -137,6 +137,7 @@ explorer → designer → BE contract finalized → fe-dev → tester → checke
    - **A substitute decision is graded on its second-order effect, not on its justification.** When a worker resolves a blocker on its own and reports why, the justification may be **true and beside the point** — those are indistinguishable at a glance, which is why this needs saying. Measured 2026-07-30: a worker justified an unconditional `createQueue()` call as idempotent. It was, *for inserting the row*, and was not *for the options* — `ON CONFLICT DO NOTHING` silently discards the losing racer's configuration. The defect passed two gates and surfaced only when `qa` ran it on a live stack. The question is never "is this sentence correct"; it is "what does this do the second time it runs, and who wins the race".
    - **An option that cites an existing mechanism gets verified before the card is presented.** Measured the same day: a decision card offered "dead-letter plus visibility through a mechanism that already stands"; the mechanism was a process-liveness heartbeat with nothing to say about individual jobs, and the human chose on a false premise. *"I have no grounds to recommend"* is a legal line in a card. A fabricated premise is not — it reads identically to a grounded one, so the reader cannot discount it, and the hedge you skipped was their only signal.
    - **Where the lead's authority ends.** The lead *assembles and freezes* the contract from decisions the spec/brief already settled — that's coordination, the lead's job. But when freezing it requires a **new** architectural or UX choice the spec didn't settle (e.g. "50k-row export: synchronous streamed download vs. async job + emailed link" — which also decides whether a new UI surface and a `designer` pass are needed), that is a **key decision**: the lead escalates it to the human, gets the answer, *then* freezes. The lead never silently picks the architecture just because it's mid-pipeline.
+4b. **`qa` takes exclusive hold of the runtime environment; the lead enforces it.** While a `qa` run is live no other worker stands up, restarts or migrates the database, and none touch the containers. **File isolation does not reach this.** Worktrees protect every worker from every other worker's *edits*; the database, the ports, the bucket and the containers are shared by the whole machine, and that is the one resource that cannot be cloned. Measured 2026-07-30 inside a single `qa` run: the MinIO container deleted twice and the database role passwords reset — neither maliciously, the rule simply did not exist. Without this clause, "we gave everyone a worktree" is a **false sense of security**: the files are isolated and `qa` still loses its run to somebody else's `docker compose down`. The lead records who holds the environment and since when; a run whose stack changed shape underneath it reports `ENV-DEFECT`, because a pass that cannot be attributed to the code is worse than no pass.
 5. **Workers never commit or push.** Integration, commit, and PR are the lead's job, after the gates pass.
 6. **Run log.** The lead records what was assigned, what each worker returned, and the gate verdicts — so a context reset can resume without re-deriving the plan. At session end (done or interrupted) the lead also updates `.ai/STATE.md` — **write before walking away**: verified facts with evidence, open failures, Last session pointer.
 
@@ -231,8 +232,19 @@ Contract:    request/response/types/events/DB fields other slices depend on.
 Constraints: the toolchain is the constraint (lint/types/convention tests enforce
              no-any, tokens-only, import direction); list here ONLY what it can't see —
              backward-compatible public contract; no destructive commands.
+Forbidden:   the files, directories and commands this worker must NOT touch — named, not
+             implied. With two tracks running this is the single thing that keeps them
+             disjoint, and it turns a crossed boundary into something the worker REPORTS
+             instead of something nobody notices.
 Reference:   the module/component/pattern to imitate — a **golden-module** implementation
              from the Sailes library when one exists (see modules-catalog.md, graduation rule).
+Blocked:     stuck more than one round on something that is NOT a key decision → take a
+             substitute decision, MARK it in the code, report it as a deviation. Waiting
+             costs the round; picking silently costs the lead a decision they never saw.
+             Key decisions (stack, contract, data-model, auth, roles) are never
+             substitutable — escalate and wait.
+Checkpoint:  write progress to files as you go. Your in-memory state does not survive your
+             process; disk does.
 Verification: exact commands to run + the e2e requirement.
 Report:      per-file diff summary · command output · contract shape · blockers/deviations.
              Your REPORT IS the deliverable — not a summary for a human, not a status
@@ -244,6 +256,20 @@ Delivery:    [scoped subagent] your final message is returned automatically — 
 ```
 
 Drop the lines that don't apply to the role (a `be-dev` brief has no design tokens; an `explorer` brief is read-only with no Constraints/Verification). The non-negotiables in every brief: **one goal, the contract it must honor, the verification commands, "do not commit/push," and the report clause.**
+
+**Three of these lines were earned on 2026-07-30 and are worth their space for a reason each.**
+`Forbidden:` — with two parallel tracks it was the only device that kept them disjoint, and its
+second effect mattered more than its first: crossing a *named* boundary got **reported**, where
+crossing an implied one is simply invisible. `Blocked:` — it held the pace and, every single time it
+fired, handed the lead an explicit point to review instead of a silent choice; the lead's side of
+that exchange is to grade the **second-order effect**, not the justification. `Checkpoint:` — one
+worker died together with its process and its entire in-memory state went with it. The existing rule
+that a graded deliverable must be a FILE covers the **result**; this one covers the **run**, and they
+fail differently: a lost result costs a re-run, a lost run costs everything learned during it.
+
+**Migration numbers are handed out in the spec, up front** — an anti-collision device, not tidiness.
+Two workers adding migrations in the same phase will pick the same next number, and the collision
+surfaces at merge time, when it is most expensive.
 
 **The report clause goes in every brief regardless of agent type.** Built-in types (`general-purpose`, `Explore`, and the rest) cannot have their definitions edited, so the brief is the only surface that reaches them — and observed failures have come from exactly there, not from the Sailes roles. Writing it only into `agents/*.md` would leave the common case uncovered.
 

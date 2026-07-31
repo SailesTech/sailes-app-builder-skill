@@ -123,6 +123,10 @@ const INVARIANTS = {
   qa: [
     ['never fakes a pass', /fake|ENV-DEFECT/i],
     ['behavior before diff', /behavior|real flow|real-flow/i],
+    // Added 2026-07-30. The runtime environment is the one resource worktree isolation cannot
+    // clone, so this rule has no structural backstop anywhere — losing it from a twin loses it
+    // entirely for that harness.
+    ['holds the runtime environment exclusively', /exclusiv/i],
   ],
   'docs-author': [
     ['documents the code as it is — evidence over aspiration', /as it is|evidence over aspiration/i],

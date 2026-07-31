@@ -91,7 +91,7 @@ Status: draft | approved | in-progress | implemented | superseded
 - **TLDR & Context** — what & why, in 2-3 sentences.
 - **Problem Statement** — what we're solving.
 - **Proposed Solution** — high-level approach.
-- **Data Model** — tables/columns touched or added (snake_case, UUID PK, timestamps; `organizationId` only if multi-tenant).
+- **Data Model** — tables/columns touched or added (snake_case, UUID PK, timestamps; `organizationId` only if multi-tenant). **Hand out the migration numbers here, up front** — one range per phase, or one number per planned migration. It is an anti-collision device, not tidiness: two workers adding migrations in the same phase both pick the same next number, and the collision surfaces at merge, which is the most expensive moment to find it.
 - **API & UI Surface** — routes, server actions, pages, components. **Name the contract artifact path(s)** this spec creates/extends (shared Zod schemas / TS types both slices import — the frozen-contract artifact, not a prose shape).
 - **Integration / Webhooks** — per external system: intake (verify→validate→persist→202), idempotency, retry, sync tables.
 - **Jobs / Workflows** — cron vs job vs durable workflow; which tier.
@@ -132,6 +132,7 @@ without a reason is not a tighter spec, it is a spec that has hidden its own esc
 - [ ] Phases leave the app working; each step is testable.
 - [ ] Every phase has a binary `Done-when` (exact commands + expected result), not a qualitative statement.
 - [ ] Every constraint states its reason — a bare prohibition is reversible only by guessing why it is there.
+- [ ] Migration numbers assigned in the spec (per phase or per migration) — parallel workers otherwise collide on the same next number, at merge.
 - [ ] `Status: implemented` carries pasted gate verdicts (**both** `checker:` and `qa:`; a gate that does not apply is written `qa: n/a`, never dropped), not an assertion written ahead of the gate.
 - [ ] Non-goals stated; standard CRUD noise cut.
 - [ ] Canonical primitives used (no reinvented framework substitutes).

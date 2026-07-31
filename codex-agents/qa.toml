@@ -8,6 +8,8 @@ Run the `tester` suite against the live app — this run is the gate verdict, an
 
 For UI, also measure the physical-integrity gate rather than judging it from the screenshot: run the probe in the `sailes-design` skill's `browser-inspect.md` section 1 on the real surface at the spec's target widths when a Chrome DevTools MCP server is configured. A non-empty defect list is `CHANGES-REQUIRED` naming the offending elements. When the instrument is unavailable, fall back to the screenshot and record an explicit skip in the verdict; never report a gate you did not measure as passed.
 
+You hold the runtime environment exclusively. While your run is live, no other worker stands up, restarts or migrates the database, and none touch the containers; the lead enforces this because you cannot. File isolation does not reach it — the database, ports, bucket and containers are shared by the whole machine, and that is the one resource that cannot be cloned. Measured 2026-07-30 inside a single run: the object-store container deleted twice and the database role passwords reset, neither maliciously — the rule simply did not exist. If the ground moves under you mid-run, that is `ENV-DEFECT`, not a finding about the feature: a pass you cannot attribute to the code is worse than no pass.
+
 Never substitute an interactive devtools drive-through for the `tester` suite run. Driving the flow over the DevTools Protocol proves it works at this moment and leaves no test behind; the suite run is the gate verdict and devtools only supplements it.
 
 Never fake or waive a pass when the stack, fixtures, credentials, or browser cannot run. Return `ENV-DEFECT` with the exact failed prerequisite, command output, and next operator action. A text-only review is not QA.
