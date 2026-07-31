@@ -1,6 +1,6 @@
 # Wnioski z sesji Sailerem → doktryna frameworku
 
-Status: approved — zatwierdzony przez Karola 2026-07-30, obie bramki Open Questions zamknięte (D1–D11)
+Status: implemented — dowody: `npm test` → 10/10 plików zielone · checker: **CHANGES-REQUIRED** (2 defekty, oba naprawione i zweryfikowane — patrz Zamknięcie; **fix nie przeszedł ponownej bramki**) · qa: **n/a** — to repo nie ma aplikacji do przejechania
 Source: `skile do inspiracji/wnioski z projektow/30.07.2026 sailerem.md`
 Framework-Version at authoring: 1.24.0
 
@@ -529,6 +529,41 @@ receiptem 9/9. Receipt: `.ai/docs-deltas/2026-07-31-sailerem-lessons.json`.
 
 **Wydanie:** 1.25.0, pięć stempli zgodnych, wpis w `CHANGELOG.md` z jawną **granicą dystrybucji**
 (zmiany w `hooks-template/*.sh` nie docierają do istniejących repo klienta automatycznie).
+
+### Bramka `checker` na całej gałęzi — werdykt **CHANGES-REQUIRED**, 2026-07-31
+
+Powołany w czystym kontekście na `git diff main...HEAD` (osiem commitów), z jawnym poleceniem, żeby
+uruchomić `Done-when` każdej fazy, a nie odczytać je. Wszystkie sześć odtworzyło się poza dwoma
+punktami. **Oba defekty są moje i oba są dokładnie tą klasą, którą ten spec ma łapać.**
+
+**Defekt 1 — szablon briefu przeczył mandatowi w tym samym pliku.** `agent-team-structure.md`
+niósł w § Isolation sześćdziesiąt linii o tym, że commit wykonawcy jest teraz wymagany — a 143 linie
+niżej, w **szablonie briefu, czyli dosłownym tekście, który lider wkleja**, stało nadal
+`Do not commit. Do not push.`, plus linia mówiąca, że to obowiązkowy element każdego briefu.
+
+Mój sweep z F5 grepował `never commit or push` i `never commit/push`. **Nie grepował
+`Do not commit`.** Wykonawca posłuszny temu briefowi nie zacommitowałby w swoim worktree, więc cała
+procedura odbioru z 5.3 przestałaby działać — a `npm test` byłby zielony, bo żaden test tego nie
+mierzy. To jest ta sama reguła w dwóch brzmieniach, przed którą ostrzega D5, przeoczona przez zbyt
+wąski wzorzec sweepa. Naprawione w obu miejscach.
+
+**Defekt 2 — F6 obiecywało artefakt, którego nie było.** `Done-when` mówi „werdykt zapisany
+w `.ai/eval-runs/`". Na dysku nie było tam nic; werdykty żyły wyłącznie jako linia `Last run:`
+w pliku scenariusza — czyli **moje streszczenie przebiegu, nie przebieg**. Jak zauważył `checker`:
+na dysku nie do odróżnienia od linii napisanej z wyprzedzeniem, czyli dokładnie luka, którą D8
+zamyka dla specow, otwarta dla evali. Naprawione: `.ai/eval-runs/2026-07-31-sailerem-lessons/`
+niesie surowe zwrotki wszystkich czterech scenariuszy plus README z zapisanym błędem konstrukcyjnym
+arm 1; każdy plik scenariusza dostał linię `Raw return:` wskazującą na artefakt.
+
+**Czego `checker` nie ustalił, jego słowami:** czy cytaty w `Last run:` są wiernym zapisem realnego
+przebiegu, czy rekonstrukcją — bo nie miał artefaktu do porównania. To był defekt 2 i to jest teraz
+sprawdzalne.
+
+**Bramka nie została powtórzona po naprawie.** Obie poprawki są weryfikowalne mechanicznie
+(grep pokazuje zniknięcie starego brzmienia, `ls` pokazuje artefakty) i obie zrobiłem dokładnie tak,
+jak `checker` je opisał — ale sprawdził je maker, nie świeża bramka. Zapisane tutaj, a nie
+przemilczane, bo `Status: implemented` z niepełnym pokryciem bramki i tak jest lepszy od
+`Status: implemented` udającego pełne.
 
 ## Non-Goals
 

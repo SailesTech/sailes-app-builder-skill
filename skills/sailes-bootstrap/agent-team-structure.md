@@ -281,7 +281,10 @@ A worker has no shared memory with the lead beyond what the brief contains. "Exp
 
 ```markdown
 You are `ROLE` on team `TEAM`, under `team-lead`.
-Branch `…` is already checked out. Do not switch branches. Do not commit. Do not push.
+You are in your own worktree on branch `…`. Do not switch branches. Never commit to a
+shared branch and never push. **Commit your finished work HERE** — that commit is your
+declaration that the task is done, and the lead cherry-picks it. No commit = not finished.
+[read-only roles: drop the two lines above and say "you write nothing".]
 
 Task:        claim Task #N, mark it in_progress.
 Goal:        one precise outcome.
@@ -313,7 +316,7 @@ Delivery:    [scoped subagent] your final message is returned automatically — 
              to deliver. State which of the two applies — the worker cannot tell.
 ```
 
-Drop the lines that don't apply to the role (a `be-dev` brief has no design tokens; an `explorer` brief is read-only with no Constraints/Verification). The non-negotiables in every brief: **one goal, the contract it must honor, the verification commands, "do not commit/push," and the report clause.**
+Drop the lines that don't apply to the role (a `be-dev` brief has no design tokens; an `explorer` brief is read-only with no Constraints/Verification). The non-negotiables in every brief: **one goal, the contract it must honor, the verification commands, the commit rule in its current form ("commit in your own worktree; never to a shared branch, never push"), and the report clause.**
 
 **Three of these lines were earned on 2026-07-30 and are worth their space for a reason each.**
 `Forbidden:` — with two parallel tracks it was the only device that kept them disjoint, and its
