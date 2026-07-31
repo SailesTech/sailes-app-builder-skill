@@ -116,6 +116,12 @@ first real feature lands):
     wall time. Document how to run ONE test file / ONE test (targeted verdicts, not the world).
 [ ] .env.example COMPLETE: every variable the app reads, with safe defaults or clear
     placeholders (no real values).
+[ ] FRESH-CHECKOUT BOOT: the one-command path also works in a *second working tree* of this
+    repo (deps reachable, env resolvable). This is the entry condition for the worker-isolation
+    mandate — every writing agent runs in `isolation: worktree`, and a worker that cannot run
+    its verification commands has been converted from "verified" to "cannot verify", which is a
+    straight regression against VERIFIED. Missing → ENV-DEFECT reported to the human (the fix
+    usually needs `.env*`, which agents may not touch), never a quietly dropped isolation.
 ```
 
 ## Freshness check — docs that lie are worse than none

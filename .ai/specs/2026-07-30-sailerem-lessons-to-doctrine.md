@@ -421,7 +421,47 @@ wyłączność w pięciu plikach       → qa.md · qa.toml · team-lead.md · t
 survives in BOTH twins`, `codex parity: 1 failing`. Przywrócone, zielone, `git diff --stat` pokazuje
 wyłącznie zamierzone +2 linie. Niezmiennik jest nośny, nie dekoracyjny.
 
-F4–F6: nierozpoczęte.
+**F5 — DONE 2026-07-31.** Największy blast radius specu: reguła przepisana w **piętnastu miejscach**.
+
+| Krok | Plik(i) | Stan |
+|---|---|---|
+| 5.1 | `agent-team-structure.md` (§ Isolation), `agents/team-lead.md`, `sailes-implement/SKILL.md`, `agents-md-template.md`, `agentic-first-principles.md` + pięć ról piszących | ✅ mandat z testem **„czy pisze", nie „czy na liście"** — nowa rola dziedziczy regułę zamiast przeoczenia |
+| 5.2 | `agent-team-structure.md` § Isolation | ✅ uzasadnienie z trzema incydentami; wprost, że **dwa z trzech** to wykonawca-vs-lider i wykonawca-vs-człowiek, czyli kolizje, których reguła o dwóch wykonawcach nie dotyka |
+| 5.3 | `agent-team-structure.md`, `agents/team-lead.md` | ✅ procedura odbioru oparta na **pomiarze**, nie na założeniu: `worktreePath`/`worktreeBranch` ze zwrotki, wspólne `.git`, `cherry-pick` bez pusha |
+| 5.4 | 6 plików ról + `agent-team-structure.md` ×3 + `agents-md-template.md` + `sailes-implement` ×2 + `agentic-first-principles.md` + `sailes-pre-implement` + `skeleton.md` | ✅ **piętnaście miejsc, jedno brzmienie** — potwierdzone grepem, że stare nie zostało nigdzie |
+| 5.4b | `codex-agents/parity.test.js`, sześć twinów TOML | ✅ niezmienniki przepisane + **`PRE_F5_WORDING` jako fixture, który MUSI paść** |
+| 5.4c | `codex-agents/parity.test.js` | ✅ dwa nowe niezmienniki na każdą z pięciu ról piszących + trzy na lidera |
+| 5.5 | `repo-done-checklist.md` (blok Environment) | ✅ warunek wejścia jako wiersz checklisty, z jawnym „brak → ENV-DEFECT, nie ciche pominięcie izolacji" |
+| 5.6 | `.gitignore`, `skeleton.md` | ✅ `git check-ignore` potwierdza |
+
+**Done-when F5 — wynik:**
+```
+npm test                                    → 9/9 zielone
+grep stare brzmienie w agents/ codex-agents/ skills/ → BRAK (poza celowym fixturem) ✅
+"shared branch" w 6 rolach Claude           → 6/6 ✅
+"shared branch" w 6 twinach Codex           → 6/6 ✅
+git check-ignore .claude/worktrees          → .gitignore:20 ✅
+budżet agents-md-template.md                → 149 linii (limit 150) ✅
+```
+
+**Mutacja dowodowa 5.4b — domknięcie BC-1 z raportu gotowości.** `checker` ostrzegał, że stary regex
+`/never commit|not commit/i` pasowałby do **nowego** brzmienia, więc test przeszedłby na zielono
+w chwili odwrócenia sensu reguły. Sprawdzone dwoma niezależnymi sposobami:
+
+1. **Fixture w pliku:** `PRE_F5_WORDING` — pięć zdań sprzed F5, dosłownie. Test asertuje, że nowe
+   wzorce ich **nie** dopasowują. Bez tego przepisanie byłoby niezweryfikowane.
+2. **Mutacja realnego twina:** cofnięcie `be-dev.toml` do brzmienia sprzed F5 → `2 failing`,
+   oba niezmienniki na czerwono. Przywrócone, zielone.
+
+Stary regex przeżywał inwersję; nowy nie. To była jedyna rzecz w tym specu, która mogła wejść
+niezauważona i zostawić dziesięć plików mówiących dwie różne rzeczy pod zieloną bramką.
+
+**Znalezisko w trakcie:** grep za starym brzmieniem po zakończeniu edycji znalazł **trzy pominięte
+miejsca** — `agentic-first-principles.md:91`, `skeleton.md:72`, `sailes-pre-implement/SKILL.md:68`.
+Żadnego nie było na liście plików w specu. Reguła w dwóch brzmieniach jest gorsza od obu, więc
+domknięcie sweepem jest częścią kroku, nie sprzątaniem po nim.
+
+F4, F6: nierozpoczęte.
 
 ## Non-Goals
 
