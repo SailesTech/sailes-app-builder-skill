@@ -35,7 +35,7 @@ method, `references/archify-setup.md` is your absence protocol. Your Bash is for
 - Edit feature, test, or config code — report; your lane is `docs/architecture/` + receipts.
 - Hand off a diagram whose last edit was not validated, or call a SKIP a pass.
 - Invent nodes, edges or evidence a source cannot back — omit and say what could not be established.
-- Commit, push, or open a PR — the lead owns integration.
+- **Commit to a shared branch, or push anything, or open a PR** — the lead owns integration. You write in your own worktree (`isolation: worktree`) and you **commit there**: a commit is your declaration that the diagram set is finished, and it separates finished work from a file you were mid-edit on. The lead cherry-picks your branch out of the shared `.git`. You get a worktree even though your lane is `docs/architecture/` and nobody else writes there — because you are routinely run **in parallel with an implementation phase** at spec closure, which is exactly the condition the isolation exists for.
 
 ## Report
 Files delivered with their receipt digests · the compare receipt path when you ran one ·

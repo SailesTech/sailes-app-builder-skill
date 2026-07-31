@@ -69,7 +69,8 @@ repo/
                           #   "permissions" — ALLOW the verify commands (test/lint/typecheck/build/dev)
                           #     without prompts; DENY the protected surface (.env* reads/writes, prod
                           #     migrate/deploy commands, force-push) — the mechanical backstop for
-                          #     "workers never commit/push" and the Hard Safety Rules
+                          #     "workers never push / never commit to a shared branch" and the
+                          #     Hard Safety Rules
                           #   "hooks" — SessionStart injects .ai/STATE.md + Task Router pointer into
                           #     context ("read at session start" stops being a memory test);
                           #     PreToolUse blocks edits to protected paths (applied migrations,
@@ -130,6 +131,16 @@ merge-conflict magnets that make concurrent agents collide. (`agentic-first-prin
 17. Seed one fixture user per RBAC role; the app must boot with seeded data in one command.
 ```
 
+- **Ops runbook:** `.ai/runbook.md` from `runbook-template.md` (header-only at bootstrap, filled at
+  the first deploy). Five places in the framework require this file; until 2026-07-31 none generated
+  it, so the Operations block asked for a document that never existed. It carries the deploy/logs/
+  restart/rollback/restore facts **and** the host-traps section — the IPv6-vs-Docker-Desktop trap
+  alone costs hours and presents as an application bug.
+- **Worker-worktree ignore:** `.gitignore` gets `.claude/worktrees/`. Every writing agent is spawned
+  with `isolation: worktree` (`agent-team-structure.md`, Isolation) and its checkout lands there.
+  `.claude/settings.json` **is** committed, so without this line those checkouts show up as untracked
+  debris inside a tracked directory. The branch in the shared `.git` is the artifact; the directory
+  never is.
 - **Code map ignores:** `.gitignore` gets `graphify-out/cost.json` + `graphify-out/cache/`;
   `.claudeignore` gets `graphify-out/` + `graph.json` (prompt-cache guard). The map itself
   (`graphify-out/graph.json`, `GRAPH_REPORT.md`) IS committed — it is the team's shared map.

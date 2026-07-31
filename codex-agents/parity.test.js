@@ -80,7 +80,14 @@ const codexRaw = (r) => read(path.join(CODEX_DIR, `${r}.toml`));
 const INVARIANTS = {
   'team-lead': [
     ['the human owns key decisions', /human owns every key decision|escalates? (?:key decisions )?to the human/i],
-    ['workers never commit or push', /workers? (?:never|do not|don't) commit|never commits? or push|own(?:s)? (?:the )?commits?[^.]*workers do not/i],
+    // Rewritten 2026-07-30 (spec …-sailerem-lessons-to-doctrine, F5). The previous regex was
+    // /workers? (?:never|do not|don't) commit|.../ and it matched the REPLACEMENT rule as happily as
+    // the original — so it would have gone green while the rule's meaning inverted. `checker` caught
+    // that on review, and the fixture at the bottom of this file now holds the line: these patterns
+    // must NOT match the pre-F5 wording.
+    ['workers never commit to a SHARED branch, never push', /shared branch/i],
+    ['workers commit inside their own worktree', /own worktree/i],
+    ['every writing worker is isolated', /isolation:\s*worktree/i],
     ['checker sees the diff and spec ONLY', /ONLY the diff|diff \+ spec|only diff/i],
   ],
   explorer: [
@@ -101,16 +108,22 @@ const INVARIANTS = {
     ['never writes feature code', /never[\s\S]{0,300}?write feature code|write feature code[\s\S]{0,60}?fe-dev/i],
     ['uses tokens on disk, invents no palette', /do not invent|never invent/i],
     ['measuring its own spec is not a gate', /is not a gate/i],
+    ['never commits to a SHARED branch, never pushes', /shared branch/i],
+    ['commits inside its own worktree', /own worktree/i],
   ],
   'be-dev': [
-    ['never commits or pushes', /never commit|not commit/i],
+    ['never commits to a SHARED branch, never pushes', /shared branch/i],
+    ['commits inside its own worktree', /own worktree/i],
     ['implements the approved scope only', /approved|exactly the/i],
   ],
   'fe-dev': [
-    ['never commits or pushes', /never commit|not commit/i],
+    ['never commits to a SHARED branch, never pushes', /shared branch/i],
+    ['commits inside its own worktree', /own worktree/i],
     ['works against the frozen contract', /frozen|contract/i],
   ],
   tester: [
+    ['never commits to a SHARED branch, never pushes', /shared branch/i],
+    ['commits inside its own worktree', /own worktree/i],
     ['derives cases before reading the implementation', /before reading|code UNREAD|unread/i],
     ['never weakens a frozen assertion', /weaken/i],
     ['reports a code defect rather than fixing it', /report/i],
@@ -123,14 +136,38 @@ const INVARIANTS = {
   qa: [
     ['never fakes a pass', /fake|ENV-DEFECT/i],
     ['behavior before diff', /behavior|real flow|real-flow/i],
+    // Added 2026-07-30. The runtime environment is the one resource worktree isolation cannot
+    // clone, so this rule has no structural backstop anywhere — losing it from a twin loses it
+    // entirely for that harness.
+    ['holds the runtime environment exclusively', /exclusiv/i],
   ],
   'docs-author': [
     ['documents the code as it is — evidence over aspiration', /as it is|evidence over aspiration/i],
     ['never edits feature code — findings are reported upward', /never edit\w* feature code/i],
     ['a diagram without a passing receipt is not done', /without a (?:passing )?receipt is not done/i],
     ['missing archify is an explicit SKIP, never silence', /SKIP archify/],
+    ['never commits to a SHARED branch, never pushes', /shared branch/i],
+    ['commits inside its own worktree', /own worktree/i],
   ],
 };
+
+/**
+ * The pre-F5 wording, verbatim from both sides as it shipped through 1.24.0.
+ *
+ * This is the fixture that MUST NOT satisfy the rewritten invariants. Without it the rewrite is
+ * unverified: the *previous* regex (`/never commit|not commit/i`) matched the replacement rule just
+ * as happily as the original, so it would have reported parity while the rule's meaning inverted
+ * from "never commit at all" to "commit in your own worktree". A check that survives an inversion
+ * of the thing it checks measures nothing (.ai/lessons.md, 2026-07-25 — an instrument needs a
+ * fixture that must not fire).
+ */
+const PRE_F5_WORDING = [
+  'Commit, push, or open a PR — the lead owns integration.',
+  'Never commit or push; the lead owns integration.',
+  'Do not commit, push, open a PR, expand scope, or make new architectural decisions.',
+  'You integrate results and own commits and PRs; workers do not.',
+  'Workers never commit or push.',
+];
 
 // ---------------------------------------------------------------- the role sets must agree
 
@@ -170,6 +207,20 @@ for (const role of claudeRoles) {
 }
 
 // ---------------------------------------------------------------- shape checks that cost nothing
+
+test('the rewritten commit invariants REJECT the pre-F5 wording — the rewrite is real', () => {
+  const rewritten = [/shared branch/i, /own worktree/i];
+  for (const old of PRE_F5_WORDING) {
+    for (const re of rewritten) {
+      assert.ok(
+        !re.test(normalize(old)),
+        `"${re}" still matches the OLD rule ("${old}"). The invariant would then go green on a ` +
+          `file that never adopted the new rule — which is exactly the silent pass this fixture exists ` +
+          `to prevent.`
+      );
+    }
+  }
+});
 
 test('every Codex twin declares a name and a non-trivial description', () => {
   for (const role of codexRoles) {

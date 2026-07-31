@@ -4,6 +4,163 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.25.0 — 2026-07-31 · one day on a client repo, thirteen things the framework did not have
+
+Spec `.ai/specs/2026-07-30-sailerem-lessons-to-doctrine.md`, from a session-lessons document written
+after one day on the Sailerem repo (twenty-odd workers, six gates, four escaped-defect findings).
+Fifteen proposals were validated against the framework's actual state: **thirteen were real gaps**,
+one was already ~70% shipped and was not duplicated (the ratchet forbids it), one had a structural
+flaw in the proposed form and moved. **An adopted repo gains these at its next Upgrade pass —
+except the two hook changes, see the distribution boundary at the bottom.**
+
+### Worker isolation — `isolation: worktree` for everything that writes
+
+**Every worker that writes now gets its own worktree. No exception, and the test is "does it
+write", not "is it on a list"** — `be-dev`, `fe-dev`, `tester`, `designer`, `docs-author`. Read-only
+roles do not (the cost buys nothing). `qa` does not either, for a different reason: it needs the
+live stack, not a copy of the files.
+
+This is not a merge-conflict problem. Two processes writing one file on a shared disk do not
+produce a conflict — they produce **silent loss**, and git only ever sees the survivor. Three
+incidents in one day, and **two of the three were worker-versus-lead and worker-versus-human** —
+collisions the existing no-two-workers-on-one-file rule does not address at all.
+
+**The hard rule changed wording, and the change is load-bearing.** "Workers never commit or push"
+becomes **"never commit to a *shared* branch, never push; inside your own worktree you commit — and
+you should."** The old absolute existed to protect the shared branch; git now guarantees that
+outright, because the shared branch is checked out in the main tree and no worktree can take it.
+What the commit adds is what prose could not: **a worker's commit is its declaration that the work
+is finished**, so a lead never again cherry-picks somebody's half-written file. Retrieval was
+measured, not assumed — the spawn returns `worktreePath`/`worktreeBranch`, the harness creates a
+dedicated branch per worker, and the commit is visible from the main tree immediately, so
+`git cherry-pick` works with no push and no copying.
+
+Entry condition: the mandate assumes a fresh checkout can be made to run. Where it cannot, that is
+an `ENV-DEFECT` to report — never a quietly dropped isolation, because a worker that cannot run its
+verification commands has been converted from "verified" to "cannot verify". New repos get
+`.claude/worktrees/` in `.gitignore`.
+
+**And the caveat that matters more than the rule: a worktree isolates FILES, never the RUNTIME
+ENVIRONMENT.** `qa` now takes **exclusive hold of the stack** for its run — nobody else stands up,
+restarts or migrates the database, nobody touches the containers — enforced by an `ENV-LOCK` check
+in the guard hook that names the holder and states how to break the lock. Measured inside a single
+`qa` run: the object-store container deleted twice and the database role passwords reset. Without
+this clause, "we gave everyone a worktree" is a false sense of security.
+
+### Documents that run ahead of their evidence
+
+- **`Status: implemented` now requires pasted gate verdicts**, not an assertion:
+  `Status: implemented — evidence: <command> → <result> · checker: <verdict> · qa: <verdict>`. A
+  gate that does not apply is written `qa: n/a`, never dropped. You can write an assertion before
+  the fact; you cannot paste a verdict that does not exist yet — that gap is the whole mechanism.
+  A spec claimed "`qa` PASS 4/4" while `qa` was still running and then returned CHANGES-REQUIRED.
+  Enforced by a new test, scoped by date (history is not retrofitted: for several old specs the
+  verdicts no longer exist, and filling an evidence field with a non-evidence is the very defect).
+- **`.ai/STATE.md` gains a `Last-commit:` header, and SessionStart warns when it disagrees with
+  `git HEAD`.** Warns, never blocks, and stays **silent** when the field is absent — every existing
+  repo lacks it, and a hook that shouts in all of them gets muted along with the real case. It sits
+  at session start rather than pre-commit deliberately: at pre-commit time HEAD is the *previous*
+  commit, so the line is correct exactly when it names the commit you are superseding.
+- **Update the snapshot together with the history, or update neither.** A file whose top and bottom
+  disagree is worse than a stale one — and the session hook makes everyone read the top first.
+
+### A deferral that lives only in a comment does not exist
+
+It goes to `.ai/backlog.md` **with the blocking dependency named as its trigger** ("when
+`packages/files` exists"), so delivering the dependency fires the return. The Tech-debt table gains
+that column. Three instances in one day: a comment claimed a package did not exist a *week* after
+it shipped, and the erasure path was leaving files in the bucket indefinitely.
+
+Paired with it: **when closing an item that delivers a CAPABILITY, sweep the repo** for comments
+justifying its absence (`grep -rn "DOES NOT EXIST\|AT INTEGRATION\|TODO\|for now"`). One sweep on
+the day the dependency landed would have found that a week earlier.
+
+### Tests
+
+- **Every reader must have a proven writer.** An append-only table with an API reader gets a test
+  proving a **real flow** puts a row in it. A table shipped with partitions, a trigger, a registry,
+  a write function, a route and passing authorization tests — and zero rows. **Three gates passed
+  it and each was correct about its own fragment**; none asked whether anything arrives. The defect
+  was in no diff, it lived *between* them, which is why it belongs on a closure checklist rather
+  than in a phase review. Generalized past append-only tables: a queue with no producer, an event
+  with no emitter.
+- **Deliberate debt is `it.fails` with a backlog link**, never a comment and never `skip`. The suite
+  stays green, the debt is executable, and the day it is paid the test *unexpectedly passes* and
+  fails, demanding the marker come off. `skip` is invisible and never notices the problem went away.
+- **Table-driven or separate blocks — with a trigger, not a taste.** Cases that already exist as
+  data get iterated; cases that differ in *flow* stay separate. Signal: if you copied the previous
+  block and changed two literals, that was a data row. **And the border people get wrong:**
+  "iterate over the source" does not mean "compute the expectation from the source" — if the same
+  source feeds the fixture, a mutation moves the seeded value and the expectation together. One
+  question settles it: does a proof mutation still produce red.
+
+### Leads, cards and briefs
+
+- **An option citing an existing mechanism is verified before the card is presented.** A card
+  offered visibility "through a mechanism that already stands"; it was a process-liveness heartbeat
+  that knows nothing about individual jobs, and **the human decided on a false premise**. "I have no
+  grounds" is a legal recommendation line; a fabricated premise is not, because it reads identically
+  to a grounded one.
+- **A substitute decision is graded on its second-order effect, not its justification** — which can
+  be true and beside the point. `createQueue()` was justified as idempotent. It was, *for the row*,
+  and was not *for the options*: `ON CONFLICT DO NOTHING` silently discards the losing racer's
+  configuration. The defect passed two gates and surfaced on a live stack.
+- **Every constraint in a spec carries its reason.** "No migrations" reads as a design principle and
+  pushes the implementer into a workaround; "no migrations, *because `00XX`–`00YY` are reserved for
+  stage Z*" is reversible by raising it. An unexplained one cost the atomicity of the path the
+  architecture calls its most important code.
+- **Migration numbers are handed out in the spec, up front** — anti-collision, not tidiness.
+- **The worker brief gains `Forbidden:`, `Blocked:` and `Checkpoint:`.** `Forbidden:` kept two
+  parallel tracks disjoint, and its second effect mattered more: crossing a *named* boundary gets
+  reported, crossing an implied one is invisible. `Blocked:` (stuck more than a round on a
+  non-key decision → substitute and **mark it**) held the pace and every time handed the lead an
+  explicit review point instead of a silent choice. `Checkpoint:` because a worker died with its
+  process and its whole in-memory state went with it — the existing FILE-deliverable rule covers the
+  *result*, this covers the *run*, and they fail differently.
+
+### "Does anything write to X" searches three surfaces
+
+Application code · `.sql` files (triggers, functions, `CREATE OR REPLACE`) · the graph — **which
+does not see `.sql`**. A grep for the ORM identifier returns "no writers" for a table a trigger
+keeps filling. A table was declared dead in the state file, the spec, the lessons and the backlog on
+exactly that evidence. **Empirical proof beats grep:** a red test answers the question without
+assuming anything about the search surface.
+
+### Environment
+
+- **The Environment block is RUN at the release gate, not only at bootstrap.** A repo that booted in
+  March does not have to boot in July. Standing up a stack from a clean clone hit five consecutive
+  blockers, so the hard rule *a feature you cannot run locally is not done* had been broken at the
+  level of the whole repository, for weeks — and **no agent could report it**, because nobody had
+  stood the stack up from zero since bootstrap. The framework has named this defect since 1.16.2;
+  scoping the block to bootstrap is what let it keep happening.
+- **`.env*` is closed to agents, so a missing variable is ALWAYS a human's task** — and now has a
+  path instead of only a prohibition: `ENV-DEFECT` with the exact lines to paste (blocks now) **and**
+  a row in the new `.ai/backlog.md` "Human-only" table (survives the session). Neither alone is
+  enough: a verdict is lost at the next context reset, a backlog row does not stop a release.
+- **New `runbook-template.md`** — `.ai/runbook.md` was required by five places in the framework and
+  generated by none of them, so the Operations block demanded a document bootstrap never created.
+  Includes host traps: IPv6 vs Docker Desktop on Windows accepts the TCP connection, drops the data
+  and leaves an empty container log, so it reads as an application bug.
+
+### Framework-internal
+
+New tests in the gate: `spec-status-evidence.test.js` and `hooks-template/hooks-template.test.js`
+(the shell templates shipped to every generated repo had no test at all until now — and a hook that
+fails silently is the worst thing to leave unmeasured, because silence is also what success looks
+like). The Codex parity invariants for the commit rule were **rewritten and given a fixture that
+must fail on the pre-1.25.0 wording**: the previous regex matched the replacement rule as happily as
+the original, so it would have reported parity while the rule's meaning inverted. Four new evals in
+`evals/`, each with a control arm that must produce the opposite result.
+
+### Distribution boundary — read this before assuming you have the hook changes
+
+The plugin auto-updates `skills/`, `agents/` and the framework's own hooks on every machine. It does
+**not** touch a repo's own `.claude/hooks/*.sh`, because `adopt-existing-repo.md` never overwrites.
+So the **STATE.md snapshot check and the `ENV-LOCK` guard reach an existing repo only when a human
+deliberately re-copies the script.** Upgrade mode now shows that diff rather than leaving a repo
+silently on a version that predates the guard.
+
 ## 1.24.0 — 2026-07-29 · three guards for behaviors the doctrine did not name
 
 Spec `.ai/specs/2026-07-29-opus-5-behavioral-guards.md`, from the audit

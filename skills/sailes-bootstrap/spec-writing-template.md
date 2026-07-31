@@ -34,14 +34,16 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 
 ## Spec lifecycle
 
-`Status: draft | approved | in-progress | implemented | superseded`. Folders mark state: `.ai/specs/` = live; `.ai/specs/implemented/` = shipped; `.ai/specs/archived/` = abandoned/superseded. When a feature ships → `Status: implemented` + `git mv` to `implemented/`. When replaced → old gets `Status: superseded` + `Superseded-by:`, `git mv` to `archived/`; new gets `Supersedes:`. Root = the only live set. **Create** for new module / significant feature / multi-file architecture change; **skip** for typos, one-file refactors, small bug fixes.
+`Status: draft | approved | in-progress | implemented | superseded`. Folders mark state: `.ai/specs/` = live; `.ai/specs/implemented/` = shipped; `.ai/specs/archived/` = abandoned/superseded. When a feature ships → `Status: implemented` + `git mv` to `implemented/`.
+
+**`implemented` requires quoted gate evidence, not an assertion** — `Status: implemented — evidence: <command> → <result> · checker: <verdict> · qa: <verdict>`. An assertion can be written ahead of the fact; a pasted verdict cannot, because there is nothing to paste yet. Measured 2026-07-30: a spec claimed "`qa` PASS 4/4" while `qa` was still running and then returned CHANGES-REQUIRED. When replaced → old gets `Status: superseded` + `Superseded-by:`, `git mv` to `archived/`; new gets `Supersedes:`. Root = the only live set. **Create** for new module / significant feature / multi-file architecture change; **skip** for typos, one-file refactors, small bug fixes.
 
 ## Required sections
 
 - **TLDR & Context** — what & why, in 2-3 sentences.
 - **Problem Statement** — what we're solving.
 - **Proposed Solution** — high-level approach.
-- **Data Model** — tables/columns touched or added (snake_case, UUID PK, timestamps; organizationId only if multi-tenant).
+- **Data Model** — tables/columns touched or added (snake_case, UUID PK, timestamps; organizationId only if multi-tenant). **Hand out the migration numbers here, up front** (a range per phase, or a number per planned migration) — an anti-collision device: two workers adding migrations in the same phase both pick the same next number, and the collision surfaces at merge.
 - **API & UI Surface** — routes, server actions, pages, components. **Name the contract artifact path(s)** this spec creates/extends (shared Zod schemas / TS types both slices import — the frozen-contract artifact, not a prose shape).
 - **Integration / Webhooks** — for each external system: intake (verify→validate→persist→202), idempotency, retry, sync tables.
 - **Jobs / Workflows** — cron vs job vs durable workflow; which tier.
@@ -49,6 +51,8 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 - **Phasing & Steps** — stories → testable steps; **every phase has a binary `Done-when`** (exact commands + expected output). Each phase may carry an internal estimate (hours) — closed out against actuals at completion; never client-visible.
 - **Integration Coverage** — affected API + UI paths, each with a test.
 - **Non-Goals** — what we explicitly are NOT building.
+
+**Every constraint carries its reason.** "No migrations" reads like a design principle and pushes the implementer into a workaround; "no migrations, **because numbers `00XX`–`00YY` are reserved for stage Z**" is reversible by raising it. A constraint without a reason is a spec that has hidden its own escape hatch.
 
 ## Stack conventions  (adapt to this repo's locked stack)
 
@@ -72,6 +76,9 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 - [ ] Integration coverage lists every affected API + key UI path, each with a test.
 - [ ] Phases leave the app working; each step is testable.
 - [ ] Every phase has a binary `Done-when` (exact commands + expected result), not a qualitative statement.
+- [ ] Every constraint states its reason — a bare prohibition is reversible only by guessing why it is there.
+- [ ] Migration numbers assigned in the spec (per phase or per migration) — parallel workers otherwise collide on the same next number, at merge.
+- [ ] `Status: implemented` carries pasted gate verdicts (**both** `checker:` and `qa:`; a gate that does not apply is written `qa: n/a`, never dropped), not an assertion written ahead of the gate.
 - [ ] Non-goals stated; standard CRUD noise cut.
 - [ ] Canonical primitives used (no reinvented framework substitutes).
 

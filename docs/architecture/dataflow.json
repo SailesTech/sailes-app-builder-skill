@@ -20,7 +20,7 @@
     { "id": "ai-briefs", "type": "database", "label": ".ai/briefs", "sublabel": "brief + decisions ledger", "stage": 1, "row": 0, "tag": "brief" },
     { "id": "ai-specs", "type": "database", "label": ".ai/specs", "sublabel": "draft → approved (human gate)", "stage": 1, "row": 2, "tag": "SPEC gate" },
     { "id": "npm-test-validators", "type": "backend", "label": "npm test", "sublabel": "hooks + TOML + frontmatter + release hygiene", "stage": 2, "row": 0, "tag": "deterministic" },
-    { "id": "implementation-branch", "type": "backend", "label": "Feature Branch", "sublabel": "be-dev / fe-dev implement", "stage": 2, "row": 2, "tag": "not main" },
+    { "id": "implementation-branch", "type": "backend", "label": "Feature Branch", "sublabel": "be-dev / fe-dev implement, each in own worktree", "stage": 2, "row": 2, "tag": "lead cherry-picks, not main" },
     { "id": "evals-scenarios", "type": "backend", "label": "Eval Scenarios", "sublabel": "evals/ protected-behavior files", "stage": 2, "row": 4, "tag": "TDD-for-skills" },
     { "id": "main-branch", "type": "cloud", "label": "main", "sublabel": "production branch", "stage": 3, "row": 0, "tag": "live deploy" },
     { "id": "changelog-stamps", "type": "database", "label": "Release Stamps", "sublabel": "CHANGELOG + five version stamps", "stage": 3, "row": 2, "tag": "release" },
@@ -50,6 +50,7 @@
       "title": "Primary Path — Doctrine to Deploy",
       "items": [
         "An approved spec unlocks the branch (AGENTS.md SPEC gate) — nothing lands before it",
+        "Every writer runs in its own worktree; it commits there, never to the shared branch, and never pushes — the lead cherry-picks finished work in (agent-team-structure.md § Isolation)",
         "A push to main is the deploy — the marketplace plugin auto-updates every machine that ran enable-plugin.sh",
         "There is no post-merge install step; autoUpdate: true does the sync (AGENTS.md §Release)"
       ]

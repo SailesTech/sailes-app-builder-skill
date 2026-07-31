@@ -15,6 +15,9 @@ is busy and blind. Use the table first, the sections for the how.
 | A parser or a payload handler fed by someone else | Fuzzing | valid-input tests |
 | "Are these tests worth anything?" | Mutation testing | line coverage |
 | Duplicate / retried / out-of-order delivery | The async case set below | one happy-path webhook test |
+| A table (or queue, or event) that something READS but nothing provably writes | The proven writer | an authorization test on the reader — it passes while the table stays empty |
+| Debt you are deliberately keeping | `it.fails` + a backlog link | a comment, or `skip` — neither notices when the problem goes away |
+| Cases that already exist as **data** in the repo | Table-driven iteration over that data | a copied block per case, restating the data a third time |
 
 ---
 
@@ -217,6 +220,86 @@ Sources: [Fowler — On the Diverse and Fantastical Shapes of Testing](https://m
 [Google — Test Sizes](https://testing.googleblog.com/2010/12/test-sizes.html) ·
 [Software Engineering at Google, ch. 11](https://abseil.io/resources/swe-book/html/ch11.html) ·
 [Dodds — Write tests. Not too many. Mostly integration.](https://kentcdodds.com/blog/write-tests)
+
+---
+
+## The proven writer — a reader with no writer is a feature that only looks finished
+
+**Every append-only table with a reader in the API gets a test proving that a REAL flow puts a row
+in it.** "You can insert one from a test" and "one appears in practice" are two different sentences,
+and only the second is the feature.
+
+Measured 2026-07-30. A `field_change` table shipped with everything: the table, its partitions, an
+append-only trigger, a registry of permitted fields, a write function, a `GET /changelog` route, and
+authorization tests on that route. **And not one row**, because nothing ever called the write
+function.
+
+The interesting part is how it survived. **Three gates passed it, each correctly.** The phase that
+delivered the table graded the table — which was right. The phase that delivered the route graded
+the route — also right. The matrix gate tested authorization on that route and got a correct 404 for
+another tenant's record. None of them asked whether anything arrives in the table at all. The defect
+was in no diff; it lived **between** them, which is exactly the region a per-phase review cannot see.
+
+The class is wider than append-only tables: **a capability present in every part except the one that
+makes it real.** A queue with a consumer and no producer, an event with subscribers and no emitter,
+a cache with reads and no writes. Wherever you find a reader, ask what proves the writer runs.
+
+**Derive the table list, do not type it** (`sailes-bootstrap/decision-engine.md` is not the owner of
+this — your repo decides the mechanism). Whatever registry the repo already has is the source, and a
+canary compares the derived list against a frozen literal, so a new table added without proof breaks
+the canary instead of slipping past it. A hand-typed list is a silent skip waiting for its first
+omission — this repo has that lesson under 2026-07-20 already.
+
+## Recording deliberate debt — `it.fails`, never a comment and never `skip`
+
+Sometimes debt is the right call: the fix needs an architectural decision, or it is genuinely a
+feature to design rather than a gap to close. Record it as a **test marked `it.fails` carrying an
+annotation and a link to its backlog item.**
+
+The suite stays green, because an expected failure is expected. The debt becomes **executable**. And
+on the day somebody pays it off, the test **"unexpectedly passes" and fails**, demanding the marker
+be removed. It corrects itself, at zero maintenance cost — no reminder, no calendar, no review.
+
+- **`skip` is invisible**, and it will never notice that the problem went away.
+- **A comment is read only by whoever is already in that file** — the last person who needs telling
+  (`AGENTS.md`: a deferral recorded only in a comment does not exist).
+- **A red test with a named reason is an honest register. A missing test is forgetting.**
+
+Vitest spells it `it.fails`; Jest 28+ spells it `it.failing`. If your runner has neither, the
+fallback is a test that asserts the *current wrong* behavior with the backlog link in its name — the
+property you must keep is that **the day the behavior changes, something goes red.**
+
+## Table or separate blocks — a trigger, not a matter of taste
+
+**Reach for a table when:** the set of cases already exists **as data in the repo** → the test
+**iterates** it instead of restating it · the cases differ **only in values**.
+
+**Keep separate blocks when:** the cases differ in **flow** — different setup, different steps,
+different assertion. Tabularizing those actively hurts: you get a table whose rows are lies bound
+together by conditionals.
+
+**The signal to catch in the moment: if you copied the previous block and changed two literals, that
+was a data row.** The third copy of a shape is the moment for a table — not the tenth. Measured
+2026-07-30: a 114-cell permission matrix written cell by cell came to 2080 lines and 115 hand-written
+blocks with no loop, in a repo that had **already once repaired a drift between two copies of that
+same matrix.**
+
+### The border — and it is the half people get wrong
+
+**"Iterate over the source" does NOT mean "compute the expectation from the source."**
+
+The shape of the set — which cases exist — may come from shared data. **The expected value may not,
+if that same source feeds the fixture.** Measured the same day: the instruction to derive expected
+values was **refused by the implementer, correctly**. The test fixture seeded permissions from that
+very constant, so computing expectations from it would have moved the seeded permission and the
+expectation **together** under any mutation — a matrix glowing green regardless of the regression.
+
+One question settles it every time: **does a proof mutation still produce red?** If breaking the
+behavior leaves the table green, the table is measuring itself.
+
+**Two conditions without which a table is worse than a wall of blocks:** the name of a failing test
+must reveal **which row** failed, and the count of generated cases must be asserted against a
+**literal** — otherwise a source that silently yields zero rows produces a green run over nothing.
 
 ---
 

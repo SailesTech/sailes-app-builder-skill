@@ -53,18 +53,28 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
   produced but never shown → the spec does not close either (the second is the one that reads
   like success); archify missing on the machine → the explicit-SKIP protocol plus the human's
   stated acceptance of the recorded debt.
-- All phases shipped + verified → set spec `Status: implemented` and `git mv` it to `.ai/specs/implemented/` (preserve history); update cross-references.
+- All phases shipped + verified → set spec `Status: implemented` and `git mv` it to `.ai/specs/implemented/` (preserve history); update cross-references. **The status line carries pasted gate evidence, not an assertion:** `Status: implemented — evidence: <command> → <result> · checker: <verdict> · qa: <verdict>`. Measured 2026-07-30: a spec claimed "`qa` PASS 4/4" while `qa` was still running and then returned CHANGES-REQUIRED. You can write an assertion ahead of the fact; you cannot paste a verdict that does not exist yet — that gap is the whole mechanism, so filling it from expectation defeats the format entirely.
 - **Deploying work ends at the release gate, not at green tests:** walk `sailes-bootstrap/release-checklist.md` — env/secret parity, migration ordering vs deploy, the **post-deploy smoke** script run with output pasted, and a rollback plan written *before* the deploy. The human approves the prod step (unchanged) — but approval is of a completed checklist, not a vibe. First production launch also requires the Operations block in `repo-done-checklist.md` (restore tested, runbook filled).
 - **Close estimates against actuals:** if the spec's phases carried internal estimates, record per-phase estimate-vs-actual + a one-line "why the delta" in the internal ledger (never in client-visible docs) — this is what lets the planned `sailes-wycena` pricing skill price the next project from history instead of gut feel.
-- Push deferred follow-ups / tech debt discovered during build to `.ai/backlog.md` (don't lose them).
+- **Delivered a CAPABILITY? Sweep the repo for comments that justified its absence** — before closing:
+  ```bash
+  grep -rn "DOES NOT EXIST\|NIE ISTNIEJE\|AT INTEGRATION\|PRZY INTEGRACJI\|TODO\|for now\|na razie" --include=*.ts --include=*.tsx src apps packages
+  ```
+  Every hit is a claim that was true when written and may not be now. Measured 2026-07-30: a comment
+  read *"call the storage adapter AT INTEGRATION — `packages/files` DOES NOT EXIST"*; the package had
+  existed for a week, `deleteObject` included, and the erasure path was leaving files in the bucket
+  indefinitely. **One sweep on the day `packages/files` landed would have found it that day instead
+  of a week later.** The sweep is cheap because it runs once per capability, not once per commit —
+  and it is the only step that connects "the dependency arrived" to "the things waiting on it".
+- Push deferred follow-ups / tech debt discovered during build to `.ai/backlog.md` (don't lose them). Where the debt is a wrong behavior you are deliberately keeping, the row's other half is an `it.fails` test linking back to it (`sailes-test/references/techniques.md`) — a marker that removes itself when the debt is paid.
 - Record any correction-worthy lesson in `.ai/lessons.md` (Context/Problem/Rule/Applies-to); check lessons for **promotion candidates** (recurring → preferably an enforced check, else AGENTS.md/Task Router rule). A defect that escaped the gates additionally gets its **gate autopsy** (`Escaped-defect:` entry — which gate missed it + what check that gate now gains).
 - **Update `.ai/STATE.md` (write before walking away):** move what this run proved into Verified facts (with evidence), record unresolved problems in Open failures, set Last session. Do this **also when a session is interrupted mid-spec** — it's what makes the work resumable.
 - Hand off per the repo's PR workflow (label `review`).
 
 ## Subagent strategy
 - One task per subagent; offload parallel/independent steps and research to keep main context clean.
-- Read-only recon (`Explore`/`explorer`) for mapping; implementation steps that touch the same files run sequentially (or in worktrees if truly parallel) to avoid conflicts.
-- For non-trivial scope (3+ steps, BE+FE, an API contract, an architecture/data-model change, or anything touching auth/tenancy/security), run it as a **team**: the agent driving `sailes-implement` **acts as `team-lead`** (or delegates to the `team-lead` role if agent-teams mode is on) — there is exactly one lead, the human's single point of contact. Roles, order, gates, **agent lifecycle (spawn per task → release on integration, no idle agents)**, the **fallback when teams mode is off** (same roles as sequential subagents), and the run log are all defined in `sailes-bootstrap/agent-team-structure.md`. Workers never commit or push; the lead integrates and owns the gates (`checker` + `qa`).
+- Read-only recon (`Explore`/`explorer`) for mapping. **Every subagent that WRITES is spawned with `isolation: worktree` — mandatory, and the test is "does it write", not "is it on a list".** Two processes writing one file on a shared disk do not produce a merge conflict, they produce silent loss. The worker commits in its own worktree (that commit is its declaration the work is finished) and you cherry-pick the branch from the shared `.git` — no push, no copying. Caveat that matters more than the rule: a worktree isolates **files**, never the **runtime environment** — the database, ports and containers are shared, which is why `qa` takes exclusivity instead (`agent-team-structure.md`, Isolation).
+- For non-trivial scope (3+ steps, BE+FE, an API contract, an architecture/data-model change, or anything touching auth/tenancy/security), run it as a **team**: the agent driving `sailes-implement` **acts as `team-lead`** (or delegates to the `team-lead` role if agent-teams mode is on) — there is exactly one lead, the human's single point of contact. Roles, order, gates, **agent lifecycle (spawn per task → release on integration, no idle agents)**, the **fallback when teams mode is off** (same roles as sequential subagents), and the run log are all defined in `sailes-bootstrap/agent-team-structure.md`. Workers never commit to a shared branch and never push — in their own worktree they commit, and should; the lead integrates and owns the gates (`checker` + `qa`).
 
 ## Quick Reference
 

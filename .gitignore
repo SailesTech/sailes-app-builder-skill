@@ -15,6 +15,10 @@ yarn-error.log*
 # Claude Code personal settings (machine-specific paths; the shared ones live in .claude/settings.json)
 .claude/settings.local.json
 
+# Worker worktrees (isolation: worktree). Ephemeral checkouts, one per writing agent — the branch
+# lives in the shared .git and is what gets cherry-picked, so the directory itself is never content.
+.claude/worktrees/
+
 # Rendered delta views — the JSON receipt carries the whole proof (sha256 + counts) at ~2 KB;
 # the HTML is a 1.8 MB rendering of the same thing, produced even when the delta is empty.
 .ai/docs-deltas/*.html

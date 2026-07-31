@@ -134,9 +134,70 @@ explorer → designer → BE contract finalized → fe-dev → tester → checke
 3. **Assign and integrate.** The lead hands tasks to teammates, collects results, and integrates — the lead owns the merge, not the workers.
 4. **Escalation is upward only.** A worker that hits a scope question or a **key decision** (stack, contract shape, data-model, auth, roles) stops and escalates to the lead; the lead escalates to the human. Workers never silently decide a key decision or widen scope.
    - **Escalating without a recommendation is allowed.** The lead normally arrives with options and a reasoned pick. When it genuinely cannot ground one, "nie mam podstaw, żeby wskazać" is the honest line — and where the decision is also expensive or hard to reverse, the lead offers a fourth move next to the options: **settle it by measurement**, with the criterion fixed and mechanically derived *before* anything is dispatched, and the run priced so the human can decline. Record which way it was settled, argued or measured. See `deciding-under-uncertainty.md`.
+   - **A substitute decision is graded on its second-order effect, not on its justification.** When a worker resolves a blocker on its own and reports why, the justification may be **true and beside the point** — those are indistinguishable at a glance, which is why this needs saying. Measured 2026-07-30: a worker justified an unconditional `createQueue()` call as idempotent. It was, *for inserting the row*, and was not *for the options* — `ON CONFLICT DO NOTHING` silently discards the losing racer's configuration. The defect passed two gates and surfaced only when `qa` ran it on a live stack. The question is never "is this sentence correct"; it is "what does this do the second time it runs, and who wins the race".
+   - **An option that cites an existing mechanism gets verified before the card is presented.** Measured the same day: a decision card offered "dead-letter plus visibility through a mechanism that already stands"; the mechanism was a process-liveness heartbeat with nothing to say about individual jobs, and the human chose on a false premise. *"I have no grounds to recommend"* is a legal line in a card. A fabricated premise is not — it reads identically to a grounded one, so the reader cannot discount it, and the hedge you skipped was their only signal.
    - **Where the lead's authority ends.** The lead *assembles and freezes* the contract from decisions the spec/brief already settled — that's coordination, the lead's job. But when freezing it requires a **new** architectural or UX choice the spec didn't settle (e.g. "50k-row export: synchronous streamed download vs. async job + emailed link" — which also decides whether a new UI surface and a `designer` pass are needed), that is a **key decision**: the lead escalates it to the human, gets the answer, *then* freezes. The lead never silently picks the architecture just because it's mid-pipeline.
-5. **Workers never commit or push.** Integration, commit, and PR are the lead's job, after the gates pass.
+4b. **`qa` takes exclusive hold of the runtime environment; the lead enforces it.** While a `qa` run is live no other worker stands up, restarts or migrates the database, and none touch the containers. **File isolation does not reach this.** Worktrees protect every worker from every other worker's *edits*; the database, the ports, the bucket and the containers are shared by the whole machine, and that is the one resource that cannot be cloned. Measured 2026-07-30 inside a single `qa` run: the MinIO container deleted twice and the database role passwords reset — neither maliciously, the rule simply did not exist. Without this clause, "we gave everyone a worktree" is a **false sense of security**: the files are isolated and `qa` still loses its run to somebody else's `docker compose down`. The lead records who holds the environment and since when; a run whose stack changed shape underneath it reports `ENV-DEFECT`, because a pass that cannot be attributed to the code is worse than no pass.
+5. **Workers never commit to a SHARED branch and never push. Inside their own worktree they commit — and they should.** Integration, the shared branch and the PR are the lead's, after the gates pass. See "Isolation" below for why the wording changed and what it now protects.
 6. **Run log.** The lead records what was assigned, what each worker returned, and the gate verdicts — so a context reset can resume without re-deriving the plan. At session end (done or interrupted) the lead also updates `.ai/STATE.md` — **write before walking away**: verified facts with evidence, open failures, Last session pointer.
+
+## Isolation — every worker that writes gets a worktree
+
+**Mandatory, no exception, and the test is "does it write" rather than "is it on a list"** — so a
+role added next year inherits the rule instead of an omission. In scope: `be-dev`, `fe-dev`,
+`tester`, `designer`, `docs-author`. Out of scope: the read-only roles (`explorer`, `checker`,
+`researcher`), where ~200–500 ms and a disk copy per agent buy nothing. Also out of scope, for a
+different reason: **`qa`**, which needs the live stack rather than a copy of the files, and takes
+**environment exclusivity** instead (rule 4b). `docs-author` is in despite owning a lane nobody else
+writes to, because it is routinely run **in parallel with an implementation phase** at spec closure
+— which is the condition the isolation exists for.
+
+**This is not a merge conflict problem.** Two processes writing one file on a shared disk do not
+produce a conflict — they produce **silent loss**. Git sees only the survivor and has nothing to
+report. Measured 2026-07-30, three incidents in one day: a lead's commit landed on a **half-written
+file** belonging to another worker's phase (a parameter added, the signature not yet), where a
+whole-tree pre-commit lint then blocked an unrelated commit; a worker correctly refused to write and
+escalated after noticing files changing mid-session — right about the risk, wrong about the culprit,
+because the edits were the **lead's**; and a prepared commit found nothing to record because the
+human had committed the same staged set seconds earlier. **Two of those three are worker-versus-lead
+or worker-versus-human — collisions the no-two-workers-on-one-file rule does not even address.**
+
+So the mandate is not new doctrine, it is **enforcement of old doctrine**: "integration, merging
+shared files and running the gates stay with the lead" has been the rule for a long time. The
+worktree converts it from a rule people follow into a condition they cannot break — a worker cannot
+damage someone else's file because it cannot see it.
+
+**Collecting the work — measured, not assumed (2026-07-30).** The tool result returns
+`worktreePath` and `worktreeBranch`; the harness creates a dedicated branch per worker, so the
+"one branch cannot be checked out twice" problem never arises. The worker commits there, and because
+the worktree shares the main `.git`, the commit is visible from the main tree **immediately** —
+`git log <branch>` and `git cherry-pick` work with no push and no copying. A changed worktree
+survives the agent's termination.
+
+**Why the worker commits, when the old rule said never.** The old absolute existed to protect the
+shared branch, and git now guarantees that outright: the shared branch is checked out in the main
+tree, so no worktree can take it. What a commit adds is what prose could not — **a worker's commit is
+its declaration that the work is finished.** Reading an uncommitted worktree cannot tell finished
+work from an edit interrupted mid-file, which reproduces incident one *inside* the isolation. **No
+commit means not finished**, and that is a useful thing for the lead to learn rather than something
+to salvage.
+
+**Entry condition — do not skip it quietly.** The mandate assumes a fresh checkout can be made to
+run: dependencies, environment. A worker that cannot execute its verification commands has been
+converted from "verified" into "cannot verify", which is a straight regression against `VERIFIED`.
+Where the repo has no documented one-command path from clean clone to running app, that is an
+`ENV-DEFECT` to report (`repo-done-checklist.md`, Environment block) — not a reason to drop the
+isolation. Note the framework repo itself satisfies this trivially, having no dependencies; a client
+monorepo does not, which is exactly why the condition is written down.
+
+**And the caveat that matters more than the rule: a worktree isolates FILES, not the RUNTIME
+ENVIRONMENT.** Database, ports, buckets and containers are shared by the whole machine. Without
+rule 4b's environment exclusivity, "we gave everyone a worktree" is a **false sense of security**:
+the files are safe and `qa` still loses its run to somebody else's `docker compose down`.
+
+Housekeeping: add `.claude/worktrees/` to `.gitignore`. In a generated repo `.claude/settings.json`
+is committed, so without it the workers' checkouts appear as untracked debris inside a tracked
+directory.
 
 ## Gate isolation — what the gates see (verifier beats self-critique)
 
@@ -220,7 +281,10 @@ A worker has no shared memory with the lead beyond what the brief contains. "Exp
 
 ```markdown
 You are `ROLE` on team `TEAM`, under `team-lead`.
-Branch `…` is already checked out. Do not switch branches. Do not commit. Do not push.
+You are in your own worktree on branch `…`. Do not switch branches. Never commit to a
+shared branch and never push. **Commit your finished work HERE** — that commit is your
+declaration that the task is done, and the lead cherry-picks it. No commit = not finished.
+[read-only roles: drop the two lines above and say "you write nothing".]
 
 Task:        claim Task #N, mark it in_progress.
 Goal:        one precise outcome.
@@ -229,8 +293,19 @@ Contract:    request/response/types/events/DB fields other slices depend on.
 Constraints: the toolchain is the constraint (lint/types/convention tests enforce
              no-any, tokens-only, import direction); list here ONLY what it can't see —
              backward-compatible public contract; no destructive commands.
+Forbidden:   the files, directories and commands this worker must NOT touch — named, not
+             implied. With two tracks running this is the single thing that keeps them
+             disjoint, and it turns a crossed boundary into something the worker REPORTS
+             instead of something nobody notices.
 Reference:   the module/component/pattern to imitate — a **golden-module** implementation
              from the Sailes library when one exists (see modules-catalog.md, graduation rule).
+Blocked:     stuck more than one round on something that is NOT a key decision → take a
+             substitute decision, MARK it in the code, report it as a deviation. Waiting
+             costs the round; picking silently costs the lead a decision they never saw.
+             Key decisions (stack, contract, data-model, auth, roles) are never
+             substitutable — escalate and wait.
+Checkpoint:  write progress to files as you go. Your in-memory state does not survive your
+             process; disk does.
 Verification: exact commands to run + the e2e requirement.
 Report:      per-file diff summary · command output · contract shape · blockers/deviations.
              Your REPORT IS the deliverable — not a summary for a human, not a status
@@ -241,7 +316,21 @@ Delivery:    [scoped subagent] your final message is returned automatically — 
              to deliver. State which of the two applies — the worker cannot tell.
 ```
 
-Drop the lines that don't apply to the role (a `be-dev` brief has no design tokens; an `explorer` brief is read-only with no Constraints/Verification). The non-negotiables in every brief: **one goal, the contract it must honor, the verification commands, "do not commit/push," and the report clause.**
+Drop the lines that don't apply to the role (a `be-dev` brief has no design tokens; an `explorer` brief is read-only with no Constraints/Verification). The non-negotiables in every brief: **one goal, the contract it must honor, the verification commands, the commit rule in its current form ("commit in your own worktree; never to a shared branch, never push"), and the report clause.**
+
+**Three of these lines were earned on 2026-07-30 and are worth their space for a reason each.**
+`Forbidden:` — with two parallel tracks it was the only device that kept them disjoint, and its
+second effect mattered more than its first: crossing a *named* boundary got **reported**, where
+crossing an implied one is simply invisible. `Blocked:` — it held the pace and, every single time it
+fired, handed the lead an explicit point to review instead of a silent choice; the lead's side of
+that exchange is to grade the **second-order effect**, not the justification. `Checkpoint:` — one
+worker died together with its process and its entire in-memory state went with it. The existing rule
+that a graded deliverable must be a FILE covers the **result**; this one covers the **run**, and they
+fail differently: a lost result costs a re-run, a lost run costs everything learned during it.
+
+**Migration numbers are handed out in the spec, up front** — an anti-collision device, not tidiness.
+Two workers adding migrations in the same phase will pick the same next number, and the collision
+surfaces at merge time, when it is most expensive.
 
 **The report clause goes in every brief regardless of agent type.** Built-in types (`general-purpose`, `Explore`, and the rest) cannot have their definitions edited, so the brief is the only surface that reaches them — and observed failures have come from exactly there, not from the Sailes roles. Writing it only into `agents/*.md` would leave the common case uncovered.
 
@@ -317,7 +406,9 @@ What holds when the mode is open:
   full tool pool. Removing `Agent` from a role is one line; adding it is a deliberate act.
 - **Teams own disjoint files, not just workers.** The existing no-two-workers-on-one-file rule has to
   hold at the team boundary. Where the slicing cannot achieve it the teams are not parallel — run them
-  sequentially or give each a worktree (`isolation: worktree` is a supported frontmatter field).
+  sequentially. Every writing worker already carries `isolation: worktree` (see Isolation above), so
+  the physical protection extends to the team boundary automatically; the slicing discipline remains
+  because it keeps reviews tractable, not because it is the last line of defence.
 - **The two measured failure modes multiply rather than add — but only one of them exists in both
   modes.** Check which path you are on before quoting a release procedure, because the doctrine's
   release rule is written for live teammates and is not runnable without them.
@@ -351,8 +442,8 @@ second one.
 
 - The driving agent **is** the lead and stays the single point of contact.
 - Each "worker" becomes a **scoped subagent task** (one task, one subagent) dispatched in the same order — `explorer → designer → BE contract → fe-dev → tester → checker → qa`. Read-only roles (`explorer`, `checker`, `qa`) map cleanly to read-only subagents; `tester` writes tests (it is a gate that authors, not one that only reads), so it maps to a writing subagent that still never commits.
-- The lifecycle still holds: spawn a subagent for one task, take its result, drop it; don't reuse a stale subagent across stages. Subagents that touch the same files run **sequentially** (or in worktrees) to avoid conflicts.
-- The gates (`tester` suite, `checker` review, `qa` behavior proof) and "workers never commit/push" are **unchanged** — they're properties of the process, not the flag.
+- The lifecycle still holds: spawn a subagent for one task, take its result, drop it; don't reuse a stale subagent across stages. Every writing subagent gets `isolation: worktree` regardless of mode, so same-file conflicts are prevented physically rather than by scheduling.
+- The gates (`tester` suite, `checker` review, `qa` behavior proof) and "workers never commit to a shared branch and never push" are **unchanged** — they're properties of the process, not the flag. The worktree mandate is likewise mode-independent: `isolation: worktree` is a property of the spawn, not of teams mode.
 
 So the answer to "will this work without the experimental mode?" is **yes** — degraded to sequential subagents, but with the same roles, order, gates, and lifecycle.
 
