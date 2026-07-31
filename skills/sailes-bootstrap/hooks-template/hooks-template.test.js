@@ -102,14 +102,61 @@ test('session-start emits STATE.md and the Task Router pointer', () => {
   }
 });
 
-test('a Last-commit that DISAGREES with HEAD produces a warning', () => {
+
+test('ONE commit behind because STATE.md was just committed is SILENT', () => {
+  // The case the first version of this check got wrong, found 2026-07-31 an hour after release by
+  // running the convention rather than reading it. Writing STATE.md means committing STATE.md,
+  // which advances HEAD past the sha you just wrote — so an equality check warns at every session
+  // start in a repo following the convention PERFECTLY. An alarm that always fires gets muted, and
+  // it takes the real case with it. This is the most common state in a healthy repo, and the
+  // original suite had no fixture for it.
+  const { dir, head, git } = makeRepo();
+  try {
+    fs.writeFileSync(path.join(dir, '.ai', 'STATE.md'), `# State\nLast-commit: ${head}\n`);
+    git('add', '.');
+    git('commit', '-q', '-m', 'docs(state): write before walking away');
+    const r = runHook(SESSION_START, dir, '{}');
+    assert.ok(
+      !/WARNING/.test(r.stdout),
+      'the snapshot commit itself trips the alarm — every correct session start would warn'
+    );
+  } finally {
+    rm(dir);
+  }
+});
+
+test('HEAD moved and STATE.md was NOT touched → warning, with the distance', () => {
+  // The real 2026-07-30 incident: nine commits of unrelated work, snapshot never updated.
+  const { dir, head, git } = makeRepo();
+  try {
+    fs.writeFileSync(path.join(dir, '.ai', 'STATE.md'), `# State\nLast-commit: ${head}\n`);
+    git('add', '.');
+    git('commit', '-q', '-m', 'docs(state): snapshot');
+    for (let i = 0; i < 3; i++) {
+      fs.writeFileSync(path.join(dir, `work-${i}.txt`), `work ${i}\n`);
+      git('add', '.');
+      git('commit', '-q', '-m', `work ${i}`);
+    }
+    const r = runHook(SESSION_START, dir, '{}');
+    assert.ok(/WARNING/.test(r.stdout), 'a genuinely stale snapshot produced no warning');
+    assert.ok(
+      /\b3 commit\(s\)/.test(r.stdout),
+      'the warning does not say how much work followed the snapshot — the count is what tells a ' +
+        'reader whether to care, and it must exclude the snapshot commit itself'
+    );
+  } finally {
+    rm(dir);
+  }
+});
+
+test('an unknown Last-commit sha is silent — a rewritten history is not the reader\'s problem', () => {
   const { dir } = makeRepo();
   try {
     fs.writeFileSync(path.join(dir, '.ai', 'STATE.md'), '# State\nLast-commit: deadbee\n');
     const r = runHook(SESSION_START, dir, '{}');
     assert.ok(
-      /WARNING/.test(r.stdout) && /deadbee/.test(r.stdout),
-      'a stale Last-commit produced no warning — the reader believes the snapshot unchallenged'
+      !/WARNING/.test(r.stdout),
+      'a sha this repo has never seen produces an alarm nobody can act on'
     );
   } finally {
     rm(dir);
@@ -143,10 +190,16 @@ test('NO Last-commit field is silent — every pre-existing repo lacks it', () =
 });
 
 test('session-start never blocks — it warns and exits 0', () => {
-  const { dir } = makeRepo();
+  const { dir, head, git } = makeRepo();
   try {
-    fs.writeFileSync(path.join(dir, '.ai', 'STATE.md'), '# State\nLast-commit: deadbee\n');
+    fs.writeFileSync(path.join(dir, '.ai', 'STATE.md'), `# State\nLast-commit: ${head}\n`);
+    git('add', '.');
+    git('commit', '-q', '-m', 'docs(state): snapshot');
+    fs.writeFileSync(path.join(dir, 'work.txt'), 'work\n');
+    git('add', '.');
+    git('commit', '-q', '-m', 'work');
     const r = runHook(SESSION_START, dir, '{}');
+    assert.ok(/WARNING/.test(r.stdout), 'setup is wrong — this fixture must be in the warning case');
     assert.strictEqual(r.status, 0, 'the snapshot check must never block a session');
   } finally {
     rm(dir);

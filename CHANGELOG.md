@@ -4,6 +4,36 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.25.1 — 2026-07-31 · the STATE.md check cried wolf at every session start
+
+**A defect in 1.25.0, found an hour after it shipped, by running the convention instead of reading
+it.** Adopted repos that have not re-copied `hooks-template/session-start.sh` were never affected —
+see 1.25.0's distribution boundary.
+
+The snapshot check compared `Last-commit:` against `git HEAD` for equality. That is the obvious test
+and it is wrong: **writing STATE.md means committing STATE.md**, which advances HEAD past the sha
+you just wrote. A repo following the convention *perfectly* therefore sits one commit behind
+forever, and the hook warned at the start of **every single session**.
+
+That is precisely the cries-wolf failure this hook's own design notes warn about — an alarm that
+always fires gets muted, and it takes the real case with it. The real case being the one it was
+built for: a snapshot nine commits stale that every context reset began from.
+
+**The fix measures how many commits since `Last-commit:` are *not* the snapshot's own write.** The
+commit recording STATE.md subtracts itself out, so the healthy steady state reports zero and stays
+silent; work that followed the snapshot without revisiting it reports its count, and the warning now
+names that count — how far behind is what tells a reader whether to care.
+
+Worth recording because it nearly shipped twice: the **first** attempt at the fix asked "has
+STATE.md been touched at all since `Last-commit`", which is wrong in the opposite direction — the
+snapshot's own commit touches it, so that test goes silent no matter how much work follows. The test
+suite caught it, which is the argument for `hooks-template/hooks-template.test.js` existing at all
+(itself new in 1.25.0 — the shell templates shipping to every generated repo had no test before).
+
+Three new fixtures cover what the original suite missed: one commit behind because the snapshot was
+just committed (**silent**), work after the snapshot (**warns, with the count**), and an unknown sha
+from a rewritten history (**silent** — an alarm nobody can act on).
+
 ## 1.25.0 — 2026-07-31 · one day on a client repo, thirteen things the framework did not have
 
 Spec `.ai/specs/2026-07-30-sailerem-lessons-to-doctrine.md`, from a session-lessons document written
