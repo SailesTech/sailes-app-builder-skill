@@ -1,6 +1,6 @@
 # Wnioski z sesji Sailerem → doktryna frameworku
 
-Status: implemented — dowody: `npm test` → 10/10 plików zielone · checker: **CHANGES-REQUIRED** (2 defekty, oba naprawione i zweryfikowane — patrz Zamknięcie; **fix nie przeszedł ponownej bramki**) · qa: **n/a** — to repo nie ma aplikacji do przejechania
+Status: implemented — dowody: `npm test` → 10/10 plików zielone · checker: **CHANGES-REQUIRED → APPROVE** (dwa przebiegi: pierwszy na całej gałęzi, drugi na samych poprawkach, oba w czystym kontekście) · qa: **n/a** — to repo nie ma aplikacji do przejechania
 Source: `skile do inspiracji/wnioski z projektow/30.07.2026 sailerem.md`
 Framework-Version at authoring: 1.24.0
 
@@ -559,11 +559,27 @@ arm 1; każdy plik scenariusza dostał linię `Raw return:` wskazującą na arte
 przebiegu, czy rekonstrukcją — bo nie miał artefaktu do porównania. To był defekt 2 i to jest teraz
 sprawdzalne.
 
-**Bramka nie została powtórzona po naprawie.** Obie poprawki są weryfikowalne mechanicznie
-(grep pokazuje zniknięcie starego brzmienia, `ls` pokazuje artefakty) i obie zrobiłem dokładnie tak,
-jak `checker` je opisał — ale sprawdził je maker, nie świeża bramka. Zapisane tutaj, a nie
-przemilczane, bo `Status: implemented` z niepełnym pokryciem bramki i tak jest lepszy od
-`Status: implemented` udającego pełne.
+### Ponowna bramka na poprawkach — werdykt **APPROVE**, 2026-07-31
+
+Świeży `checker`, czysty kontekst, zakres zawężony do commita `62475bb`. Oba defekty zamknięte,
+nic nowego nie wprowadzono, a zapisy w tym pliku zgodne z diffem **linia po linii**.
+
+Dwie rzeczy, które zrobił lepiej, niż wymagało polecenie. **Nie uwierzył mojemu sweepowi** — bo ten
+sweep właśnie raz zawiódł — tylko przegrepował repo sam, po czterech wzorcach, i rozdzielił
+trafienia na trzy kategorie: celowy fixture `PRE_F5_WORDING`, dwa twiny mówiące „Do not push", które
+są **zgodne** z nową regułą (push nadal zakazany), oraz archiwa przebiegów z 2026-07-26, słusznie
+nietknięte jako zapis historyczny, nie żywa doktryna. Żadnej pozostałości starej reguły w tekście,
+który cokolwiek dziś reguluje.
+
+I zadał właściwe pytanie o defekt 2: **czy zarchiwizowane zwrotki są surowe, czy to kolejna parafraza
+makera** — bo rekord, który sam jest streszczeniem, niczego nie zamyka. Sprawdził to po strukturze
+(cytaty blokowe odrębne od prozy oceniającej, składnia wywołania narzędzia, pierwszoosobowe „What I
+could not establish", jawnie oznaczone skróty) i zapisał wprost, czego ustalić **nie może**: że nie
+ma wzorca do porównania bajt po bajcie i żaden przegląd tego z samego artefaktu nie domknie.
+
+To jest jedyna otwarta rzecz w tym specu i zostaje otwarta świadomie. Artefakt daje czytelnikowi coś,
+co da się skonfrontować z twierdzeniem; nie daje dowodu, że nikt go nie wygładził. Pełne domknięcie
+wymagałoby zapisu przebiegu poza kontrolą makera — to kandydat do backlogu, nie do tego specu.
 
 ## Non-Goals
 
