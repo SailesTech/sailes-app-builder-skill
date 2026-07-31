@@ -461,7 +461,36 @@ miejsca** — `agentic-first-principles.md:91`, `skeleton.md:72`, `sailes-pre-im
 Żadnego nie było na liście plików w specu. Reguła w dwóch brzmieniach jest gorsza od obu, więc
 domknięcie sweepem jest częścią kroku, nie sprzątaniem po nim.
 
-F4, F6: nierozpoczęte.
+**F4 — DONE 2026-07-31.** Jedyna faza pisząca kod, nie prozę.
+
+| Krok | Plik(i) | Stan |
+|---|---|---|
+| 4.0 | `adopt-existing-repo.md` | ✅ granica dystrybucji nazwana wprost: adoptowane repo trzyma **własne** kopie hooków, plugin ich nie dotyka, więc tryb Upgrade **pokazuje człowiekowi diff** zamiast cicho zostawiać go na wersji sprzed guarda |
+| 4.1 | `agents-md-template.md` (§ Session Memory) | ✅ `Last-commit: <short-sha>` scalone w istniejącą linię — budżet bez zmiany |
+| 4.2 | `hooks-template/session-start.sh` | ✅ trzy przypadki: rozjazd → ostrzeżenie · zgodność → cisza · **brak pola → cisza** (każde istniejące repo go nie ma; hook krzyczący w nich zostałby wyciszony razem z prawdziwym przypadkiem). Nigdy nie blokuje |
+| 4.3 | `hooks-template/guard-protected-paths.sh` | ✅ zamek blokuje `docker`/`db:migrate`/`db:push`/`compose`, **nazywa właściciela i podaje ścieżkę wygaszenia** — zamek po padniętym `qa` bez drogi wyjścia byłby gorszy od braku zamka |
+| 4.4 | `backlog-template.md` (**nowa tabela Human-only**), `agents-md-template.md` (Hard Safety Rules) | ✅ oba, z podziałem po trwałości: `ENV-DEFECT` blokuje teraz, wiersz przeżywa sesję. Żadne samo nie wystarcza — werdykt ginie przy resecie kontekstu, wiersz nie zatrzymuje wydania |
+| 4.5 | **nowy `runbook-template.md`**, `skeleton.md` | ✅ plik odwoływany w pięciu miejscach i generowany przez zero z nich, plus sekcja pułapek hostowych z IPv6/Docker Desktop |
+| 4.6 | **nowy `hooks-template/hooks-template.test.js`**, `package.json` | ✅ 10 przypadków; Node steruje `sh` tak jak harness (JSON na stdin, kod wyjścia), z jawnym SKIP gdy brak `sh` |
+
+**Done-when F4 — wynik:**
+```
+npm test                     → 10/10 plików zielone (było 9)
+budżet agents-md-template.md → 149 linii (limit 150) ✅ — 4.1 i 4.4 scalone, nie dopisane
+test -f runbook-template.md  → istnieje ✅   grep IPv6 → 1 ✅
+grep ENV-LOCK w guardzie     → 3 ✅          grep runbook-template w skeleton → 1 ✅
+tabela Human-only            → backlog-template 1 · agents-md-template 1 ✅
+```
+
+**Mutacje dowodowe 4.6 — obie pokazane przebiegiem.** Wyłączenie porównania sha w `session-start.sh`
+**i** gałęzi `ENV-LOCK` w guardzie (kopie zapasowe poza repo) → **3 failing**: „a Last-commit that
+DISAGREES with HEAD produces a warning", „ENV-LOCK present: a container/migration command is
+BLOCKED", „the block names the holder and how to break the lock". Przywrócone, zielone.
+
+Suita niesie też **fixture, który MUSI NIE strzelić**: „NO ENV-LOCK: the same container command
+passes" — bez niego test nie odróżnia „zamek działa" od „guard blokuje wszystko".
+
+**F6: nierozpoczęte.**
 
 ## Non-Goals
 

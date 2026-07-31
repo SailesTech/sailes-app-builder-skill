@@ -65,4 +65,20 @@ debt *is* a wrong behavior you have chosen to keep.
 | Phase / feature | From spec | Trigger to start |
 |---|---|---|
 | {phase 2 item} | {spec path} | {what makes it time} |
+
+## Human-only — blocked on a protected surface
+Things an agent found, cannot fix, and must not be left holding silently. `.env*` files are the
+usual case: they are closed to agents by hook and by rule, correctly — which means **a variable
+missing from the environment template is always a human's task.** The agent's job is to make it
+actionable and durable: report `ENV-DEFECT` (that blocks the gate now) **and** add a row here (that
+survives the session). Neither alone is enough — a verdict is lost at the next context reset, and a
+backlog row does not stop a release.
+
+Measured 2026-07-30: a repo could not be booted from a clean clone for **weeks**. Five things
+blocked it in sequence, four of them needing a `.env*` edit. No agent reported it, because none had
+a path — only a prohibition. That is the gap this table exists to close.
+
+| Item | Exact lines / action for the human | Blocks | Source | Status |
+|---|---|---|---|---|
+| {what is missing} | {paste-ready lines, or the precise action} | {what stays broken until it is done} | {spec/run} | open / done |
 ```

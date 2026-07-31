@@ -139,7 +139,7 @@ Length is not thoroughness — complete and unreadable delivered nothing. Rule 3
 - Root `STATUS.md` is the client-readable progress view, derived from live specs: per feature — phases done/total, the plain-language Done-when result, accepted screenshot for UI phases. Updated at every phase gate (`sailes-implement`). Never contains effort, hours, or pricing data.
 
 ## Session Memory (`.ai/STATE.md`)
-- Five sections: **Verified facts** (checked, each with the command/evidence that proved it) · **General rules** (distilled from this project) · **Open failures** (unresolved problems + best diagnosis so far) · **Lessons learned** (pointers into `.ai/lessons.md`) · **Last session** (where work stopped + the next step).
+- Header line `Last-commit: <short-sha>`, then five sections: **Verified facts** (checked, each with the command/evidence that proved it) · **General rules** (distilled from this project) · **Open failures** (unresolved problems + best diagnosis so far) · **Lessons learned** (pointers into `.ai/lessons.md`) · **Last session** (where work stopped + the next step). The SessionStart hook compares that sha against `git HEAD` and warns when the snapshot has drifted behind the history — it never blocks, and it stays silent when the field is absent.
 - **Read at session start** — before any non-trivial work, read STATE.md + lessons.md; otherwise you re-derive known state and repeat known dead ends.
 - **Write before walking away** — every working session ends by updating STATE.md: promote what you verified into Verified facts, record what's still broken in Open failures, update Last session. A session that ends without this write loses its memory. This applies on interruption too, not just on completion. **Update the snapshot together with the history, or update neither:** a file whose top and bottom disagree is worse than a stale one, because the reader cannot tell which half to believe — and the session hook makes everyone read the top first.
 - **Facts vs hypotheses:** an entry enters Verified facts only with evidence attached; everything unproven stays in Open failures. Never let a hypothesis masquerade as a fact.
@@ -147,7 +147,7 @@ Length is not thoroughness — complete and unreadable delivered nothing. Rule 3
 ## Hard Safety Rules
 - NEVER commit/push without explicit human instruction.
 - NEVER `git reset --hard` / `git push --force` / force-push or rebase a shared branch without explicit confirmation.
-- NEVER commit directly to main/default for feature work; NEVER commit secrets/.env/build artifacts.
+- NEVER commit directly to main/default for feature work; NEVER commit secrets/.env/build artifacts. **`.env*` is closed to agents entirely, so a variable missing from the template is ALWAYS a human's task** — report `ENV-DEFECT` with the exact lines to paste **and** file a `.ai/backlog.md` row under "Human-only": the verdict blocks now, the row survives the session. Measured 2026-07-30: a repo could not boot from a clean clone for weeks and no agent could say so, because it had a prohibition and no path.
 - NEVER auto-deploy to production; NEVER run production migrations without approval.
 - NEVER change auth/security without the security checklist.
 - NEVER log sensitive data; NEVER treat Google login as Gmail access.

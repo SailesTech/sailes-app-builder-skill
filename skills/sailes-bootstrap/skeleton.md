@@ -131,6 +131,11 @@ merge-conflict magnets that make concurrent agents collide. (`agentic-first-prin
 17. Seed one fixture user per RBAC role; the app must boot with seeded data in one command.
 ```
 
+- **Ops runbook:** `.ai/runbook.md` from `runbook-template.md` (header-only at bootstrap, filled at
+  the first deploy). Five places in the framework require this file; until 2026-07-31 none generated
+  it, so the Operations block asked for a document that never existed. It carries the deploy/logs/
+  restart/rollback/restore facts **and** the host-traps section — the IPv6-vs-Docker-Desktop trap
+  alone costs hours and presents as an application bug.
 - **Worker-worktree ignore:** `.gitignore` gets `.claude/worktrees/`. Every writing agent is spawned
   with `isolation: worktree` (`agent-team-structure.md`, Isolation) and its checkout lands there.
   `.claude/settings.json` **is** committed, so without this line those checkouts show up as untracked
