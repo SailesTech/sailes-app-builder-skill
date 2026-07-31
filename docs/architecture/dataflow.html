@@ -4652,16 +4652,16 @@
         <text data-detail="fine" x="530" y="175" class="t-backend" font-size="7" text-anchor="middle">deterministic</text>
         </g>
 
-        <g id="node-implementation-branch" data-node-id="implementation-branch" data-node-label="Feature Branch" tabindex="0" role="button" aria-label="Focus Feature Branch, be-dev / fe-dev implement, 03 / Branch: Implement &amp; Test" aria-pressed="false" data-node-kind="backend" data-node-sublabel="be-dev / fe-dev implement" data-node-tag="not main" data-node-context="03 / Branch: Implement &amp; Test">
-          <title>Feature Branch · be-dev / fe-dev implement · 03 / Branch: Implement &amp; Test · not main</title>
+        <g id="node-implementation-branch" data-node-id="implementation-branch" data-node-label="Feature Branch" tabindex="0" role="button" aria-label="Focus Feature Branch, be-dev / fe-dev implement, each in own worktree, 03 / Branch: Implement &amp; Test" aria-pressed="false" data-node-kind="backend" data-node-sublabel="be-dev / fe-dev implement, each in own worktree" data-node-tag="lead cherry-picks, not main" data-node-context="03 / Branch: Implement &amp; Test">
+          <title>Feature Branch · be-dev / fe-dev implement, each in own worktree · 03 / Branch: Implement &amp; Test · lead cherry-picks, not main</title>
           <rect x="474" y="356" width="112" height="58" rx="6" class="c-mask"/>
           <rect x="474" y="356" width="112" height="58" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(480 362) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-detail-anchor x="530" y="377" class="t-primary" font-size="10" font-weight="600" text-anchor="middle">Feature Branch</text>
-          <text data-detail="context" x="530" y="393" class="t-muted" font-size="7" text-anchor="middle">be-dev / fe-dev implement</text>
-        <text data-detail="fine" x="530" y="403" class="t-backend" font-size="7" text-anchor="middle">not main</text>
+          <text data-detail="context" x="530" y="393" class="t-muted" font-size="7" text-anchor="middle">be-dev / fe-dev implement, each in own worktree</text>
+        <text data-detail="fine" x="530" y="403" class="t-backend" font-size="7" text-anchor="middle">lead cherry-picks, not main</text>
         </g>
 
         <g id="node-evals-scenarios" data-node-id="evals-scenarios" data-node-label="Eval Scenarios" tabindex="0" role="button" aria-label="Focus Eval Scenarios, evals/ protected-behavior files, 03 / Branch: Implement &amp; Test" aria-pressed="false" data-node-kind="backend" data-node-sublabel="evals/ protected-behavior files" data-node-tag="TDD-for-skills" data-node-context="03 / Branch: Implement &amp; Test">
@@ -5020,6 +5020,7 @@
         </div>
         <ul>
           <li>&bull; An approved spec unlocks the branch (AGENTS.md SPEC gate) — nothing lands before it</li>
+          <li>&bull; Every writer runs in its own worktree; it commits there, never to the shared branch, and never pushes — the lead cherry-picks finished work in (agent-team-structure.md § Isolation)</li>
           <li>&bull; A push to main is the deploy — the marketplace plugin auto-updates every machine that ran enable-plugin.sh</li>
           <li>&bull; There is no post-merge install step; autoUpdate: true does the sync (AGENTS.md §Release)</li>
         </ul>

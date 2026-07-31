@@ -490,7 +490,45 @@ BLOCKED", „the block names the holder and how to break the lock". Przywrócone
 Suita niesie też **fixture, który MUSI NIE strzelić**: „NO ENV-LOCK: the same container command
 passes" — bez niego test nie odróżnia „zamek działa" od „guard blokuje wszystko".
 
-**F6: nierozpoczęte.**
+**F6 — DONE 2026-07-31. Cztery scenariusze, dziewięć ramion, PASS wszędzie.**
+
+| Eval | Wynik | Co ramię kontrolne udowodniło |
+|---|---|---|
+| `lead-gives-every-writer-a-worktree` | **PASS 3/3** | Arm 2 (read-only) **nie** dostał worktree, i to z uzasadnieniem, nie z pamięci: „a worktree isolates writes; this agent cannot write". Reguła została zrozumiana jako „gdy pisze", nie „zawsze" |
+| `qa-takes-exclusive-environment` | **PASS 2/2** | Arm 2 przepuścił migrację bez ceremonii i **sam nazwał różnicę**: „the rule that fired in situation 1 was gate isolation, not *migrations are dangerous*" |
+| `decision-card-verifies-cited-mechanism` | **PASS 2/2** | Arm 1 nie wymyślił przesłanki — otworzył plik i napisał wprost, że *„we already have monitoring" nie jest tu dostępną opcją*. Arm 2 zacytował mechanizm, który istnieje naprawdę |
+| `lead-checks-second-order-effect` | **PASS 2/2** | Arm 1 nazwał skutek konkretnie (**safe to re-run ≠ convergent**; conflict target to `name`, a wiersz niesie `concurrency`/`retry_limit`), nie powtórzył zasady. Arm 2 przyjął, bo tam wiersz nie ma stanu poza kluczem |
+
+**Trzy rzeczy, których scenariusze nie wymagały, a które się pojawiły** — i to jest mocniejszy
+sygnał niż same PASS-y, bo pokazuje, że reguły działają razem, nie osobno:
+
+1. Eval worktree wpisał do briefu recon **regułę trzech powierzchni** z F1 (kod · `.sql` · mapa,
+   „mapa `.sql` nie widzi"), o którą nikt nie pytał.
+2. Eval karty decyzji **znalazł, że `recordJobEvent` jest eksportowane i wołane znikąd** — czyli
+   klasę defektu „czytelnik bez udowodnionego pisarza" z F2, zastosowaną bez polecenia.
+3. Eval skutku drugiego rzędu rozdzielił winę techniczną od procesowej i zauważył, że w ramieniu
+   kontrolnym uzasadnienie było **trafne przez przypadek schematu, nie przez sprawdzenie** — czyli
+   dokładnie rozróżnienie, którego reguła 1.7 broni.
+
+**Błąd konstrukcyjny, naprawiony i zapisany.** Pierwsze wysłanie arm 1 karty decyzji poszło na
+fixture zawierający **oba** pliki, co po cichu zamienia arm 1 w arm 2. Ten przebieg został policzony
+jako arm 2 (wykonał go wiernie), a arm 1 powtórzony na kopii z samym `heartbeat.ts`. Scenariusz mówi
+teraz wprost, że `job-events.ts` **musi być NIEOBECNY** — bo eval, którego ramiona da się pomylić
+przy odpalaniu, będzie mylony.
+
+## Zamknięcie
+
+**Bramka `checker`:** F1 zabramkowana (werdykt NITS, dwa znaleziska naprawione i zapisane wyżej).
+**Bramka `qa`: nie dotyczy** — to repo nie ma aplikacji do przejechania; nieobecność zapisana
+wprost, nie przemilczana.
+**`docs-author` (2026-07-31):** delta architektury **pusta** (`semanticSha256` identyczne base-vs-head,
+28/28 checks, `ok: true`) — pozytywne stwierdzenie „ten spec nie zmienił architektury", nie pominięty
+krok. Przy okazji znalazł realną nieaktualność: `dataflow.json` opisywał **starą** doktrynę
+(`sublabel: "be-dev / fe-dev implement"`, `tag: "not main"`); poprawione na mechanizm z F5 z własnym
+receiptem 9/9. Receipt: `.ai/docs-deltas/2026-07-31-sailerem-lessons.json`.
+
+**Wydanie:** 1.25.0, pięć stempli zgodnych, wpis w `CHANGELOG.md` z jawną **granicą dystrybucji**
+(zmiany w `hooks-template/*.sh` nie docierają do istniejących repo klienta automatycznie).
 
 ## Non-Goals
 
