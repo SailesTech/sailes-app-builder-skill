@@ -2,7 +2,8 @@
 
 Skill under test:   `sailes-spec` / `sailes-bootstrap/spec-writing-template.md`
 Files:              skills/sailes-spec/SKILL.md, skills/sailes-bootstrap/spec-writing-template.md,
-                    skills/sailes-bootstrap/agent-team-structure.md (Worker brief, `Files:`)
+                    skills/sailes-bootstrap/agent-team-structure.md
+Covers:             the spec's Done-when coverage clause · the worker brief's `Files:` line
 Setup:              Give a fresh subagent the spec-writing skill and a brief whose surface is
                     deliberately WIDER than its obvious verification — e.g. "custom field
                     definitions: list them, create them, and expose a catalogue the form
@@ -24,4 +25,21 @@ Failure looks like: A phase that may touch a route file, a handler and a schema,
 Control arm:        Run the same brief against a spec-writing prompt with the coverage clause
                     removed. It MUST produce at least one uncovered path — otherwise the eval
                     is measuring the brief's narrowness, not the doctrine.
-Last run:           not yet run — added 1.26.0.
+Last run:           2026-08-01 · **INCONCLUSIVE.** Vehicle: stand-in (`general-purpose` on
+                    working-tree files) — the TEXT, not the runtime.
+                    The control produced **no uncovered path**: five phases, and in every one each
+                    allowed file is forced by a `Done-when` clause. The scenario's own control
+                    condition says this measures the brief's narrowness rather than the doctrine,
+                    and it is right — the brief hands over an explicit seven-file map, so keeping
+                    the two lists aligned is nearly free. The 2026-08-01 incident had seven phases
+                    and a surface nobody walked end to end.
+                    One difference IS in the artifacts and is worth separating from the outcome:
+                    the doctrine arm emitted a per-phase **`File | Forced by` table**, five of
+                    them, naming the clause behind every path. The control emitted none. Coverage
+                    came out identical; **auditability did not** — one artifact lets a reader check
+                    that the walk happened, the other requires trusting that it did. That is a real
+                    product difference and this fixture does not measure whether it prevents
+                    anything, so it is recorded as an observation, not a result.
+                    Re-run needs: a brief with a wider surface than its file map, enough phases that
+                    the walk is not free, and at least one path that is genuinely surplus.
+                    Artifacts: `.ai/eval-runs/2026-08-01-doctrine-1.26.0/artifacts/A1`,`A2`.
