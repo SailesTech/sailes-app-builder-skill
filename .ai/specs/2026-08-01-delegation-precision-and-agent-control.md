@@ -1,6 +1,6 @@
 # Spec: precyzja delegowania i kontrola nad agentami
 
-Status: draft
+Status: approved
 Brief: `.ai/briefs/2026-08-01-delegation-precision-and-agent-control.md`
 Framework-Version target: 1.27.0
 Related: `.ai/specs/2026-08-01-milestone-lessons-to-doctrine.md` (in-progress, 1.25.2 + 1.26.0)
@@ -8,13 +8,13 @@ Related: `.ai/specs/2026-08-01-milestone-lessons-to-doctrine.md` (in-progress, 1
 ## TLDR
 
 Dwie rzeczy, w tej kolejności: **brief, którego nie da się oddać niedomkniętym**, i **plik statusu
-per worker, którego nieobecność coś znaczy**. Do tego jedna naprawa strukturalna, która jest
-warunkiem obu — **próg delegowania przestaje istnieć w trzech kopiach**.
+per worker, którego nieobecność coś znaczy**. Warunkiem obu jest jedna naprawa strukturalna —
+**próg delegowania przestaje istnieć w trzech kopiach pisanych ręcznie**.
 
 Zakres wynika z dnia, w którym trzynaście ramion ewaluacyjnych dało jedno czyste rozróżnienie:
-doktryna jest w większości re-derywowalna przez model, **artefakt nie jest**. Dlatego wszystko
-poniżej, co da się zamienić w plik, check albo test, jest tak zamieniane, a proza zostaje tam,
-gdzie mechanizm jest niemożliwy — nie tam, gdzie jest niewygodny.
+doktryna jest w większości re-derywowalna przez model, **artefakt nie jest**. Dlatego wszystko, co
+da się zamienić w plik, check albo test, jest tak zamieniane, a proza zostaje tam, gdzie mechanizm
+jest niemożliwy — nie tam, gdzie jest niewygodny.
 
 ## Problem
 
@@ -27,163 +27,238 @@ sprawdzi; **nieobecności nie ma kto**, dopóki nie istnieje coś, co asertuje o
 Osobno, i to jest przyczyna trzech kolizji kryteriów zmierzonych tego dnia: **reguła zapisana
 w więcej niż jednym miejscu rozjeżdża się**, a evale kodują potem różne jej wersje. Rozjazd ma
 stałe miejsce — kanoniczny `agent-team-structure.md` → definicja roli `agents/*.md` → bliźniak
-`codex-agents/*.toml`. Dwa razy zmierzone tego dnia, raz w wersji, w której **kanoniczny plik
-w ogóle nie miał klauzuli**, którą rola egzekwowała.
+`codex-agents/*.toml`.
 
-## Proponowane rozwiązanie (szkielet — pełna treść po bramce)
+## Decyzje człowieka (2026-08-01)
 
-**Faza 1 — jeden próg.** Próg delegowania dostaje jedno kanoniczne sformułowanie; dwa pozostałe
-miejsca wskazują na nie zamiast powtarzać. To jest warunek wstępny wszystkiego innego, bo dwa
-evale wymagają dziś przeciwnych zachowań i dopóki tak jest, żaden wynik o delegowaniu nie znaczy
-nic.
+| # | Pytanie | Wybór |
+|---|---|---|
+| Q1 | Gdzie stoi jeden próg | **jedno źródło + kopie generowane, test na identyczność** |
+| Q2 | Macierz własności plików | **blok `yaml` w planie pracy** |
+| Q3 | Weryfikacja pliku statusu | **raportuje głośno, nie blokuje** |
+| Q4 | Check domknięcia briefu | **test w bramce** (hook na powołaniu odrzucony sondą) |
+| Q5 | Kto pisze plik statusu | **wszyscy piszący** — ten sam test co przy worktree |
 
-**Faza 2 — brief się domyka albo nie przechodzi.** Check na: pola obowiązkowe obecne, i każdy plik
-na liście dozwolonych nazywa klauzulę `Done-when`, która go wymusza. Reguła prozą weszła w 1.26.0
-i jest **jedynym dodatkiem tamtego wydania, który zmierzył się czysto** — ta faza zamienia ją
-w mechanizm.
+**Skutek Q4 wart odnotowania:** wybór testu zamiast hooka wyprowadza cały spec spod jedynego
+niezweryfikowanego źródła w tym materiale. Sonda o hookach starczyła, żeby odrzucić opcję
+z powołaniem, i nie musi już niczego podtrzymywać.
 
-**Faza 3 — plik statusu workera.** Zajmowany na starcie (kto, jakie pliki, sha bazy), domykany na
-końcu (wynik, commit). Sens całości: **brak pliku znaczy „nigdy nie wystartował", plik niedomknięty
-znaczy „padł w trakcie"** — trzy rozróżnialne stany zamiast jednej ciszy, która dziś dwa razy
-kazała uznać gotową pracę za nieukończoną. Lider weryfikuje deklarację **przeciw worktree**, nie
-na słowo.
+## Pomiary, na których stoi ten spec
 
-**Faza 4 — dowód.** Test deterministyczny na formacie, eval na zachowaniu, każdy eval z ramieniem
-kontrolnym, które **musi dać wynik przeciwny**. Bez tego powtórzę błąd z 1.26.0, gdzie cztery
-wnioski o skuteczności były fałszywe, dopóki nie dołożyłem kontroli.
+| Co | Wynik | Skutek |
+|---|---|---|
+| `PreToolUse` przy powołaniu subagenta | **nie strzela** — powołanie nie jest wywołaniem narzędzia. `SubagentStart` nie blokuje i nie niesie briefu; `SubagentStop` blokuje i niesie `last_assistant_message` | check briefu przy powołaniu **niewykonalny** → F2 jest testem |
+| `TaskGet` zwraca `metadata` | **nie** (ani `blocks`/`blockedBy`, które obiecuje własny opis). Stan sesyjny, nie przeżywa padnięcia procesu | pliki w repo są źródłem prawdy; harness co najwyżej lustrem statusu i właściciela |
+| Kto odsyła do pliku kanonicznego | **tylko `team-lead.md`**, ścieżką repozytoryjną **nieistniejącą w repo klienta**, instrukcją bez weryfikacji | odsyłacz naprawiony osobno (`f9ce2da`); Q1 przesunięte z „jedno miejsce" na „jedno źródło, kopie generowane" |
 
-## Zmierzone ograniczenie nośnika (nie do przedyskutowania — do obejścia)
+Prowenienja pierwszego wiersza: pojedyncze źródło (agent-przewodnik cytujący referencję hooków),
+**nie zweryfikowane niezależnie w tym repo**. Po wyborze Q4/A nic w tym specu na nim nie stoi.
 
-Sonda na żywym narzędziu, 2026-08-01: `TaskCreate` przyjmuje dowolne `metadata`, `TaskUpdate`
-przyjmuje `owner`/`status`/`metadata`, `TaskList` renderuje id · status · temat · właściciela —
-ale **`TaskGet` nie zwraca `metadata`** (ani `blocks`/`blockedBy`, które obiecuje jego własny
-opis). Metadane są w praktyce tylko do zapisu, stan jest sesyjny, nie repozytoryjny, i nie
-przeżywa padnięcia procesu — a 2026-08-01 maszyna padła pięć razy.
+## Design
 
-Skutek dla specu: **pliki w repo są źródłem prawdy**; narzędzia harnessu wolno użyć wyłącznie jako
-zgrubnego lustra statusu i właściciela. Defekt `TaskGet` jest poza tym repo — zgłaszamy, obchodzimy,
-nie naprawiamy.
+### 1. Jedno źródło progu delegowania
 
-## Open Questions — BRAMKA
+`skills/sailes-bootstrap/delegation-threshold.md` — jeden akapit, oznaczony znacznikami
+`<!-- BEGIN delegation-threshold -->` / `<!-- END -->`. Skrypt `tools/sync-blocks.js` wstawia jego
+treść między te same znaczniki w trzech konsumentach: `agent-team-structure.md`,
+`agents/team-lead.md`, `codex-agents/team-lead.toml`. Test porównuje cztery kopie i **failuje przy
+najmniejszej różnicy**.
 
-Nie piszę dalszej części specu, dopóki nie ma odpowiedzi. Rekomendacja pierwsza i oznaczona.
+Treść progu rozstrzyga też to, co dziś jest sprzeczne: **delegowanie i bramkowanie to dwie różne
+osie** (rozstrzygnięte 2026-08-01, `28d3dec`), więc próg mówi wyłącznie o tym, kto pisze, a bramki
+mają własną regułę i próg ich nie dotyczy.
 
----
+### 2. Macierz własności plików
 
-**Q1 — Gdzie stoi jeden próg delegowania?**
+Blok `yaml` w planie pracy (`.ai/runs/<data>-<slug>.md`), sekcja `ownership:` — zadanie → zbiór
+ścieżek. Check liczy przecięcia i zgłasza każde niepuste. Ten sam ruch, który dla powierzchni API
+zadziałał w 1.26.0, i z tego samego powodu: tabela prozą czyta się dla człowieka i nie da się jej
+z niczym porównać.
 
-**Zmierzone przed postawieniem pytania**, bo opcja A stała na przesłance, której nie sprawdziłem:
-- **Tylko `agents/team-lead.md` w ogóle odsyła do pliku kanonicznego** (linia 10). Żadna inna rola.
-- Odsyła **ścieżką repozytoryjną** — `skills/sailes-bootstrap/agent-team-structure.md`. W tym repo
-  ona istnieje. **W repo klienta nie**: wtyczka serwuje skille z `~/.claude/plugins/…`, a katalogu
-  `skills/` w drzewie klienta nie ma. `agents-md-template.md:109` mówi to wprost („It is a globally-
-  installed skill, not a file in this repo") — czyli szablon wie, a definicja roli, którą wtyczka
-  wysyła na każdą maszynę, dalej podaje ścieżkę lokalnie nieistniejącą.
-- Odsyła zdaniem *„przeczytaj przed planowaniem"* — **instrukcją, nie gwarancją**. Nic nie sprawdza,
-  czy lektura nastąpiła.
+### 3. Plik statusu workera
 
-- **A — w `agent-team-structure.md`, bo jest kanoniczny z nazwy.** `agents/team-lead.md`
-  i `codex-agents/team-lead.toml` niosą jedno zdanie odsyłające. ✅ zgodne z tym, czym ten plik już
-  się deklaruje; ✅ jedno miejsce do zmiany. ⚠️ **osłabione pomiarem wyżej**: w repo klienta lider
-  dociera tam przez skilla, po instrukcji podającej złą ścieżkę, bez niczego, co sprawdzi, czy
-  dotarł. Jedyny próg za trzema warunkami, z których żaden nie jest wymuszony.
-- **B — w `agents/team-lead.md`, bo to jego decyzja.** ✅ rola niesie komplet tego, czym się kieruje.
-  ⚠️ kanoniczny plik staje się niekanoniczny w tej jednej sprawie, co jest gorsze niż obecna
-  duplikacja: czytelnik nie wie, który plik kłamie.
-- **C (rekomendacja po pomiarze) — jedno źródło i wygenerowane kopie.** Blok wstawiany skryptem
-  w trzy miejsca, test pilnuje identyczności. ✅ każdy plik **samowystarczalny** — co po pomiarze
-  wyżej przestaje być wygodą i staje się warunkiem, bo w repo klienta odsyłacz nie prowadzi
-  nigdzie; ✅ rozjazd niemożliwy, a to jest meta-defekt, który dał trzy kolizje w jeden dzień;
-  ✅ repo używa już tego wzorca dla spine'u (`AGENTS.md` niesie komentarz „Repeated verbatim by
-  hooks/workflow-router.js and by agents-md-template.md. Change all three or none"), więc to jest
-  utwardzenie istniejącej praktyki, nie nowy wynalazek. ⚠️ nowy mechanizm generowania do
-  utrzymania; ⚠️ trzy kopie w diffie przy każdej zmianie progu.
+`.ai/status/<worker-id>.md`, **zajmowany pierwszą czynnością** i **domykany ostatnią**:
 
----
+```yaml
+worker: be-dev-3
+task: "F2 — check domknięcia briefu"
+base: e276a5e            # sha, od którego odcięto worktree
+claimed: ["skills/sailes-bootstrap/hooks-template/brief-closure.js"]
+opened: <timestamp>
+# --- poniżej dopisuje się przy domknięciu ---
+closed: <timestamp>
+outcome: done | blocked | policy-refusal
+commit: <sha>            # pusty, gdy outcome != done
+touched: [...]           # co realnie ruszył
+```
 
-**Q2 — Macierz własności plików: co to jest jako artefakt?**
+**Sens całości leży w trzech rozróżnialnych stanach:** brak pliku = „nigdy nie wystartował", plik
+bez `closed:` = „padł w trakcie", plik domknięty = deklaracja. Dziś wszystkie trzy są jedną ciszą
+i to jest przyczyna obu strat pracy z 2026-08-01.
 
-- **A (rekomendacja) — blok `yaml` w planie pracy, zadanie → zbiór ścieżek.** ✅ ten sam ruch, który
-  zadziałał dla powierzchni API w 1.26.0; ✅ przecięcie liczy się trywialnie i da się je sprawdzić
-  checkiem. ⚠️ ktoś musi go utrzymywać w trakcie przebiegu, a plan zmienia się w locie.
-- **B — wyliczana z briefów, nie pisana osobno.** Każdy brief niesie swoje `Files:`, macierz jest
-  ich sumą. ✅ zero podwójnego zapisu, zero rozjazdu z briefem. ⚠️ istnieje dopiero, gdy briefy
-  istnieją — więc nie odpowiada na pytanie „czy mogę to teraz powołać".
-- **C — tylko reguła prozą, bez artefaktu.** ✅ nic do utrzymania. ⚠️ to jest stan dzisiejszy,
-  a dzisiejszy stan pozwolił fazie stać bez powodu przy sześciu przed sobą.
+**Obowiązek ma każdy piszący** — ten sam test co przy worktree („czy to pisze"), więc rola dodana
+za rok dziedziczy regułę zamiast omijać ją przez pominięcie na liście.
 
----
+### 3b. Cykl życia katalogu — plik znika przy akceptacji, treść zostaje
 
-**Q3 — Czy weryfikacja pliku statusu przeciw worktree BLOKUJE, czy raportuje?**
+**Niezmiennik, i to on jest produktem:** *cokolwiek leży w `.ai/status/`, albo jeszcze biegnie, albo
+padło.* Katalog, w którym zostają pliki zaakceptowanych zadań, po tygodniu przestaje odpowiadać na
+jedyne pytanie, dla którego powstał — trzeba by czytać wszystkie i porównywać daty, czyli dokładnie
+ta praca, której ma oszczędzić.
 
-- **A (rekomendacja) — raportuje głośno, nie blokuje.** Rozbieżność między deklaracją a worktree
-  ląduje w werdykcie lidera i w run logu. ✅ nie tworzy nowego sposobu na zatrzymanie przebiegu
-  o trzeciej w nocy; ✅ zgodne z tym, jak działa check STATE.md, który celowo ostrzega i nie blokuje.
-  ⚠️ raport, który nie blokuje, bywa przewijany.
-- **B — blokuje integrację.** Lider nie może cherry-pickować, dopóki plik nie zgadza się z drzewem.
-  ✅ nie da się zignorować. ⚠️ pierwszy fałszywy alarm przy nietypowym, ale poprawnym przebiegu
-  kosztuje zaufanie do całego mechanizmu — a repo ma już dwa udokumentowane przypadki wyłączenia
-  checku, który krzyczał za często.
-- **C — blokuje tylko przy rozbieżności JEDNEGO rodzaju: plik deklaruje commit, którego nie ma.**
-  ✅ to jedyna rozbieżność bez legalnego wytłumaczenia; ✅ wąskie, więc fałszywy alarm prawie
-  niemożliwy. ⚠️ nie łapie deklaracji plików rozbieżnej z rzeczywistością, czyli połowy przypadku.
+Przy akceptacji wyniku workera lider **przenosi treść do run logu** (jedna linia: worker · zadanie ·
+`outcome` · `commit` · `base` · rozbieżności z weryfikacji) i **usuwa plik**. Zapis nie ginie —
+zmienia nośnik na ten, który jest historią i jest commitowany. Plik statusu jest stanem żywym,
+run log jest pamięcią.
 
----
+Trzy reguły, bez których to się psuje:
+- **Kasowanie wolno wyłącznie po akceptacji i wyłącznie razem z wpisem do run logu.** Usunięcie bez
+  wpisu jest utratą dowodu i nie różni się od pominięcia bramki.
+- **Plik po workerze, który padł i NIE został zaakceptowany, nie znika po cichu.** Ląduje w run logu
+  jako strata — z tym, co zdążył zadeklarować — i dopiero wtedy jest usuwany. To jest jedyny zapis,
+  że powołanie w ogóle było, a dziś ta informacja przepada w całości.
+- **`.ai/status/` jest gitignorowany.** To stan żywy, nie historia; ma przeżyć padnięcie procesu
+  (dysk), nie wersjonowanie. Historia jest w run logu, który jest commitowany.
 
-**Q4 — Gdzie stoi check domknięcia briefu i kiedy strzela?**
+### 4. Weryfikacja przez lidera
 
-**Sonda przed postawieniem pytania — jedna z opcji okazała się niewykonalna.**
-`PreToolUse` **nie strzela przy powołaniu subagenta**: powołanie nie jest wywołaniem narzędzia.
-Istnieją osobne zdarzenia — `SubagentStart`, które **nie może blokować** i niesie tylko `agent_id`
-i `agent_type` (żadnego briefu, promptu ani opisu), oraz `SubagentStop`, które **może blokować**
-i niesie `last_assistant_message`.
-*Prowenienja: pojedyncze źródło — agent-przewodnik cytujący referencję hooków Claude Code.
-**Nie zweryfikowane niezależnie w tym repo.** Zweryfikowałoby to: hook `SubagentStart` zrzucający
-surowy payload na dysk w prawdziwym przebiegu. Dopóki tego nie ma, opcja B jest odrzucona na
-podstawie jednego źródła i to jest zapisane, a nie przemilczane.*
+Lider czyta plik i konfrontuje go z worktree — **metadanymi, nigdy treścią** (drabina obserwacji
+z 1.26.0): czy `commit` istnieje, czy `touched` zgadza się z `git diff --stat`, czy `base` był
+aktualny. Rozbieżność **ląduje w werdykcie i w run logu i nie blokuje**. Blokowanie odrzucone
+świadomie: repo ma dwa udokumentowane przypadki checku wyłączonego za to, że krzyczał za często,
+a check STATE.md jest precedensem ostrzegania bez blokady.
 
-- **A (rekomendacja) — test w repo klienta, uruchamiany w bramce.** ✅ brief bywa pisany
-  w wiadomości, nie w pliku, więc żaden hook go nie zobaczy — po sondzie to nie jest już
-  ostrożność, tylko jedyna dostępna droga; ✅ testowalne bez harnessu, więc bliźniak Codeksa
-  dostaje to samo. ⚠️ strzela późno — po fakcie, nie przy pisaniu.
-- **~~B — hook `PreToolUse` na powołaniu agenta.~~** **Odrzucone sondą, nie oceną.** Zdarzenie nie
-  istnieje, a jego następca nie może blokować ani nie widzi briefu.
-- **C — A plus `SubagentStop` jako druga siatka.** Nie na brief — na **plik statusu**: hook przy
-  domknięciu workera sprawdza, czy plik istnieje i jest domknięty, i blokuje, gdy nie. ✅ zamienia
-  „brak pliku = nieskończone" z reguły prozą w warunek, którego nie da się pominąć; ✅ trafia
-  dokładnie w defekt, który dwa razy 2026-08-01 kazał uznać gotową pracę za nieukończoną.
-  ⚠️ zależy od tego samego niezweryfikowanego źródła co odrzucenie B — jeśli sonda jest błędna
-  w jedną stronę, jest błędna i w drugą; ⚠️ blokujący hook na domknięciu workera to nowy sposób
-  zablokowania przebiegu i wymaga ścieżki wyjścia, tak jak `ENV-LOCK` jej wymagał.
+### 5. Check domknięcia briefu
 
----
+Test, nie hook — brief bywa pisany w wiadomości, więc żaden hook go nie zobaczy. Sprawdza dwie
+rzeczy: **pola obowiązkowe obecne** i **każda ścieżka na liście dozwolonych nazywa klauzulę
+`Done-when`, która ją wymusza**. Druga jest regułą prozą z 1.26.0 — jedynym dodatkiem tamtego
+wydania, który zmierzył się czysto — zamienioną w mechanizm.
 
-**Q5 — Czy plik statusu obowiązuje wszystkich piszących, czy tylko powołanych do worktree?**
+## Fazy
 
-- **A (rekomendacja) — wszystkich piszących.** ✅ ta sama reguła co worktree, ten sam test („czy to
-  pisze"), zero nowej granicy do zapamiętania. ⚠️ `docs-author` i `designer` dostają obowiązek przy
-  zadaniach, które bywają jednoplikowe.
-- **B — tylko tam, gdzie jest worktree.** ✅ plik statusu i worktree stają się jednym pojęciem.
-  ⚠️ dziś **każdy** piszący dostaje worktree, więc to jest ta sama grupa opisana słabszym testem —
-  i rozjedzie się przy pierwszym wyjątku.
-- **C — wszyscy powołani, także read-only.** ✅ `explorer`, który padł, też przestaje być ciszą.
-  ⚠️ dla roli read-only deklaracja plików jest pusta, więc połowa formatu jest martwa.
+Każda faza niesie listę plików, w której **każda ścieżka ma klauzulę, która ją wymusza** — ten spec
+stosuje regułę, którą wprowadza.
 
-## Weryfikacja przed fazą 3 (warunek, nie sugestia)
+### F1 — jedno źródło progu · **blokuje F5 i F7**
 
-Odrzucenie Q4/B i cała opcja Q4/C stoją na **jednym niezweryfikowanym źródle**. Zanim faza 3 ruszy
-w wersji z hookiem, robimy tanią sondę, która to rozstrzyga na tej maszynie: hook `SubagentStart`
-i `SubagentStop`, każdy zrzucający surowy payload na dysk, jeden prawdziwy przebieg z jednym
-workerem. Wynik jest binarny — albo payload niesie to, co obiecuje referencja, albo nie.
+| Plik | Wymuszony przez |
+|---|---|
+| `skills/sailes-bootstrap/delegation-threshold.md` | D1.1 (istnieje i jest niepusty), D1.2 |
+| `tools/sync-blocks.js` | D1.2 (uruchomiony, zmienia trzy pliki) |
+| `tools/sync-blocks.test.js` | D1.3 (mutacja daje czerwień) |
+| `skills/sailes-bootstrap/agent-team-structure.md` · `agents/team-lead.md` · `codex-agents/team-lead.toml` | D1.2 (bloki identyczne po synchronizacji) |
 
-To jest ta sama reguła, którą repo stosuje do kart decyzyjnych: **opcja powołująca się na mechanizm
-jest sprawdzana wobec tego mechanizmu, zanim karta dotrze do człowieka.** Tutaj sprawdzenie jest
-częściowe — starczyło, żeby zabić B, nie starczy, żeby zbudować C.
+**Done-when:**
+```
+node tools/sync-blocks.js --check                                  → exit 0
+node tools/sync-blocks.test.js                                     → 0 failing
+mutacja: zmień jeden znak w bloku w agents/team-lead.md
+  → node tools/sync-blocks.js --check                              → exit 1, nazywa plik
+  → przywrócone                                                    → exit 0
+npm test                                                            → all tests passed
+```
+
+### F2 — check domknięcia briefu
+
+| Plik | Wymuszony przez |
+|---|---|
+| `skills/sailes-bootstrap/hooks-template/brief-closure.js` | D2.1, D2.2 |
+| `skills/sailes-bootstrap/hooks-template/brief-closure.test.js` | D2.3 |
+
+**Done-when:**
+```
+brief z kompletem pól i pokryciem                                   → exit 0
+brief bez pola "Report:"                                            → exit 1, nazywa pole
+brief z plikiem, którego żadna klauzula nie wymusza                 → exit 1, nazywa ścieżkę
+fixture, który MUSI NIE strzelić: ścieżka oznaczona jawnie
+  jako dotykana-ale-nieprodukowana z powodem                        → exit 0
+node …/brief-closure.test.js                                        → 0 failing
+```
+
+### F3 — macierz własności jako `yaml`
+
+| Plik | Wymuszony przez |
+|---|---|
+| `skills/sailes-implement/SKILL.md` (sekcja ścieżki krytycznej) | D3.1 (szablon `ownership:` obecny) |
+| `tools/ownership-check.js` + test | D3.2, D3.3 |
+
+**Done-when:**
+```
+plan z rozłącznymi zbiorami                                         → exit 0
+plan, gdzie dwa zadania dzielą jedną ścieżkę                        → exit 1, nazywa ścieżkę i oba zadania
+node tools/ownership-check.test.js                                  → 0 failing
+```
+
+### F4 — format pliku statusu + test
+
+| Plik | Wymuszony przez |
+|---|---|
+| `skills/sailes-bootstrap/worker-status-template.md` | D4.1 |
+| `tools/worker-status.js` + test | D4.2, D4.3 |
+
+**Done-when:**
+```
+brak pliku                                    → "never started", exit 1
+plik bez closed:                              → "died mid-run", exit 1, nazywa workera i base
+plik domknięty, komplet pól                   → exit 0
+plik domknięty z outcome=done bez commit:     → exit 1
+--sweep na katalogu z jednym plikiem sprzed
+  akceptacji                                  → wypisuje go jako zaległy, exit 1
+--sweep na pustym katalogu                    → exit 0  (fixture, który MUSI NIE strzelić)
+.ai/status/ obecne w .gitignore szablonu      → grep trafia
+node tools/worker-status.test.js              → 0 failing
+```
+
+### F5 — doktryna pliku statusu · **po F1**
+
+| Plik | Wymuszony przez |
+|---|---|
+| `agent-team-structure.md` (brief + Isolation) | D5.1 (eval `worker-claims-before-it-writes`) |
+| `agents/be-dev.md` · `fe-dev.md` · `tester.md` · `designer.md` · `docs-author.md` | D5.1 |
+| `agents/team-lead.md` (weryfikacja przeciw worktree **+ sprzątanie przy akceptacji**) | D5.2 (eval `lead-verifies-status-against-worktree`), D5.4 |
+| `skills/sailes-bootstrap/skeleton.md` (`.ai/status/` w `.gitignore`) | D5.4 |
+| `codex-agents/*.toml` (pięć bliźniaków) | D5.3 (parytet zielony) |
+
+**Done-when:** `node codex-agents/parity.test.js` → all passed · `npm test` → all passed ·
+oba evale z F6 → PASS wraz z ramionami kontrolnymi ·
+`grep -c "\.ai/status/" skills/sailes-bootstrap/skeleton.md` → ≥1 (D5.4) ·
+`grep -ci "usuwa plik\|removes the file" agents/team-lead.md` → ≥1 wraz z warunkiem wpisu do run
+logu w tym samym zdaniu (D5.4).
+
+### F6 — evale · **po F2, F4, F5**
+
+Dwa scenariusze, każdy z **ramieniem kontrolnym, które MUSI dać wynik przeciwny** — bez tego
+powtórzę błąd 1.26.0, gdzie cztery wnioski o skuteczności były fałszywe do czasu dołożenia kontroli.
+
+**Done-when:** oba scenariusze mają zapisany `Last run:` z werdyktem i wehikułem · żaden nie jest
+zapisany jako PASS, gdy kontrola dała ten sam wynik.
+
+### F7 — dwa kryteria na nowo · **po F1, podzespół**
+
+Przecięcie fixture'ów `lead-gives-every-writer-a-worktree` i `lead-delegates-instead-of-bulk-coding`
+przeciw ustalonemu progowi. Wykonuje agent, **który nie widział werdyktów z 2026-08-01** — decyzja
+człowieka, i ta sama izolacja, którą framework wymusza przy `checkerze`.
+
+**Done-when:** oba scenariusze przemielone, żaden nie wymaga zachowania, którego drugi zabrania ·
+`node evals/harness/eval-status.js` nie pokazuje ich wśród „did not record a PASS".
+
+## Integration coverage
+
+| Powierzchnia | Test |
+|---|---|
+| `sync-blocks` | test + mutacja dowodowa |
+| `brief-closure` | test z fixture'em, który MUSI NIE strzelić |
+| `ownership-check` | test na przecięciu i na rozłączności |
+| `worker-status` | test na trzech stanach + na `done` bez commita + `--sweep` na zaległym i na pustym katalogu |
+| cykl życia katalogu | `.ai/status/` gitignorowany w szablonie; reguła kasowania-tylko-z-wpisem obecna w definicji lidera |
+| doktryna ról | parytet Codeksa (10 ról) + dwa evale z kontrolą |
 
 ## Non-goals
 
-- Żywy podgląd przebiegu. Plik zajmowany na starcie daje wgląd w trakcie jako **skutek uboczny**;
-  budowanie pod to osobnego widoku jest poza zakresem.
+- Żywy podgląd przebiegu. Plik zajmowany na starcie daje wgląd w trakcie jako **skutek uboczny**.
 - Zastępowanie run logu. Plik statusu odpowiada na „czy ten worker skończył i co ruszył".
-- Naprawa `TaskGet`. Defekt poza tym repo.
-- Przemiał 22 evali bez styku. Osobna, tańsza decyzja.
+- Naprawa `TaskGet` ani hooków — defekty poza tym repo.
+- Hook blokujący domknięcie workera. Odrzucony wraz z Q4; wraca tylko wtedy, gdy test w bramce
+  okaże się niewystarczający, i wtedy z własną sondą i ścieżką wyjścia.
+- Przemiał 22 evali bez styku.
