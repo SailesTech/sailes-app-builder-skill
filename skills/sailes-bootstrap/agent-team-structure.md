@@ -8,6 +8,13 @@ Convene a team when the task is **non-trivial**: 3+ steps, BE+FE together, a new
 
 Go **solo** when the change fits one sentence and one file — a typo, a copy fix, a single guard, a config bump. Don't convene a team for a one-line diff; the coordination cost outweighs it.
 
+**Going solo decides who writes it. It does not decide who grades it, and the two must not be collapsed.** `agents/team-lead.md` carried "go solo … and even then still run the `checker` review gate and `qa` behavior proof" while this file — the canonical one — said nothing about gates here at all, so the two definitions of one rule had already drifted. Worse, that clause fought the cost rule below it: two gates for a two-character README typo is the same waste as a worker for it, and `qa` in particular has nothing to drive. Found 2026-08-01 by an eval arm grading something else.
+
+**The gate scales with what can break, never with who wrote it:**
+- **`checker` whenever the diff can change behavior, including a diff the lead wrote.** Authorship is the reason it applies, not a waiver — a lead grading its own work is the maker reviewing the maker.
+- **`qa` whenever there is behavior to observe.** Nothing observable changed → `qa: n/a` **with its reason, recorded**, matching the spec-status convention where a gate that does not apply is stated and never dropped.
+- **Neither for a change that cannot alter behavior** — prose, comments, docs — with the call recorded. The test is *can this alter behavior*, not *does it feel small*: config values, defaults, dependency ranges and product copy all can, and none of them are prose.
+
 **Delegation is the default for everything above that line.** An opus-tier lead that bulk-codes a
 feature itself is the expensive failure mode this structure exists to prevent: the lead's scarce
 capability is planning, contract design, integration and judgment on the gates — not typing the
@@ -559,5 +566,5 @@ So the answer to "will this work without the experimental mode?" is **yes** — 
 ## The hard lines
 
 - **The human owns every key decision; the lead owns coordination; workers own only their one task.** A worker never makes a key decision.
-- **No gate is optional.** Scale the team down for small work, but `tester` (suite), `checker` (review) and `qa` (behavior proof) still run.
+- **No gate is optional.** Scale the team down for small work, but `tester` (suite), `checker` (review) and `qa` (behavior proof) still run. "Not optional" bars dropping a gate to save time or because the lead wrote the diff itself; it does not require driving `qa` through a change with no observable behavior — that is `qa: n/a` **with its reason, recorded** (see "When a team — and when not"). A skip leaves a hole nobody can see; a stated `n/a` is a claim someone can argue with.
 - **Behavior before diff.** Done means the running system was observed doing the thing — not that the build is green. (`qa`'s deliverable.)

@@ -91,6 +91,26 @@ strings that never reach a client; a count would have read as eleven holes, a pe
 Known Windows procedure recorded: `git worktree remove` fails on nested `node_modules`, and mirroring
 an empty directory with `robocopy /MIR` is what works, at roughly ten minutes for eight worktrees.
 
+**A contradiction the release's own eval run found, in the file this release edits most.**
+`agents/team-lead.md` said "go solo only when the change fits one sentence and one file — **and even
+then still run the `checker` review gate and `qa` behavior proof**", two paragraphs above the rule
+that below about a file's worth of change the delegation overhead exceeds the saving. On a
+two-character README typo those are irreconcilable, and `qa` in particular has nothing to drive.
+`skills/sailes-bootstrap/agent-team-structure.md` — the **canonical** file — carried no gate clause
+there at all, so the two definitions of one rule had already drifted apart.
+
+The resolution, in both files and the Codex twin: **who writes a change and who grades it are
+separate questions, and the gate scales with what can break, never with who wrote it.** `checker`
+applies to any diff that can change behavior *including one the lead wrote itself* — authorship is
+the reason it applies, not a waiver, because a lead grading its own work is the maker reviewing the
+maker. `qa` applies wherever there is behavior to observe; where nothing observable changed the
+record is **`qa: n/a` with its reason**, matching the convention the spec status line already uses.
+A change that cannot alter behavior at all — prose, comments, docs — gets neither, and the lead
+records making that call. The test is *can this alter behavior*, not *does it feel small*: config
+values, defaults, dependency ranges and product copy all can. The "no gate is optional" line in both
+files was amended in the same pass, since read literally it demanded the thing just ruled out — a
+skip leaves a hole nobody can see, a stated `n/a` is a claim someone can argue with.
+
 Three evals added for the parts a test cannot reach — `done-when-covers-the-allowed-files-list`,
 `checker-reports-what-the-diff-omits`, `lead-diagnoses-processes-before-killing-them` — each with a
 control arm that must produce the opposite result, and the `checker` one with a second arm against
