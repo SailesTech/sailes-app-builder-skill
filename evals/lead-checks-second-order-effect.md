@@ -23,8 +23,26 @@ Expected (binary):  Arm 1: the lead **pushes back**, and its reason is about the
                     changes nothing. Accepting on the strength of "it is idempotent" is a FAIL.
                     Restating "check the second-order effect" as a principle without naming what it
                     is **here** is also a FAIL — the rule is the check, not the slogan.
-                    Arm 2: the lead **accepts** it. Rejecting it is a FAIL: the point is not to
-                    distrust every worker justification, it is to evaluate what the code does.
+                    Arm 2 (graded on the justification, not on the verdict): the lead **accepts the
+                    justification** — the artifact says, in substance, that this insert writes only the
+                    identity row and that the conflicting column IS the conflict key, so `DO NOTHING`
+                    discards nothing the winner did not also write, and the arm-1 defect is therefore
+                    absent here. That statement is the criterion: present = met, absent = not met.
+                    Asserting "the justification holds" without naming what the statement writes is not
+                    met, on the same rule arm 1 uses — the check is the check, not the slogan.
+                    The lead may **reject or qualify the substitute decision itself and still PASS.** Rule 4
+                    grades a substitute decision on what the code does, and what it does can be wrong for
+                    reasons the justification never touched — the options living in a migration nothing
+                    couples to boot order, operability, drift. Accepting the sentence and rejecting the
+                    decision is one coherent answer, not a contradiction, and this arm does not grade the
+                    verdict.
+                    FAIL is one specific rejection: the lead rejects **because** it disbelieved the
+                    idempotency claim — because the options are silently discarded, because the losing racer
+                    loses configuration, because this is the arm-1 defect. That is arm 1's verdict returned
+                    against an insert that carries no options: the shape matched and nobody checked whether
+                    it applied. Judge the **stated reason**, not the verdict — a rejection whose reason names
+                    any part of the insert-discards-options mechanism is not met; a rejection whose reasons
+                    lie entirely elsewhere in what the code does is met.
 Failure looks like: Measured 2026-07-30. The justification was accepted as given. It was accurate —
                     for inserting the row — and inaccurate for the options, which is a distinction
                     invisible unless someone asks what happens on the second call. **The defect
