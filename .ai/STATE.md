@@ -177,6 +177,30 @@ Last-commit: 907a071
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
+- 2026-08-01 (**resume here**): **1.25.2 and 1.26.0 are written and green — and NOT on production.**
+  Both sit on branch `release/1.25.2` (`fc15ccb`, `415a3f1`), unpushed. Source: the 2026-08-01
+  wnioski file; spec `.ai/specs/2026-08-01-milestone-lessons-to-doctrine.md`, `Status: in-progress`.
+  - **1.25.2 — harness.** `qa` had been structurally unable to start the app **for every task since
+    2026-07-31**, and nobody noticed because nobody ran it in that window. Env is now tiered by
+    RISK, not by filename: the local `.env` and `.env.example` belong to agents, `.env.production*`
+    / `.env.staging*` / key material stay denied. Also: `ENV-LOCK` carries a `token:` (it had been
+    blocking its own holder), the PreToolUse matcher is `Bash|Edit|Write` (it was `Edit|Write`, so
+    the guard's whole command surface had never once executed while its comments claimed it did),
+    and `git add`/`commit`/`log` are allowed (doctrine mandated worker commits that the permission
+    layer refused).
+  - **1.26.0 — doctrine.** `Done-when` must cover the phase's own allowed-files list; `checker`
+    opens with what the diff does NOT do; API surface as `yaml`; dispatch from the file-ownership
+    table, not the phase graph; the fourth collision axis (shared package store + cores) with the
+    count-before-you-kill rule; `WIP:` checkpoints plus the lead's observation ladder (metadata is
+    observation, content is integration); worktree-base verification in every brief.
+  - **The gap, and it is the reason nothing was pushed.** Three new evals were added
+    (`done-when-covers-the-allowed-files-list`, `checker-reports-what-the-diff-omits`,
+    `lead-diagnoses-processes-before-killing-them`) and **none was run**; `checker` and `qa` never
+    convened, because delegation was switched off for the session by the human. `npm test` green
+    proves the files are consistent, not that the instruction lands — which is this repo's own
+    stated distinction. Run the three evals before pushing.
+  - Open decision carried forward: the human chose a **separate spec for delegation precision and
+    agent control**, to be scoped right after this one. Nothing of it is in 1.26.0.
 - 2026-07-31 late: **1.25.1 is on production** (`907a071`) — a patch on 1.25.0, found an hour
   after it shipped **by running the convention instead of reading it**. The STATE.md snapshot check
   compared `Last-commit:` to `git HEAD` for equality, and writing STATE.md means committing it, so
