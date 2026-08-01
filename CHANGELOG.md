@@ -4,6 +4,89 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.26.0 — 2026-08-01 · two lists that drift apart in silence, and three more the doctrine never held
+
+The doctrine half of the 2026-08-01 milestone lessons; 1.25.2 shipped the harness half.
+
+**A phase's `Done-when` must now cover that phase's own allowed-files list.** The allowed-files list
+says what may be touched; `Done-when` says what must come to exist. `checker` grades the diff against
+the phase's scope, and **the phase's scope is its `Done-when`** — so a path living only on the file
+list is something no gate ever looks for. The two lists drift apart with no signal at all, and the
+gate does not fail because there is nothing for it to fail on. Measured three times inside one
+milestone: the write half of a resource's CRUD (so for two days nothing could be created through the
+API, during the milestone whose entire subject was that resource), a deferral that existed only as a
+code comment, and the milestone's whole read surface. Now a checklist item in `sailes-spec` and the
+generated template, a red flag, and a `Files:` clause in the worker brief — every path names the
+clause that forces it into existence, and a path with none is resolved as surplus or hole *while
+writing*, which is the only moment the question is cheap.
+
+**`checker` opens every verdict with what the diff does NOT do.** Reading changed lines and asking
+whether they are right is a different task from reading the surface and asking what should be there,
+and the second one is the only one that finds an absent handler. This is not a preference — an
+omission changes no line, so a patch review cannot find it *by construction*.
+
+**The API surface is a `yaml` block, not a prose table.** A table reads well and can be compared to
+nothing. The lesson that produced this was a check that passed while three endpoints were missing:
+it compared route *files* to router *imports*, and both sets agreed perfectly, because two of the
+gaps were absent handlers inside existing files. Method · path · phase in `yaml` can be diffed
+against what the app actually serves, as a set equality with explicit out-of-scope entries.
+
+**Parallelism is read off the file-ownership table, never off the phase graph's arrows.** An arrow
+records the order somebody thought about the phases in. Measured 2026-08-01: one plan called a phase
+"solitary" twenty lines above its own table showing that phase's files were disjoint from the next
+one's — the next phase's brief even listed the first one's file as forbidden — and it idled behind
+six others for nothing. The critical-path section now carries **both** drawings, and dispatch asks
+whether a task's file set intersects anything running. An intersection on a single file means take
+that file from both and integrate it yourself, not serialize two phases behind it.
+
+**The fourth axis of collision is named: the shared toolchain, and it fails by going quiet.** Files
+have the worktree, the contract has freezing, the runtime environment has `qa`'s exclusivity; the
+package store and the machine's cores have nothing. A one-minute gate hung for ten and was killed.
+The tempting diagnosis — seventeen `node` processes, therefore orphans — was wrong: thirteen were
+editor language servers and MCP servers, and the cause was a worker's `pnpm install` started in the
+same second, contending for the same store. Three rules follow, and one is now a Hard Safety Rule in
+both this repo and the generated template: **count and break down by command line before killing
+anything** (a process count is not a diagnosis), **never kill editor processes or MCP servers**, and
+**do not start a gate while a worker is standing up a worktree**.
+
+**Commit often, `WIP:` included — and observing a worker is not integrating from it.** "No commit =
+not finished" protects the lead from guessing; it does nothing about a machine that crashes five
+times in one day and takes two workers' output with it. So `WIP:` is a checkpoint and any other
+subject is the declaration of completion — the split is load-bearing, because without it "commit
+often" destroys the rule it sits beside. And the lead now has a stated observation ladder: **ask the
+worker** (`SendMessage` / the task tools, which touch no disk and do not exist with teams mode off),
+then `git log` for declarations, then `git status --porcelain` / `git diff --stat` / modification
+times for metadata — *is it still moving or did it die forty minutes ago*. Never content, never a
+cherry-pick of uncommitted work. **Metadata is observation; content is integration.** The 2026-07-30
+rule against salvaging a half-written tree was about integration and is unchanged — nothing in it
+ever required staying blind, and twice on 2026-08-01 work was declared unfinished while it sat
+finished on disk, because what got lost was the report.
+
+**Every brief verifies its worktree's base before working.** Five of twelve workers received a
+checkout cut from before half the session's work, one from nineteen commits back. All five caught it
+themselves, but one reported a **false test-count regression** off the stale base that cost a
+separate investigation, and one paid a six-minute install for a checkout predating `node_modules`.
+The brief names a sha *and* a file that only exists after the work being depended on — a sha proves
+the history, a file proves the history you actually need.
+
+**Two more, smaller.** The capability sweep gains its mirror-image pattern class: a comment claiming
+something **is** enforced, which is more dangerous than one claiming something is missing — both
+2026-08-01 instances were correct when written, one an aspiration described as a description, one
+true in the morning and wrong in both directions by the afternoon. And the docs-delta step is
+restated as **a second independent reading of the surface** rather than a receipt to collect: it
+found one of those two, and a step run as paperwork produces an identical-looking receipt with none
+of the detection power. Mutation testing now reports the **delta** and forbids a `break` threshold —
+a milestone lowered the score 94.07 → 90.98 and a green threshold would have hidden it — with
+survivors accounted for by name, equivalents identified as such (five of eleven were Zod message
+strings that never reach a client; a count would have read as eleven holes, a percentage as five).
+Known Windows procedure recorded: `git worktree remove` fails on nested `node_modules`, and mirroring
+an empty directory with `robocopy /MIR` is what works, at roughly ten minutes for eight worktrees.
+
+Three evals added for the parts a test cannot reach — `done-when-covers-the-allowed-files-list`,
+`checker-reports-what-the-diff-omits`, `lead-diagnoses-processes-before-killing-them` — each with a
+control arm that must produce the opposite result, and the `checker` one with a second arm against
+learning to always invent an omission.
+
 ## 1.25.2 — 2026-08-01 · the behavioral gate had been structurally unrunnable for two days
 
 **Four harness defects from one client milestone, all measured, none of them about model behavior.**

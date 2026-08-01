@@ -1,6 +1,9 @@
 # Wnioski 08-01 → doktryna — spec
 
-Status: in-progress — faza 1 (1.25.2) wydana lokalnie; faza 2 (1.26.0) czeka na Q4
+Status: in-progress — obie fazy napisane i zielone lokalnie (1.25.2, 1.26.0); **bramki `checker`
+i `qa` NIE zostały uruchomione** (człowiek wyłączył delegację w tej sesji), więc spec nie może
+dostać `implemented` — status niesie wklejone werdykty, a nie ma czego wkleić. Nic nie jest
+wypchnięte na `main`.
 Source: `skile do inspiracji/wnioski z projektow/2026-08-01-wnioski-do-sailes-app-builder.md`
 Precedes: 1.26.0
 Related: `.ai/specs/implemented/2026-07-30-sailerem-lessons-to-doctrine.md` (poprzedni zestaw, 1.25.0)
@@ -49,7 +52,7 @@ frontmatteru ról, reporter proweniencji evali, higiena wydania — pięć stemp
 | Q1 zakres wydania | **A** — 1.25.2 (naprawy) + 1.26.0 (doktryna) | faza 1 zamknięta, faza 2 osobno |
 | Q2 lokalny env | **A** — podział wg ryzyka | `.env` i `.env.example` należą do agenta; prod/staging i materiał kluczowy dalej denied; marker produkcyjny ostrzega przy starcie sesji |
 | Q3 matcher `Bash` | A (rekomendacja przyjęta domyślnie) | `Bash\|Edit\|Write` w PreToolUse |
-| Q4 worker bez raportu | **OTWARTE** — człowiek poprosił o wady i zalety każdej drogi przed wyborem | blokuje D8; nie blokuje niczego innego |
+| Q4 worker bez raportu | **A, w wersji rozszerzonej przez człowieka** — drabina obserwacji zamiast samego `git log` | metadana to obserwacja, treść to integracja; lider pyta agenta (`SendMessage`/task tools) **przed** dyskiem, potem czyta deklaracje, potem metadane i czasy modyfikacji; treść, kopiowanie i cherry-pick niezacommitowanej pracy dalej zakazane. Do tego konwencja `WIP:` = checkpoint vs commit = deklaracja |
 | Q5 powierzchnia API | A (rekomendacja przyjęta domyślnie) | `yaml` w specu, check po stronie repo klienta |
 | Q6 właściciel `ENV-LOCK` | A (rekomendacja przyjęta domyślnie) | `token:` w pliku + `SAILES_ENV_LOCK` u posiadacza; model zagrożenia = kolizja, nie atak |
 | Delegowanie i kontrola nad agentami | **osobny spec zaraz po tym** | nie wchodzi do 1.26.0 |
@@ -80,12 +83,24 @@ wywołania, w tym autorstwo skryptu `dev` · prod/staging dalej blokowane w czte
 nie jest materiałem kluczowym · ostrzeżenie o markerze produkcyjnym nazywa klucz i **nie drukuje
 wartości** · czysty `.env` i brak `.env` są ciche.
 
-### Faza 2 — 1.26.0, doktryna · **czeka na Q4**
+### Faza 2 — 1.26.0, doktryna · **NAPISANE, bramki niedomknięte**
 
-D1, D2, D4, D5, D6, D7, D9, D12 + D8 po rozstrzygnięciu Q4. Każda z nich rusza plik czytany przez
-każde repo na maszynie, więc trzy z nich potrzebują evala, nie testu: D1 (czy autor specu naprawdę
-przejeżdża listę plików), D2 (czy `checker` wypełnia sekcję „czego diff nie robi"), D5 (czy lider
-wstrzymuje bramkę przy stawianym worktree).
+D1 (pokrycie listy plików przez `Done-when` — `sailes-spec`, szablon, brief), D2 (`checker` otwiera
+werdykt sekcją „czego diff NIE robi"), D3 (powierzchnia API jako `yaml`), D4 (obie mapy w ścieżce
+krytycznej, dispatch po przecięciu zbiorów), D5 (czwarta oś kolizji + trzy reguły), D6 (reguła przed
+`taskkill` w Hard Safety Rules obu plików), D7 (druga klasa wzorca w sweepie + docs-delta jako drugie
+czytanie powierzchni), D8 (drabina obserwacji + `WIP:`), D9 (weryfikacja bazy worktree), D12
+(`robocopy /MIR` na Windowsie, delta wyniku mutacji, równoważniki po imieniu).
+
+**Done-when:** `npm test` zielony przy pięciu stemplach na 1.26.0 → **spełnione**. Trzy evale dodane
+z ramieniem kontrolnym, które MUSI dać wynik przeciwny; `checker`-owy niesie drugie ramię przeciw
+nauczeniu się wymyślania braku.
+
+**Czego NIE ma i to jest luka, nie formalność:** trzy nowe evale **nie zostały uruchomione**, a
+bramki `checker` i `qa` nie zostały wywołane — delegacja była w tej sesji wyłączona przez człowieka.
+Zmiany doktrynalne są dokładnie tą klasą, o której framework mówi, że test o niej nic nie orzeka:
+zielony `npm test` dowodzi, że pliki są spójne, a nie że instrukcja trafia. **To jest warunek
+wejścia do wydania, nie do commita.**
 
 ## Open Questions — pozostałe
 

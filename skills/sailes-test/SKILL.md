@@ -122,6 +122,20 @@ Tier B is a **proxy, not mutation testing** — say so, never dress it up as mor
 the frozen list picks the mutants, so you cannot cherry-pick a fault your test already catches.
 Always revert and re-run green: an un-reverted break proves nothing about the shipped state.
 
+**Report the DELTA, and never run Stryker with a `break` threshold.** A score compared against a
+threshold answers "are we above the line", which is not the question — the question is what today's
+change did. Measured 2026-08-01: a milestone's work **lowered** the score from 94.07 to 90.98,
+because a new error schema arrived without tests, and every green-threshold reading would have hidden
+that entirely. Quote the previous score next to the new one; a drop is a finding even from a
+comfortable height.
+
+**Account for survivors one by one, by name — and say which are equivalents.** Of eleven survivors
+that day, six were real gaps and **five were equivalent mutants**: mutations of Zod message strings
+that never reach a client. A bare count would have read as eleven holes and a percentage would have
+read as five. Neither is what was there. An equivalent is a legitimate outcome, but only when it is
+*named as one* — "explained in writing" means the explanation identifies the mutant and says why
+killing it would test nothing.
+
 ## Anything a user can see is proven through a browser
 
 Every UI-visible behavior is exercised in a real browser (Playwright/Chromium), clicked as a user

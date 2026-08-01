@@ -131,6 +131,8 @@ explorer → designer → BE contract finalized → fe-dev → tester → checke
 
 1. **Load context before planning** — Task Router guides for the touched areas + `.ai/lessons.md` (institutional memory). Planning without these repeats known mistakes.
 2. **Decompose into one-task units.** Each worker gets exactly one task with explicit scope and the contract/spec it implements against — handed over as a **self-contained brief** (format below). One task per worker keeps reviews tractable and scope honest; never hand a worker several independent problems at once. **Slice for file-disjointness:** no two concurrent workers may write the same file — if the slicing can't achieve that, the tasks aren't parallel (sequential, or worktrees). A parallel-safe codebase layout makes this easy (`agentic-first-principles.md` §E).
+
+   **What may run in parallel is read off the FILE-OWNERSHIP TABLE, never off the phase graph's arrows.** A work plan that draws `F1 → F2 → {F3, …}` is drawing the order somebody *thought* about the phases in, and an arrow in it does not assert a technical dependency. Measured 2026-08-01: the same plan document that called F2 "solitary" carried, twenty lines below, an ownership table showing F2's and F3's file sets were disjoint — so disjoint that F3's brief listed F2's file as forbidden. The cost was a phase idling behind six others for no reason. **The critical-path section of a work plan therefore carries both drawings** — the graph of concepts *and* the file-disjointness matrix — because the first one misleads on its own. The dispatch question is never "which arrow points here" but *does this task's file set intersect anything already running?* An intersection on a **single** file is not a reason to serialize two phases: take that file away from both and integrate it yourself, which is cheaper than the wait.
 3. **Assign and integrate.** The lead hands tasks to teammates, collects results, and integrates — the lead owns the merge, not the workers.
 4. **Escalation is upward only.** A worker that hits a scope question or a **key decision** (stack, contract shape, data-model, auth, roles) stops and escalates to the lead; the lead escalates to the human. Workers never silently decide a key decision or widen scope.
    - **Escalating without a recommendation is allowed.** The lead normally arrives with options and a reasoned pick. When it genuinely cannot ground one, "nie mam podstaw, żeby wskazać" is the honest line — and where the decision is also expensive or hard to reverse, the lead offers a fourth move next to the options: **settle it by measurement**, with the criterion fixed and mechanically derived *before* anything is dispatched, and the run priced so the human can decline. Record which way it was settled, argued or measured. See `deciding-under-uncertainty.md`.
@@ -174,6 +176,22 @@ the worktree shares the main `.git`, the commit is visible from the main tree **
 `git log <branch>` and `git cherry-pick` work with no push and no copying. A changed worktree
 survives the agent's termination.
 
+**Check the base of your worktree before working — a harness defect, and the brief is the only
+place it can be caught.** Measured 2026-08-01: **five of twelve** workers were given a worktree cut
+from a commit *before* half the session's work — one from before an entire completed phase, one
+**nineteen commits back**. All five diagnosed it themselves and fast-forwarded, but the cost landed
+anyway: one reported a **false test-count regression** (556 against the real 570) that took a
+separate investigation to dismiss, and one had to `pnpm install` from scratch because its checkout
+predated `node_modules`. A worktree should be cut from the tip of the branch the session is on, not
+from where the session started; until the harness does that, every brief carries the check:
+
+> **VERIFY YOUR WORKTREE'S BASE BEFORE YOU WORK.** `git log --oneline -3` — you must see `<sha>`
+> or newer, and the file `<a named file that only exists after that work>`. If you do not: report
+> it and fast-forward **before** starting, not after.
+
+Name a *file* as well as a sha. A sha proves the history; a file proves the history you actually
+depend on, and it is the one a worker can check without knowing what the sha meant.
+
 **Why the worker commits, when the old rule said never.** The old absolute existed to protect the
 shared branch, and git now guarantees that outright: the shared branch is checked out in the main
 tree, so no worktree can take it. What a commit adds is what prose could not — **a worker's commit is
@@ -181,6 +199,51 @@ its declaration that the work is finished.** Reading an uncommitted worktree can
 work from an edit interrupted mid-file, which reproduces incident one *inside* the isolation. **No
 commit means not finished**, and that is a useful thing for the lead to learn rather than something
 to salvage.
+
+**Commit often, `WIP:` included — and the two kinds of commit mean different things.** "No commit =
+not finished" protects the lead from *guessing* whether work is done. It does **not** protect the
+work from the machine: measured 2026-08-01, five crashes in one day (drivers, editor, an agent API
+error, Docker twice) and **two workers lost their work outright** — one was rescued only by copying
+three files out of a worktree by hand. The worker that had been checkpointing with `WIP:` lost
+nothing across two of those crashes.
+
+So the convention, and it is load-bearing in both directions: a commit whose subject starts with
+`WIP:` is a **checkpoint** — "this is what survives if my process dies", never a claim of
+completion. Any other commit is the **declaration** the lead reads as finished. Without that split,
+"commit often" quietly destroys the rule it sits next to, because a log full of commits stops
+answering the only question the lead asks it.
+
+### Observing a worker — metadata is observation, content is integration
+
+The 2026-07-30 incident that produced "no commit = not finished" was an **integration** from an
+uncommitted tree: a lead committed someone's half-written file. On 2026-08-01 the opposite failure
+ran twice in one day — the lead declared work unfinished while it **sat finished on disk**, because
+the report was what got lost, not the work. Both are real, and they are not in tension once the line
+is drawn in the right place: **you may look at everything except the content.**
+
+The ladder, cheapest and least intrusive first. Stop at the first rung that answers the question.
+
+1. **Ask the worker.** In teams mode a live teammate answers `SendMessage`, and the task tools
+   (`TaskList` / `TaskGet` / `TaskOutput`) report its state without touching the disk at all. This
+   is the designed channel and it costs nothing — reach for it *before* git. With teams mode off,
+   a scoped subagent has no live channel and this rung does not exist; know which mode you are in
+   before quoting a procedure that cannot be run.
+2. **Read the declarations.** `git -C <worktreePath> log --oneline` — what the worker committed,
+   and which of those are `WIP:` checkpoints rather than a finished claim.
+3. **Read the metadata, never the content.** `git -C <worktreePath> status --porcelain` (which
+   paths are dirty, names only), `git -C <worktreePath> diff --stat` (how much moved in each file,
+   no lines), and the files' modification times. This answers the questions that actually matter
+   for a silent worker — *is it still moving, or did it die forty minutes ago, and how far did it
+   get* — and answers them without ever putting a half-written signature in front of you.
+4. **Forbidden, unchanged.** `git diff` without `--stat`, reading those files, copying them out,
+   committing or cherry-picking uncommitted work. That is integration, and integration reads only
+   declarations. If rungs 1–3 say the work exists but is not declared, the move is to **get the
+   worker to commit it** — or, if it is truly dead, to record the loss and re-spawn. Never to
+   finish somebody else's commit for them.
+
+What rung 3 buys that rung 2 cannot: a worker that has been silent for an hour with an untouched
+tree is dead, and one whose files moved ninety seconds ago is working. Those two need completely
+different responses from the lead, and until now nothing in this document let them be told apart.
 
 **Entry condition — do not skip it quietly.** The mandate assumes a fresh checkout can be made to
 run: dependencies, environment. A worker that cannot execute its verification commands has been
@@ -194,6 +257,38 @@ monorepo does not, which is exactly why the condition is written down.
 ENVIRONMENT.** Database, ports, buckets and containers are shared by the whole machine. Without
 rule 4b's environment exclusivity, "we gave everyone a worktree" is a **false sense of security**:
 the files are safe and `qa` still loses its run to somebody else's `docker compose down`.
+
+### The fourth axis of collision — the shared TOOLCHAIN, and it fails by going quiet
+
+Three axes are named above and each has its isolation: **files** → the worktree, **contract** →
+freezing it before the consumer starts, **runtime environment** → `qa`'s exclusivity. The fourth
+went unnamed until 2026-08-01, and it is the only one whose symptom is **silence rather than an
+error**: the package manager's store and the machine's cores are shared by every process on it.
+
+What it looked like. `pnpm check` — normally about a minute — **hung for ten minutes** and was
+killed by a timeout. The first hypothesis was tempting and wrong: seventeen `node` processes,
+therefore orphaned debris, therefore kill them. `STATE.md` even carried a real precedent of
+twenty-four orphans. Counting them by **command line** instead of by number: **thirteen of the
+seventeen were editor language servers and MCP servers**, and the two that mattered were a worker's
+live `pnpm install`, started in the same second as the gate. A shared store and a `tsc --build
+--force` do not add up — they serialize.
+
+Three rules, and the first is the one that generalizes past this incident:
+
+- **Count and break down by command line before you kill anything.** A process count is not a
+  diagnosis. The control question before any `taskkill`: *does this process have a parent I
+  recognise, and did it start when I asked for something?*
+- **Never kill editor processes or MCP servers.** They are the largest part of that list and the
+  part least connected to your tests, and killing them takes the human's tooling down with them.
+- **The lead does not start a gate while a worker is standing up a worktree.** Installing
+  dependencies and a full typecheck contend for the same store and the same cores; run them
+  nose-to-tail and both finish sooner than either does interleaved.
+
+**Removing worktrees on Windows — a known procedure, because it recurs at every cleanup.**
+`git worktree remove` fails with *"Filename too long"* on nested `node_modules`. What works is
+mirroring an empty directory over it (`robocopy <empty> <worktree> /MIR`) and then removing the
+husk — and it takes **upwards of ten minutes for eight worktrees**, so budget it rather than
+discovering it. Do not reach for `rm -rf` and do not mask the failure with `|| true`.
 
 Housekeeping: add `.claude/worktrees/` to `.gitignore`. In a generated repo `.claude/settings.json`
 is committed, so without it the workers' checkouts appear as untracked debris inside a tracked
@@ -288,7 +383,10 @@ declaration that the task is done, and the lead cherry-picks it. No commit = not
 
 Task:        claim Task #N, mark it in_progress.
 Goal:        one precise outcome.
-Files:       exact paths to inspect / edit.
+Files:       exact paths to inspect / edit. EVERY path here names the Done-when clause
+             that forces it into existence — a path with no such clause is either
+             surplus on this list or a hole in the phase, and which one is a question
+             you answer NOW, not two days from now.
 Contract:    request/response/types/events/DB fields other slices depend on.
 Constraints: the toolchain is the constraint (lint/types/convention tests enforce
              no-any, tokens-only, import direction); list here ONLY what it can't see —
@@ -317,6 +415,17 @@ Delivery:    [scoped subagent] your final message is returned automatically — 
 ```
 
 Drop the lines that don't apply to the role (a `be-dev` brief has no design tokens; an `explorer` brief is read-only with no Constraints/Verification). The non-negotiables in every brief: **one goal, the contract it must honor, the verification commands, the commit rule in its current form ("commit in your own worktree; never to a shared branch, never push"), and the report clause.**
+
+**`Files:` and `Done-when` are two lists that drift apart in silence, and 2026-08-01 measured it
+three times inside one milestone.** The allowed-files list says *what may be touched*; `Done-when`
+says *what must come to exist*. `checker` grades the diff against the phase's scope, and **the
+phase's scope is its `Done-when`** — so a path that appears only on the file list is a thing nobody
+ever checks for. The gate does not fail; there is nothing for it to fail on. In that milestone it
+cost, in order: the write half of a resource's CRUD, so for two days no custom field could be
+created through the API — during the milestone *whose entire subject was custom fields*; a deferral
+that existed **only as a comment in the code**; and the milestone's whole READ surface, without
+which the frontend had nothing to render a form from. Walking the file list against `Done-when`
+while writing the brief takes a minute and is the only moment the question is cheap.
 
 **Three of these lines were earned on 2026-07-30 and are worth their space for a reason each.**
 `Forbidden:` — with two parallel tracks it was the only device that kept them disjoint, and its

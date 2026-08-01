@@ -92,7 +92,7 @@ Status: draft | approved | in-progress | implemented | superseded
 - **Problem Statement** — what we're solving.
 - **Proposed Solution** — high-level approach.
 - **Data Model** — tables/columns touched or added (snake_case, UUID PK, timestamps; `organizationId` only if multi-tenant). **Hand out the migration numbers here, up front** — one range per phase, or one number per planned migration. It is an anti-collision device, not tidiness: two workers adding migrations in the same phase both pick the same next number, and the collision surfaces at merge, which is the most expensive moment to find it.
-- **API & UI Surface** — routes, server actions, pages, components. **Name the contract artifact path(s)** this spec creates/extends (shared Zod schemas / TS types both slices import — the frozen-contract artifact, not a prose shape).
+- **API & UI Surface** — routes, server actions, pages, components. **Name the contract artifact path(s)** this spec creates/extends (shared Zod schemas / TS types both slices import — the frozen-contract artifact, not a prose shape). **The API half is a fenced `yaml` block — method, path, phase — not a markdown table.** A prose table reads well and cannot be compared to anything; a `yaml` block can be diffed against what the running app actually serves (`app.printRoutes()`, the router's manifest) as a **set equality**, with an explicit list of paths deliberately out of scope. Measured 2026-08-01: a check that every route *file* was imported by the router passed perfectly while three endpoints were missing — two were absent handlers inside files that existed, one was a file that was never written. Both sides of that comparison agreed because it was comparing the wrong two sets. Keep the human-readable table too if you want it; the `yaml` is what a check can hold on to.
 - **Integration / Webhooks** — per external system: intake (verify→validate→persist→202), idempotency, retry, sync tables.
 - **Jobs / Workflows** — cron vs job vs durable workflow; which tier.
 - **Security** — auth + permission checks, Zod validation, signed secrets, audit log, file access control; mark which security-checklist items apply. **A spec touching auth/roles declares the permission matrix** — a table of actions × roles → allow/deny — which implementation turns into the generated authz matrix test suite (every action × role asserted, plus the anonymous row).
@@ -131,6 +131,8 @@ without a reason is not a tighter spec, it is a spec that has hidden its own esc
 - [ ] Integration coverage lists every affected API + key UI path, each with a test.
 - [ ] Phases leave the app working; each step is testable.
 - [ ] Every phase has a binary `Done-when` (exact commands + expected result), not a qualitative statement.
+- [ ] **Every phase's `Done-when` covers that phase's own allowed-files list** — each path names the clause that forces it into existence. A path with no clause is surplus or a hole, and which one is decided while writing, not after shipping.
+- [ ] API surface is a machine-comparable `yaml` block (method · path · phase) with out-of-scope paths listed explicitly, not a prose table nothing can be diffed against.
 - [ ] Every constraint states its reason — a bare prohibition is reversible only by guessing why it is there.
 - [ ] Migration numbers assigned in the spec (per phase or per migration) — parallel workers otherwise collide on the same next number, at merge.
 - [ ] `Status: implemented` carries pasted gate verdicts (**both** `checker:` and `qa:`; a gate that does not apply is written `qa: n/a`, never dropped), not an assertion written ahead of the gate.
@@ -161,6 +163,7 @@ without a reason is not a tighter spec, it is a spec that has hidden its own esc
 - There's a local `.ai/skills/spec-writing/` and you didn't use it.
 - A phase leaves the app non-working, or a step has no test.
 - A phase's completion is described qualitatively ("improve", "polish", "works well") with no binary `Done-when`.
+- A phase lists files it may touch that no `Done-when` clause requires — the two lists have drifted, and the drift is invisible to every gate downstream.
 - You're about to hand the spec to implementation with unanswered critical unknowns.
 - You wrote `Status: implemented` with a gate verdict you have not received yet — the format exists so this is unwritable, and filling it from expectation defeats it entirely.
 - A constraint in the spec says what is forbidden and not why, so the only way to challenge it is to break it.

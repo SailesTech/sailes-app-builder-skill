@@ -20,7 +20,7 @@ description: Use to implement an approved, ready spec (or specific phases of it)
 ## Pre-flight
 1. Read the spec fully + its **phases/steps** + the pre-implement readiness report. Read **`.ai/STATE.md` + `.ai/lessons.md`** (project memory) — start from what's already verified and what's known to fail; don't re-derive it.
 2. Confirm `Status: approved`; set it to `in-progress`.
-3. For long/multi-step work (>~5 commits), open a **run log** `.ai/runs/{YYYY-MM-DD}-{slug}.md`: goal, phase list, decisions, what's left — so the work is resumable across context resets.
+3. For long/multi-step work (>~5 commits), open a **run log** `.ai/runs/{YYYY-MM-DD}-{slug}.md`: goal, phase list, decisions, what's left — so the work is resumable across context resets. **Its critical-path section carries two drawings, not one:** the graph of phases *and* the file-ownership matrix. An arrow in a phase graph records the order somebody thought about the phases in, not a technical dependency — measured 2026-08-01, a plan called a phase "solitary" twenty lines above its own table showing that phase's files were disjoint from the next one's, and it idled behind six others for nothing. Dispatch on set intersection, never on arrows (`agent-team-structure.md`, rule 2).
 4. Branch off; never implement on the default branch.
 
 ## Implementation loop — per Phase, then per Step
@@ -48,6 +48,13 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
   committed state and shows the human the receipt. **An explicitly empty delta is evidence**
   ("spec zmienił zero elementów architektury"), not a skippable formality; the other four types
   are reviewed as git diffs of their canonical JSON. Client package regenerated in place.
+  **This step is a second independent reading of the surface, not a receipt to collect.** Its value
+  is not the diagram — it is that a role which has read nothing of the implementation narrative goes
+  over the whole surface and compares it to the code. Measured 2026-08-01: it paid for itself twice
+  in a single spec closure, finding a response field whose derivation had silently become wrong that
+  afternoon — a defect no code review could see, because no line of it changed. Treat it as a gate
+  with its own detection power; running it as paperwork is how that power gets thrown away while the
+  receipt still looks identical.
   **The lead shows the receipt and STOPS — the `git mv` happens after the human has seen it, not
   in the same motion that produced it.** Missing receipt → the spec does not close; receipt
   produced but never shown → the spec does not close either (the second is the one that reads
@@ -60,6 +67,23 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
   ```bash
   grep -rn "DOES NOT EXIST\|NIE ISTNIEJE\|AT INTEGRATION\|PRZY INTEGRACJI\|TODO\|for now\|na razie" --include=*.ts --include=*.tsx src apps packages
   ```
+  **Sweep the mirror-image class too — a comment claiming something IS enforced:**
+  ```bash
+  grep -rn "is enforced\|is validated\|is guaranteed\|always \|never \|jest wymuszan\|zawsze \|nigdy " --include=*.ts --include=*.tsx src apps packages
+  ```
+  The first pattern finds a comment saying a capability is missing after it arrived. This one finds
+  the opposite and more dangerous shape: a comment describing behavior the code does not have.
+  Measured 2026-08-01, twice in one day, and **both were correct when written**. One asserted that
+  a requirement was globally enforced — an aspiration, not a description; `checker` found it and
+  graded it a **defect, not a nit**, correctly, because *a comment that lies about behavior is worse
+  than no comment: the reader has nothing to discount it with*, and the named failure mode was the
+  next milestone's author trusting that line. The other computed a response field from a narrower
+  source; **defensible in the morning** and **wrong in both directions by the afternoon**, because
+  the mechanism it approximated had come into existence in between. Neither was findable by reading
+  a diff — the diff does not touch those lines. Only a gate reading the whole surface on a clean
+  context finds them, and it took **two different roles** to find these two, `checker` and the
+  closing docs-delta, because they were looking from different sides.
+
   Every hit is a claim that was true when written and may not be now. Measured 2026-07-30: a comment
   read *"call the storage adapter AT INTEGRATION — `packages/files` DOES NOT EXIST"*; the package had
   existed for a week, `deleteObject` included, and the erasure path was leaving files in the bucket
