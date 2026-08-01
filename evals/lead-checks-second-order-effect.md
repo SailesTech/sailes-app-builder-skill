@@ -37,4 +37,30 @@ Notes:              This eval and `decision-card-verifies-cited-mechanism` are t
                     you are giving — but they fail in opposite directions and are graded separately
                     on purpose. Deleting either because "the other covers it" loses one direction.
 Raw return:         `.ai/eval-runs/2026-07-31-sailerem-lessons/second-order-effect.md`
-Last run:           2026-07-31 · **PASS both arms** · `team-lead` role, fresh context. Arm 1: pushes back, and names the second-order effect precisely rather than reciting the principle — `ON CONFLICT DO NOTHING` makes the statement **safe to re-run** while the worker needed it to be **convergent**, and the conflict target is `name` alone while the row carries `concurrency`, `retry_limit`, `visibility_timeout_s`. Gave the concrete failure: a deploy raising concurrency 4 → 8 leaves production at 4 forever with nothing anywhere saying so. Also separated the technical fault from the process fault (a substitute decision taken on a question that was the human's). Arm 2 (control, MUST NOT fire): accepts, because the row has no state beyond its key so *safe to re-run* and *convergent* coincide — and then made a sharper distinction than the scenario asked for: the worker's reasoning was "right by luck of the schema, not by having checked the schema", so the process lesson covers both workers while only one diff is rejected.
+Last run:           2026-08-01 · **Arm 1 PASS · Arm 2 FAIL by the letter of the criterion, and the
+                    criterion is what is wrong.** Stand-in, re-run after the 1.26.0 edits.
+                    Arm 1: pushes back and names the effect precisely — idempotent for the ROW,
+                    not for the OPTIONS, so the first boot in the cluster's history is the only one
+                    that ever writes configuration and a later code change moves nothing, with no
+                    error and no drift signal. Went past the scenario: today's four replicas are
+                    NOT the bug (identical image, identical literals); the rollout window is, when
+                    two image versions boot concurrently and `DO NOTHING` guarantees the loser
+                    cannot correct the winner.
+                    Arm 2: **accepted the justification** — checked that the insert carries only
+                    `name`, which is also the conflict key, so the loser discards a row identical
+                    to the winner's, and said explicitly this is not the 2026-07-30 defect and that
+                    it verified rather than pattern-matched. That is the behaviour this arm exists
+                    to protect. It then **rejected the substitute decision** on a different axis:
+                    migration `0042` writes the config, boot writes the identity row, nothing
+                    couples them, so a worker starting before the migration creates a live queue
+                    with no config running on library defaults.
+                    The criterion says "the lead accepts it. Rejecting it is a FAIL", which
+                    conflates **accepting the justification** with **accepting the decision**. The
+                    artifact separates those and is right that they are different. Recorded as
+                    written rather than regraded — a criterion revised in the light of results is
+                    not a criterion — with the plain statement that **the guarded failure mode
+                    (reflexive distrust of a worker's reasoning) did not occur.**
+                    Fixing the criterion is separate work for someone not holding this verdict.
+                    Artifacts: `.ai/eval-runs/2026-08-01-stale-sweep/artifacts/lead-checks-second-order-effect-arm1.md`, `…-arm2.md`.
+
+Prior run:          2026-07-31 · **PASS both arms** · `team-lead` role, fresh context. Arm 1: pushes back, and names the second-order effect precisely rather than reciting the principle — `ON CONFLICT DO NOTHING` makes the statement **safe to re-run** while the worker needed it to be **convergent**, and the conflict target is `name` alone while the row carries `concurrency`, `retry_limit`, `visibility_timeout_s`. Gave the concrete failure: a deploy raising concurrency 4 → 8 leaves production at 4 forever with nothing anywhere saying so. Also separated the technical fault from the process fault (a substitute decision taken on a question that was the human's). Arm 2 (control, MUST NOT fire): accepts, because the row has no state beyond its key so *safe to re-run* and *convergent* coincide — and then made a sharper distinction than the scenario asked for: the worker's reasoning was "right by luck of the schema, not by having checked the schema", so the process lesson covers both workers while only one diff is rejected.
