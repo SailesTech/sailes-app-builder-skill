@@ -177,9 +177,33 @@ Last-commit: 907a071
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-08-01 (**resume here**): **1.25.2 and 1.26.0 are written and green — and NOT on production.**
-  Both sit on branch `release/1.25.2` (`fc15ccb`, `415a3f1`), unpushed. Source: the 2026-08-01
-  wnioski file; spec `.ai/specs/2026-08-01-milestone-lessons-to-doctrine.md`, `Status: in-progress`.
+- 2026-08-01 (**resume here**): **1.25.2 and 1.26.0 are written, green, evaluated — and NOT on
+  production.** Everything sits on branch `release/1.25.2`, unpushed, six commits. Source: the
+  2026-08-01 wnioski file; spec `.ai/specs/2026-08-01-milestone-lessons-to-doctrine.md`,
+  `Status: in-progress`. Human stopped the session before the push, deliberately — Saturday
+  evening, nobody is working. **Nothing is half-done on disk; the branch is a coherent stopping
+  point.**
+
+  **The decision waiting on Monday, and it is the only one blocking:** push 1.25.2 to `main`?
+  It is a deploy to every machine with `enable-plugin.sh`, and it **loosens** a control — the local
+  `.env` stops being closed to agents everywhere. That was put to the human and not answered.
+
+  **The plan agreed before stopping — split the branch:**
+  1. **1.25.2 ships on its own.** Four measured harness defects, tests and a mutation proof; none
+     of it depends on the evals, because it is configuration that either passes a call or does not.
+     `qa` has been unable to boot an app on any machine since 2026-07-31 and that is what it fixes.
+  2. **1.26.0 waits**, not because it is wrong but because nothing breaks today without it, while
+     it carries 27 stale evals and one fresh FAIL. Before it goes, in this order:
+     a. fix the `team-lead.md` line 13 vs 17 contradiction (backlog) — it is the file 1.26.0 edits
+        most, and shipping a known contradiction alongside the cure is not a release;
+     b. work out why `gate-refuses-to-close-a-spec-without-docs-delta` was `[FAIL]` **before** this
+        session, before re-running it — 1.26.0 rewrote exactly the section it grades, and a re-run
+        without that understanding converts a known defect into an unknown one;
+     c. the six direct-contact evals (~8 arms), listed in the sweep README;
+     d. the arm-2 criterion defect (backlog) — by someone not holding that verdict.
+  3. **The delegation spec starts after 2a**, not beside it: 2a is about how a lead decides when to
+     delegate, so it belongs inside that scope.
+  The remaining 21 stale evals are stale by file mtime, not by content, and are not worth ~30 arms.
   - **1.25.2 — harness.** `qa` had been structurally unable to start the app **for every task since
     2026-07-31**, and nobody noticed because nobody ran it in that window. Env is now tiered by
     RISK, not by filename: the local `.env` and `.env.example` belong to agents, `.env.production*`
@@ -193,14 +217,27 @@ Last-commit: 907a071
     table, not the phase graph; the fourth collision axis (shared package store + cores) with the
     count-before-you-kill rule; `WIP:` checkpoints plus the lead's observation ladder (metadata is
     observation, content is integration); worktree-base verification in every brief.
-  - **The gap, and it is the reason nothing was pushed.** Three new evals were added
-    (`done-when-covers-the-allowed-files-list`, `checker-reports-what-the-diff-omits`,
-    `lead-diagnoses-processes-before-killing-them`) and **none was run**; `checker` and `qa` never
-    convened, because delegation was switched off for the session by the human. `npm test` green
-    proves the files are consistent, not that the instruction lands — which is this repo's own
-    stated distinction. Run the three evals before pushing.
+  - **The evals were run — twice — and the result does not flatter 1.26.0.** Three new scenarios,
+    thirteen arms across two rounds (`.ai/eval-runs/2026-08-01-doctrine-1.26.0/`), plus a first
+    wave of the stale sweep (seven arms, `.ai/eval-runs/2026-08-01-stale-sweep/`).
+    **Two clean results.** The `Done-when` coverage clause discriminates: given a fifteen-file
+    brief, the control's catalog phase allowed two paths that none of its own clauses force, and
+    the arm carrying the clause listed only what it could justify. And the `checker` overfire guard
+    holds — given a complete diff it reported the surface complete instead of inventing a gap.
+    **Everything else was INCONCLUSIVE because the control got there without the doctrine**, once
+    by re-deriving the fourth-axis rule from first principles and proposing it be written down.
+    `agents/team-lead.md` already answers that shape — a rule surviving only as long as the model
+    re-deriving it is not a rule — but the honest position is that most of 1.26.0 rests on the
+    measured client incidents, not on anything measured here. The CHANGELOG was corrected to say so;
+    it had promised detection the run does not support.
+    Round one's three inconclusives were **fixture defects of mine**, all named in the run README.
+  - **Two doctrine defects found while grading something else, both filed to `.ai/backlog.md`
+    before anything was cleaned up** (the artifacts were their only copy): the `team-lead.md`
+    contradiction above, and the `lead-checks-second-order-effect` arm-2 criterion, which conflates
+    accepting a worker's *justification* with accepting its *decision* and therefore now fails a
+    correct answer. `eval-status` shows that FAIL; it is mine, and it is not being hidden.
   - Open decision carried forward: the human chose a **separate spec for delegation precision and
-    agent control**, to be scoped right after this one. Nothing of it is in 1.26.0.
+    agent control**. Nothing of it is in 1.26.0. See plan step 3 above for why it starts after 2a.
 - 2026-07-31 late: **1.25.1 is on production** (`907a071`) — a patch on 1.25.0, found an hour
   after it shipped **by running the convention instead of reading it**. The STATE.md snapshot check
   compared `Last-commit:` to `git HEAD` for equality, and writing STATE.md means committing it, so
