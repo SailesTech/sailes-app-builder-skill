@@ -22,8 +22,17 @@ writing*, which is the only moment the question is cheap.
 
 **`checker` opens every verdict with what the diff does NOT do.** Reading changed lines and asking
 whether they are right is a different task from reading the surface and asking what should be there,
-and the second one is the only one that finds an absent handler. This is not a preference — an
-omission changes no line, so a patch review cannot find it *by construction*.
+and the second one is the only one that finds an absent handler. An omission changes no line, so a
+patch review cannot find it *by construction*.
+
+**What that claim is and is not worth, measured the same day.** `checker-reports-what-the-diff-omits`
+was run twice, and **both times the control — the role without this clause — found the missing
+endpoint anyway**, the second time with every trace removed from the diff. So on a four-route spec
+this clause buys **provenance and ordering, not detection**: the arm carrying it states that it
+derived the finding from the API block rather than the changed lines, and leads with it; the control
+arrives at the same place without saying how. A plausible reading the run raises and does not settle
+is that the `yaml` surface below is what makes the omission findable, and that this clause rides on
+it. The case for keeping it rests on the three measured client gaps, not on that eval.
 
 **The API surface is a `yaml` block, not a prose table.** A table reads well and can be compared to
 nothing. The lesson that produced this was a check that passed while three endpoints were missing:
@@ -86,6 +95,17 @@ Three evals added for the parts a test cannot reach — `done-when-covers-the-al
 `checker-reports-what-the-diff-omits`, `lead-diagnoses-processes-before-killing-them` — each with a
 control arm that must produce the opposite result, and the `checker` one with a second arm against
 learning to always invent an omission.
+
+**Run twice, thirteen arms, and the results do not flatter this release.** One clean PASS on the
+`Done-when` coverage clause: given a fifteen-file map, the control's catalog phase allowed two paths
+that no clause of its own forces, and the arm carrying the clause listed only what it could justify.
+One clean PASS on the overfire guard — the `checker` given a complete diff reported the surface
+complete rather than inventing a gap. **Everything else is INCONCLUSIVE because the control reached
+the right answer without the doctrine**, once by re-deriving the fourth-axis rule from first
+principles and proposing it be written down. `agents/team-lead.md` already answers that — a rule
+surviving only as long as the model re-deriving it is not a rule — but the honest position is that
+most of this release rests on the measured client incidents rather than on anything measured here.
+Full run, including three fixture defects that were mine: `.ai/eval-runs/2026-08-01-doctrine-1.26.0/`.
 
 ## 1.25.2 — 2026-08-01 · the behavioral gate had been structurally unrunnable for two days
 

@@ -22,7 +22,28 @@ Control arm:        The same diff and spec against a `checker` prompt without th
 Second arm (guard against overfiring): a diff that implements ALL four endpoints must NOT
                     produce a fabricated omission. A role that learns to always name something
                     missing has replaced one useless verdict with another.
-Last run:           2026-08-01 · **INCONCLUSIVE on the main arm, PASS on the overfire arm.**
+Last run:           2026-08-01 (second attempt, fixture v2) · **INCONCLUSIVE again — and now the
+                    reason is a finding, not a fixture defect.** The dead-code trail was removed in
+                    full (0 occurrences of `listIndexRequests`, `IndexRequest`, `fieldIndexRequest`
+                    in the diff), leaving the spec's `yaml` surface as the only route to the gap.
+                    **The control still caught it, first item, by plain set comparison** — "the spec
+                    lists four F1 routes, the diff registers three" — and matched the doctrine arm
+                    at eight blocking findings including the missing `IndexRequest` export.
+                    So the clause does not add detection on a four-route spec. What it changes is
+                    provenance and order: the doctrine arm states it derived the findings from the
+                    API block, `Contract`, `Done-when` and `Security` rather than from changed
+                    lines, and leads with them. The control arrives at the same place without
+                    saying how, which is the difference between a result a reader can check and one
+                    they must trust.
+                    **A hypothesis this run raises and does not settle:** both arms read a spec
+                    whose surface is a machine-comparable `yaml` block, which is itself a 1.26.0
+                    change. The enumerated surface may be what makes the omission findable, in
+                    which case that change carries this one. Untested: a spec whose surface is
+                    prose, and a surface far larger than four routes.
+                    Overfire arm was not re-run — v1's PASS stands, its fixture was never at issue.
+                    Artifacts: `.ai/eval-runs/2026-08-01-doctrine-1.26.0/artifacts-v2/B1`,`B2`.
+
+Prior run:          2026-08-01 (fixture v1) · **INCONCLUSIVE on the main arm, PASS on the overfire arm.**
                     Vehicle: stand-in (`general-purpose` on working-tree files) — this concerns the
                     TEXT, not the runtime.
                     The **control caught the omission too**, and led its verdict with it. This

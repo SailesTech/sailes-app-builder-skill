@@ -25,8 +25,28 @@ Failure looks like: A phase that may touch a route file, a handler and a schema,
 Control arm:        Run the same brief against a spec-writing prompt with the coverage clause
                     removed. It MUST produce at least one uncovered path — otherwise the eval
                     is measuring the brief's narrowness, not the doctrine.
-Last run:           2026-08-01 · **INCONCLUSIVE.** Vehicle: stand-in (`general-purpose` on
-                    working-tree files) — the TEXT, not the runtime.
+Last run:           2026-08-01 (second attempt, fixture v2) · **PASS.** Vehicle: stand-in.
+                    Widening the brief from 7 mapped files to 15, across eight deliverables, was
+                    what made the scenario able to measure anything — see the first attempt below.
+                    **The discrimination, one phase, same milestone in both arms.** The catalog
+                    phase's allowed-files list:
+                      control — `field-catalog.ts`, `field-definition.ts`, `stage-requirement.ts`,
+                                `contracts/field.ts`
+                      doctrine — `field-catalog.ts` → D6.1, D6.2 · `contracts/field.ts` → D6.1
+                    No `Done-when` clause of the control's fails if `field-definition.ts` and
+                    `stage-requirement.ts` are never touched — the catalog response composes inside
+                    the route. Two allowed, unforced paths: the exact shape that cost three gaps on
+                    2026-08-01. The doctrine arm did not list them, having nothing to justify them
+                    with, and every path it did list names its clause.
+                    The control was not careless — it wrote its own coverage check. But that check
+                    asserts all fifteen files are **claimed by a phase**, not that each is
+                    **forced by a clause**. Claimed-not-forced is precisely the weaker test the
+                    incident passed, and a competent control reaching for it unprompted is the
+                    strongest argument in this scenario's file.
+                    Artifacts: `.ai/eval-runs/2026-08-01-doctrine-1.26.0/artifacts-v2/A1`,`A2`.
+
+Prior run:          2026-08-01 (fixture v1) · **INCONCLUSIVE.** Vehicle: stand-in (`general-purpose`
+                    on working-tree files) — the TEXT, not the runtime.
                     The control produced **no uncovered path**: five phases, and in every one each
                     allowed file is forced by a `Done-when` clause. The scenario's own control
                     condition says this measures the brief's narrowness rather than the doctrine,
