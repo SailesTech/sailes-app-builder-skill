@@ -2,10 +2,26 @@
 // The Claude Code harness guardrails: the mechanical backstop for the AGENTS.md Hard Safety Rules.
 // Adapt the command patterns to the repo's actual package scripts. Two keys: "permissions" + "hooks".
 //
-// "permissions.allow"  — verify commands run without a prompt (fast inner loop).
-// "permissions.deny"   — the protected surface: secrets, prod migrate/deploy, force-push, applied migrations.
-// "hooks.SessionStart" — inject STATE.md so "read at session start" is enforced, not remembered.
-// "hooks.PreToolUse"   — block edits to protected paths (applied migrations, implemented specs, lockfiles).
+// "permissions.allow"  — verify commands run without a prompt (fast inner loop). It includes
+//                        git add/commit/log: every writing role is MANDATED to commit in its own
+//                        worktree (that commit is its declaration the task is finished), and a
+//                        mandate the permission layer prompts on is a mandate that fails. Measured
+//                        2026-08-01: `docs-author` was blocked twice, in both command forms, and
+//                        the lead had to commit the artifacts for it.
+// "permissions.deny"   — the protected surface: PRODUCTION secrets, prod migrate/deploy,
+//                        force-push, applied migrations. Note what is NOT here: the local `.env`.
+//                        Env is tiered by risk, not by filename — see the guard script's comment.
+//                        `.env.example` (keys, committed) and `.env` (local values, gitignored)
+//                        are the agent's; `.env.production*`/`.env.staging*` and key material are
+//                        not, and by `sailes-hosting` doctrine belong in the platform, not a file.
+// "hooks.SessionStart" — inject STATE.md so "read at session start" is enforced, not remembered;
+//                        warn when the local `.env` carries production markers.
+// "hooks.PreToolUse"   — block edits to protected paths (applied migrations, implemented specs,
+//                        lockfiles) AND protected COMMANDS. The matcher must include `Bash`:
+//                        until 1.25.1 it read `Edit|Write`, so the guard's entire command surface
+//                        (`reset --hard`, shell redirects into protected files) never executed in
+//                        a Claude repo while the script's own comments claimed it did. The Codex
+//                        twin had the `Bash` matcher all along — the two configs disagreed.
 //
 // Hook commands below are illustrative shell one-liners; move non-trivial logic into
 // .claude/hooks/*.sh and call the script here. See Claude Code docs for the hook JSON contract
@@ -27,13 +43,27 @@
       "Bash(pnpm db:generate:*)",
       "Bash(graphify:*)",
       "Bash(git status:*)",
-      "Bash(git diff:*)"
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [
-      "Read(./.env)",
-      "Read(./.env.*)",
-      "Edit(./.env)",
-      "Edit(./.env.*)",
+      "Read(./.env.production)",
+      "Read(./.env.production.*)",
+      "Read(./.env.prod)",
+      "Read(./.env.prod.*)",
+      "Read(./.env.staging)",
+      "Read(./.env.staging.*)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Read(./**/*.p12)",
+      "Edit(./.env.production)",
+      "Edit(./.env.production.*)",
+      "Edit(./.env.prod)",
+      "Edit(./.env.prod.*)",
+      "Edit(./.env.staging)",
+      "Edit(./.env.staging.*)",
       "Edit(./packages/db/migrations/**)",
       "Edit(./.ai/specs/implemented/**)",
       "Bash(git push --force:*)",
@@ -54,7 +84,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Edit|Write",
+        "matcher": "Bash|Edit|Write",
         "hooks": [
           {
             "type": "command",

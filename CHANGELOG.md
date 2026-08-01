@@ -4,6 +4,63 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.25.2 — 2026-08-01 · the behavioral gate had been structurally unrunnable for two days
+
+**Four harness defects from one client milestone, all measured, none of them about model behavior.**
+Adopted repos pick these up by re-copying `settings-template.json` and `hooks-template/*.sh`.
+
+**`qa` could not start the app — for any task.** The 1.25.1 hardening closed the last path by which
+an agent could get environment variables into an application process: `deny` on `Read(./.env.*)`
+blocked even `.env.example`, and the guard blocked **any** payload containing the four characters
+`.env`, so `--env-file=` failed before the process started and the older legal pattern
+(`set -a && . ./.env`) was blocked too. The role whose entire mandate is "prove the running system
+does the thing" had no way to run the system. Nobody noticed for two days because nobody ran it in
+that window — **an unrunnable gate does not announce itself, it just stops producing verdicts.**
+
+What the ban actually protected was nothing: `sailes-hosting/references/env-i-sekrety.md` already
+states that config and secrets live in the platform's env and that `.env.example` is a list of keys.
+The denied file holds a localhost database password. `repo-done-checklist.md` had even recorded the
+dead end in prose — *"the fix usually needs `.env*`, which agents may not touch"* — and accepted it.
+
+**Env is now tiered by risk, not by filename prefix.** `.env.example` (keys, committed) and the
+local `.env` (local values, gitignored) are the agent's to read and write; `.env.production*`,
+`.env.staging*` and key material (`*.pem`, `*.key`, `*.p12`) stay denied, path-precisely via
+`permissions.deny` globs rather than a substring test — a guard matching `.key` fires on
+`Object.keys(…)`, and an alarm that cries wolf gets muted. The tier is enforced at session start by
+a warning that names **keys, never values**, when the local `.env` carries production markers
+(`.railway.app`, `sk_live_`, …) — a blocklist of production tells, deliberately not a "must be
+localhost" allowlist, which would fire on tunnels and shared staging.
+
+Generated repos also get the other half: each runnable app's `dev` script resolves the root `.env`
+itself — `node --env-file-if-exists=../../.env --import tsx --watch src/index.ts` — so the boot path
+is one command containing no env handling, and no rule about env can break it. Side effect found on
+the way: `pnpm dev` did not work on a fresh clone **for humans either**, and had not for some time.
+Nobody reported it because everyone already had the variables exported in their shell.
+
+**`.ai/ENV-LOCK` now knows its owner.** Shipped in 1.25.0 with no state except "exists", so it
+blocked its own holder: `qa` wrote the lock and was stopped by it on its first `docker exec`. The
+lock carries a `token:`, the holder exports the same value as `SAILES_ENV_LOCK`, and a matching
+token passes — collision protection, not access control, which is the correct threat model for a
+rule whose every incident was an accident. A lock with **no** token still blocks everyone, so locks
+written by an older `qa` keep their old meaning instead of silently opening. This defect was named
+in `.ai/audits/2026-07-30-pre-implement-sailerem-lessons.md` *before* 1.25.0 shipped, as a designed
+patch that was not implemented, and it shipped anyway.
+
+**The PreToolUse matcher was `Edit|Write`, so the guard's entire command surface never ran.**
+`guard-protected-paths.sh` carries a *Protected command surface (Bash tool_input.command)* section —
+`reset --hard`, shell redirects into protected files — which in a Claude repo had never once
+executed, while the script's own comments described it as active. `permissions.deny` still covered
+force-push and prod migrate; `reset --hard` had **no** backstop despite being in the Hard Safety
+Rules. The Codex twin (`codex-config-template.md`) had the `Bash` matcher all along — the two
+harness configs sharing one script disagreed about when to call it. Matcher is now `Bash|Edit|Write`.
+
+**Writing roles can commit again.** `permissions.allow` gains `git add`, `git commit` and `git log`.
+Doctrine mandates that every writing worker commits in its own worktree — that commit is its
+declaration the task is finished — and the permission layer prompted on it, which for a subagent is
+a block. `docs-author` hit it twice in both command forms; the lead ended up committing the
+artifacts on its behalf, which is the maker/reviewer boundary quietly dissolving. **A mandate the
+permission layer refuses is not a mandate.**
+
 ## 1.25.1 — 2026-07-31 · the STATE.md check cried wolf at every session start
 
 **A defect in 1.25.0, found an hour after it shipped, by running the convention instead of reading

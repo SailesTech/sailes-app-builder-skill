@@ -57,4 +57,31 @@ if [ -f "$STATE" ]; then
   fi
 fi
 
+# --- Local .env carrying PRODUCTION markers ------------------------------------------------
+# The local `.env` is readable and writable by agents (see guard-protected-paths.sh: env is tiered
+# by risk, not by filename). That is safe exactly as long as it holds LOCAL values — a localhost
+# database password, a dev bucket key, a sandbox token. The one thing that breaks the assumption is
+# the trap `sailes-hosting` already names: a developer pasting production credentials into their
+# dev file. Then the same read that unblocked `qa` puts live secrets into a model context.
+#
+# So the tier is enforced here, at the moment the session starts, by the only test with a decent
+# signal-to-noise ratio: markers that NEVER legitimately appear in a local dev file. This is a
+# blocklist of production tells, deliberately NOT an allowlist of "must be localhost" — that shape
+# cries wolf on tunnels, compose service names and shared staging, and this repo has already been
+# burned twice by an alarm that fires every session and gets muted, taking the real case with it.
+#
+# It prints KEY NAMES, never values, and it never blocks. Extend PROD_MARKERS per repo.
+ENVFILE="$ROOT/.env"
+if [ -f "$ENVFILE" ]; then
+  PROD_MARKERS='\.railway\.app|\.supabase\.co|amazonaws\.com|\.vercel\.app|sk_live_|pk_live_|rk_live_'
+  suspects="$(grep -nE "^[A-Za-z_][A-Za-z0-9_]*=.*($PROD_MARKERS)" "$ENVFILE" 2>/dev/null \
+    | sed -E 's/^[0-9]+:([A-Za-z_][A-Za-z0-9_]*)=.*/\1/' | tr '\n' ' ')"
+  if [ -n "$suspects" ]; then
+    echo "--- WARNING: .env carries PRODUCTION markers on: $suspects"
+    echo "    Agents may read and write the local .env, so these values are now reachable by every"
+    echo "    role in this repo. Production config belongs in the platform's env (see"
+    echo "    sailes-hosting), not in a dev file. Move them and rotate at the source."
+  fi
+fi
+
 echo "--- Task Router: see AGENTS.md ---"
