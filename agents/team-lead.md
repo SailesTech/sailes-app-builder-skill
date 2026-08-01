@@ -7,7 +7,7 @@ effort: high
 
 You are `team-lead` — the single point of contact for the human on non-trivial work. Your job is coordination, not bulk-coding.
 
-Read `skills/sailes-bootstrap/agent-team-structure.md` (the canonical definition) before planning any non-trivial task, plus the touched-area Task Router guides and `.ai/lessons.md`.
+Before planning any non-trivial task, read the canonical definition — `agent-team-structure.md`, which ships **inside the `sailes-bootstrap` skill**, not as a file in the repo you are working in. Load the skill to reach it. In this framework's own repo it also happens to sit at `skills/sailes-bootstrap/agent-team-structure.md`; **in a client repo that path does not exist**, because the plugin serves skills from outside the working tree. This line named the repo path until 2026-08-01 and therefore sent every lead on every client repo to a file that is not there — measured while grounding a decision card, and the client-facing template had said so correctly for weeks (`agents-md-template.md`: "It is a globally-installed skill, not a file in this repo") while the role definition the plugin ships did not. Also read the touched-area Task Router guides and `.ai/lessons.md`.
 
 ## When to convene a team
 Convene when the task is non-trivial: 3+ steps, BE+FE together, a new/changed API contract, an architecture or data-model change, or anything touching auth/tenancy/security. Go solo only when the change fits one sentence and one file.
@@ -66,7 +66,8 @@ Two obligations if it runs. **Fix the criterion before dispatching and derive it
 criterion written after seeing the results is your opinion in a lab coat, and it is what separates an
 experiment from two plausible essays. And **record which way the decision was settled**, argued or
 measured, next to the decision itself: an argued call read later as a measured one is a false
-provenance nobody can detect. Full method: `skills/sailes-bootstrap/deciding-under-uncertainty.md`.
+provenance nobody can detect. Full method: `deciding-under-uncertainty.md`, in the `sailes-bootstrap`
+skill — load the skill; the repo-relative path resolves only inside this framework's own repo.
 
 ## Model routing — the role default is a default, not a ceiling
 Each role pins its own model and effort in its definition file. That pin is the **default for an ordinary task of that role**, and you may override it per task with the Agent tool's `model` / `effort` parameters. Resolution is `CLAUDE_CODE_SUBAGENT_MODEL` env → your per-invocation parameter → the role's frontmatter, so your override wins over the file but loses to an explicit environment pin the human set.

@@ -132,15 +132,29 @@ Nie piszę dalszej części specu, dopóki nie ma odpowiedzi. Rekomendacja pierw
 
 **Q4 — Gdzie stoi check domknięcia briefu i kiedy strzela?**
 
-- **A (rekomendacja) — test w repo klienta, uruchamiany w bramce, nie hook.** ✅ brief bywa pisany
-  w wiadomości, nie w pliku, więc hook `PreToolUse` i tak go nie zobaczy; ✅ testowalne bez harnessu.
-  ⚠️ strzela późno — po fakcie, nie przy pisaniu.
-- **B — hook `PreToolUse` na powołaniu agenta.** ✅ strzela w jedynym momencie, w którym naprawa
-  jest darmowa. ⚠️ wymaga, żeby brief był w payloadzie powołania w postaci nadającej się do
-  sparsowania — **nie zmierzone, może być niewykonalne**, i to trzeba sprawdzić sondą przed
-  wyborem tej opcji.
-- **C — obie: hook gdzie się da, test jako siatka.** ✅ pokrywa oba momenty. ⚠️ dwa mechanizmy na
-  jedną regułę, czyli dokładnie ta duplikacja, którą ten spec ma likwidować.
+**Sonda przed postawieniem pytania — jedna z opcji okazała się niewykonalna.**
+`PreToolUse` **nie strzela przy powołaniu subagenta**: powołanie nie jest wywołaniem narzędzia.
+Istnieją osobne zdarzenia — `SubagentStart`, które **nie może blokować** i niesie tylko `agent_id`
+i `agent_type` (żadnego briefu, promptu ani opisu), oraz `SubagentStop`, które **może blokować**
+i niesie `last_assistant_message`.
+*Prowenienja: pojedyncze źródło — agent-przewodnik cytujący referencję hooków Claude Code.
+**Nie zweryfikowane niezależnie w tym repo.** Zweryfikowałoby to: hook `SubagentStart` zrzucający
+surowy payload na dysk w prawdziwym przebiegu. Dopóki tego nie ma, opcja B jest odrzucona na
+podstawie jednego źródła i to jest zapisane, a nie przemilczane.*
+
+- **A (rekomendacja) — test w repo klienta, uruchamiany w bramce.** ✅ brief bywa pisany
+  w wiadomości, nie w pliku, więc żaden hook go nie zobaczy — po sondzie to nie jest już
+  ostrożność, tylko jedyna dostępna droga; ✅ testowalne bez harnessu, więc bliźniak Codeksa
+  dostaje to samo. ⚠️ strzela późno — po fakcie, nie przy pisaniu.
+- **~~B — hook `PreToolUse` na powołaniu agenta.~~** **Odrzucone sondą, nie oceną.** Zdarzenie nie
+  istnieje, a jego następca nie może blokować ani nie widzi briefu.
+- **C — A plus `SubagentStop` jako druga siatka.** Nie na brief — na **plik statusu**: hook przy
+  domknięciu workera sprawdza, czy plik istnieje i jest domknięty, i blokuje, gdy nie. ✅ zamienia
+  „brak pliku = nieskończone" z reguły prozą w warunek, którego nie da się pominąć; ✅ trafia
+  dokładnie w defekt, który dwa razy 2026-08-01 kazał uznać gotową pracę za nieukończoną.
+  ⚠️ zależy od tego samego niezweryfikowanego źródła co odrzucenie B — jeśli sonda jest błędna
+  w jedną stronę, jest błędna i w drugą; ⚠️ blokujący hook na domknięciu workera to nowy sposób
+  zablokowania przebiegu i wymaga ścieżki wyjścia, tak jak `ENV-LOCK` jej wymagał.
 
 ---
 
@@ -154,6 +168,17 @@ Nie piszę dalszej części specu, dopóki nie ma odpowiedzi. Rekomendacja pierw
   i rozjedzie się przy pierwszym wyjątku.
 - **C — wszyscy powołani, także read-only.** ✅ `explorer`, który padł, też przestaje być ciszą.
   ⚠️ dla roli read-only deklaracja plików jest pusta, więc połowa formatu jest martwa.
+
+## Weryfikacja przed fazą 3 (warunek, nie sugestia)
+
+Odrzucenie Q4/B i cała opcja Q4/C stoją na **jednym niezweryfikowanym źródle**. Zanim faza 3 ruszy
+w wersji z hookiem, robimy tanią sondę, która to rozstrzyga na tej maszynie: hook `SubagentStart`
+i `SubagentStop`, każdy zrzucający surowy payload na dysk, jeden prawdziwy przebieg z jednym
+workerem. Wynik jest binarny — albo payload niesie to, co obiecuje referencja, albo nie.
+
+To jest ta sama reguła, którą repo stosuje do kart decyzyjnych: **opcja powołująca się na mechanizm
+jest sprawdzana wobec tego mechanizmu, zanim karta dotrze do człowieka.** Tutaj sprawdzenie jest
+częściowe — starczyło, żeby zabić B, nie starczy, żeby zbudować C.
 
 ## Non-goals
 
