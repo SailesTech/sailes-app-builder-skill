@@ -4,6 +4,54 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.28.1 — 2026-08-02 · what a gate finds when you run it a day late
+
+Everything here was found by a **retroactive `checker`** on 1.25.2 + 1.26.0 — code that had been on
+production since the previous day, because the session that shipped it had delegation disabled. It
+returned CHANGES-REQUIRED on six items, four of which the spec had named **by file** and nobody had
+written. A missing item changes no line, so no patch read could have found them.
+
+**None of 1.26.0's doctrine ever reached the Codex twins.** `git diff --name-only 5a1d2f8 415a3f1 --
+codex-agents/` is empty. The flagship change — `checker` opening its verdict with what the diff does
+NOT do — did not exist for anyone running the Codex harness, and neither did the process-diagnosis
+rules. `codex-agents/README.md` states the twin rule; `parity.test.js` was green throughout, because
+its invariant list did not include any of it. **That is the more useful finding**: "parity green"
+means the *listed* concepts match, not that the twins agree, and the distinction is invisible in the
+output. D2, D5 and D6 are now in both twins with invariants and mutation proofs behind them.
+
+**Three shipped statements were false about the framework's own behaviour**, and the release that
+shipped them **added a sweep for exactly that pattern**:
+- `codex-config-template.md` said the `Bash` matcher catches `echo … > .env`. It does not — the same
+  release deliberately unprotected the local `.env` when it tiered env by risk. The doc illustrated
+  the guard with an example the guard allows. Now `.env.production`, which is true and tested.
+- The same file's parity table claimed the Bash guard backstops "secret reads". It does not, and
+  neither harness covers them: `cat certs/server.key` exits 0. Found by the fix worker's own sweep,
+  not by the gate.
+- `guard-protected-paths.sh` said key material is "denied path-precisely in `permissions.deny`".
+  Those entries are **tool-scoped** — real on the Read/Edit surface, absent on shell commands. The
+  comment now says which surface. **The hole itself is unchanged and is a decision, not a bug**:
+  closing it means a read-verb heuristic whose false-positive cost is the same one that already
+  forced `Object.keys(...)` to be exempted by hand.
+
+**`settings-template.json` was read by nothing, so its matcher could regress in silence.** 1.25.2's
+accepted decision was a test *at the config level, not the script level*; eleven script-level tests
+were added instead, strengthening a layer that was already covered. Revert the matcher to
+`Edit|Write` today and the whole suite still passed. It now fails, naming the matcher — verified by
+mutation, with a byte-identical restore.
+
+**`WIP:` was a signal one side was told to read and nobody was told to write.** The checkpoint-versus-
+declaration split reached `team-lead` and none of the five roles that actually commit, so the lead's
+observation ladder was reading a permanently empty field. And the brief template had no `Base:` line
+despite the doctrine stating every brief carries the worktree-base check — the harness has handed
+workers a stale base repeatedly, and the brief is the only artifact that can catch it. The new line
+says the sha must be **read**, not recalled: a brief earlier the same day asserted one that existed
+nowhere in the repo.
+
+**Upgrade note.** Behavioural change for Codex-harness users only: `checker` and `team-lead` gained
+rules their Claude twins have had since 1.26.0. Everything else is documentation correction and test
+coverage. If you rely on `.env.stage` (rather than `.env.staging`) for a protected environment, note
+it is **not** covered — filed, not fixed.
+
 ## 1.28.0 — 2026-08-02 · the backlog was lying in both directions, and a guard was open
 
 **`guard-protected-paths.sh` let a repo-relative path through — the whole time.** The pattern

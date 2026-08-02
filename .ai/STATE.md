@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: 0eebf2a
+Last-commit: PENDING-1.28.1
 
 > Read at session start; write before walking away. Facts enter **Verified facts** only with
 > evidence; hypotheses stay in **Open failures**.
@@ -192,7 +192,37 @@ Last-commit: 0eebf2a
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-08-02 late (**resume here**): **1.28.0 is stamped, gated and NOT pushed.** 22 commits on
+- 2026-08-02 latest (**resume here**): **1.28.1 — what a gate finds when you run it a day late.**
+  The human chose a retroactive `checker` on 1.25.2 + 1.26.0 rather than writing the milestone spec
+  off without a gate. It returned **CHANGES-REQUIRED on six items**, and that decision is the most
+  valuable one of the day.
+  - **Four of the six were named by the spec BY FILE and simply never written.** A missing item
+    changes no line, so no patch read finds it — which is the argument for the mandatory omissions
+    section, now demonstrated on the release that introduced it.
+  - **None of 1.26.0's doctrine ever reached the Codex twins**, and `parity.test.js` was green the
+    whole time because its invariant list did not mention any of it. **The generalisation is worth
+    more than the fix: "parity green" means the *listed* concepts match, not that the twins agree**,
+    and nothing in the output says which. D9 is still absent from `codex-agents/team-lead.toml`;
+    D8 is present on both sides with no invariant, surviving by luck. Both in `.ai/backlog.md`.
+  - **Three shipped sentences were false about the framework's own behaviour, and a fourth was found
+    by the fix worker's own sweep.** The sharpest: `codex-config-template.md` illustrated the guard
+    with `echo … > .env` — an example the guard *deliberately allows* since the same release tiered
+    env by risk. **D7's sweep for exactly this pattern shipped in the same commit that carried the
+    defect.** A rule does not check the commit that introduces it.
+  - **`settings-template.json` was read by no file in the repo.** 1.25.2's accepted answer to Q3 was
+    a test *at the config level*; eleven script-level tests were written instead — reinforcing the
+    layer that was already covered. The matcher could regress to `Edit|Write` with the full suite
+    green. Now proven by mutation, restore byte-identical.
+  - **`cat certs/server.key` exits 0** and always has. `permissions.deny` is tool-scoped, so the
+    shell surface is uncovered; 1.25.2's matcher widening is what made it reachable. The comment
+    that discounted this is corrected; **the hole is a decision for the human, not a bug** — closing
+    it needs a read-verb heuristic with the same false-positive cost that already forced
+    `Object.keys(...)` to be exempted by hand.
+  - Both remaining decisions are in `.ai/backlog.md` under the retroactive-gate section, with the
+    `.env.stage` gap and the one honest measurement of how much of a doctrine release lands
+    (one of twelve changes has evidence; two went INCONCLUSIVE because the control re-derived them).
+
+- 2026-08-02 late: **1.28.0 is stamped, gated and NOT pushed.** 22 commits on
   local `main`, tree clean, `npm test` green across fifteen suites, five stamps at 1.28.0.
   **The push is the human's call and it is the only thing blocking** — it deploys a change to the
   guard that protects migrations and key material.
