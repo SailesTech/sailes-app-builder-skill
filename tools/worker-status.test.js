@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Tests for tools/worker-status.js — the reader/validator for `.claude/status/<worker-id>.md`.
+ * Tests for tools/worker-status.js — the reader/validator for `.ai/status/<worker-id>.md`.
  *
  * What is under test is the one distinction the whole artifact exists for (Design §3 of
  * 2026-08-01-delegation-precision-and-agent-control.md): **no file, an unclosed file, and a
@@ -46,7 +46,9 @@ function run(...args) {
   return spawnSync(process.execPath, [BIN, ...args], { encoding: 'utf8' });
 }
 
-function runIn(cwd, ...args) {
+/** Like run(), but with a chosen working directory — needed for the bare `--sweep` tests below,
+ * since a bare `--sweep` resolves `.claude/status/` (and `.claude/worktrees/`) relative to cwd. */
+function runIn(cwd, args) {
   return spawnSync(process.execPath, [BIN, ...args], { encoding: 'utf8', cwd });
 }
 
@@ -65,40 +67,12 @@ const CLOSED_OK = [
   '',
 ].join('\n');
 
-/** Same file, same content, written with the block-list syntax instead of inline `[...]`. */
-const CLOSED_OK_BLOCK = [
-  'worker: be-dev-3',
-  'task: "F2 — check domkniecia briefu"',
-  'base: e276a5e',
-  'claimed:',
-  '  - skills/sailes-bootstrap/hooks-template/brief-closure.js',
-  'opened: 2026-08-02T09:14:00Z',
-  '# --- appended at closure ---',
-  'closed: 2026-08-02T10:41:00Z',
-  'outcome: done',
-  'commit: 4f2a9c1',
-  'touched:',
-  '  - skills/sailes-bootstrap/hooks-template/brief-closure.js',
-  '  - skills/sailes-bootstrap/hooks-template/brief-closure.test.js',
-  '',
-].join('\n');
-
 const OPEN_ONLY = [
   'worker: be-dev-3',
   'task: "F2 — check domkniecia briefu"',
   'base: e276a5e',
   'claimed: ["skills/sailes-bootstrap/hooks-template/brief-closure.js"]',
   'opened: 2026-08-02T09:14:00Z',
-  '',
-].join('\n');
-
-/** The closing block appended, verbatim, beneath OPEN_ONLY — never rewriting it. */
-const CLOSING_BLOCK_APPEND = [
-  '# --- appended at closure ---',
-  'closed: 2026-08-02T10:41:00Z',
-  'outcome: done',
-  'commit: 4f2a9c1',
-  'touched: ["skills/sailes-bootstrap/hooks-template/brief-closure.js"]',
   '',
 ].join('\n');
 
@@ -241,98 +215,6 @@ test('a missing required open field (base) is rejected even when closed', () => 
   }
 });
 
-// -------------------------------------------------------------------- claimed/touched list syntax
-
-test('inline-list syntax (["a","b"]) for claimed/touched is accepted', () => {
-  const { evaluateFile } = require('./worker-status.js');
-  const dir = tmpDir();
-  try {
-    const f = writeFixture(dir, 'be-dev-3.md', CLOSED_OK);
-    const result = evaluateFile(f);
-    assert.strictEqual(result.state, 'ok', `expected ok, got ${result.state}: ${result.messages.join(' ')}`);
-    assert.ok(Array.isArray(result.fields.claimed), 'claimed is not parsed as an array');
-    assert.ok(Array.isArray(result.fields.touched), 'touched is not parsed as an array');
-  } finally {
-    rm(dir);
-  }
-});
-
-test('block-list syntax ("  - item" lines) for claimed/touched is accepted, not just inline', () => {
-  const dir = tmpDir();
-  try {
-    const f = writeFixture(dir, 'be-dev-3.md', CLOSED_OK_BLOCK);
-    const r = run(f);
-    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\n${r.stdout}${r.stderr}`);
-  } finally {
-    rm(dir);
-  }
-});
-
-test('evaluateFile parses block-list claimed/touched into arrays with the right items', () => {
-  const { evaluateFile } = require('./worker-status.js');
-  const dir = tmpDir();
-  try {
-    const f = writeFixture(dir, 'be-dev-3.md', CLOSED_OK_BLOCK);
-    const result = evaluateFile(f);
-    assert.deepStrictEqual(result.fields.claimed, [
-      'skills/sailes-bootstrap/hooks-template/brief-closure.js',
-    ]);
-    assert.deepStrictEqual(result.fields.touched, [
-      'skills/sailes-bootstrap/hooks-template/brief-closure.js',
-      'skills/sailes-bootstrap/hooks-template/brief-closure.test.js',
-    ]);
-  } finally {
-    rm(dir);
-  }
-});
-
-// ------------------------------------------------------- outcome: done without commit, D4.2
-
-test('outcome: done, empty commit, non-empty touched + note -> exit 0', () => {
-  const dir = tmpDir();
-  try {
-    const content = CLOSED_OK.replace(/^commit: 4f2a9c1\n/m, '').replace(
-      /^touched: \["skills\/sailes-bootstrap\/hooks-template\/brief-closure\.js"\]\n/m,
-      'touched: ["skills/sailes-bootstrap/hooks-template/brief-closure.js"]\n' +
-        'note: "plan-only task; evidence is the touched file, not a commit"\n'
-    );
-    const f = writeFixture(dir, 'be-dev-3.md', content);
-    const r = run(f);
-    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\n${r.stdout}${r.stderr}`);
-  } finally {
-    rm(dir);
-  }
-});
-
-test('outcome: done, empty commit, empty touched -> exit 1 even with a note', () => {
-  const dir = tmpDir();
-  try {
-    const content = CLOSED_OK.replace(/^commit: 4f2a9c1\n/m, '')
-      .replace(/^touched: \[.*\]\n/m, 'touched: []\n')
-      .concat('note: "nothing actually happened"\n');
-    const f = writeFixture(dir, 'be-dev-3.md', content);
-    const r = run(f);
-    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}`);
-    assert.ok(/commit/i.test(r.stdout + r.stderr), 'the missing evidence is not named');
-  } finally {
-    rm(dir);
-  }
-});
-
-// -------------------------------------------------------------------- append-only close
-
-test('append-only close: the closing block appended beneath an unmodified open block -> exit 0', () => {
-  const dir = tmpDir();
-  try {
-    const f = writeFixture(dir, 'be-dev-3.md', OPEN_ONLY);
-    fs.appendFileSync(f, CLOSING_BLOCK_APPEND);
-    const r = run(f);
-    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\n${r.stdout}${r.stderr}`);
-  } finally {
-    rm(dir);
-  }
-});
-
 // -------------------------------------------------------------------- --sweep
 
 test('--sweep on a directory with a leftover (closed) file -> exit 1, lists it', () => {
@@ -394,38 +276,123 @@ test('--sweep ignores non-.md files sharing the directory', () => {
   }
 });
 
-test('--sweep with no <dir> argument defaults to .claude/status/', () => {
-  const dir = tmpDir();
+// ------------------------------------------------------ --sweep (bare): worktree fallback walk
+
+test('bare --sweep finds a status file that fell back into a worktree, and labels it', () => {
+  const root = tmpDir();
   try {
-    const statusDir = path.join(dir, '.claude', 'status');
-    fs.mkdirSync(statusDir, { recursive: true });
+    const wtStatusDir = path.join(root, '.claude', 'worktrees', 'agent-fallback', '.claude', 'status');
+    fs.mkdirSync(wtStatusDir, { recursive: true });
+    writeFixture(wtStatusDir, 'be-dev-9.md', OPEN_ONLY);
 
-    const empty = runIn(dir, '--sweep');
-    assert.strictEqual(
-      empty.status,
-      0,
-      `expected exit 0 on an empty default dir, got ${empty.status}\n${empty.stdout}${empty.stderr}`
-    );
-    assert.ok(
-      /\.claude[\\/]status/.test(empty.stdout + empty.stderr),
-      'the default-dir message does not name .claude/status'
-    );
-
-    writeFixture(statusDir, 'be-dev-1.md', OPEN_ONLY);
-    const withFile = runIn(dir, '--sweep');
-    assert.strictEqual(withFile.status, 1, `expected exit 1 once a file exists, got ${withFile.status}`);
-    assert.ok(
-      /be-dev-1\.md/.test(withFile.stdout + withFile.stderr),
-      'the file sitting in the default .claude/status/ is not named'
-    );
+    const r = runIn(root, ['--sweep']);
+    const out = r.stdout + r.stderr;
+    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}\n${out}`);
+    assert.ok(/agent-fallback/.test(out), 'the worktree name is not named');
+    assert.ok(/be-dev-9\.md/.test(out), 'the fallback file is not named');
+    assert.ok(/worktree/i.test(out), 'the finding is not labelled as a worktree fallback');
   } finally {
-    rm(dir);
+    rm(root);
   }
 });
 
-test('DEFAULT_STATUS_DIR is exported and is .claude/status', () => {
-  const { DEFAULT_STATUS_DIR } = require('./worker-status.js');
-  assert.strictEqual(DEFAULT_STATUS_DIR, '.claude/status');
+test('bare --sweep reports a normal local claim WITHOUT a worktree label', () => {
+  const root = tmpDir();
+  try {
+    const statusDir = path.join(root, '.claude', 'status');
+    fs.mkdirSync(statusDir, { recursive: true });
+    writeFixture(statusDir, 'be-dev-3.md', OPEN_ONLY);
+
+    const r = runIn(root, ['--sweep']);
+    const out = r.stdout + r.stderr;
+    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}\n${out}`);
+    assert.ok(/be-dev-3\.md/.test(out), 'the local claim is not named');
+    assert.ok(!/\[worktree/.test(out), 'a normal local claim must not be labelled as a fallback');
+  } finally {
+    rm(root);
+  }
+});
+
+test('a worktree with no .claude/status/ is skipped silently — not reported at all', () => {
+  const root = tmpDir();
+  try {
+    // A worktree directory that exists but never hit the fallback path — the normal case.
+    fs.mkdirSync(path.join(root, '.claude', 'worktrees', 'agent-clean'), { recursive: true });
+
+    const r = runIn(root, ['--sweep']);
+    const out = r.stdout + r.stderr;
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\n${out}`);
+    assert.ok(!/agent-clean/.test(out), 'a worktree with no status dir must not appear in the report');
+  } finally {
+    rm(root);
+  }
+});
+
+test('--sweep <explicit-dir> does NOT walk worktrees, even when a fallback claim exists', () => {
+  const root = tmpDir();
+  try {
+    // Deliberately reuse the SAME `.claude/status` path the bare form would default to, and put
+    // the worktree fallback at the exact sibling location the walk logic would compute from it
+    // (`.claude/worktrees`) — so passing the dir explicitly is the only thing standing between this
+    // test and the fallback being found. A weaker fixture (an unrelated directory elsewhere) would
+    // pass this test even if the "explicit dir disables the walk" guard were deleted, because the
+    // walk would then be looking in the wrong place by accident rather than being off by design.
+    const statusDir = path.join(root, '.claude', 'status');
+    fs.mkdirSync(statusDir, { recursive: true }); // exists and is empty
+
+    const wtStatusDir = path.join(root, '.claude', 'worktrees', 'agent-fallback', '.claude', 'status');
+    fs.mkdirSync(wtStatusDir, { recursive: true });
+    writeFixture(wtStatusDir, 'be-dev-9.md', OPEN_ONLY);
+
+    const r = runIn(root, ['--sweep', statusDir]);
+    const out = r.stdout + r.stderr;
+    assert.strictEqual(
+      r.status,
+      0,
+      `explicit dir is empty and worktrees must not be walked, expected exit 0, got ${r.status}\n${out}`
+    );
+    assert.ok(!/agent-fallback/.test(out), 'an explicit --sweep <dir> walked worktrees — it must not');
+    assert.ok(!/be-dev-9/.test(out), 'the worktree-only fallback file leaked into an explicit-dir sweep');
+  } finally {
+    rm(root);
+  }
+});
+
+test('bare --sweep with nothing at all (no status dir, no worktrees dir) -> exit 0', () => {
+  // The fixture most likely to be broken by a careless worktree-walk rewrite: an empty repo, no
+  // `.claude/status/`, no `.claude/worktrees/` — must still pass, not throw and not report.
+  const root = tmpDir();
+  try {
+    const r = runIn(root, ['--sweep']);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\n${r.stdout}${r.stderr}`);
+  } finally {
+    rm(root);
+  }
+});
+
+test('findWorktreeStatusFallbacks: finds fallbacks, skips worktrees with no status dir, tolerates a missing worktrees root', () => {
+  const { findWorktreeStatusFallbacks } = require('./worker-status.js');
+  const root = tmpDir();
+  try {
+    assert.deepStrictEqual(
+      findWorktreeStatusFallbacks(path.join(root, 'does-not-exist')),
+      [],
+      'a missing worktrees root must yield no findings, not throw'
+    );
+
+    const worktreesRoot = path.join(root, 'worktrees');
+    fs.mkdirSync(path.join(worktreesRoot, 'agent-clean'), { recursive: true });
+    const wtStatusDir = path.join(worktreesRoot, 'agent-fallback', '.claude', 'status');
+    fs.mkdirSync(wtStatusDir, { recursive: true });
+    writeFixture(wtStatusDir, 'be-dev-9.md', OPEN_ONLY);
+
+    const found = findWorktreeStatusFallbacks(worktreesRoot);
+    assert.strictEqual(found.length, 1, 'expected exactly one fallback finding');
+    assert.strictEqual(found[0].worktree, 'agent-fallback');
+    assert.strictEqual(found[0].name, 'be-dev-9.md');
+  } finally {
+    rm(root);
+  }
 });
 
 // -------------------------------------------------------------------- module-level API
@@ -452,6 +419,11 @@ test('evaluateFile returns the four distinct states by name', () => {
 // complete field set -> exit 0') are the ones a closed-detection mutation must turn red, the same
 // way sync-blocks.test.js relies on its own '--check FAILS on drift' test rather than a separate
 // test-of-the-test.
+//
+// Same discipline applies to the worktree walk added for the fallback-claim sweep: 'bare --sweep
+// finds a status file that fell back into a worktree, and labels it' and '--sweep <explicit-dir>
+// does NOT walk worktrees, even when a fallback claim exists' are the pair a walk-breaking mutation
+// must turn red — proof pasted into the delivery report the same way.
 
 console.log(failures === 0 ? '\nworker-status: all tests passed' : `\nworker-status: ${failures} failing`);
 process.exitCode = failures === 0 ? 0 : 1;

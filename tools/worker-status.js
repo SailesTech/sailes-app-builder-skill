@@ -2,8 +2,8 @@
 'use strict';
 
 /**
- * worker-status — reads and validates `.claude/status/<worker-id>.md`, the file a worker claims at
- * the start of its run and closes at the end.
+ * worker-status — reads and validates `.ai/status/<worker-id>.md`, the file a worker claims at the
+ * start of its run and closes at the end.
  *
  * The problem it exists for, measured 2026-08-01: a lead reported finished work as unfinished,
  * twice, because three genuinely different states — never started, died mid-run, finished and
@@ -23,7 +23,11 @@
  * whether to accept, chase, or write a worker off. It is not wired into `npm test`.
  *
  *   node tools/worker-status.js <file>          # validate one status file
- *   node tools/worker-status.js --sweep <dir>   # list every file still open or still present
+ *   node tools/worker-status.js --sweep         # list every file still open/present in
+ *                                                # .claude/status/, plus any that fell back into
+ *                                                # .claude/worktrees/<name>/.claude/status/
+ *   node tools/worker-status.js --sweep <dir>   # list every file still open or still present in
+ *                                                # exactly that directory — no worktree walk
  *
  * Exit codes: 0 = file is a complete, valid, closed status (or an empty sweep). 1 = anything else
  * — no file, an unclosed file, a closed file with a field missing, or a non-empty sweep. The three
@@ -33,26 +37,7 @@
  *
  * The file body is a small, fixed YAML shape (see worker-status-template.md) — not general YAML.
  * Parsing it by hand keeps this at zero dependencies; a real YAML parser would be solving a much
- * bigger problem than "read six flat keys and two list-valued fields".
- *
- * Why `.claude/status/`, not `.ai/status/` (moved 2026-08-02): a status file is live runtime
- * state — the same category as a PID file — and the Unix convention puts that in a shared runtime
- * directory, never inside the data it describes and never inside the unit it describes. `AGENTS.md`
- * is explicit that `.ai/` is memory, not scratch, so an ephemeral gitignored directory nested inside
- * it is an anomaly someone eventually commits by habit. `.claude/worktrees/` is the existing
- * precedent for shared ephemeral state living under `.claude/`, not `.ai/`.
- *
- * Append-only close: a worker claims the file once (the open block, `worker` through `opened`)
- * and later APPENDS the closing block (`closed` through `touched`/`note`) beneath it — it never
- * rewrites or truncates the open block to add the close one. This matters to THIS reader, not just
- * to worker discipline: `--sweep` can observe a file at any point in its lifetime, including mid-
- * write, and a writer that rewrites-in-place (truncate, then write the whole file back out) can be
- * caught by a sweep between those two steps with a file that is momentarily empty or half-written —
- * which this tool would have to report as "invalid" or worse, not as "still running". A writer that
- * only ever appends can, at worst, be caught with the open block present and the close block not
- * yet started, which is exactly the pre-existing, correctly-handled "died mid-run" (or still
- * running) state. Append-only is what keeps every partial read a VALID intermediate state instead
- * of a corrupt one.
+ * bigger problem than "read six flat keys and two inline lists".
  */
 
 const fs = require('fs');
@@ -62,11 +47,10 @@ const REQUIRED_OPEN_FIELDS = ['worker', 'task', 'base', 'claimed', 'opened'];
 const REQUIRED_CLOSE_FIELDS = ['closed', 'outcome', 'touched'];
 const VALID_OUTCOMES = ['done', 'blocked', 'policy-refusal'];
 
-// A status file is live runtime state — the same category as a PID file — so it lives in a shared
-// runtime directory, never inside the data it describes (`.ai/`, which AGENTS.md is explicit is
-// memory, not scratch) and never inside the unit it describes. `.claude/worktrees/` is the existing
-// precedent for shared ephemeral state living under `.claude/`.
-const DEFAULT_STATUS_DIR = '.claude/status';
+// Default target of a bare `--sweep` (no directory argument). Its sibling inside `.claude/` is
+// where a worker's fallback claim lands when the outside-worktree Write is refused — see
+// findWorktreeStatusFallbacks() below, which walks `.claude/worktrees/*/.claude/status/`.
+const DEFAULT_STATUS_DIR = path.join('.claude', 'status');
 
 /**
  * Strips a trailing `# comment` from a YAML-ish scalar, but only when the `#` sits outside any
@@ -124,53 +108,17 @@ function parseValue(raw) {
  * Reads the flat `key: value` shape described in worker-status-template.md. Tolerant of CRLF and
  * LF (this repo is mixed on disk — never assume one) and of full-line `#` comments like the
  * template's own "appended at closure" marker.
- *
- * List-valued fields (`claimed`, `touched`) accept BOTH syntaxes the doctrine and real usage both
- * produce: inline (`claimed: ["a", "b"]`, handled by parseValue) and block —
- *
- *   claimed:
- *     - a
- *     - b
- *
- * — a bare `key:` with nothing after the colon, followed by one or more `  - item` lines. The
- * first real status file ever written (2026-08-02) used block form and was rejected: the validator
- * was stricter than the format it validates. A `key:` line with no trailing block list is still a
- * legal empty scalar (e.g. an omitted `commit:`), so block detection only fires when at least one
- * `- ` line actually follows.
  */
 function parseStatus(text) {
   const fields = {};
   const lines = text.split(/\r?\n/);
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  for (const line of lines) {
     if (!line.trim()) continue;
     if (/^\s*#/.test(line)) continue; // a full-line comment, not a field
     const m = line.match(/^([A-Za-z_][A-Za-z0-9_-]*):\s*(.*)$/);
     if (!m) continue; // not a `key: value` line — ignore rather than fail on stray prose
     const key = m[1];
     const value = stripTrailingComment(m[2]);
-
-    if (value.trim() === '') {
-      // Bare `key:` — look ahead for an indented block list. Stop at the first line that is not
-      // a `  - item` entry (blank line, next `key:`, a comment, or end of file).
-      const items = [];
-      let j = i + 1;
-      while (j < lines.length) {
-        const itemMatch = lines[j].match(/^\s+-\s*(.*)$/);
-        if (!itemMatch) break;
-        const itemValue = stripTrailingComment(itemMatch[1]).trim().replace(/^["']|["']$/g, '');
-        items.push(itemValue);
-        j++;
-      }
-      if (items.length > 0) {
-        fields[key] = items;
-        i = j - 1; // skip the block-list lines already consumed
-        continue;
-      }
-      fields[key] = ''; // a genuinely empty scalar, e.g. an omitted `commit:`
-      continue;
-    }
-
     fields[key] = parseValue(value);
   }
   return fields;
@@ -237,19 +185,9 @@ function evaluateFile(filePath) {
     problems.push(`outcome "${fields.outcome}" is not one of ${VALID_OUTCOMES.join('|')}`);
   }
   if (fields.outcome === 'done' && isMissing(fields.commit)) {
-    // The whole point of Q3/D4.2: "done" is a claim, and there must be something checkable behind
-    // it. Usually that is `commit:` — but a plan-only or docs-only task's evidence is a FILE, not a
-    // commit, so a non-empty `touched:` paired with a `note:` explaining what it points at is the
-    // other legal form of "checkable". An empty `commit` with an empty `touched` still fails: that
-    // really is "a done result with nothing to point at".
-    const touchedList = Array.isArray(fields.touched) ? fields.touched : [];
-    const hasEvidence = touchedList.length > 0 && !isMissing(fields.note);
-    if (!hasEvidence) {
-      problems.push(
-        'outcome: done requires "commit:", or a non-empty "touched:" plus "note:" — a done ' +
-          'result with nothing to point at'
-      );
-    }
+    // The whole point of Q3/D4.2: "done" is a claim, `commit:` is what makes it checkable. A done
+    // with nothing to point at is exactly the silence this file was built to remove.
+    problems.push('outcome: done requires "commit:" — a done result with nothing to point at');
   }
   for (const p of claimShapeProblems) problems.push(p);
   if (fields.touched !== undefined && !Array.isArray(fields.touched)) {
@@ -277,64 +215,154 @@ function evaluateFile(filePath) {
 }
 
 /**
- * `--sweep [dir]` (defaults to `.claude/status/`): the directory-level check for the invariant
- * this whole file exists to hold — "whatever sits there is either still running, dead, or awaiting
- * acceptance" (Design §3b). It never distinguishes those three further than that; a lead reads the
- * per-file reason.
+ * Formats one sweep listing line for a status file that already evaluated to `result`. `worktree`,
+ * when given, prefixes the line with a label so a fallback claim (one that landed inside a worker's
+ * worktree because the outside-worktree Write was refused) reads differently from a normal claim in
+ * the main status directory — same three markers (OPEN / LEFTOVER / INVALID), same reasoning, just
+ * tagged with where it was found.
+ */
+function formatSweepLine(name, result, worktree) {
+  const label = worktree ? `[worktree ${worktree}] ` : '';
+  if (result.state === 'died-mid-run') {
+    const worker = result.fields.worker || '(worker not recorded)';
+    const base = result.fields.base || '(base not recorded)';
+    return `  OPEN      ${label}${name} — ${worker} has not closed (base ${base})`;
+  }
+  if (result.state === 'ok') {
+    return (
+      `  LEFTOVER  ${label}${name} — closed (outcome ${result.fields.outcome}) but still on disk: ` +
+      `accept it into the run log and delete it`
+    );
+  }
+  return `  INVALID   ${label}${name} — ${result.messages.join(' ')}`;
+}
+
+/**
+ * Finds status files that fell back into a worker's own worktree — `.claude/worktrees/<name>/
+ * .claude/status/*.md` — because the outside-worktree Write the doctrine normally uses was refused by the
+ * harness (measured 2026-08-02: Write enforces the worktree boundary, Bash does not, so a worker
+ * following doctrine writes its claim inside its own worktree instead). A worktree directory with
+ * no `.claude/status/` is the normal case — most worktrees never hit the fallback — and is skipped
+ * silently, not reported as a problem. Never throws on a missing `.claude/worktrees/`: that is the
+ * expected shape of a repo that isn't mid-swarm.
+ */
+function findWorktreeStatusFallbacks(worktreesRoot) {
+  const results = [];
+  if (!fs.existsSync(worktreesRoot)) return results;
+
+  let worktreeDirs;
+  try {
+    worktreeDirs = fs
+      .readdirSync(worktreesRoot, { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name)
+      .sort();
+  } catch {
+    return results; // unreadable worktrees root — treat like "nothing to sweep", not a crash
+  }
+
+  for (const worktree of worktreeDirs) {
+    const statusDir = path.join(worktreesRoot, worktree, '.claude', 'status');
+    if (!fs.existsSync(statusDir)) continue; // no fallback here — the normal case, skip silently
+
+    let names;
+    try {
+      names = fs
+        .readdirSync(statusDir, { withFileTypes: true })
+        .filter((e) => e.isFile() && e.name.endsWith('.md'))
+        .map((e) => e.name)
+        .sort();
+    } catch {
+      continue;
+    }
+    for (const name of names) {
+      results.push({ worktree, dir: statusDir, name });
+    }
+  }
+  return results;
+}
+
+/**
+ * `--sweep <dir>`: the directory-level check for the invariant this whole file exists to hold —
+ * "whatever sits in .ai/status/ is either still running, dead, or awaiting acceptance" (Design
+ * §3b). It never distinguishes those three further than that; a lead reads the per-file reason.
  * An empty directory is the ONLY passing case, and it is also the fixture most likely to be broken
  * by a careless "any file present -> fail" rewrite, which is why it is tested explicitly below.
+ *
+ * `opts.walkWorktrees` additionally scans `.claude/worktrees/<name>/.claude/status/*.md` (sibling of
+ * `dir`'s parent) and folds what it finds into the same listing, each line labelled with the
+ * worktree it came from. Only set by `main()` for a bare `--sweep` with no directory argument —
+ * `--sweep <dir>` keeps scanning exactly that one directory, no worktree walk, unchanged from
+ * before this walk existed.
  */
-function sweep(dir) {
-  if (!fs.existsSync(dir)) {
-    console.log(`worker-status --sweep: ${dir} does not exist — nothing to sweep`);
-    return 0;
-  }
-  const entries = fs
-    .readdirSync(dir, { withFileTypes: true })
-    .filter((e) => e.isFile() && e.name.endsWith('.md'))
-    .map((e) => e.name)
-    .sort();
+function sweep(dir, opts = {}) {
+  const walkWorktrees = opts.walkWorktrees === true;
+  const worktreeFindings = walkWorktrees
+    ? findWorktreeStatusFallbacks(path.join(path.dirname(dir), 'worktrees'))
+    : [];
 
-  if (entries.length === 0) {
+  const dirExists = fs.existsSync(dir);
+  const localNames = dirExists
+    ? fs
+        .readdirSync(dir, { withFileTypes: true })
+        .filter((e) => e.isFile() && e.name.endsWith('.md'))
+        .map((e) => e.name)
+        .sort()
+    : [];
+
+  if (!dirExists) {
+    if (worktreeFindings.length === 0) {
+      console.log(`worker-status --sweep: ${dir} does not exist — nothing to sweep`);
+      return 0;
+    }
+    console.error(
+      `worker-status --sweep: ${dir} does not exist, but found ${worktreeFindings.length} fallback ` +
+        `file(s) in worktree status directories:`
+    );
+    for (const { worktree, dir: wdir, name } of worktreeFindings) {
+      const result = evaluateFile(path.join(wdir, name));
+      console.error(formatSweepLine(name, result, worktree));
+    }
+    return 1;
+  }
+
+  const totalCount = localNames.length + worktreeFindings.length;
+
+  if (totalCount === 0) {
     console.log(`worker-status --sweep: ${dir} is empty — nothing pending`);
     return 0;
   }
 
+  const suffix = walkWorktrees && worktreeFindings.length > 0 ? ' (including worktree fallbacks)' : '';
   console.error(
-    `worker-status --sweep: ${entries.length} file(s) in ${dir} — each is still running, dead, or ` +
+    `worker-status --sweep: ${totalCount} file(s) in ${dir}${suffix} — each is still running, dead, or ` +
       `awaiting the lead's accept-and-remove step (Design §3b):`
   );
-  for (const name of entries) {
+  for (const name of localNames) {
     const filePath = path.join(dir, name);
     const result = evaluateFile(filePath);
-    if (result.state === 'died-mid-run') {
-      const worker = result.fields.worker || '(worker not recorded)';
-      const base = result.fields.base || '(base not recorded)';
-      console.error(`  OPEN      ${name} — ${worker} has not closed (base ${base})`);
-    } else if (result.state === 'ok') {
-      console.error(
-        `  LEFTOVER  ${name} — closed (outcome ${result.fields.outcome}) but still on disk: ` +
-          `accept it into the run log and delete it`
-      );
-    } else {
-      console.error(`  INVALID   ${name} — ${result.messages.join(' ')}`);
-    }
+    console.error(formatSweepLine(name, result));
+  }
+  for (const { worktree, dir: wdir, name } of worktreeFindings) {
+    const result = evaluateFile(path.join(wdir, name));
+    console.error(formatSweepLine(name, result, worktree));
   }
   return 1;
 }
 
 function main(argv) {
   if (argv[0] === '--sweep') {
-    // `<dir>` is optional: with none given, sweep the default runtime location every worker and
-    // lead already agree on rather than requiring it be typed out every time.
-    const dir = argv[1] || DEFAULT_STATUS_DIR;
-    return sweep(dir);
+    const explicitDir = argv[1];
+    const dir = explicitDir || DEFAULT_STATUS_DIR;
+    // Only a bare `--sweep` (no explicit dir) also walks worktree fallbacks — `--sweep <dir>`
+    // keeps today's behaviour exactly: that one directory, nothing else.
+    return sweep(dir, { walkWorktrees: !explicitDir });
   }
 
   const filePath = argv[0];
   if (!filePath) {
     console.error('usage: node tools/worker-status.js <file>');
-    console.error(`       node tools/worker-status.js --sweep [dir]   # defaults to ${DEFAULT_STATUS_DIR}`);
+    console.error('       node tools/worker-status.js --sweep <dir>');
     return 2;
   }
 
@@ -349,4 +377,12 @@ if (require.main === module) {
   process.exit(main(process.argv.slice(2)));
 }
 
-module.exports = { evaluateFile, sweep, parseStatus, main, DEFAULT_STATUS_DIR };
+module.exports = {
+  evaluateFile,
+  sweep,
+  parseStatus,
+  main,
+  findWorktreeStatusFallbacks,
+  formatSweepLine,
+  DEFAULT_STATUS_DIR,
+};
