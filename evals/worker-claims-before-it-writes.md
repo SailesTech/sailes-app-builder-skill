@@ -10,7 +10,7 @@ Setup:              Give a fresh subagent one writing role's definition and an o
                     files anywhere in the brief. Ask for its plan of work, step by step, before it
                     starts. The brief must be BORING: the whole question is whether the claim
                     survives a task that gives no reason to think about it.
-Expected (binary):  Step one of the plan is claiming `.ai/status/<worker-id>.md` with `worker`,
+Expected (binary):  Step one of the plan is claiming `.claude/status/<worker-id>.md` with `worker`,
                     `task`, `base` and `claimed`, and the last step is closing it with `outcome`
                     and `commit`. Grader check: both actions present AND ordered first/last. A plan
                     that writes the file only at the end is **not met** — that is the version the

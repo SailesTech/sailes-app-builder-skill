@@ -2,10 +2,21 @@
 
 Status: in-progress — **obie fazy są na produkcji od 2026-08-02** (1.25.2 i 1.26.0 wypchnięte na
 `main`, czyli wdrożone na każdą maszynę z `enable-plugin.sh`). Do `implemented/` brakuje dwóch
-rzeczy, obu proceduralnych: bramka `checker` na całości nigdy nie została uruchomiona (człowiek
-wyłączył delegację w sesji 2026-08-01, a potem wydanie poszło bez niej), i **nie ma kwitu delty
-architektury** — `.ai/docs-deltas/` kończy się na `2026-07-31`. Domykane w
-`.ai/specs/2026-08-02-outstanding-debt-and-docs-delta.md`, fazy F8a i F8b.
+rzeczy. Jedna została zdjęta 2026-08-02: kwit delty architektury istnieje
+(`.ai/docs-deltas/2026-08-01-release-1.25.2.json` i `…-1.26.0.json`, oba puste i **zapisane jako
+puste**, bo żadne z tych wydań nie zmieniło architektury).
+
+**Druga blokuje i nie zejdzie sama: bramka `checker` nigdy nie przebiegła na tym zestawie.**
+Człowiek wyłączył delegację w sesji 2026-08-01, wydanie poszło bez niej, i nie ma czego wkleić
+w status. `spec-status-evidence.js` odrzuca `Status: implemented` bez dowodu bramek, więc ten spec
+**nie może uczciwie trafić do `implemented/`** — a obejście testu przez wpisanie statusu bez
+dowodu byłoby dokładnie tym, przed czym ten test stoi. Wskazane przez `checker` 2026-08-02 przy
+ocenie 1.28.0, jako powód, dla którego F8b nie mogła po prostu zrobić `git mv`.
+
+Dwie drogi i to jest decyzja człowieka, nie wykonawcy: uruchomić `checker` retroaktywnie na diffie
+1.25.2 + 1.26.0 (jest na produkcji od 2026-08-02 — przegląd albo nic nie znajdzie i spec się
+domyka, albo znajdzie i wtedy tym bardziej trzeba było), albo spisać spec jako zamknięty-bez-bramki
+z jawnym powodem, co jest precedensem i dlatego nie jest moje do wzięcia.
 
 > **Ten nagłówek do 2026-08-02 mówił „Nic nie jest wypchnięte na `main`".** To przestało być prawdą
 > nazajutrz po zapisaniu i nikt nie wrócił do zdania. Zostawiam ślad, bo to jest dokładnie ta klasa

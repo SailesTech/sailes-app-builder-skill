@@ -3,7 +3,9 @@
 Status: in-progress — **wszystkie siedem faz zrobionych i na produkcji** (1.27.0, wypchnięte
 2026-08-02; F1 dostała jeszcze poprawki w 1.27.1 i 1.27.2 z czterech defektów znalezionych przez
 używanie mechanizmu). Do `implemented/` brakuje jednej rzeczy: **kwitu delty architektury**.
-`.ai/docs-deltas/` kończy się na `2026-07-31`, a F1–F5 dołożyły `tools/` z czterema skryptami
+`.ai/docs-deltas/` kończy się na `2026-07-31`, a F1–F5 dołożyły `tools/` z **trzema** skryptami
+(`sync-blocks`, `ownership-check`, `worker-status` — czwarty, `mcp-toolnames-check`, doszedł
+dopiero w 1.28.0; ten akapit mówił „czterema", policzone przez `checker` z `git ls-tree 9de90e8`)
 i zmieniły przepływ dispatchu — to jest zmiana architektury, nie kosmetyka. Domykane w
 `.ai/specs/2026-08-02-outstanding-debt-and-docs-delta.md`, fazy F8a i F8b.
 
