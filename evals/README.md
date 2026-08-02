@@ -70,12 +70,38 @@ Files:              <repo-relative paths, comma separated — machine-readable, 
 Setup:              <what to hand a fresh subagent — task prompt, no extra context>
 Expected (binary):  <grep-able assertion on the subagent's output or produced files>
 Failure looks like: <the baseline behavior this eval was written against>
-Last run:           <date · PASS/FAIL · one-line note>
+Last run:           <date [(at <sha>)] · PASS/FAIL · one-line note>
 ```
+
+`(at <sha>)` is optional — see below.
 
 `Files:` is what lets `evals/harness/eval-status.js` tell a green result from a stale one. Without it
 the scenario reports **NO-FILES** — not FRESH: an eval whose coverage cannot be computed must never
 read as covered.
+
+### `Last run:` precision — day-approximate by default, exact when you pin the commit
+
+A bare `Last run:` date is graded against the whole calendar day: a `Files:` path last touched any
+time before 23:59:59 on that date reads FRESH, including a commit made *after* your run but on the
+same day. That grace is deliberate — a run and a same-day commit would otherwise always read STALE
+— but it means a day-only record can under-report staleness by up to 24 hours.
+
+Name the exact commit your run graded and the harness drops the grace entirely:
+
+```
+Last run:           2026-08-02 (at cbf20c2) · PASS · one-line note
+```
+
+With `(at <sha>)` present and resolvable, freshness is computed against that commit: any `Files:`
+path whose last change is not that commit or an ancestor of it is STALE — no same-day exception.
+`node evals/harness/eval-status.js` marks the two cases so you can tell which is which at a glance:
+`[@commit]` for a pinned, exact run; `[~day]` for the approximate fallback. A malformed or
+unresolvable sha is ignored (falls back to day precision) rather than failing the whole scenario.
+
+This is opt-in, not a migration: **do not backfill `(at <sha>)` into an existing `Last run:` line**
+— write it the next time you actually re-run that scenario. 44 of today's scenarios have no sha and
+read `[~day]`; that is the harness telling the truth about how precisely each one was dated, same as
+`NO-FILES` tells the truth about scenarios with no `Files:` line at all.
 
 ## Is this PASS still true?
 
