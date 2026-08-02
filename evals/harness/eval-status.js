@@ -33,6 +33,19 @@
  * (PASS / FAIL / INCONCLUSIVE / PENDING) beside the freshness verdict. An eval that never reached a
  * conclusion must not read like a passing one just because nobody has touched its subject since.
  *
+ * Precision: `Last run:` may pin the commit the run was graded against —
+ * `2026-08-02 (at cbf20c2) · PASS · …`. When a `(at <sha>)` is present and resolves in this repo,
+ * freshness is computed exactly: a `Files:` path whose last change is not an ancestor of / equal to
+ * that commit is STALE, full stop — no same-day grace. Measured 2026-08-02: `runCoversCommit`
+ * deliberately treats a day-only run as covering its whole day (otherwise a run and a commit on the
+ * same day always read STALE), and on a day the doctrine changed four times that grace hid two real
+ * defects — `worker-claims-before-it-writes` and `lead-verifies-status-against-worktree` read FRESH
+ * while grading files edited after they ran. A `(at <sha>)` opts a run out of that grace. Absent (or
+ * unresolvable — a malformed sha is ignored, not fatal) it falls back to the day-precision behavior
+ * unchanged, because 44 existing scenarios have no sha and must not all turn STALE at once. The
+ * report marks which precision produced each verdict, so an imprecise (day-approximate) record
+ * looks imprecise rather than reading exactly as sure as a pinned one.
+ *
  * Run:  node evals/harness/eval-status.js [--strict] [--dir <path>]
  *       --strict  exit 1 if any eval is STALE or NEVER-RUN (for a release gate)
  */
@@ -86,6 +99,69 @@ function parseRunDate(raw) {
   if (raw === null) return null;
   const m = raw.match(/(\d{4})-(\d{2})-(\d{2})/);
   return m ? m[0] : null;
+}
+
+/**
+ * The pinned commit in `Last run:`, e.g. `2026-08-02 (at cbf20c2) · PASS` → `cbf20c2`.
+ * Only the *shape* is validated here (hex, 4-40 chars) — whether it names a real commit in this
+ * repo is `resolveCommit`'s job. Anything that doesn't look like `(at <hex>)` returns null, which
+ * is what sends a scenario down the unchanged day-precision path rather than crashing on it.
+ */
+function parseRunSha(raw) {
+  if (raw === null) return null;
+  const m = raw.match(/\(at\s+([0-9a-fA-F]{4,40})\)/);
+  return m ? m[1] : null;
+}
+
+/**
+ * Resolve a possibly-abbreviated ref to a full commit sha, or null when it names no commit this
+ * repo knows about. A malformed or stale `(at <sha>)` must be ignored, not fatal — `--verify
+ * --quiet` plus a caught error is what makes "not a real commit" a null instead of a thrown
+ * exception that takes the whole report down with it.
+ */
+function resolveCommit(repoRoot, ref) {
+  try {
+    const out = execFileSync('git', ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    return out || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Same as `lastCommitISO`, but the sha — what pinned-commit freshness compares against. */
+function lastCommitSHA(repoRoot, relPath) {
+  try {
+    const out = execFileSync('git', ['log', '-1', '--format=%H', '--', relPath], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    return out || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Is `ancestorSha` the pinned commit itself, or an ancestor of it? That is exact freshness: a file
+ * whose last change is NOT this is a change the pinned run cannot have seen. `--is-ancestor` treats
+ * a commit as its own ancestor, so "equal to" is covered for free. Any git failure (either sha
+ * missing from this repo) reads as "not covered" rather than throwing.
+ */
+function isAncestorOrEqual(repoRoot, ancestorSha, descendantSha) {
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', ancestorSha, descendantSha], {
+      cwd: repoRoot,
+      stdio: 'ignore',
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -180,12 +256,18 @@ function evaluateOne(repoRoot, evalPath, dirty = new Set()) {
   const files = parseFiles(readField(text, 'Files'));
   const runDate = parseRunDate(lastRun);
   const outcome = parseOutcome(lastRun);
+  const rawSha = parseRunSha(lastRun);
+  const runSha = rawSha ? resolveCommit(repoRoot, rawSha) : null;
+  // 'commit' = exact, computed against a resolved sha. 'day' = the unchanged fallback: same-day
+  // grace, because the record names no commit at all (or named one this repo cannot resolve — a
+  // malformed/stale sha degrades to day precision instead of failing the whole scenario).
+  const precision = runSha ? 'commit' : runDate ? 'day' : null;
 
   if (!files || files.length === 0) {
-    return { name, verdict: 'NO-FILES', outcome, files: [], runDate, changed: [], missing: [], dirty: [] };
+    return { name, verdict: 'NO-FILES', outcome, files: [], runDate, runSha, precision, changed: [], missing: [], dirty: [] };
   }
   if (!runDate) {
-    return { name, verdict: 'NEVER-RUN', outcome, files, runDate: null, changed: [], missing: [], dirty: [] };
+    return { name, verdict: 'NEVER-RUN', outcome, files, runDate: null, runSha: null, precision: null, changed: [], missing: [], dirty: [] };
   }
 
   const changed = [];
@@ -194,15 +276,19 @@ function evaluateOne(repoRoot, evalPath, dirty = new Set()) {
   for (const rel of files) {
     if (!fs.existsSync(path.join(repoRoot, rel))) missing.push(rel);
     if (dirty.has(rel.replace(/\\/g, '/'))) uncommitted.push(rel);
+
     const commitISO = lastCommitISO(repoRoot, rel);
-    if (commitISO && !runCoversCommit(runDate, commitISO)) {
-      changed.push({ file: rel, changed: commitISO.slice(0, 10) });
-    }
+    if (!commitISO) continue; // untracked or gone — nothing committed to compare against
+
+    const stale = runSha
+      ? !isAncestorOrEqual(repoRoot, lastCommitSHA(repoRoot, rel) || '', runSha)
+      : !runCoversCommit(runDate, commitISO);
+    if (stale) changed.push({ file: rel, changed: commitISO.slice(0, 10) });
   }
 
   // A changed-and-committed file is the stronger statement, so STALE wins over DIRTY.
   const verdict = changed.length > 0 ? 'STALE' : uncommitted.length > 0 ? 'DIRTY' : 'FRESH';
-  return { name, verdict, outcome, files, runDate, changed, missing, dirty: uncommitted };
+  return { name, verdict, outcome, files, runDate, runSha, precision, changed, missing, dirty: uncommitted };
 }
 
 function scan(repoRoot, evalsDir) {
@@ -233,15 +319,26 @@ function report(results) {
     // Freshness and outcome are different axes; a non-PASS outcome is shown so a
     // never-concluded eval cannot read like a passing one.
     const outcome = r.outcome && r.outcome !== 'PASS' ? `  [${r.outcome}]` : '';
-    console.log(`  ${r.verdict.padEnd(9)} ${r.name}${outcome}${detail}`);
+    // Precision is a THIRD axis: an imprecise (day-approximate) record must look imprecise, not
+    // read with the same confidence as a commit-pinned one. Only shown where freshness was
+    // actually computed — NO-FILES/NEVER-RUN carry no precision at all.
+    const precisionTag =
+      r.precision === 'commit' ? '  [@commit]' : r.precision === 'day' ? '  [~day]' : '';
+    console.log(`  ${r.verdict.padEnd(9)} ${r.name}${precisionTag}${outcome}${detail}`);
     for (const m of r.missing) console.log(`            ! listed file does not exist: ${m}`);
   }
 
   const total = results.length;
   const unconcluded = results.filter((r) => r.outcome && r.outcome !== 'PASS');
+  const commitPinned = results.filter((r) => r.precision === 'commit').length;
+  const dayApprox = results.filter((r) => r.precision === 'day').length;
   console.log(
     `\n  ${total} evals — ${counts.FRESH} fresh, ${counts.STALE} stale, ${counts.DIRTY} dirty, ` +
       `${counts['NEVER-RUN']} never run, ${counts['NO-FILES']} not computable`
+  );
+  console.log(
+    `  ${commitPinned} commit-pinned (exact) · ${dayApprox} day-approximate (same-day grace, ` +
+      `may under-report staleness)`
   );
   if (unconcluded.length) {
     console.log(
@@ -276,6 +373,10 @@ module.exports = {
   readField,
   parseFiles,
   parseRunDate,
+  parseRunSha,
+  resolveCommit,
+  lastCommitSHA,
+  isAncestorOrEqual,
   parseOutcome,
   uncommittedPaths,
   runCoversCommit,
