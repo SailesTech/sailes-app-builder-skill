@@ -42,6 +42,25 @@ Two obligations, because this is the same stand-in the doctrine otherwise restri
 - **Promoting a lesson into a skill** → add the eval that would catch its regression.
 - A FAIL after an edit = the edit regressed a protected behavior — fix before merging.
 
+## Retiring a scenario — `evals/archived/`
+
+A scenario whose **subject no longer exists** moves to `evals/archived/`. `eval-status.js` scans
+only `*.md` directly under `evals/`, so an archived scenario disappears from the board without any
+parser change — and that is why the harness suite asserts it, in
+`evals/harness/eval-status.test.js`: the behaviour is currently a side effect of the `.md` filter,
+and a later reader adding recursion would silently resurrect every retirement.
+
+**Retire only when the subject is gone** — the hook was never shipped, the branch was abandoned, the
+role was deleted. Do **not** retire a scenario because it is inconvenient, because its criterion is
+wrong (fix the criterion), or because its FAIL is stale (re-run it). Introduced 2026-08-02, when
+`anchor-holds-the-line-deep-in-session` sat on the "did not record a PASS" list next to two live
+debts while measuring a hook that had been retired by human decision six days earlier — a correct
+FAIL about a **refuted hypothesis**, not an open defect, and unreadable as such from the board.
+
+The archived file keeps its full text and gains a `> **RETIRED <date>**` block at the top saying
+what happened, why no re-run is warranted, and where the diagnosis lives. Retirement is a claim
+someone can disagree with; deletion is not, which is why nothing is deleted.
+
 ## Scenario format
 
 ```markdown

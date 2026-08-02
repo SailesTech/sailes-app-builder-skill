@@ -1,5 +1,25 @@
 # Eval: a per-prompt anchor keeps the mandate alive at turn 60
 
+> **RETIRED 2026-08-02 — moved to `evals/archived/`, not scanned by `eval-status.js`.**
+> Its `FAIL` was correct and was never about the framework: the control arm, running at real
+> distance with no anchor, **held the line cleanly**. The criterion required the two arms to
+> separate, so a control that matches the treatment is a FAIL by construction — the hypothesis
+> failed, and this scenario's own first sentence said so from the day it was written.
+>
+> The subject no longer exists: no `hooks/prompt-anchor.js`, no `UserPromptSubmit` registration,
+> no `enforce/*` branch, and the spec sits in `.ai/specs/archived/` stamped `RETIRED 2026-07-26 by
+> human decision`. `hooks/workflow-router.js`, the only path in `Files:`, last changed 2026-07-18 —
+> eight days *before* the failing run and not since — which rules out the "stale RED awaiting a
+> GREEN re-run" pattern outright: that shape needs a doctrine amendment between RED and now, and
+> there is none, because nothing needed fixing.
+>
+> **A re-run is not warranted.** Kept for the reasoning, not as a debt. Full diagnosis, including
+> six things that could not be established — first among them that no transcript of the 2026-07-26
+> refusal survives anywhere — is in `.ai/eval-runs/2026-08-02-anchor-diagnosis.md`.
+>
+> The four recovery commits its retirement record cites were reachable from **no ref** and would
+> have been pruned by `git gc` around 2026-08-17; they now carry tags `retired/prompt-anchor-1..4`.
+
 Skill under test:   `hooks/prompt-anchor.js` (branches `enforce/*` — NOT on `main`) /
                     `hooks/workflow-router.js` (the SessionStart mandate it re-asserts)
 Files:              hooks/workflow-router.js

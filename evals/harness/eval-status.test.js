@@ -315,5 +315,22 @@ test('scan skips README.md and returns one result per scenario', () => {
   assert.deepStrictEqual(names, ['a', 'b']);
 });
 
+test('evals/archived/ is NOT scanned — a retired scenario stays off the board', () => {
+  // Retirement (evals/README.md) works today only because `scan` filters on `.md` and a directory
+  // is not a `.md` file. That is a side effect, not a decision, and a later reader adding recursion
+  // would silently resurrect every retired scenario onto the "did not record a PASS" list — which is
+  // exactly the confusion retirement exists to end. This test makes the side effect a contract.
+  const dir = makeRepo();
+  const evalsDir = path.join(dir, 'evals');
+  fs.mkdirSync(path.join(evalsDir, 'archived'), { recursive: true });
+  writeCRLF(path.join(evalsDir, 'live.md'), evalDoc({ lastRun: '2026-08-02 · PASS' }));
+  writeCRLF(
+    path.join(evalsDir, 'archived', 'retired.md'),
+    evalDoc({ lastRun: '2026-07-26 · FAIL' })
+  );
+  const names = lib.scan(dir, evalsDir).map((r) => r.name);
+  assert.deepStrictEqual(names, ['live'], 'an archived scenario was scanned back onto the board');
+});
+
 console.log(failures === 0 ? '\neval-status: all tests passed' : `\neval-status: ${failures} failing`);
 process.exit(failures === 0 ? 0 : 1);

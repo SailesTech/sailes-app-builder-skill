@@ -471,6 +471,11 @@ Last-commit: 907a071
   **n=1** (rules 9 and 10 of `deciding-under-uncertainty.md` each came from a single run), and the
   framework has **no routine retirement mechanism** — `prompt-anchor` was retired only because someone
   deliberately designed an experiment to test whether it was still needed.
+  *(Half addressed 2026-08-02: `evals/archived/` now exists as the retirement convention for a
+  scenario whose subject is gone, documented in `evals/README.md` and held by a mutation-proven test
+  so a later recursion cannot silently un-retire anything. That covers retiring the **eval**; it does
+  not cover noticing that a **rule** has outlived its usefulness, which is still the harder half and
+  still has no mechanism.)*
 
   **Human decisions taken this session:** roster Q1 = (a) lead spawns; `designer` gets browser tools
   **and** `Bash`; `chrome-devtools` MCP becomes a **hard requirement on UI repos** (chosen against my

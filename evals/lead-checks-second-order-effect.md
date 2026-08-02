@@ -55,7 +55,30 @@ Notes:              This eval and `decision-card-verifies-cited-mechanism` are t
                     you are giving — but they fail in opposite directions and are graded separately
                     on purpose. Deleting either because "the other covers it" loses one direction.
 Raw return:         `.ai/eval-runs/2026-07-31-sailerem-lessons/second-order-effect.md`
-Last run:           2026-08-01 · **Arm 1 PASS · Arm 2 FAIL by the letter of the criterion, and the
+Last run:           2026-08-02 · **PASS both arms — and this run is what proves the criterion repair
+                    was right.** Stand-in, re-run after the arm-2 criterion was rewritten by a
+                    sub-team that had not seen the verdict which exposed it.
+                    Arm 1: pushes back, names the second-order effect precisely — idempotent for the
+                    row's existence, not for the four config values it carries, so the second run
+                    discards them silently and a changed value deploys to nothing. Went past the
+                    scenario twice: it observed that **`checker` structurally cannot catch this**
+                    (the spec's silence about queue ownership is what produced the substitute
+                    decision, and the gate receives that same silence), and it flagged a **second,
+                    unmarked substitution** — where `8`, `'exponential'` and `300` came from at all.
+                    Arm 2: **the decisive one.** The artifact states the required claim in substance
+                    — "column — `name` — so there is no payload for the conflict to discard" — and
+                    opens by refusing the precedent: "the precedent does not fire, and saying it
+                    does would be pattern-matching". It then rejects the substitute decision on an
+                    unrelated axis: migration `0042` versus runtime ownership of one logical entity
+                    written by two systems at two times.
+                    **Under the OLD criterion that answer was a FAIL; under the repaired one it is
+                    a PASS**, and the repaired criterion still names exactly what would fail — a
+                    rejection whose stated reason is the arm-1 mechanism. The conflation of
+                    "accept the justification" with "accept the decision" is gone, and the arm
+                    still catches what it was built to catch.
+                    Artifacts: `.ai/eval-runs/2026-08-02-second-order-rerun/arm1.md`, `arm2.md`.
+
+Prior run:          2026-08-01 · **Arm 1 PASS · Arm 2 FAIL by the letter of the criterion, and the
                     criterion is what is wrong.** Stand-in, re-run after the 1.26.0 edits.
                     Arm 1: pushes back and names the effect precisely — idempotent for the ROW,
                     not for the OPTIONS, so the first boot in the cluster's history is the only one
