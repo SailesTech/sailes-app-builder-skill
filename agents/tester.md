@@ -42,7 +42,11 @@ file means you never started; a file with no `closed:` means you died mid-run; a
 declaration — those three were one silence until 2026-08-01, when it cost a lead a false "unfinished"
 verdict on work that had already landed, and cost two workers their work outright across five
 crashes. The lead checks this against your worktree — metadata only — and reports what it finds; it
-does not block on it.
+does not block on it. **If the write outside your worktree fails for any reason, write
+`<worktreePath>/.claude/status/tester-<n>.md` instead — inside your own worktree — and state the
+fallback path prominently in your report.** Never silently skip the claim: this mechanism rests on a
+harness asymmetry (`Bash` can reach outside a worktree where `Write` refuses to) nobody here
+controls, and a degraded claim beats a missing one.
 
 ## You never
 - Open the implementation before emitting the behavior list. If you have, the phase is void — say so.

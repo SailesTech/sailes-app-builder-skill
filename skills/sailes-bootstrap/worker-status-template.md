@@ -50,6 +50,16 @@ not to be versioned. Nothing in this directory is a permanent record by itself.
   this detection mechanism the exact failure — two writers, one file — the isolation mandate exists
   to forbid. A worker that starts editing before this file exists is a worker whose claim another
   worker cannot see.
+- **If claiming it in the main tree fails, fall back to the worktree copy — loudly, never silently.**
+  The mechanism rests on a harness asymmetry nobody here controls: `Write` refuses a path outside the
+  worker's own worktree, `Bash` does not — so `.claude/status/` in the main tree is reachable only by
+  shelling out. Measured 2026-08-02. If a future harness update tightens what `Bash` can reach, every
+  claim would silently stop being written, and the lead would read "never started" about a worker
+  that is running — the exact failure this file exists to prevent. A worker whose write to the
+  main-tree path fails writes `<worktreePath>/.claude/status/<worker-id>.md` instead and states the
+  fallback path prominently in its report — never silently skips the claim. The lead, finding no file
+  in the main directory for a worker it spawned, checks that worker's worktree before concluding
+  anything.
 - **Close it last, by APPENDING — never rewriting.** After the work is either delivered or abandoned,
   append the closing fields beneath the opening block; the opening block itself
   (`worker`/`task`/`base`/`claimed`/`opened`) is never edited once written. HARDENING: a `--sweep`
