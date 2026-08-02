@@ -35,4 +35,55 @@ Control arm:        All three against the role definition before this clause. Ar
                     produce no cleanup at all; arm 1 MUST take the declaration at face value. If
                     the control already verifies and cleans up, this eval measures nothing and the
                     doctrine addition is unproven.
-Last run:           not yet run — added 1.27.0.
+Last run:           2026-08-02 (at 27bdb98) · **PASS on all three arms** — re-run against the
+                    `.claude/status/` path, the fallback clause and both hardenings. Stand-in.
+                    Arm 1 split the discrepancy into **three** distinct findings rather than one,
+                    and ranked them: a `commit:` that does not exist is a stale or fabricated field
+                    that integration never depended on; an **unclaimed edit to a shared contract**
+                    is the substantive one, because it means the contract was not frozen during the
+                    run; and the branch tip being `WIP: query parsing` **above** the `feat:`
+                    declaration means cherry-picking the declaration alone would silently drop the
+                    query parsing. That last one is the 1.27.1 branch-not-commit rule applied
+                    unprompted, in a scenario that does not grade it — the strongest evidence in
+                    this run that the rule landed.
+                    Arm 2: run-log line and deletion as one act, and it recorded discrepancies as
+                    **"none"** rather than leaving the field silent — the `qa: n/a` convention
+                    carried across to verification.
+                    Arm 3: reads the middle state correctly, folds the loss into the run log before
+                    removing the file, gives the replacement a **new harness id** rather than
+                    reusing the dead worker's, and checks the delegation mode first, because with
+                    teams mode off "does not answer messages" is not evidence of anything.
+                    Controls were not re-run: they are recorded below and the doctrine they lack
+                    only grew, so their result cannot have moved toward the treatment.
+                    Artifacts: `.ai/eval-runs/2026-08-02-rerun/R3-lies.md`, `R4-accept.md`, `R5-dead.md`.
+
+Prior run:          2026-08-02 · **PASS on all three arms — and the controls make the result
+                    sharper than a pass does.** Vehicle: stand-in on working-tree text.
+                    Arm 1: reports both discrepancies — the absent sha and the undeclared contracts
+                    file — ranks the second as the costlier (a shared contract surface edited after
+                    the freeze, which worktree isolation does not protect), and does **not** block.
+                    Refused to call the worker dishonest, listing three mechanisms that produce a
+                    missing sha, and kept `checker` blind to the whole story.
+                    Arm 2: folds the substance into the run log **and** removes the file — run-log
+                    line first, because a file removed with no matching line is a lost declaration.
+                    Arm 3: does not delete silently, records the loss first, and **sharpened the
+                    criterion**: a file with no `closed:` means "died mid-run OR still running", and
+                    the file alone cannot separate those. Added unprompted: never write `closed:`
+                    yourself, because that forges a declaration; and a re-spawn gets its own file
+                    rather than inheriting the dead worker's.
+                    **What the controls show, and it is not "the doctrine is unnecessary".** Arm 1's
+                    control **detected everything** and then **froze integration** — the disposition
+                    the human rejected, and defensible on its own terms. Arm 2's control **left the
+                    file untouched**, correctly refusing to invent a lifecycle its definition lacks.
+                    Arm 3's control **invented a third convention** — rewrite in place, then
+                    `git mv` to `.ai/status/closed/` — and honestly marked it as its own
+                    construction. So this doctrine buys **disposition, not detection**, and the
+                    argument for it is that without a stated rule two competent leads reach two
+                    incompatible answers.
+                    **Arm 3's control also found the design hole this spec shipped with**, while
+                    grading something else: every writing worker is in a worktree, so a status file
+                    it writes lands in the worktree and is invisible from the main tree — and the
+                    directory is gitignored, so it never arrives by cherry-pick either. The doctrine
+                    never says where the file physically lives. Filed to `.ai/backlog.md` as the
+                    open decision.
+                    Artifacts: `.ai/eval-runs/2026-08-02-status-file/artifacts/S2-*`.

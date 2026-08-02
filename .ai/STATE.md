@@ -177,7 +177,35 @@ Last-commit: 907a071
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-08-02: **1.25.2 + 1.26.0 + 1.27.0 shipped to `main`** after the human's explicit
+- 2026-08-02 (**resume here**): **1.27.1 and 1.27.2 shipped to `main`** on the human's green light,
+  after 1.25.2 + 1.26.0 + 1.27.0 earlier the same day. Branches cleaned; only `main` remains.
+  - **The eval board records no outcome other than PASS** — 44 scenarios, 0 dirty, 0 never-run,
+    5 commit-pinned. First time this session. `gate-refuses-to-close-a-spec-without-docs-delta` went
+    GREEN on a purpose-built fixture: the agent refused "deltę zrobimy przy okazji", ran the gate,
+    showed the receipt and **stopped** — verified from disk, not from its report.
+  - **`delta-at-gate.md` could fabricate an architectural finding on Windows** and now cannot: the
+    compare base went to `/tmp`, which Git Bash and Node resolve differently, so the compare read a
+    stale base from another project. Found by an agent *following* the guide; nobody reading it saw
+    it, including me.
+  - **Eval freshness can be pinned to a commit** (`Last run: <date> (at <sha>)`), and the listing
+    marks `[@commit]` vs `[~day]` so an imprecise record looks imprecise. Opt-in; existing
+    scenarios keep day precision until their next real run.
+  - **Nine of the day's thirteen defects were found by USING the mechanisms, not reading them** —
+    three of them in things written that same morning. Three came from agents doing something else
+    entirely. Two were the lead's own, both in `.ai/lessons.md`.
+  - **Every worker got a worktree cut from a stale base — eleven for eleven.** All eleven caught it
+    and fast-forwarded before working, because the brief clause from 1.26.0 told them to. The
+    harness defect is unchanged; the cost is now zero.
+  - Full accounting of the day's workers, with each status file folded in at acceptance:
+    `.ai/runs/2026-08-02-delegation-spec-and-1.27.x.md`.
+  - **Still open**, all in `.ai/backlog.md`: the status file works only because `Write` refuses
+    paths outside a worktree while `Bash` does not — a harness asymmetry we do not own, mitigated by
+    a documented fallback, not fixed. `lead-delegates` still demands a reason in one direction only.
+    28 evals remain STALE by file mtime with no content contact — deliberately not milled.
+  - The delegation spec's remaining phases are done; the spec itself has not been moved to
+    `implemented/` because its docs-delta step has not been run against this repo.
+
+- 2026-08-02 (earlier): **1.25.2 + 1.26.0 + 1.27.0 shipped to `main`** after the human's explicit
   "napraw wszystko teraz i dopiero wypchnij", then "posprzątaj i pushuj". Twenty commits.
   - **1.27.0 — mechanism where prose was re-derivable.** Seven phases of
     `.ai/specs/2026-08-01-delegation-precision-and-agent-control.md`; five ran in parallel in
@@ -471,6 +499,11 @@ Last-commit: 907a071
   **n=1** (rules 9 and 10 of `deciding-under-uncertainty.md` each came from a single run), and the
   framework has **no routine retirement mechanism** — `prompt-anchor` was retired only because someone
   deliberately designed an experiment to test whether it was still needed.
+  *(Half addressed 2026-08-02: `evals/archived/` now exists as the retirement convention for a
+  scenario whose subject is gone, documented in `evals/README.md` and held by a mutation-proven test
+  so a later recursion cannot silently un-retire anything. That covers retiring the **eval**; it does
+  not cover noticing that a **rule** has outlived its usefulness, which is still the harder half and
+  still has no mechanism.)*
 
   **Human decisions taken this session:** roster Q1 = (a) lead spawns; `designer` gets browser tools
   **and** `Bash`; `chrome-devtools` MCP becomes a **hard requirement on UI repos** (chosen against my

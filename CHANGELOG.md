@@ -4,6 +4,111 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.27.2 — 2026-08-02 · the board tells the truth, and the last RED is closed
+
+**`delta-at-gate.md` could fabricate an architectural finding on Windows.** Step 2 wrote the compare
+base to `/tmp/arch-base.json`. Git Bash resolves `/tmp` to `C:/Users/<you>/AppData/Local/Temp`;
+**Node resolves it to `C:\tmp`** — and `archify compare` is Node. Git wrote one file, the compare read
+another. On the machine where this surfaced, `C:\tmp\arch-base.json` already held a stale base from a
+different project, so following the guide verbatim produced a **non-empty delta describing someone
+else's architecture**, indistinguishable from a genuine finding. Same family as the `$HOME` hazard
+`archify-setup.md` records, one reference file away and not covered there. The base path is now
+repo-relative, where the two runtimes cannot disagree. Found by an agent following the guide, not by
+reading it.
+
+**`gate-refuses-to-close-a-spec-without-docs-delta` is GREEN.** Its FAIL had been a RED baseline since
+2026-07-29 whose fix shipped four hours later in `2801edf` and which nobody re-ran. Against a
+purpose-built fixture — 63 assertions green before dispatch, five archify sources authored from that
+repo's own code rather than stock samples — the agent refused "deltę zrobimy przy okazji", ran the
+gate, produced the receipt, showed it, and **stopped**. Verified from disk: spec still in
+`.ai/specs/`, `implemented/` empty, receipt present. **The eval board now records no outcome other
+than PASS.**
+
+**Eval freshness can be pinned to a commit.** `Last run:` accepts an optional `(at <sha>)`; with it,
+staleness is "did any `Files:` path change since that commit" instead of "was the change on a later
+calendar day". The day-grace is deliberate and stays as the default — a run and a same-day commit
+would otherwise always read STALE — but on 2026-08-02 the doctrine changed four times and two evals
+reported FRESH about text edited after they ran. The listing now marks each scenario `[@commit]` or
+`[~day]`, and the summary counts both, so **an imprecise record looks imprecise**. Opt-in: existing
+scenarios keep day precision until their next real re-run.
+
+**Three status-file format defects, all from real workers' real files.** Block-list `claimed:`/
+`touched:` were rejected though the doctrine's own examples invite them. `outcome: done — <reason>`
+was rejected outright, though every worker so far wrote it that way; the token is now read off the
+front and the prose kept. And `commit:` accepted **prose** — one worker wrote its excuse there and it
+satisfied the very check that exists to make `done` verifiable, laundering an explanation into
+evidence; it must now start with a sha, with any note after it.
+
+One of those was a regression **this repo introduced and then caught**: block-list support was lost
+resolving a merge conflict, and the integration check that missed it counted two other symbols and
+declared consistency — the exact lesson recorded that morning, repeated within hours. It surfaced
+from `--sweep` on two live workers' files, not from a test.
+
+**`evals/archived/` is the retirement convention**, with a mutation-proven guard: it works today as a
+side effect of the `.md` filter, and a later reader adding recursion would silently un-retire
+everything. Retire only when the subject is gone — never for an inconvenient scenario, a wrong
+criterion (fix it) or a stale FAIL (re-run it).
+
+Also: four recovery commits cited in a retirement record were reachable from **no ref** and due for
+`git gc` around 2026-08-17; they now carry tags. And the worker status file gained a documented
+fallback — if the write outside the worktree fails, the worker claims inside its worktree and says
+so, and `--sweep` walks `.claude/worktrees/*/.claude/status/` to find it.
+
+## 1.27.1 — 2026-08-02 · what an hour of actually using 1.27.0 found
+
+Everything here was found by running the mechanism 1.27.0 shipped, not by reading it. Three of the
+four defects are in things written that same morning.
+
+**The status file moved to `.claude/status/`.** 1.27.0 put it in `.ai/status/`, and the first live
+run exposed why that was wrong twice over. Structurally: every writing worker runs in a worktree, so
+a file it writes there is invisible from the main tree, and the directory is gitignored so it never
+arrives by cherry-pick either — the sweep, the invariant and the lead's verification all assumed one
+readable directory that did not exist. Conventionally: a status file is live runtime state, the same
+category as a PID file, and the convention puts that in a shared runtime directory — never inside the
+data it describes, never inside the unit it describes. `AGENTS.md` says `.ai/` is memory, not scratch;
+`.claude/worktrees/` was already the precedent. **Found by the CONTROL arm of an eval grading
+something else entirely.**
+
+Two hardenings shipped with the move. **`worker-id` comes from the harness's agent id**, never the
+worker's choosing — a self-chosen id can collide and silently overwrite another worker's declaration,
+reproducing inside the detection mechanism the exact failure the isolation mandate forbids. And
+**closing appends, never rewrites**, so a sweep reading a file mid-write sees a valid intermediate
+state rather than a truncated one.
+
+**The mechanism rests on a harness asymmetry, so it now degrades instead of breaking.** Measured, and
+reported unprompted by two workers independently: the `Write` tool refuses a path outside the
+worker's worktree; `Bash` does not. The main-tree claim is therefore only reachable by shelling out.
+Doctrine now says that if that write fails, the worker claims
+`<worktreePath>/.claude/status/<id>.md` instead and **says so prominently in its report**, never
+skips silently; the lead checks the worktree before concluding a worker never started; and
+`--sweep` walks `.claude/worktrees/*/.claude/status/` too, labelling what it finds. We do not own the
+harness — a mechanism that falls back keeps every property except one listing's convenience, while
+one that breaks loses the state distinction entirely.
+
+**A malformed claim is now caught while the file is still open.** A worker wrote `claimed: 2026-08-02`
+— a date where a path list belongs — and the validator said only "died mid-run". Shape was graded at
+closure alone, which is backwards: if the worker dies, the claim block is **all that survives**, and
+its one job is to name the files it took.
+
+**The lead takes the BRANCH, not the last commit.** The `WIP:` convention shipped in 1.27.0 and broke
+integration the first time it was used: a worker's declaration carried **6 of the 16 files it had
+changed**, `git cherry-pick` reported success, and only an unrelated grep caught the missing ten. The
+non-`WIP:` commit is the worker's declaration *that it finished* — it is not the unit that carries
+the work.
+
+**`evals/archived/` is the retirement convention.** `anchor-holds-the-line-deep-in-session` sat on the
+"did not record a PASS" board beside two live debts while measuring a hook retired by human decision
+six days earlier. Its FAIL was correct and was never about the framework: the control arm held the
+line with no anchor, and a criterion requiring the arms to separate must fail when they do not — the
+hypothesis failed, not the doctrine. Retirement applies only when the subject is gone, never to an
+inconvenient scenario, a wrong criterion (fix it) or a stale FAIL (re-run it). Held by a
+mutation-proven test, because it currently works as a side effect of the `.md` filter and a later
+recursion would silently un-retire everything.
+
+Diagnosing that also found four recovery commits, cited in a retirement record, reachable from **no
+ref** — surviving only in reflog entries dated 2026-07-18 and due to be pruned by `git gc` around
+2026-08-17. They now carry tags `retired/prompt-anchor-1..4`.
+
 ## 1.27.0 — 2026-08-02 · one rule cannot live in three hand-written copies
 
 Everything here follows one finding: **doctrine is largely re-derivable by the model, artifacts are

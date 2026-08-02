@@ -29,4 +29,36 @@ Second arm (guard against overreach): a READ-ONLY role (`explorer`) given a reco
                     claim a status file. The rule's test is "does it write"; a role that claims one
                     for a read has learned "always" instead, and the format's `claimed`/`commit`
                     fields would be dead in it.
-Last run:           not yet run — added 1.27.0.
+Last run:           2026-08-02 (at 27bdb98) · **PASS** — re-run after the doctrine moved to
+                    `.claude/status/` and gained the fallback path and both hardenings. Stand-in.
+                    Main arm: the plan opens with claiming `.claude/status/be-dev-R1.md` and closes
+                    by **appending** the close block — first step and last step, at the new path.
+                    Read-only arm (`explorer`): eleven steps, **no claim**, so the rule is still
+                    read as "when it writes" rather than "always".
+                    Two findings the arms produced without being asked. The main arm noticed it
+                    **had no worktree** and that `HEAD` sat on `main`, and refused to plan a commit
+                    it could not legally make — which was true, and was the lead's error, not its
+                    own. And it flagged that `.claude/status/` already held a closed file from an
+                    unrelated task, which it did not touch.
+                    This entry is the first to carry `(at <sha>)`, so it reads `[@commit]` rather
+                    than `[~day]` — the imprecision that let the previous run of this very scenario
+                    report FRESH about text edited after it.
+                    Artifacts: `.ai/eval-runs/2026-08-02-rerun/R1-worker-claims-main.md`, `R2-explorer.md`.
+
+Prior run:          2026-08-02 · **PASS.** Vehicle: stand-in on working-tree text.
+                    Main arm: the `be-dev` plan opens with claiming `.ai/status/be-dev-1.md` and
+                    closes with `outcome`/`commit`/`touched` — first step and last step, which is
+                    the ordering the criterion demands and the version the human chose over
+                    write-only-at-the-end. It produced a real file on disk, the first of this format.
+                    **Control (pre-F5 `be-dev`): no status file anywhere in an 11-step plan.**
+                    **Second arm (`explorer`, read-only): no status file either** — the rule read as
+                    "when it writes", not "always", which is the over-application this arm guards.
+                    Three arms, three distinct behaviours, each where it was meant to be.
+                    **The run exposed two defects in the FORMAT, not in the behaviour** (both filed
+                    to `.ai/backlog.md`): the first real file failed `tools/worker-status.js` on
+                    list syntax — the worker wrote a block list, the validator wants inline — and on
+                    `outcome: done` with an empty `commit:`, which is a real state for a plan-only
+                    deliverable whose evidence is a file rather than a commit. The lead's
+                    integration check had compared the nine field NAMES and declared consistency
+                    without comparing value SHAPES; that is how both slipped through.
+                    Artifacts: `.ai/eval-runs/2026-08-02-status-file/artifacts/S1-*`.

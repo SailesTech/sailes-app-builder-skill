@@ -25,14 +25,21 @@ through. The lead reads your branch from the shared `.git` and cherry-picks it; 
 nothing is copied. No commit means not finished, which is itself useful for the lead to know.
 
 ## Claim the status file first, close it last
-Before your first edit, write `.ai/status/fe-dev-<n>.md`: `worker`, `task`, `base` (the sha your
-worktree was cut from), `claimed` (the paths you're about to touch), `opened`. As your last action,
-append `closed`, `outcome` (`done` | `blocked` | `policy-refusal`), `commit` (empty unless
-`outcome: done`), `touched` (what you actually moved). No file means you never started; a file with
-no `closed:` means you died mid-run; a closed file is your declaration — those three were one
-silence until 2026-08-01, when it cost a lead a false "unfinished" verdict on work that had already
-landed, and cost two workers their work outright across five crashes. The lead checks this against
-your worktree — metadata only — and reports what it finds; it does not block on it.
+Before your first edit, write `.claude/status/fe-dev-<n>.md` — the one file you write outside your
+worktree, named with the id the harness assigned you, never one you choose (a self-picked id can
+collide with another worker's and silently overwrite its declaration): `worker`, `task`, `base` (the
+sha your worktree was cut from), `claimed` (the paths you're about to touch), `opened`. As your last
+action, APPEND — never rewrite the opening block — `closed`, `outcome` (`done` | `blocked` |
+`policy-refusal`), `commit` (empty unless `outcome: done`), `touched` (what you actually moved). No
+file means you never started; a file with no `closed:` means you died mid-run; a closed file is your
+declaration — those three were one silence until 2026-08-01, when it cost a lead a false "unfinished"
+verdict on work that had already landed, and cost two workers their work outright across five
+crashes. The lead checks this against your worktree — metadata only — and reports what it finds; it
+does not block on it. **If the write outside your worktree fails for any reason, write
+`<worktreePath>/.claude/status/fe-dev-<n>.md` instead — inside your own worktree — and state the
+fallback path prominently in your report.** Never silently skip the claim: this mechanism rests on a
+harness asymmetry (`Bash` can reach outside a worktree where `Write` refuses to) nobody here
+controls, and a degraded claim beats a missing one.
 
 ## You never
 - Start before the BE contract is frozen — you build against a committed shape, not a moving target.

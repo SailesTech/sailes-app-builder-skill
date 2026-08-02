@@ -68,7 +68,25 @@ Notes:              Grades the **spawn plan**, not the runtime, so it is runnabl
                     door by `lead-delegates-instead-of-bulk-coding`; this eval grades only what a
                     spawn carries.
 Raw return:         `.ai/eval-runs/2026-07-31-sailerem-lessons/worktree-mandate.md`
-Arm 1 records below are SUPERSEDED (stamped 2026-08-02): the arm-1 fixture was re-cut that day,
+Last run:           2026-08-02 (at 27bdb98) · **arm 1 PASS — its first run since the fixture was
+                    re-cut.** Stand-in. Every writing spawn carries `isolation: worktree` — `be-dev`,
+                    the `tester` deriving the case list, and the fresh `tester` writing the suite —
+                    while `explorer` and `checker` get none and `qa` takes environment exclusivity
+                    instead. That is the distinction the criterion asks for and the one the OLD
+                    fixture could not measure, because it demanded a spawned worker for a change
+                    below the delegation threshold.
+                    Two things beyond the criterion: the two-role split is bought at **zero
+                    schedule cost**, since deriving cases needs only the spec and runs concurrently
+                    with the implementation rather than after it; and `qa` is judged **applicable,
+                    not `n/a`**, because a list that stops returning tombstoned rows is observable.
+                    It also measured the delegation mode instead of assuming it, and said so in the
+                    briefs rather than quoting a release procedure that cannot run here.
+                    Arms 2 and 3 were not re-run — their subject (read-only gets none; `qa` takes
+                    exclusivity) is untouched by the 1.27.x changes. That is a judgment, not a
+                    measurement, and it is recorded as one.
+                    Artifact: `.ai/eval-runs/2026-08-02-rerun/R6-worktree-arm1.md`.
+
+Older arm-1 records below are SUPERSEDED (stamped 2026-08-02): the arm-1 fixture was re-cut that day,
                     so `worktree-arm1-onefile.md` and `worktree-arm1-CONTROL.md` are evidence about
                     a fixture that no longer exists. They remain valid as the record of WHY it was
                     re-cut — the control is what proved the old arm-1 result was a criterion defect

@@ -125,6 +125,18 @@ test('runCoversCommit flags the next day', () => {
   assert.strictEqual(lib.runCoversCommit('2026-07-18', '2026-07-19T00:00:01Z'), false);
 });
 
+test('parseRunSha reads the pinned commit out of `(at <sha>)`', () => {
+  assert.strictEqual(lib.parseRunSha('2026-08-02 (at cbf20c2) · PASS · one-line note'), 'cbf20c2');
+});
+
+test('parseRunSha returns null when there is no `(at …)`', () => {
+  assert.strictEqual(lib.parseRunSha('2026-08-02 · PASS · one-line note'), null);
+});
+
+test('parseRunSha ignores a token that is not hex-shaped', () => {
+  assert.strictEqual(lib.parseRunSha('2026-08-02 (at not-a-real-sha) · PASS'), null);
+});
+
 // ---------------------------------------------------------------- verdicts (both directions)
 
 test('STALE: a file changed after the recorded run is flagged', () => {
@@ -306,6 +318,129 @@ test('STALE outranks DIRTY — a committed later change is the stronger statemen
   assert.strictEqual(r.verdict, 'STALE');
 });
 
+// ---------------------------------------------------------------- sha-pinned precision
+
+// The defect this whole harness exists to close, measured 2026-08-02: `runCoversCommit` grants a
+// same-day grace so a run and a commit on the same calendar day both read FRESH — right for a
+// day-only record, wrong once the record can name the exact commit it graded. These cases prove
+// the sha-pinned path is exact where the date-only path is necessarily approximate.
+
+test('STALE: sha-pinned run — a file changed after the pinned commit is flagged, same day or not', () => {
+  const dir = makeRepo();
+  commit(dir, 'agents/role.md', 'v1\n', '2026-08-02T09:00:00Z');
+  const pinnedSha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+  // Same calendar day, but strictly after the commit the run was pinned to. A day-precision
+  // comparison (runCoversCommit) would call this FRESH — that is exactly what went unreported.
+  commit(dir, 'agents/role.md', 'v2\n', '2026-08-02T15:00:00Z');
+  writeCRLF(
+    path.join(dir, 'evals/x.md'),
+    evalDoc({ files: 'agents/role.md', lastRun: `2026-08-02 (at ${pinnedSha.slice(0, 7)}) · **PASS**` })
+  );
+  const r = lib.evaluateOne(dir, path.join(dir, 'evals/x.md'));
+  assert.strictEqual(r.verdict, 'STALE');
+  assert.strictEqual(r.precision, 'commit');
+  assert.strictEqual(r.changed[0].file, 'agents/role.md');
+});
+
+test('FRESH: sha-pinned run — a file unchanged since the pinned commit is not flagged', () => {
+  const dir = makeRepo();
+  commit(dir, 'agents/role.md', 'v1\n', '2026-07-10T12:00:00Z');
+  const pinnedSha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+  // History moves on, but not for the file under test — the pinned commit still covers it.
+  commit(dir, 'skills/other.md', 'x\n', '2026-07-15T12:00:00Z');
+  writeCRLF(
+    path.join(dir, 'evals/x.md'),
+    evalDoc({ files: 'agents/role.md', lastRun: `2026-07-10 (at ${pinnedSha.slice(0, 7)}) · **PASS**` })
+  );
+  const r = lib.evaluateOne(dir, path.join(dir, 'evals/x.md'));
+  assert.strictEqual(r.verdict, 'FRESH');
+  assert.strictEqual(r.precision, 'commit');
+});
+
+test('FRESH: a run pinned to the exact commit that touched the file (self-ancestry)', () => {
+  const dir = makeRepo();
+  commit(dir, 'agents/role.md', 'v1\n', '2026-07-10T12:00:00Z');
+  const pinnedSha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+  writeCRLF(
+    path.join(dir, 'evals/x.md'),
+    evalDoc({ files: 'agents/role.md', lastRun: `2026-07-10 (at ${pinnedSha}) · **PASS**` })
+  );
+  const r = lib.evaluateOne(dir, path.join(dir, 'evals/x.md'));
+  assert.strictEqual(r.verdict, 'FRESH');
+});
+
+// The fixture this whole change must NOT alter: a record with a date and no sha keeps exactly the
+// same-day-grace behavior it has today. This is the regression guard for the 44 existing scenarios.
+test('a dateless-sha-less line — a plain date, no `(at …)` — behaves exactly as today', () => {
+  const dir = makeRepo();
+  commit(dir, 'agents/role.md', 'v1\n', '2026-07-18T08:00:00Z');
+  writeCRLF(
+    path.join(dir, 'evals/x.md'),
+    evalDoc({ files: 'agents/role.md', lastRun: '2026-07-18 · **PASS**' })
+  );
+  const r = lib.evaluateOne(dir, path.join(dir, 'evals/x.md'));
+  assert.strictEqual(r.verdict, 'FRESH', 'same-day grace must still apply with no pinned commit');
+  assert.strictEqual(r.precision, 'day');
+  assert.strictEqual(r.runSha, null);
+});
+
+test('a malformed sha in `Last run:` is ignored, not fatal — falls back to day precision', () => {
+  const dir = makeRepo();
+  commit(dir, 'agents/role.md', 'v1\n', '2026-07-10T12:00:00Z');
+  // Hex-shaped, so it passes parseRunSha's regex, but names no commit in this throwaway repo —
+  // exercises resolveCommit's catch path, not just the regex.
+  writeCRLF(
+    path.join(dir, 'evals/x.md'),
+    evalDoc({ files: 'agents/role.md', lastRun: '2026-07-18 (at deadbeef) · **PASS**' })
+  );
+  const r = lib.evaluateOne(dir, path.join(dir, 'evals/x.md'));
+  assert.strictEqual(r.verdict, 'FRESH');
+  assert.strictEqual(r.precision, 'day', 'an unresolvable sha must degrade to day precision, not crash');
+});
+
+test('a malformed sha does not crash the harness even when it would otherwise be STALE', () => {
+  const dir = makeRepo();
+  commit(dir, 'agents/role.md', 'v1\n', '2026-07-20T12:00:00Z');
+  writeCRLF(
+    path.join(dir, 'evals/x.md'),
+    evalDoc({ files: 'agents/role.md', lastRun: '2026-07-18 (at deadbeef) · **PASS**' })
+  );
+  // Same assertion as the plain-date STALE case above — proves the fallback is the full date path,
+  // not just "don't throw".
+  const r = lib.evaluateOne(dir, path.join(dir, 'evals/x.md'));
+  assert.strictEqual(r.verdict, 'STALE');
+  assert.strictEqual(r.precision, 'day');
+});
+
+test('resolveCommit accepts an abbreviated sha and returns the full one', () => {
+  const dir = makeRepo();
+  commit(dir, 'agents/role.md', 'v1\n', '2026-07-10T12:00:00Z');
+  const full = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+  assert.strictEqual(lib.resolveCommit(dir, full.slice(0, 7)), full);
+});
+
+test('resolveCommit returns null for a ref this repo does not know, without throwing', () => {
+  const dir = makeRepo();
+  commit(dir, 'agents/role.md', 'v1\n', '2026-07-10T12:00:00Z');
+  assert.strictEqual(lib.resolveCommit(dir, 'deadbeef'), null);
+});
+
+test('isAncestorOrEqual treats a commit as its own ancestor', () => {
+  const dir = makeRepo();
+  commit(dir, 'agents/role.md', 'v1\n', '2026-07-10T12:00:00Z');
+  const sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+  assert.strictEqual(lib.isAncestorOrEqual(dir, sha, sha), true);
+});
+
+test('isAncestorOrEqual is false when the "ancestor" commit is actually later', () => {
+  const dir = makeRepo();
+  commit(dir, 'agents/role.md', 'v1\n', '2026-07-10T12:00:00Z');
+  const early = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+  commit(dir, 'agents/role.md', 'v2\n', '2026-07-20T12:00:00Z');
+  const late = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+  assert.strictEqual(lib.isAncestorOrEqual(dir, late, early), false);
+});
+
 test('scan skips README.md and returns one result per scenario', () => {
   const dir = makeRepo();
   writeCRLF(path.join(dir, 'evals/README.md'), '# not a scenario\n');
@@ -313,6 +448,23 @@ test('scan skips README.md and returns one result per scenario', () => {
   writeCRLF(path.join(dir, 'evals/b.md'), evalDoc({ lastRun: '2026-07-18' }));
   const names = lib.scan(dir, path.join(dir, 'evals')).map((r) => r.name);
   assert.deepStrictEqual(names, ['a', 'b']);
+});
+
+test('evals/archived/ is NOT scanned — a retired scenario stays off the board', () => {
+  // Retirement (evals/README.md) works today only because `scan` filters on `.md` and a directory
+  // is not a `.md` file. That is a side effect, not a decision, and a later reader adding recursion
+  // would silently resurrect every retired scenario onto the "did not record a PASS" list — which is
+  // exactly the confusion retirement exists to end. This test makes the side effect a contract.
+  const dir = makeRepo();
+  const evalsDir = path.join(dir, 'evals');
+  fs.mkdirSync(path.join(evalsDir, 'archived'), { recursive: true });
+  writeCRLF(path.join(evalsDir, 'live.md'), evalDoc({ lastRun: '2026-08-02 · PASS' }));
+  writeCRLF(
+    path.join(evalsDir, 'archived', 'retired.md'),
+    evalDoc({ lastRun: '2026-07-26 · FAIL' })
+  );
+  const names = lib.scan(dir, evalsDir).map((r) => r.name);
+  assert.deepStrictEqual(names, ['live'], 'an archived scenario was scanned back onto the board');
 });
 
 console.log(failures === 0 ? '\neval-status: all tests passed' : `\neval-status: ${failures} failing`);

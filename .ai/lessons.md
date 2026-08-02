@@ -7,6 +7,82 @@
 
 ## Lessons
 
+### 2026-08-02 — a mechanism's first real use finds what its tests cannot
+- **Context:** `tools/worker-status.js` shipped 1.25.2 with passing tests and a mutation proof
+  (`worker-status.test.js:49,214,268`) behind it. Its first genuine status file — not a fixture —
+  failed the validator twice: `claimed:` written as a YAML **block list** (`claimed:\n  - path`),
+  which the parser does not accept (it reads only the inline `["a", "b"]` shape,
+  `worker-status.js:78-90`), and a file carrying `outcome: done` with no `commit:` — a real state
+  for a plan-only task whose evidence is a file rather than a commit, and one `worker-status.js:166`
+  refuses by design rather than by accident.
+- **Problem:** a test suite exercises what its author anticipated. A mutation proof shows the code
+  turns red when the *known* invariants are broken; it says nothing about the shapes a worker who
+  never read the parser will actually write. Both failures here were "correct behaviour, unexpected
+  input" — the validator did what it was built to do, and the surprise was entirely on the input
+  side, which fixtures cannot generate because fixtures are written by the same mind as the parser.
+- **Rule:** before calling a new mechanism done, run it against **one artifact produced by something
+  other than its own test suite** — a real worker's real output, not a fixture built to match the
+  parser. A green suite plus a mutation proof answers "does the code do what the tests say"; only a
+  foreign artifact answers "does the code accept what will actually arrive".
+- **Applies-to:** `tools/worker-status.js` and any validator/parser added under `tools/`; the
+  acceptance step for any new mechanism before its first real dispatch, generically.
+
+### 2026-08-02 — an integration check that compares names is one level too shallow
+- **Context:** two workers who could not see each other implemented the worker-status format
+  (`tools/worker-status.js`) and its doctrine (`agent-team-structure.md` §The worker status file).
+  The lead verified that all nine fields — `worker`, `task`, `base`, `claimed`, `opened`, `closed`,
+  `outcome`, `commit`, `touched` — matched by name across both sides and declared them consistent.
+- **Problem:** the field **names** agreed; the list **syntax** did not. One side wrote and accepted
+  `claimed: ["a", "b"]`, inline; the other's example/doctrine carried a block list. A name-level
+  diff cannot see this — it confirms the two sides agree on vocabulary, not on grammar, and the
+  grammar is exactly what a parser enforces. The mismatch shipped and only surfaced on the
+  mechanism's first real use (previous entry).
+- **Rule:** compare **value shapes, not just keys.** Feed one side's actual example value through
+  the other side's parser/validator — don't diff the key lists and call it consistency. Two
+  implementations of a shared format agree only when an artifact from one validates clean against
+  the other, not when their glossaries match.
+- **Applies-to:** any lead-side check verifying two independently-built implementations of a shared
+  contract; `tools/worker-status.js` and `worker-status-template.md` specifically, and the
+  cross-worker integration-verification step generally.
+
+### 2026-08-02 — a declaration is not the unit of content
+- **Context:** the `WIP:` commit convention (`agent-team-structure.md:242-253`) broke the first
+  time it was exercised in practice: a worker's non-WIP — i.e. final, "I am declaring this done" —
+  commit carried only **6 of the 16 files** it had actually changed. `git cherry-pick` of that
+  commit reported success, because it was a perfectly valid commit; it just wasn't all the work.
+  Only an unrelated grep, run for a different reason, caught the missing ten files.
+- **Problem:** the convention's whole point is that a non-`WIP:` commit **is** the declaration of
+  completion, and the lead is told to trust it as such. But nothing enforces that a "final" commit
+  actually contains everything staged for the task — a partial `git add` before that commit produces
+  a commit that is valid, cherry-picks cleanly, and drops work silently. Exit-code success from
+  `cherry-pick` answers "did this commit apply", never "does this commit contain everything the
+  worker intended to deliver".
+- **Rule:** take the branch; read the log **only to learn whether the worker declared** (WIP vs.
+  final) — never to learn what is *in* the commit, and never cherry-pick a single commit when
+  completeness matters. Diff the branch against its base to see everything the worker touched;
+  the declaration tells you *when* to trust the work is finished, not *what* the finished work is.
+- **Applies-to:** `agents/team-lead.md` §Observing a silent worker, the cherry-pick-based
+  integration step it describes, and `agent-team-structure.md`'s `WIP:` convention; every worker
+  brief that ends in "commit when done".
+
+### 2026-08-02 — a freshness check with day granularity cannot see same-day drift
+- **Context:** `evals/harness/eval-status.js` records a run as a **date** and, per
+  `runCoversCommit()` (`eval-status.js:165-174`), treats it as covering everything up to
+  `23:59:59.999Z` of that day — deliberately, to stop a same-day run and commit from always reading
+  STALE. On a day when doctrine changed **four times**, two evals that had run against the text
+  **before** an edit still reported FRESH after the text was edited later the same day, because the
+  run and the edit shared a date.
+- **Problem:** the check's unit of comparison (a calendar date) is coarser than the unit of change
+  (a commit). That's correct on a slow-moving repo — the case it was built for — and wrong on a fast
+  one: once a day carries more than one relevant commit, "same day" stops meaning "same content",
+  and the FRESH verdict silently certifies content the eval never actually saw running.
+- **Rule:** pin a run to a **commit**, not a date, wherever the record has to survive a fast day —
+  record the SHA the run was measured against and compare that SHA's ancestry to the file's current
+  SHA, rather than comparing calendar dates. Date-granularity freshness is a correct instrument only
+  when the repo's edit rate is slower than its recording rate; this repo's is not, reliably.
+- **Applies-to:** `evals/harness/eval-status.js` (`runCoversCommit`) and its `Last run:` field
+  convention; any other doctrine-drift-tracking mechanism built on date-level granularity.
+
 ### 2026-07-26 — the mitigation that was named and never promoted is the one that kept failing
 
 - **Context:** on 2026-07-20 a defect class produced three mitigations. Two were written into

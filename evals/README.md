@@ -42,6 +42,25 @@ Two obligations, because this is the same stand-in the doctrine otherwise restri
 - **Promoting a lesson into a skill** → add the eval that would catch its regression.
 - A FAIL after an edit = the edit regressed a protected behavior — fix before merging.
 
+## Retiring a scenario — `evals/archived/`
+
+A scenario whose **subject no longer exists** moves to `evals/archived/`. `eval-status.js` scans
+only `*.md` directly under `evals/`, so an archived scenario disappears from the board without any
+parser change — and that is why the harness suite asserts it, in
+`evals/harness/eval-status.test.js`: the behaviour is currently a side effect of the `.md` filter,
+and a later reader adding recursion would silently resurrect every retirement.
+
+**Retire only when the subject is gone** — the hook was never shipped, the branch was abandoned, the
+role was deleted. Do **not** retire a scenario because it is inconvenient, because its criterion is
+wrong (fix the criterion), or because its FAIL is stale (re-run it). Introduced 2026-08-02, when
+`anchor-holds-the-line-deep-in-session` sat on the "did not record a PASS" list next to two live
+debts while measuring a hook that had been retired by human decision six days earlier — a correct
+FAIL about a **refuted hypothesis**, not an open defect, and unreadable as such from the board.
+
+The archived file keeps its full text and gains a `> **RETIRED <date>**` block at the top saying
+what happened, why no re-run is warranted, and where the diagnosis lives. Retirement is a claim
+someone can disagree with; deletion is not, which is why nothing is deleted.
+
 ## Scenario format
 
 ```markdown
@@ -51,12 +70,38 @@ Files:              <repo-relative paths, comma separated — machine-readable, 
 Setup:              <what to hand a fresh subagent — task prompt, no extra context>
 Expected (binary):  <grep-able assertion on the subagent's output or produced files>
 Failure looks like: <the baseline behavior this eval was written against>
-Last run:           <date · PASS/FAIL · one-line note>
+Last run:           <date [(at <sha>)] · PASS/FAIL · one-line note>
 ```
+
+`(at <sha>)` is optional — see below.
 
 `Files:` is what lets `evals/harness/eval-status.js` tell a green result from a stale one. Without it
 the scenario reports **NO-FILES** — not FRESH: an eval whose coverage cannot be computed must never
 read as covered.
+
+### `Last run:` precision — day-approximate by default, exact when you pin the commit
+
+A bare `Last run:` date is graded against the whole calendar day: a `Files:` path last touched any
+time before 23:59:59 on that date reads FRESH, including a commit made *after* your run but on the
+same day. That grace is deliberate — a run and a same-day commit would otherwise always read STALE
+— but it means a day-only record can under-report staleness by up to 24 hours.
+
+Name the exact commit your run graded and the harness drops the grace entirely:
+
+```
+Last run:           2026-08-02 (at cbf20c2) · PASS · one-line note
+```
+
+With `(at <sha>)` present and resolvable, freshness is computed against that commit: any `Files:`
+path whose last change is not that commit or an ancestor of it is STALE — no same-day exception.
+`node evals/harness/eval-status.js` marks the two cases so you can tell which is which at a glance:
+`[@commit]` for a pinned, exact run; `[~day]` for the approximate fallback. A malformed or
+unresolvable sha is ignored (falls back to day precision) rather than failing the whole scenario.
+
+This is opt-in, not a migration: **do not backfill `(at <sha>)` into an existing `Last run:` line**
+— write it the next time you actually re-run that scenario. 44 of today's scenarios have no sha and
+read `[~day]`; that is the harness telling the truth about how precisely each one was dated, same as
+`NO-FILES` tells the truth about scenarios with no `Files:` line at all.
 
 ## Is this PASS still true?
 
