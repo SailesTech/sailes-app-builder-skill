@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: 907a071
+Last-commit: PENDING-1.28.0
 
 > Read at session start; write before walking away. Facts enter **Verified facts** only with
 > evidence; hypotheses stay in **Open failures**.
@@ -192,7 +192,48 @@ Last-commit: 907a071
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-08-02 (**resume here**): **1.27.1 and 1.27.2 shipped to `main`** on the human's green light,
+- 2026-08-02 late (**resume here**): **1.28.0 is stamped, gated and NOT pushed.** 22 commits on
+  local `main`, tree clean, `npm test` green across fifteen suites, five stamps at 1.28.0.
+  **The push is the human's call and it is the only thing blocking** — it deploys a change to the
+  guard that protects migrations and key material.
+  - **The backlog was lying in both directions: eleven of twenty-one "open" rows were already done.**
+    One carried `open — this is the decision` three lines under its own `CLOSED` heading. The three
+    rows this audit took on trust rather than checking were all **filed and fixed on the same day**,
+    which is exactly what made them read as safe. Two of the three were done. Lesson recorded.
+  - **`guard-protected-paths.sh` let a repo-relative path through, and always had.**
+    `migrations/003_deals.sql` → exit 0; the same path absolute → exit 2. The relative form is the
+    one an agent types. Ships to every client repo. **Found by an eval grading something else.**
+    Fixed twice — the second version came from a worker that my own invented sha stranded on a stale
+    base, so it re-derived the fix independently and got a strictly better one, including the
+    JSON-escaped-tab case a character class alone cannot see.
+  - **Five releases had shipped with no architecture delta** (1.25.2 → 1.27.2). Receipts now exist
+    for all five; four are empty **and recorded as empty**. `release-hygiene.test.js` checks
+    presence only, which is why nothing caught it.
+  - **The plugin clone does not auto-update.** `d6b64e2` = 1.27.0 against `origin/main` at 1.27.2,
+    with `autoUpdate: true` set. **Five agents found this independently**, and five of six eval
+    re-runs refused the real role because of it. Every "spawn the real named role" instruction
+    serves whatever the clone holds. **Undiagnosed** — is `autoUpdate` firing and failing, or not
+    firing at all? This is the highest-value open question on the board.
+  - **`worker-claims-before-it-writes`: PASS on the text, FAIL on the deployed runtime**, 2/2. The
+    only result of the day that says anything about production rather than the working tree.
+  - **Five lead defects, every one caught by someone else**, and four share one shape — *a claim
+    about state the author did not read just before writing it*: a spec left uncommitted while six
+    briefs pointed at it (one of six reported it); a date one day in the future in 33 places; an
+    invented sha in two briefs; and an AGENTS.md line asserting `npm test` ran a check
+    `package.json` never called — written while correcting the opposite error in the same sentence.
+    The fifth: three tests appended after the runner's `process.exit`, registered and never run
+    while the suite printed "all tests passed", caught by counting `test(` blocks against `ok` lines.
+  - **`checker` returned CHANGES-REQUIRED and earned it.** The architecture diagram was stale at
+    HEAD — shipping would have made this the sixth release without an honest delta, in the release
+    that exists to close the previous five.
+  - Full accounting: `.ai/runs/2026-08-02-outstanding-debt-and-1.28.0.md`.
+  - **Two decisions waiting, neither taken:** the milestone spec cannot honestly reach
+    `implemented/` (`checker` never ran on 1.25.2/1.26.0 and `spec-status-evidence.js` rejects a
+    status without gate evidence) — retroactive review, or write it off without a gate, which is a
+    precedent; and whether a release-slug receipt satisfies a spec-closure gate, where `docs-author`
+    recommends two separate artifacts.
+
+- 2026-08-02 (earlier): **1.27.1 and 1.27.2 shipped to `main`** on the human's green light,
   after 1.25.2 + 1.26.0 + 1.27.0 earlier the same day. Branches cleaned; only `main` remains.
   - **The eval board records no outcome other than PASS** — 44 scenarios, 0 dirty, 0 never-run,
     5 commit-pinned. First time this session. `gate-refuses-to-close-a-spec-without-docs-delta` went

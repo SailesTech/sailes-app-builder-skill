@@ -4,6 +4,68 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.28.0 — 2026-08-02 · the backlog was lying in both directions, and a guard was open
+
+**`guard-protected-paths.sh` let a repo-relative path through — the whole time.** The pattern
+required a leading separator, so `migrations/003_deals.sql` passed at exit 0 while
+`/d/repo/migrations/003_deals.sql` blocked at exit 2. **The relative form is the one an agent types
+most** — it is what `git status` prints and what a brief's prose carries. This hook ships to every
+client repo and guards applied migrations, `.env.production*`, staging env and key material; it
+looked healthy because every existing test used the absolute form. Fixed twice: once with an
+enumerated delimiter list, then superseded by a negated character class that also closes
+`cat 'migrations/003.sql'`, `psql --file=migrations/003.sql` and a tab-delimited path. **The tab is
+why a character class alone was not enough** — a tab in a hook payload is not a tab byte, it is the
+two characters `\` and `t`, and the second is alphanumeric. Lookalikes still pass (`db_migrations/`,
+`docs-migrations/`, `my.migrations/`, `src/migrations-guide.md`). The cost is stated in the file
+rather than narrowed away: a read-only `git log -- migrations/` still blocks, because substring
+matching over raw JSON cannot tell a mutation from a mention — and a test pins that false positive
+so the comment cannot drift from the behaviour. Found by an eval grading something else entirely.
+
+**A repo adopted onto husky was told its git hooks were missing.** `repo-done-checklist.md`
+hardcoded `.git/hooks/post-commit`, so any repo setting `core.hooksPath` reported
+`MISS graphify hook install` while the hooks were installed and firing. It now resolves
+`core.hooksPath` first, handles relative and absolute forms, and separates "not installed" from
+"could not determine where hooks live", always naming the path it checked.
+
+**`graphify-setup.md`'s path normalization silently did nothing on macOS.** `sed -i` with no
+backup-suffix argument is GNU-only; on BSD it consumes the next argument and the step leaves the
+absolute binary path committed — breaking the hooks on every other machine. Now a temp file + `mv`,
+with a verification grep that must not match after a correct run. Both fixes are now covered by
+tests that **extract the block from the document** rather than copying it, so a regression in the
+doc turns the suite red.
+
+**`docs-author` may write `.claudeignore`, and that is now written down as its one exception.** The
+role's lane said `docs/architecture/` and `.ai/docs-deltas/` only, while `archify-setup.md` told the
+same role to wire the ignore block at the repo root. Handing the wiring to bootstrap instead was
+rejected on a measured cost: a repo adopted without a full bootstrap would silently never get the
+entry and its prompt cache would grow ~1.8 MB per release with nothing reporting it.
+
+**Role tool names are now checked against the server that actually serves them.**
+`tools/mcp-toolnames-check.js` diffs the `mcp__chrome-devtools__*` names in `qa`, `fe-dev` and
+`designer` against a live `tools/list`. Both directions are findings: a name no server offers fails
+mid-gate on a live app, and a tool nobody lists is a capability silently unavailable. The first run
+granted `type_text` to `qa` — `fill` sets a value and does not dispatch keystrokes, so
+contenteditable, rich-text and masked inputs do nothing at all after it, silently. Two tools are
+waived **by name with a reason and printed on every run**; a new server tool with no waiver still
+fails. Lives in `npm run test:all`, next to the browser probe, because it spawns a live process.
+
+**Five releases had shipped with no architecture delta.** 1.25.2 through 1.27.2 each went to
+production while `AGENTS.md` says self-docs regenerate at every release. Receipts now exist for all
+five — 1.27.0 carries a real delta (`tools/` became a component), the other four are empty **and
+recorded as empty**, because silence is a different claim than zero. `release-hygiene.test.js`
+checks presence only, which is why nothing caught this.
+
+**Two eval criteria were grading half of what they pointed at.** `lead-delegates` demanded a stated
+reason only when the lead goes solo, while its single source owes one in both directions — a silent
+delegation, the expensive direction, passed. And an arm label read `(control — MUST NOT fire)` one
+paragraph above the criterion that separates accepting a justification from accepting a decision,
+re-collapsing both axes for anyone anchoring on `Setup` first.
+
+**Upgrade note.** A repo adopting this version gets: the corrected guard (re-run your own protected
+paths through it — a relative-path edit that previously succeeded will now be blocked, which is the
+point), a husky-aware done-checklist, a portable normalization step, and `docs-author`'s stated
+`.claudeignore` exception. Nothing here changes an API or a file layout.
+
 ## 1.27.2 — 2026-08-02 · the board tells the truth, and the last RED is closed
 
 **`delta-at-gate.md` could fabricate an architectural finding on Windows.** Step 2 wrote the compare
