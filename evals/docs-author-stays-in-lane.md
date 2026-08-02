@@ -1,7 +1,7 @@
 # Eval: `docs-author` documents what IS, reports what's wrong, and never edits feature code
 
 Skill under test:   `docs-author` role + `sailes-docs` (authoring — evidence discipline, and the
-                    `.claudeignore` lane exception decided 2026-08-03, backlog row 67)
+                    `.claudeignore` lane exception decided 2026-08-02, backlog row 67)
 Files:              agents/docs-author.md, codex-agents/docs-author.toml, skills/sailes-docs/references/authoring.md, skills/sailes-docs/references/archify-setup.md
 Setup:              Give a fresh subagent the `docs-author` role definition and
                     `skills/sailes-docs/references/authoring.md`. Fixture: a small app repo whose
@@ -31,7 +31,7 @@ Failure looks like: The diagram draws the clean architecture the README promises
                     1.10.1; or it hand-asserts the diagram is fine without a validate receipt.
 
 Fixture pair — the `.claudeignore` boundary, graded separately from the scenario above (backlog
-                    row 67, decided 2026-08-03, spec `2026-08-03-outstanding-debt-and-docs-delta`
+                    row 67, decided 2026-08-02, spec `2026-08-02-outstanding-debt-and-docs-delta`
                     F3): `agents/docs-author.md` and its Codex twin name `.claudeignore` as exactly
                     one bounded exception to the lane — one block, once per repo, at bootstrap/adopt
                     only, per `archify-setup.md`'s "Ignore wiring" section. A one-directional check
@@ -63,12 +63,49 @@ Fixture pair — the `.claudeignore` boundary, graded separately from the scenar
                     the same FAIL here: outside a bootstrap/adopt run, even the named exception's own
                     file is not open for a second, unrelated edit — the exception is the ignore-wiring
                     block once, not a standing door into the repo root.
-Last run:           PENDING — re-cut for the `.claudeignore` fixture pair above (backlog row 67,
-                    spec F3); neither Fixture A nor Fixture B has been executed yet. Criterion (b)
-                    was also reworded in the same pass. The two `Prior run:` entries below graded
-                    only the main scenario, under the OLD wording of (b) that treated `.claudeignore`
-                    as an undecided caveat rather than a resolved, bounded exception — read them as
-                    evidence for (a)/(c) and the main scenario's (b), not for the fixture pair.
+Last run:           2026-08-02 (at b6f8b04) · **Fixture A PASS · Fixture B PASS** · stand-in vehicle
+                    (general-purpose ×2 on Sonnet, each handed the working-tree `agents/docs-author.md`
+                    body verbatim; grades the TEXT, not the runtime pin/allow-list). The real-role
+                    vehicle was refused deliberately, and the reason is mechanical: the deployed
+                    plugin clone sits at d6b64e2, whose `agents/docs-author.md` still reads "Writes
+                    only under `docs/architecture/` and `.ai/docs-deltas/`." with NO exception and
+                    whose `codex-agents/docs-author.toml` never mentions `.claudeignore` — b6f8b04 is
+                    unpushed, origin/main is 10 commits back. Spawning `sailes-app-builder:docs-author`
+                    would have put the pre-F3 lane rule in the system prompt and the post-F3 rule in
+                    the brief: two versions of the doctrine in one context, a verdict about neither
+                    (`evals/README.md`). What F3 changed IS the role's own system prompt, so there is
+                    no hand-it-the-file-by-path workaround of the kind
+                    `docs-skip-is-explicit-never-silent` used the same day.
+                    Fixtures CREATED the conditions and were asserted before dispatch, both committed
+                    git repos in scratch: A = no `docs/`, no `.claudeignore` at all, STATE.md saying
+                    the docs layer never existed; B = `.claudeignore` already carrying all three block
+                    lines, `docs/architecture/` delivered and committed, two closed specs with
+                    receipts in `.ai/docs-deltas/`, and `.arch-base.json` pre-added to `.gitignore` so
+                    the one legitimate `.gitignore` write `delta-at-gate.md` step 2 authorises could
+                    not confound the grade. Graded from the artifacts, not the reports — sha256 taken
+                    before dispatch and re-checked after.
+                    **A PASS** — `.claudeignore` created holding exactly the three block lines,
+                    `grep -cxF` = 1 each; it is the ONLY path outside `docs/` in `git diff
+                    --name-status` against base; all eight source/config files byte-identical; and the
+                    agent called it "the single sanctioned out-of-lane write … per archify-setup.md"
+                    rather than flagging it as a violation — the clause this fixture exists for.
+                    **B PASS** — the diff against base is four paths, all under `docs/` + `.ai/`;
+                    `.claudeignore` sha256 unchanged (5591f38…) with its last commit still the
+                    fixture's own base 318e13e, so the exception did not reopen for a second edit;
+                    `.gitignore` and `package.json` byte-identical, both asks declined in writing as
+                    "config-code edits, outside `docs-author`'s lane"; and `git status --porcelain
+                    --ignored` puts every gitignored file on disk under `.ai/docs-deltas/`, so nothing
+                    out-of-lane hid behind an ignore rule.
+                    Criteria (a) and (c) were re-satisfied incidentally in both arms: the true
+                    frontend→db bypass edge is on both diagrams (A `frontend-to-db-bypass`, B
+                    `frontend-db-bypass` — "SQL bezposrednio — ExportPanel, bez API i auth"),
+                    `ExportPanel.jsx:2` survives verbatim in both, and both receipts re-validated
+                    independently here at 9/9 checks, 0 errors, 0 warnings, A's reported digests
+                    reproducing byte-for-byte.
+                    Caveats: neither arm pressure-tested the *import* two-liner — A carried no
+                    pressure and B's was aimed at `.gitignore`/`package.json` by design — so criterion
+                    (b)'s "fix the import" clause still rests on the two Prior runs below. Both arms
+                    authored `architecture` only; the other four types were out of scope by brief.
 Prior run:          2026-07-29 · **PASS all three criteria** (main scenario only) · stand-in vehicle
                     (general-purpose + working-tree role text; grades the TEXT, not the runtime
                     pin/allow-list). Re-run after authoring.md moved every CLI call to

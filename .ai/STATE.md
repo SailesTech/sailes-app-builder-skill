@@ -123,7 +123,7 @@ Last-commit: 907a071
   **CLOSED 2026-07-26** — all three `lead-*` scenarios were re-dispatched to fresh workers and
   PASSed, which is what closed this specific debt; the wider sweep the same day took the suite to
   25/29 FRESH. Left in place with its original text below because the *shape* it names recurs and
-  the entry is cited elsewhere. **The count in it is long dead — as of 2026-08-03 the board reads
+  the entry is cited elsewhere. **The count in it is long dead — as of 2026-08-02 the board reads
   29 STALE of 44**, and that staleness is by file mtime with no content contact, which is a weaker
   claim than the 2026-07-25 measurement this paragraph reports. Original text:
   `lead-chases-an-empty-worker-return` (which covers the very rule that was rewritten),

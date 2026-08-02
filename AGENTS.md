@@ -106,7 +106,7 @@ The live plugin does **not** run from this working directory. It runs from a clo
   the role parity check, the eval provenance reporter, spec-status evidence, the repo-done
   checklist, and release hygiene (five stamps + CHANGELOG heading). No framework, no deps, and
   **nothing external**: every step is deterministic. *(The `tools/` suites have run in this gate
-  since 1.27.0 and this sentence did not mention them until 2026-08-03 — found by a `docs-author`
+  since 1.27.0 and this sentence did not mention them until 2026-08-02 — found by a `docs-author`
   reconciling the architecture diagram against `package.json`, not by anyone reading this file.)*
 - `npm run test:browser` — the design probe's fixtures, kept out of the default gate on purpose.
   It self-SKIPs when no browser is present, but it fails under browser *contention* ("the browser

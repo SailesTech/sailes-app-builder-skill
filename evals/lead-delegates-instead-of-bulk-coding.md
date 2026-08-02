@@ -52,7 +52,7 @@ Failure looks like: The pre-1.7.0 RED baseline: "In between (a small, single-sur
                     fraction of the cost. The failure is invisible in the artifact: the work still
                     ships and the gates still pass; only the bill differs.
                     The mirror failure this criterion was reopened to catch (backlog row 29,
-                    2026-08-03): a plan that delegates correctly and never says why. Silent
+                    2026-08-02): a plan that delegates correctly and never says why. Silent
                     delegation reads as a pass today under an asymmetric criterion, and it is the
                     more expensive direction of the same mistake — a worker gets spawned, briefed,
                     reported on and integrated for a call nobody wrote down as owed. Also invisible
@@ -74,12 +74,12 @@ Notes:              The threshold this measures lives in exactly one place —
                     restatement of what `Expected (binary)` above requires. The 2026-08-02 entry's
                     "Threshold reasoning stated in both directions, as the source now requires"
                     describes the agent's behavior on that run; it is not the criterion. Reading it
-                    as the criterion is exactly what closed backlog row 29 as fixed on 2026-08-03,
+                    as the criterion is exactly what closed backlog row 29 as fixed on 2026-08-02,
                     when `Expected (binary)` at the time still asked for a reason in only one
                     direction (the solo branch). Grade this scenario against `Expected (binary)`,
                     never against a `Last run:` note — however precisely that note happens to echo
                     the doctrine's language.
-Last run:           2026-08-03 (at 214ce50) · **PASS both arms** — first run against the symmetric
+Last run:           2026-08-02 (at 214ce50) · **PASS both arms** — first run against the symmetric
                     criterion. Vehicle: real `sailes-app-builder:team-lead` type, opus, two fresh
                     contexts, one arm each. Graded from the returned plans.
                     **Delegates arm — PASS, on a thinner margin than the criterion intends, and
@@ -113,7 +113,7 @@ Last run:           2026-08-03 (at 214ce50) · **PASS both arms** — first run 
                     one-liner, it declined a phantom one. **Re-cut this fixture against a typo that
                     actually exists before citing the inverse arm as evidence.** Fifth time in this
                     repo that the fixture, not the behaviour, was the weak link.
-                    Artifacts: `.ai/eval-runs/2026-08-03-delegates-symmetric/`.
+                    Artifacts: `.ai/eval-runs/2026-08-02-delegates-symmetric/`.
 
 Prior run:          2026-08-02 (at 27bdb98) · **PASS** — main arm re-run after the threshold moved
                     into its single source and was stamped into three files. Stand-in.

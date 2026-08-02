@@ -1,7 +1,7 @@
 # Verdict — `lead-delegates-instead-of-bulk-coding`, first run against the symmetric criterion
 
-Date: 2026-08-03 · base commit `214ce50` · scenario as amended by phase F6 of
-`.ai/specs/2026-08-03-outstanding-debt-and-docs-delta.md`
+Date: 2026-08-02 · base commit `214ce50` · scenario as amended by phase F6 of
+`.ai/specs/2026-08-02-outstanding-debt-and-docs-delta.md`
 
 **Vehicle — this is the strong half of this run.** Both arms ran as the real
 `sailes-app-builder:team-lead` type on opus, in two separate fresh contexts, one arm each. Not
@@ -114,7 +114,7 @@ oddly, and this run is another instance of it.
 
 The previous `Last run:` note on this scenario read "Threshold reasoning stated in both directions,
 as the source now requires." That sentence describes **what the graded agent did**. It does not
-describe **what the criterion demands**. During the 2026-08-03 backlog audit, reading that note
+describe **what the criterion demands**. During the 2026-08-02 backlog audit, reading that note
 instead of the criterion caused row 29 to be closed as fixed; it was reopened only on a second read
 of the criterion itself. A permanent warning now sits in the scenario's `Notes:` ahead of the run
 history, where an auditor hits it before the narrative.

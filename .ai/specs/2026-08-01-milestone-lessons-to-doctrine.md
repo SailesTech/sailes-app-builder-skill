@@ -5,9 +5,9 @@ Status: in-progress — **obie fazy są na produkcji od 2026-08-02** (1.25.2 i 1
 rzeczy, obu proceduralnych: bramka `checker` na całości nigdy nie została uruchomiona (człowiek
 wyłączył delegację w sesji 2026-08-01, a potem wydanie poszło bez niej), i **nie ma kwitu delty
 architektury** — `.ai/docs-deltas/` kończy się na `2026-07-31`. Domykane w
-`.ai/specs/2026-08-03-outstanding-debt-and-docs-delta.md`, fazy F8a i F8b.
+`.ai/specs/2026-08-02-outstanding-debt-and-docs-delta.md`, fazy F8a i F8b.
 
-> **Ten nagłówek do 2026-08-03 mówił „Nic nie jest wypchnięte na `main`".** To przestało być prawdą
+> **Ten nagłówek do 2026-08-02 mówił „Nic nie jest wypchnięte na `main`".** To przestało być prawdą
 > nazajutrz po zapisaniu i nikt nie wrócił do zdania. Zostawiam ślad, bo to jest dokładnie ta klasa
 > błędu, którą ten spec nazywa w swoim własnym Problemie: nieobecność — tu nieobecność aktualizacji —
 > wygląda identycznie jak zgodność. Kolejny czytelnik tego pliku planowałby wydanie, które już weszło.

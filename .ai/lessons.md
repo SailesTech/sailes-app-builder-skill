@@ -7,9 +7,9 @@
 
 ## Lessons
 
-### 2026-08-03 — a brief that points at an uncommitted file points at nothing
+### 2026-08-02 — a brief that points at an uncommitted file points at nothing
 - **Context:** six workers were dispatched with `isolation: worktree`, each brief opening "read
-  `.ai/specs/2026-08-03-outstanding-debt-and-docs-delta.md`, phase Fn". The spec had been written
+  `.ai/specs/2026-08-02-outstanding-debt-and-docs-delta.md`, phase Fn". The spec had been written
   with `Write` and **never committed** — `git status` showed it as `??` in the main tree.
 - **Problem:** a worktree is cut from a **commit**. An untracked file in the main tree does not
   exist inside it. So every one of those six briefs referenced a path that resolved to nothing.
@@ -26,7 +26,7 @@
   completeness; asserting that each path it names exists at the base commit is the same shape of
   check. Promotion candidate, filed to `.ai/backlog.md`.
 
-### 2026-08-03 — the backlog rows a truth pass misses are the ones fixed the same day they were filed
+### 2026-08-02 — the backlog rows a truth pass misses are the ones fixed the same day they were filed
 - **Context:** an audit of `.ai/backlog.md` before planning 1.28.0. Twenty-one rows marked
   `open` / `next` / `needs the human`; **eleven were already done** — one carrying
   "open — this is the decision" three lines beneath its own `CLOSED` heading.

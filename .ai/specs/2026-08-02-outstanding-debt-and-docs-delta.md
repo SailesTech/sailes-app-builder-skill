@@ -30,7 +30,7 @@ directions, as the source now requires". To zdanie opisuje **co zrobił oceniany
 To jest ten sam kształt, który to repo nazywa swoją domową usterką: **krok, który raportuje sukces
 z innego powodu niż deklarowany.** Tym razem po stronie czytania, nie pisania.
 
-## Decyzje człowieka (2026-08-03)
+## Decyzje człowieka (2026-08-02)
 
 | # | Pytanie | Wybór |
 |---|---|---|
@@ -198,6 +198,69 @@ reguła przeszukania worktree obecna w agents/team-lead.md z warunkiem
 - **F8b** — domknięcie obu speców: `.ai/specs/2026-08-01-milestone-lessons-to-doctrine.md` ma
   nagłówek mówiący „Nic nie jest wypchnięte na `main`", gdy 1.25.2 i 1.26.0 są na produkcji od
   2026-08-02 — najpierw prawda w nagłówku, potem `git mv` do `implemented/`, i tylko po kwicie z F8a.
+
+### Fala 3b — dwie fazy dopisane w trakcie, obie z pomiaru
+
+#### F9 — guard przepuszcza ścieżkę względną · **najpoważniejsze znalezisko dnia**
+
+| Plik | Wymuszony przez |
+|---|---|
+| `skills/sailes-bootstrap/hooks-template/guard-protected-paths.sh` | F9.1 |
+| `skills/sailes-bootstrap/hooks-template/hooks-template.test.js` | F9.2 |
+
+Znalezione przez ewaluację `adopt-builds-graph`, która oceniała co innego. **Odtworzone przeze mnie
+bezpośrednio:**
+
+```
+{"tool_name":"Edit","tool_input":{"file_path":"migrations/003_deals.sql"}}      → exit 0  PRZEPUSZCZONE
+{"tool_name":"Edit","tool_input":{"file_path":"/d/repo/migrations/003_deals.sql"}} → exit 2  zablokowane
+```
+
+Wzorzec (`:85`) to `*'/migrations/'*|*'\migrations\'*` — wymaga wiodącego separatora. Forma
+względna jest tą, którą agent pisze najczęściej, bo tak wygląda ścieżka w `git status` i w prozie
+briefu. **Ten hook trafia do każdego repo klienta**, a chroni migracje, `.env.production`
+i materiał kluczowy. Klasa: guard, który wygląda na działający, bo testy sprawdzały formę
+bezwzględną.
+
+- **F9.1** — dopasowanie musi łapać segment na początku ścieżki, nie tylko po separatorze, i to dla
+  **każdej** chronionej ścieżki w pliku, nie tylko dla `migrations/`. Sprawdź cały zestaw; jeśli
+  wzorzec powtarza się w kilku miejscach, defekt też.
+- **F9.2** — każdy chroniony segment dostaje **parę** przypadków: względny i bezwzględny, oba muszą
+  blokować. Plus fixture, który MUSI NIE strzelić — ścieżka zawierająca chroniony wyraz jako część
+  dłuższej nazwy (`src/migrations-guide.md`, `docs/env.production-notes.md`) i przechodząca.
+
+**Done-when:**
+```
+dla KAŻDEJ chronionej ścieżki: forma względna → exit 2 · forma bezwzględna → exit 2
+sąsiedztwo nazwy (src/migrations-guide.md) → exit 0    (fixture, który MUSI NIE strzelić)
+mutacja: cofnij wzorzec do stanu sprzed poprawki → test czerwony, nazywa ścieżkę → przywróć → zielony
+npm test → all passed
+```
+
+#### F5b — `type_text` dla `qa`, dwa pozostałe świadomie odpuszczone
+
+| Plik | Wymuszony przez |
+|---|---|
+| `agents/qa.md` · `codex-agents/qa.toml` | F5b.1 |
+| `tools/mcp-toolnames-check.js` (+ test) | F5b.2 |
+
+Decyzja człowieka 2026-08-02, na podstawie pomiaru F5a przeciw żywemu serwerowi.
+
+- **F5b.1** — `mcp__chrome-devtools__type_text` dodane do `qa`. Powód: `fill` **ustawia wartość**,
+  nie wysyła klawiszy; contenteditable, edytor rich-text, autocomplete i pola maskowane słuchają
+  `keydown` i po `fill` nie robią nic — cicho. `qa` przepędza realne flow, więc trafi na to
+  w połowie bramki, na żywej aplikacji. Ten sam kształt co `handle_dialog` w 1.17.1.
+- **F5b.2** — lista odstąpień z powodem: `get_console_message` (pojedynczy odczyt, gdy
+  `list_console_messages` jest już przyznane) i `take_heapsnapshot` (profilowanie pamięci, którego
+  żadna doktryna nie żąda). Check **przechodzi**, ale je **wypisuje** jako świadomie pominięte.
+  Nowe narzędzie serwera bez wpisu nadal oblewa — odstąpienie jest imienne, nie globalne.
+
+**Done-when:**
+```
+check przeciw żywemu serwerowi → exit 0, wypisuje dwa odstąpienia z powodami
+fixture: narzędzie serwera BEZ wpisu odstąpienia → exit 1   (odstąpienie nie jest globalne)
+node codex-agents/parity.test.js → all passed
+```
 
 ### Fala 4 — bramki i wydanie
 
