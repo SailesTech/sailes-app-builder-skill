@@ -139,6 +139,87 @@ test('a malformed claim is caught while the file is STILL OPEN, not only at clos
   }
 });
 
+// ------------------------------------------------- what real workers actually wrote (2026-08-02)
+
+test('a block-list claim is read, not reported missing — REGRESSION GUARD', () => {
+  // This support existed, was lost in a merge-conflict resolution, and the loss was invisible
+  // because the integration check counted two OTHER symbols and declared consistency — the exact
+  // lesson recorded that same day, repeated within hours of writing it. Two real status files were
+  // rejected before anyone noticed.
+  const dir = tmpDir();
+  try {
+    const f = writeFixture(
+      dir,
+      'be-dev-8.md',
+      'worker: be-dev-8\ntask: t\nbase: e276a5e\nclaimed:\n  - a.ts\n  - b.ts\nopened: 2026-08-02\n' +
+        'closed: 2026-08-02\noutcome: done\ncommit: 4f2a9c1\ntouched:\n  - a.ts\n'
+    );
+    const r = run(f);
+    assert.strictEqual(r.status, 0, `block-list file rejected: ${r.stdout}${r.stderr}`);
+  } finally {
+    rm(dir);
+  }
+});
+
+test('outcome carrying a trailing reason is accepted — the token is read off the front', () => {
+  // Every real worker wrote `done — <why>`; both were rejected outright. A validator that refuses
+  // a field for carrying MORE than the minimum is pedantic at the reader's expense.
+  const dir = tmpDir();
+  try {
+    const f = writeFixture(
+      dir,
+      'be-dev-8.md',
+      CLOSED_OK.replace('outcome: done', 'outcome: done — tests and mutation proof green')
+    );
+    assert.strictEqual(run(f).status, 0, 'a reasoned outcome was rejected');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('outcome that is not one of the tokens is still rejected — the guard did not just vanish', () => {
+  const dir = tmpDir();
+  try {
+    const f = writeFixture(dir, 'be-dev-8.md', CLOSED_OK.replace('outcome: done', 'outcome: mostly fine'));
+    assert.strictEqual(run(f).status, 1, 'any prose now passes as an outcome');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('a commit field holding prose instead of a sha is REJECTED', () => {
+  // Measured 2026-08-02: a worker with nothing to commit wrote its reason into `commit:` and it
+  // satisfied the check that exists to make `done` verifiable — an explanation laundered into
+  // evidence by the one field whose whole job is to be checkable.
+  const dir = tmpDir();
+  try {
+    const f = writeFixture(
+      dir,
+      'be-dev-8.md',
+      CLOSED_OK.replace('commit: 4f2a9c1', 'commit: (none — I am in the main working tree)')
+    );
+    const r = run(f);
+    assert.strictEqual(r.status, 1, 'prose passed as a commit');
+    assert.ok(/does not start with a sha/.test(r.stdout + r.stderr), 'the reason is not named');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('a sha followed by a note is fine — only a missing sha is the problem', () => {
+  const dir = tmpDir();
+  try {
+    const f = writeFixture(
+      dir,
+      'be-dev-8.md',
+      CLOSED_OK.replace('commit: 4f2a9c1', 'commit: 4f2a9c1 (branch worktree-agent-abc)')
+    );
+    assert.strictEqual(run(f).status, 0, 'a sha with a trailing note was rejected');
+  } finally {
+    rm(dir);
+  }
+});
+
 // -------------------------------------------------------------------- state 3: closed, complete
 
 test('file closed with a complete field set -> exit 0', () => {

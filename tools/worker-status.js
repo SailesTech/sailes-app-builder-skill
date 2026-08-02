@@ -112,13 +112,35 @@ function parseValue(raw) {
 function parseStatus(text) {
   const fields = {};
   const lines = text.split(/\r?\n/);
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     if (!line.trim()) continue;
     if (/^\s*#/.test(line)) continue; // a full-line comment, not a field
     const m = line.match(/^([A-Za-z_][A-Za-z0-9_-]*):\s*(.*)$/);
     if (!m) continue; // not a `key: value` line — ignore rather than fail on stray prose
     const key = m[1];
     const value = stripTrailingComment(m[2]);
+
+    if (value.trim() === '') {
+      // Bare `key:` — look ahead for an indented block list. Stop at the first line that is not
+      // a `  - item` entry (blank line, next `key:`, a comment, or end of file).
+      const items = [];
+      let j = i + 1;
+      while (j < lines.length) {
+        const itemMatch = lines[j].match(/^\s+-\s*(.*)$/);
+        if (!itemMatch) break;
+        items.push(stripTrailingComment(itemMatch[1]).trim().replace(/^["']|["']$/g, ''));
+        j++;
+      }
+      if (items.length > 0) {
+        fields[key] = items;
+        i = j - 1; // skip the block-list lines already consumed
+        continue;
+      }
+      fields[key] = ''; // a genuinely empty scalar, e.g. an omitted `commit:`
+      continue;
+    }
+
     fields[key] = parseValue(value);
   }
   return fields;
@@ -181,10 +203,31 @@ function evaluateFile(filePath) {
   for (const f of REQUIRED_CLOSE_FIELDS) {
     if (isMissing(fields[f])) problems.push(`missing required field "${f}:"`);
   }
-  if (fields.outcome !== undefined && !VALID_OUTCOMES.includes(fields.outcome)) {
-    problems.push(`outcome "${fields.outcome}" is not one of ${VALID_OUTCOMES.join('|')}`);
+  // `outcome:` is a token, and every real worker so far has written it as a token FOLLOWED BY a
+  // reason — `done — sha-pinned freshness implemented, tests green`. Measured 2026-08-02 on two
+  // independent files: both were rejected outright for it. Refusing a field because it carries more
+  // information than the minimum is the validator being pedantic at the reader's expense, so the
+  // token is read off the front and anything after a separator is kept as prose.
+  const outcomeToken =
+    typeof fields.outcome === 'string' ? fields.outcome.split(/\s+[—–-]\s+|\s*[;:]\s*/)[0].trim() : fields.outcome;
+  if (fields.outcome !== undefined && !VALID_OUTCOMES.includes(outcomeToken)) {
+    problems.push(
+      `outcome "${fields.outcome}" does not start with one of ${VALID_OUTCOMES.join('|')}`
+    );
   }
-  if (fields.outcome === 'done' && isMissing(fields.commit)) {
+  // `commit:` must LOOK like a commit. Measured 2026-08-02: a worker with nothing to commit wrote
+  // its reason into the field — "(none — I am in the MAIN working tree…)" — and it satisfied the
+  // very check that exists to make `done` verifiable. A field whose whole job is to be checkable
+  // must reject prose, or it launders an explanation into evidence. A trailing note after the sha
+  // is fine; a value with no sha at its front is not.
+  if (!isMissing(fields.commit) && typeof fields.commit === 'string') {
+    if (!/^[0-9a-f]{7,40}\b/i.test(fields.commit.trim())) {
+      problems.push(
+        `commit "${fields.commit}" does not start with a sha — put the reason in "note:", not here`
+      );
+    }
+  }
+  if (outcomeToken === 'done' && isMissing(fields.commit)) {
     // The whole point of Q3/D4.2: "done" is a claim, `commit:` is what makes it checkable. A done
     // with nothing to point at is exactly the silence this file was built to remove.
     problems.push('outcome: done requires "commit:" — a done result with nothing to point at');

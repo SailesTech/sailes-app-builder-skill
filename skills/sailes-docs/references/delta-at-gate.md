@@ -8,15 +8,26 @@ delta proves, and a conditional step is a skipped step.
 
 1. **Update** — `docs-author` refreshes every diagram the spec touched (evidence rules in
    `authoring.md`), each with its `deliver` receipt. Untouched types stay byte-identical.
-2. **Base for the compare** is the last committed state before this update:
+2. **Base for the compare** is the last committed state before this update. Write it **inside the
+   repo**, never to `/tmp`:
    ```bash
-   git show HEAD:docs/architecture/architecture.json > /tmp/arch-base.json
+   git show HEAD:docs/architecture/architecture.json > .ai/docs-deltas/.arch-base.json
    ```
+   **Why not `/tmp` — measured 2026-08-02, and the failure mode is a fabricated finding.** This
+   guide used to say `/tmp/arch-base.json`. On Windows, Git Bash resolves `/tmp` to
+   `C:/Users/<you>/AppData/Local/Temp` while **Node resolves it to `C:\tmp`** — and `archify
+   compare` is Node. So git writes one file and the compare reads a different one. On the machine
+   where this was found, `C:\tmp\arch-base.json` already held a stale 5741-byte base from another
+   project, so following this guide verbatim produced a **non-empty delta describing someone else's
+   architecture**, indistinguishable from a genuine architectural finding. Same family as the
+   `$HOME` hazard `archify-setup.md` records, one reference file away and not covered there. A
+   repo-relative path cannot diverge between the two runtimes. Add `.arch-base.json` to
+   `.gitignore` alongside the delta HTML — it is scratch, not a receipt.
 3. **Compare** (architecture is the one type upstream supports). `$ARCHIFY_HOME` comes from
    step 0 of `archify-setup.md` — a bare `$HOME` fails on Windows, reason recorded there:
    ```bash
    node "$ARCHIFY_HOME/bin/archify.mjs" compare architecture \
-     /tmp/arch-base.json docs/architecture/architecture.json \
+     .ai/docs-deltas/.arch-base.json docs/architecture/architecture.json \
      .ai/docs-deltas/{YYYY-MM-DD}-{spec-slug}.html \
      --receipt .ai/docs-deltas/{YYYY-MM-DD}-{spec-slug}.json --json
    ```

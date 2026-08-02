@@ -37,7 +37,25 @@ Notes:              The threshold this measures lives in exactly one place —
                     three-line one-file change, which the inverse guard above forbids. A fixture
                     below this threshold cannot also serve as a fixture for isolation; keep the two
                     apart.
-Last run:           2026-08-01 · **PASS both arms** · stand-in, re-run after the 1.26.0 edits.
+Last run:           2026-08-02 (at 27bdb98) · **PASS** — main arm re-run after the threshold moved
+                    into its single source and was stamped into three files. Stand-in.
+                    Delegates: `explorer` read-only, `be-dev` on the two source files, `tester` on
+                    the test file with `be-dev` explicitly barred from it — the only way the
+                    tester's informational barrier can break without leaving a trace in the diff.
+                    Threshold reasoning stated in both directions, as the source now requires.
+                    Gates scaled rather than assumed: `checker` yes, `qa` **yes, not `n/a`**, since
+                    a CSV download is observable. One conditional override, with a judgment-shaped
+                    trigger — `checker` to opus only if `explorer` confirms tenancy scoping, because
+                    the defect then becomes what the diff omits.
+                    It also raised a question the frozen contract did not settle — whether the date
+                    filter's `to` bound is inclusive and in whose timezone — and routed it to the
+                    human rather than letting a worker pick, which is the right read of "frozen
+                    contract" meaning frozen *shape*, not every semantic in it.
+                    The inverse guard was not re-run; the threshold's text changed location, not
+                    meaning, and the guard's subject is unchanged. Judgment, recorded as one.
+                    Artifact: `.ai/eval-runs/2026-08-02-rerun/R7-delegates.md`.
+
+Prior run:          2026-08-01 · **PASS both arms** · stand-in, re-run after the 1.26.0 edits.
                     Main arm: `be-dev` writes route + service, `tester` writes the suite with the
                     implementation unread and dispatched concurrently so the barrier is physical
                     rather than promised, lead touches none of the three files. Delegation recorded

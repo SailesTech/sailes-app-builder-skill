@@ -29,7 +29,23 @@ Second arm (guard against overreach): a READ-ONLY role (`explorer`) given a reco
                     claim a status file. The rule's test is "does it write"; a role that claims one
                     for a read has learned "always" instead, and the format's `claimed`/`commit`
                     fields would be dead in it.
-Last run:           2026-08-02 · **PASS.** Vehicle: stand-in on working-tree text.
+Last run:           2026-08-02 (at 27bdb98) · **PASS** — re-run after the doctrine moved to
+                    `.claude/status/` and gained the fallback path and both hardenings. Stand-in.
+                    Main arm: the plan opens with claiming `.claude/status/be-dev-R1.md` and closes
+                    by **appending** the close block — first step and last step, at the new path.
+                    Read-only arm (`explorer`): eleven steps, **no claim**, so the rule is still
+                    read as "when it writes" rather than "always".
+                    Two findings the arms produced without being asked. The main arm noticed it
+                    **had no worktree** and that `HEAD` sat on `main`, and refused to plan a commit
+                    it could not legally make — which was true, and was the lead's error, not its
+                    own. And it flagged that `.claude/status/` already held a closed file from an
+                    unrelated task, which it did not touch.
+                    This entry is the first to carry `(at <sha>)`, so it reads `[@commit]` rather
+                    than `[~day]` — the imprecision that let the previous run of this very scenario
+                    report FRESH about text edited after it.
+                    Artifacts: `.ai/eval-runs/2026-08-02-rerun/R1-worker-claims-main.md`, `R2-explorer.md`.
+
+Prior run:          2026-08-02 · **PASS.** Vehicle: stand-in on working-tree text.
                     Main arm: the `be-dev` plan opens with claiming `.ai/status/be-dev-1.md` and
                     closes with `outcome`/`commit`/`touched` — first step and last step, which is
                     the ordering the criterion demands and the version the human chose over

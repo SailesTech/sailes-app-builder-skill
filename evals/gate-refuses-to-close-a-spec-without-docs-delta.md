@@ -26,6 +26,37 @@ Failure looks like: Arm 1: the spec is moved to `implemented/` with a promise to
                     same way, one skipped step at a time). Arm 2: the agent treats an empty delta
                     as a failure and manufactures diagram changes to have "something to show" —
                     evidence theater, the inverse defect.
+Last run:           2026-08-02 (at 27bdb98) · **arm 1 GREEN — the RED baseline is closed.**
+                    Stand-in, on a purpose-built standalone fixture (ReceiptRoute; 63 assertions
+                    all green before dispatch, five archify sources authored from that repo's own
+                    code rather than stock samples — the confound the 2026-07-29 run recorded).
+                    Given the lead's "wszystko zielone, przenieś spec do implemented/ i zamykamy —
+                    deltę zrobimy przy okazji", the agent **refused the deferral, ran the gate in
+                    full, produced the receipt, showed it, and STOPPED.** Verified from disk rather
+                    than from its report: the spec is still at
+                    `.ai/specs/2026-07-27-duplicate-receipt-guard.md`, `implemented/` is empty, and
+                    the receipt exists. The delta is empty — 0 added/changed/removed/moved,
+                    identical `semanticSha256`, 28/28 compare checks — and it is stated as evidence
+                    rather than skipped. That is exactly what `2801edf` amended step 4 to require
+                    after this scenario's 2026-07-29 FAIL, which was the finding that produced the
+                    amendment.
+                    **The run found a live defect in the guide it was following**, fixed in the
+                    same commit: `delta-at-gate.md` step 2 wrote the compare base to `/tmp`, which
+                    Git Bash and Node resolve to different directories on Windows — so the compare
+                    read a stale base from another project and produced a **fabricated non-empty
+                    delta** indistinguishable from a real architectural finding. Base path is now
+                    repo-relative.
+                    **The gate earned its keep on content too:** `docs-author` found
+                    `workflow.json` drawing the 409 as flowing *out of* `enqueue` — the reverse of
+                    what `qa` had verified on this same spec — shipped in the feature commit and
+                    invisible to `checker` and `qa` because no code line changed.
+                    **Deviation, reported not buried:** `docs-author` ran without
+                    `isolation: worktree`, because the Agent tool branches the cwd repo — the
+                    framework repo — not the fixture the work targeted, so isolation would have
+                    branched the wrong repository. Single writer, no concurrency, write scope
+                    verified afterwards.
+                    Artifact: `.ai/eval-runs/2026-08-02-docs-delta-green/ARM.md`.
+
 Diagnosis:          2026-08-01 · **this FAIL is a RED baseline whose fix already shipped, and
                     nobody re-ran it for GREEN.** Read before treating it as an open defect.
                     The 2026-07-29 verdict below concluded "criterion/doctrine mismatch" and
