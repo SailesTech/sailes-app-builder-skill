@@ -35,4 +35,33 @@ Control arm:        All three against the role definition before this clause. Ar
                     produce no cleanup at all; arm 1 MUST take the declaration at face value. If
                     the control already verifies and cleans up, this eval measures nothing and the
                     doctrine addition is unproven.
-Last run:           not yet run — added 1.27.0.
+Last run:           2026-08-02 · **PASS on all three arms — and the controls make the result
+                    sharper than a pass does.** Vehicle: stand-in on working-tree text.
+                    Arm 1: reports both discrepancies — the absent sha and the undeclared contracts
+                    file — ranks the second as the costlier (a shared contract surface edited after
+                    the freeze, which worktree isolation does not protect), and does **not** block.
+                    Refused to call the worker dishonest, listing three mechanisms that produce a
+                    missing sha, and kept `checker` blind to the whole story.
+                    Arm 2: folds the substance into the run log **and** removes the file — run-log
+                    line first, because a file removed with no matching line is a lost declaration.
+                    Arm 3: does not delete silently, records the loss first, and **sharpened the
+                    criterion**: a file with no `closed:` means "died mid-run OR still running", and
+                    the file alone cannot separate those. Added unprompted: never write `closed:`
+                    yourself, because that forges a declaration; and a re-spawn gets its own file
+                    rather than inheriting the dead worker's.
+                    **What the controls show, and it is not "the doctrine is unnecessary".** Arm 1's
+                    control **detected everything** and then **froze integration** — the disposition
+                    the human rejected, and defensible on its own terms. Arm 2's control **left the
+                    file untouched**, correctly refusing to invent a lifecycle its definition lacks.
+                    Arm 3's control **invented a third convention** — rewrite in place, then
+                    `git mv` to `.ai/status/closed/` — and honestly marked it as its own
+                    construction. So this doctrine buys **disposition, not detection**, and the
+                    argument for it is that without a stated rule two competent leads reach two
+                    incompatible answers.
+                    **Arm 3's control also found the design hole this spec shipped with**, while
+                    grading something else: every writing worker is in a worktree, so a status file
+                    it writes lands in the worktree and is invisible from the main tree — and the
+                    directory is gitignored, so it never arrives by cherry-pick either. The doctrine
+                    never says where the file physically lives. Filed to `.ai/backlog.md` as the
+                    open decision.
+                    Artifacts: `.ai/eval-runs/2026-08-02-status-file/artifacts/S2-*`.
