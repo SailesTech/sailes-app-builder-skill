@@ -161,11 +161,13 @@ merge-conflict magnets that make concurrent agents collide. (`agentic-first-prin
   `.claude/settings.json` **is** committed, so without this line those checkouts show up as untracked
   debris inside a tracked directory. The branch in the shared `.git` is the artifact; the directory
   never is.
-- **Worker-status ignore:** `.gitignore` gets `.ai/status/`. Every writing worker claims
-  `.ai/status/<worker-id>.md` on start and closes it on finish (`agent-team-structure.md`, Isolation
-  → "The worker status file"); it is live state meant to survive a process crash on disk, not a
-  history meant to be versioned. The lead folds each file into the run log and removes it at
-  acceptance — the run log is the artifact that gets committed, the status file never is.
+- **Worker-status ignore:** `.gitignore` gets `.claude/status/`. Every writing worker claims
+  `.claude/status/<worker-id>.md` — named with the id the harness assigned it, never one it picks
+  itself — on start and closes it by APPENDING (never rewriting the claim block) on finish
+  (`agent-team-structure.md`, Isolation → "The worker status file"); it is live state meant to
+  survive a process crash on disk, not a history meant to be versioned. The lead folds each file into
+  the run log and removes it at acceptance — the run log is the artifact that gets committed, the
+  status file never is.
 - **Code map ignores:** `.gitignore` gets `graphify-out/cost.json` + `graphify-out/cache/`;
   `.claudeignore` gets `graphify-out/` + `graph.json` (prompt-cache guard). The map itself
   (`graphify-out/graph.json`, `GRAPH_REPORT.md`) IS committed — it is the team's shared map.
