@@ -192,7 +192,49 @@ Last-commit: 5d6dba0
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-08-02 latest (**resume here**): **1.28.1 — what a gate finds when you run it a day late.**
+- 2026-08-02 close (**resume here**): **1.28.2 on production (`b639c7c`), both 2026-08-01 specs
+  CLOSED with pasted gate evidence, branches and worktrees cleaned.** Three releases shipped this
+  session: 1.28.0 → 1.28.1 → 1.28.2. One live spec remains, today's.
+  - **The single most valuable decision of the day was the human's: retroactive gates.** Two
+    `checker` runs on code *already on production* returned ten findings between them. **Neither
+    2026-08-01 spec had ever been graded** — both headers claimed the only blocker was a docs-delta
+    receipt, and both claims were false. A third header was wrong the same way. All three are one
+    shape, and it is the shape those specs themselves name: **an absence looks exactly like
+    compliance**, and nobody returns to a sentence once it stops being true.
+  - **The two gates found different things, and the second is the more useful.** The first found
+    four items *named by file and never written*. The second found the surface **complete** — every
+    path in seven file tables present — while **three of the spec's own `Done-when` clauses named a
+    mechanism and forced nothing.** Proven by mutation: strip all 8,069 bytes of worker-status
+    doctrine from every Codex twin and `parity.test.js` still exits 0.
+  - **The generalisation worth carrying past this session:** `parity.test.js` guards only the
+    concepts someone hand-added to `INVARIANTS`, so **"parity green" means the listed concepts
+    match, not that the twins agree** — and its output does not say which. Eleven invariants added,
+    each mutation-proven; one went red on a real gap (`codex-agents/team-lead.toml` had no
+    worktree-base rule) and **the twin got the rule rather than the invariant getting weakened.**
+    Five more unguarded concepts inventoried in `.ai/backlog.md`.
+  - **Two shipped instructions could not execute in the repos they ship to** (`node tools/…` in a
+    client repo → `MODULE_NOT_FOUND`) — the *same defect class the delegation spec was designed
+    around*, reintroduced by the phases that followed it.
+  - **`brief-closure.js` is recorded as undelivered, not reframed.** It works and nothing calls it;
+    more deeply, a brief is doctrinally a chat message, so no artifact exists to run it against. It
+    met its literal `Done-when` while missing what the spec claims — an instance of the very defect
+    the spec was written to remove. Human chose the honest Non-goal over building the artifact.
+  - **Six lead defects this session, every one caught by someone else or by a counter.** Four share
+    one shape — *a claim about state not read just before writing it*: an uncommitted spec behind
+    six briefs, a date one day in the future in 33 places, an invented sha in two briefs, and an
+    `AGENTS.md` line asserting a check `package.json` never ran. Plus three tests appended after a
+    runner's `process.exit` (registered, never run, suite green), and a wrong commit range handed to
+    a gate — which the gate corrected and said so.
+  - **Open and deliberately not taken, both needing the human:** whether the guard should block
+    shell *reads* of key material (`cat certs/server.key` → exit 0 today, never covered, reachable
+    only since 1.25.2 widened the matcher — closing it needs a read-verb heuristic whose
+    false-positive cost already forced `Object.keys(...)` to be exempted by hand); and whether
+    `origin/feat/archify-docs` (merged 2026-07-29) should be deleted.
+  - **Undiagnosed and highest-value:** the plugin clone does not auto-update. Five agents found it
+    independently; five of six eval re-runs refused the real role because of it.
+  - Full accounting: `.ai/runs/2026-08-02-outstanding-debt-and-1.28.0.md`.
+
+- 2026-08-02 latest: **1.28.1 — what a gate finds when you run it a day late.**
   The human chose a retroactive `checker` on 1.25.2 + 1.26.0 rather than writing the milestone spec
   off without a gate. It returned **CHANGES-REQUIRED on six items**, and that decision is the most
   valuable one of the day.
@@ -222,10 +264,10 @@ Last-commit: 5d6dba0
     `.env.stage` gap and the one honest measurement of how much of a doctrine release lands
     (one of twelve changes has evidence; two went INCONCLUSIVE because the control re-derived them).
 
-- 2026-08-02 late: **1.28.0 is stamped, gated and NOT pushed.** 22 commits on
-  local `main`, tree clean, `npm test` green across fifteen suites, five stamps at 1.28.0.
-  **The push is the human's call and it is the only thing blocking** — it deploys a change to the
-  guard that protects migrations and key material.
+- 2026-08-02 late: **1.28.0 — stamped, gated, and pushed on the human's call the same session**
+  (this entry said "NOT pushed" until the close-of-day pass; it stopped being true within the hour,
+  which is the same never-revisited-sentence defect the day spent unpicking). 22 commits, tree
+  clean, `npm test` green across fifteen suites.
   - **The backlog was lying in both directions: eleven of twenty-one "open" rows were already done.**
     One carried `open — this is the decision` three lines under its own `CLOSED` heading. The three
     rows this audit took on trust rather than checking were all **filed and fixed on the same day**,
