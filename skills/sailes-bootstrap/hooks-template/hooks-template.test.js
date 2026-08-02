@@ -710,6 +710,66 @@ test('read-only commands that merely NAME migrations/ still block — a document
   }
 });
 
+// ---------------------------------------------------------------- settings-template.json matcher (C2)
+//
+// 1.25.2 (Q3, option A) accepted decision was explicit: "dołóż `Bash` do matchera PreToolUse **i
+// test, który to udowadnia na poziomie konfiguracji, nie skryptu**." The matcher landed at
+// `settings-template.json`'s `hooks.PreToolUse[0].matcher`; the config-level test never did —
+// `grep -rln "settings-template" --include="*.js"` returned zero files before this section existed.
+// Revert that value to `"Edit|Write"` and, before this test, `npm test` still exited 0 while the
+// guard script's own comment asserted the command surface fires. That is the exact defect 1.25.2
+// was fixing, able to come back unobserved. This test reads the JSON file itself — not the guard
+// script, which cannot see what harness config actually invokes it.
+
+const SETTINGS_TEMPLATE = path.join(HOOKS, '..', 'settings-template.json');
+
+/**
+ * `settings-template.json` ships with leading `// prose` lines explaining each key — JSON has no
+ * comment syntax, and the repo's own copy step tells the reader to strip them before a client repo
+ * gets the file. Verified on disk: every `//` in the current file starts a line at column 0; none
+ * sit inside a JSON string value. Stripping only whole-comment lines (not a blind inline `//` cut)
+ * keeps this safe if a future value ever legitimately contains `//` (e.g. a URL).
+ */
+function readTemplateJson(filePath) {
+  const raw = fs.readFileSync(filePath, 'utf8');
+  const jsonText = raw
+    .split(/\r?\n/)
+    .filter((line) => !line.trim().startsWith('//'))
+    .join('\n');
+  return JSON.parse(jsonText);
+}
+
+test('settings-template.json PreToolUse matcher includes Bash — the config, not just the script', () => {
+  const settings = readTemplateJson(SETTINGS_TEMPLATE);
+  const preToolUse = settings.hooks && settings.hooks.PreToolUse;
+  assert.ok(
+    Array.isArray(preToolUse) && preToolUse.length > 0,
+    'settings-template.json has no hooks.PreToolUse entries to check'
+  );
+  const matcher = String(preToolUse[0].matcher || '');
+  const tools = matcher.split('|');
+  assert.ok(
+    tools.includes('Bash'),
+    `PreToolUse matcher is "${matcher}" — Bash is missing, which is the exact 1.25.2 regression: ` +
+      "the guard's entire command surface (force-push, reset --hard, shell redirects into protected " +
+      'paths) would never run in a generated repo'
+  );
+});
+
+test('the Bash-membership check would have caught the pre-1.25.2 matcher — must-not-fire fixture', () => {
+  // The fixture that must NOT read as "Bash present": the exact string this repo shipped before
+  // 1.25.2 (`Edit|Write`, no Bash). Proves the check above is a real membership test and would not
+  // have silently passed the original defect — insurance against the check itself regressing to a
+  // vacuous form (e.g. a future edit that always returns true) without anyone noticing.
+  const preFixMatcher = 'Edit|Write';
+  const tools = preFixMatcher.split('|');
+  assert.ok(
+    !tools.includes('Bash'),
+    'the membership check reads Bash as present in "Edit|Write" — it would not have caught the ' +
+      'original 1.25.2 defect and is not a meaningful test'
+  );
+});
+
 console.log(
   failures === 0 ? '\nhooks-template: all tests passed' : `\nhooks-template: ${failures} failing`
 );

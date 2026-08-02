@@ -15,9 +15,9 @@ instructions transfer for free. What does **not** transfer for free is the mecha
 | Claude Code (`.claude/settings.json`) | Codex CLI (`.codex/config.toml`) | Notes |
 |---|---|---|
 | `hooks.SessionStart` → inject `.ai/STATE.md` | `[[hooks.SessionStart]]` → same script, stdout is appended as context | **Identical contract.** Reuse the script verbatim. |
-| `hooks.PreToolUse` (matcher `Edit\|Write`) → guard protected paths | `[[hooks.PreToolUse]]` (matcher `apply_patch\|Edit\|Write`) → same script | Same stdin-JSON payload + exit-2-to-block contract. **Caveat below.** |
+| `hooks.PreToolUse` (matcher `Bash\|Edit\|Write`) → guard protected paths | `[[hooks.PreToolUse]]` (matcher `apply_patch\|Edit\|Write`) → same script | Same stdin-JSON payload + exit-2-to-block contract. **Caveat below.** |
 | `permissions.allow` (verify cmds run without a prompt) | `sandbox_mode = "workspace-write"` + `approval_policy = "on-request"` | Codex has no per-command allowlist; the sandbox is the model — reads/writes inside the workspace run un-prompted, escapes prompt. |
-| `permissions.deny` (force-push, prod migrate, secret reads) | `[[hooks.PreToolUse]]` matcher `Bash` → guard script inspects `tool_input.command` | Deny-by-command becomes a Bash PreToolUse hook that exits 2. |
+| `permissions.deny` (force-push, prod migrate, `.env.prod`/`.env.staging` reads) | `[[hooks.PreToolUse]]` matcher `Bash` → guard script inspects `tool_input.command` | Deny-by-command becomes a Bash PreToolUse hook that exits 2. **Not equivalent for key material** — `permissions.deny`'s `Read(./**/*.pem)`/`*.key`/`*.p12` entries are Claude Read/Edit-tool-scoped and have **no** Codex-side match: `guard-protected-paths.sh` has no key-material pattern on any surface (a substring test for `.key` fires on `Object.keys(...)`), so `cat secrets/id_rsa.pem` is un-blocked under both harnesses today. Verified 2026-08-02 (C5); adding one is a human design call, not done here. |
 
 **Hook contract is the same in both harnesses** (verified against Codex hooks reference):
 a hook receives the event as a **single JSON object on stdin** (`tool_name`, `tool_input`,
@@ -31,8 +31,10 @@ match Claude Code, **one guard script serves both** — see `guard-protected-pat
 > `PreToolUse` fires **only for the `Bash` tool** — `apply_patch` file edits may **not** emit
 > the event (openai/codex issue #16732). So the `apply_patch|Edit|Write` matcher below is
 > best-effort: where it fires it guards protected-path edits; where it doesn't, the backstop is
-> (a) the `Bash` matcher still catches shell-driven writes (`echo … > .env`, `sed -i` on a
-> migration), (b) `sandbox_mode`/`approval_policy` still gate escapes, and (c) the AGENTS.md
+> (a) the `Bash` matcher still catches shell-driven writes to the surface it actually protects
+> (`echo … > .env.production`, `sed -i` on a migration — **not** the local `.env`, which the
+> guard deliberately allows since 1.25.1), (b) `sandbox_mode`/`approval_policy` still gate
+> escapes, and (c) the AGENTS.md
 > **Hard Safety Rules** remain the prose fallback. Do **not** claim file-edit protection is
 > airtight under Codex — state the Bash-path is enforced and the edit-path is best-effort until
 > your Codex version emits the event for `apply_patch`.

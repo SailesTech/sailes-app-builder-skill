@@ -79,6 +79,13 @@ esac
 # hosting doctrine should not be in the repo at all. Key material is denied path-precisely in
 # `permissions.deny` (glob matching, no false positives) rather than here — a substring test for
 # `.key` fires on `Object.keys(...)`, and a guard that cries wolf is a guard that gets muted.
+# CAVEAT (verified 2026-08-02): those deny entries — `Read(./**/*.pem)`, `Read(./**/*.key)`, etc. —
+# are scoped to the Read/Edit/Write TOOL surface, not to this Bash-command guard. `cat
+# certs/server.key` and `cat secrets/id_rsa.pem` through the Bash tool are NOT denied by
+# `permissions.deny` and are not matched by anything in this script either — key material has no
+# path-substring rule here on purpose (see above), so a shell read of it is currently unguarded.
+# Whether to add one is a design call (false-positive risk on ordinary identifiers), left to the
+# human; this comment states what protection exists today, not what would be nice to claim.
 # `.env.prod` below covers `.env.production` by prefix.
 case "$payload" in
   *'.env.prod'*|*'.env.staging'*)      block "production/staging env is protected — the LOCAL .env is yours to read and write";;
