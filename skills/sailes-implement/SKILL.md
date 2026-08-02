@@ -20,7 +20,16 @@ description: Use to implement an approved, ready spec (or specific phases of it)
 ## Pre-flight
 1. Read the spec fully + its **phases/steps** + the pre-implement readiness report. Read **`.ai/STATE.md` + `.ai/lessons.md`** (project memory) — start from what's already verified and what's known to fail; don't re-derive it.
 2. Confirm `Status: approved`; set it to `in-progress`.
-3. For long/multi-step work (>~5 commits), open a **run log** `.ai/runs/{YYYY-MM-DD}-{slug}.md`: goal, phase list, decisions, what's left — so the work is resumable across context resets. **Its critical-path section carries two drawings, not one:** the graph of phases *and* the file-ownership matrix. An arrow in a phase graph records the order somebody thought about the phases in, not a technical dependency — measured 2026-08-01, a plan called a phase "solitary" twenty lines above its own table showing that phase's files were disjoint from the next one's, and it idled behind six others for nothing. Dispatch on set intersection, never on arrows (`agent-team-structure.md`, rule 2).
+3. For long/multi-step work (>~5 commits), open a **run log** `.ai/runs/{YYYY-MM-DD}-{slug}.md`: goal, phase list, decisions, what's left — so the work is resumable across context resets. **Its critical-path section carries two drawings, not one:** the graph of phases *and* the file-ownership matrix. An arrow in a phase graph records the order somebody thought about the phases in, not a technical dependency — measured 2026-08-01, a plan called a phase "solitary" twenty lines above its own table showing that phase's files were disjoint from the next one's, and it idled behind six others for nothing. Dispatch on set intersection, never on arrows (`agent-team-structure.md`, rule 2). The file-ownership matrix is a fenced ```yaml block, not prose, so it can be compared instead of read:
+   ```yaml
+   ownership:
+     F1:
+       - path/one
+       - path/two
+     F2:
+       - path/three
+   ```
+   Run `node tools/ownership-check.js .ai/runs/{YYYY-MM-DD}-{slug}.md` before dispatching phases in parallel — it exits 1 and names the path and both tasks the moment two phases' path sets stop being disjoint.
 4. Branch off; never implement on the default branch.
 
 ## Implementation loop — per Phase, then per Step
