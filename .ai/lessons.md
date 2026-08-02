@@ -25,6 +25,14 @@
 - **Mechanisable:** yes, and it should be — `brief-closure.js` already parses briefs for field
   completeness; asserting that each path it names exists at the base commit is the same shape of
   check. Promotion candidate, filed to `.ai/backlog.md`.
+- **Second instance the same day, same shape, worse:** two later briefs stated "expected HEAD is
+  `bbaa1b8`" as the worktree-base check. **That object does not exist in the repo — the sha was
+  invented rather than read**, while `git rev-parse HEAD` was one command away. The worker checked,
+  found no such object, located the real `main`, fast-forwarded, and said so. **Generalise past
+  "commit the spec": a brief must not assert any fact about git state the author has not just
+  read.** A path, a sha, a branch name — each is a claim, and a wrong one costs the worker a
+  detour at best and sends it to the wrong base at worst. Both instances were caught by the worker
+  rather than the author, which is the backstop working; it is not a substitute for reading.
 
 ### 2026-08-02 — the backlog rows a truth pass misses are the ones fixed the same day they were filed
 - **Context:** an audit of `.ai/backlog.md` before planning 1.28.0. Twenty-one rows marked
