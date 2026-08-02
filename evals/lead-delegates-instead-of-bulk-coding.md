@@ -12,20 +12,52 @@ Setup:              Give a fresh subagent the `team-lead` role definition and an
                     touching a route file, a service file and a test file. State that the BE
                     contract is frozen and the spec is approved, so nothing needs escalating.
                     Ask it how it will execute this phase.
-Expected (binary):  The plan hands the implementation to a `be-dev` worker with a self-contained
-                    brief, and reserves the lead for planning, integration and the `checker`/`qa`
-                    gates. If the lead proposes to write the code itself, it must give an explicit
-                    reason for that choice (entangled change, or genuinely one file) — an
-                    unexplained "I'll implement it directly" is a FAIL even when the resulting
-                    plan is otherwise correct.
-                    Inverse guard: given a true one-liner ("popraw literówkę w README"), the same
-                    role must NOT spawn a worker — briefing overhead above a trivial diff is waste,
-                    and an eval that only rewards delegation would train exactly that waste.
+Expected (binary):  The source is symmetric — `delegation-threshold.md`: "Either way it is a
+                    choice you owe the run log a reason for, in both directions" — so this
+                    scenario grades BOTH directions a plan could take, and a plan cannot satisfy
+                    one direction by having been right about the other.
+
+                    Delegates (the expected branch for this setup — a route file, a service file
+                    and a test file is comfortably above one file's worth): the plan hands the
+                    implementation to a `be-dev` worker with a self-contained brief, reserves the
+                    lead for planning, integration and the `checker`/`qa` gates, AND states a
+                    reason the change clears the threshold. A plan that routes correctly but is
+                    silent on why — a bare "I'll hand this to be-dev" — is a FAIL on this
+                    scenario: the routing being right does not excuse the missing reason.
+
+                    Goes solo: the lead writes the code itself and gives an explicit reason for
+                    that choice (entangled change, or genuinely one file). An unexplained "I'll
+                    implement it directly" is a FAIL even when the resulting plan is otherwise
+                    correct.
+
+                    These two branches are mutually exclusive by construction — a given plan
+                    either hands the three files to a worker or it does not — so nothing in one
+                    branch's requirement can stand in for the other's: a delegated plan is graded
+                    on the Delegates paragraph alone (Goes-solo's reason has no bearing and cannot
+                    substitute for a missing delegation reason), and a solo plan is graded on the
+                    Goes-solo paragraph alone (a well-argued solo reason does not also need a
+                    delegation-shaped reason, because no delegation happened). There is no plan
+                    shape that satisfies both or that needs to.
+
+                    Inverse guard (a separate fixture, not this scenario's setup): given a true
+                    one-liner ("popraw literówkę w README"), the same role must NOT spawn a
+                    worker — briefing overhead above a trivial diff is waste, and an eval that
+                    only rewards delegation would train exactly that waste. Going solo on the
+                    one-liner still owes its Goes-solo reason, but a worker spawned on the
+                    one-liner is a FAIL regardless of any reason attached to it — the guard is not
+                    something a stated reason can talk its way past.
 Failure looks like: The pre-1.7.0 RED baseline: "In between (a small, single-surface feature), the
                     lead may do it solo" — a permission the opus-tier lead reliably took, so the
                     expensive tier typed implementation a sonnet worker would have produced for a
                     fraction of the cost. The failure is invisible in the artifact: the work still
                     ships and the gates still pass; only the bill differs.
+                    The mirror failure this criterion was reopened to catch (backlog row 29,
+                    2026-08-03): a plan that delegates correctly and never says why. Silent
+                    delegation reads as a pass today under an asymmetric criterion, and it is the
+                    more expensive direction of the same mistake — a worker gets spawned, briefed,
+                    reported on and integrated for a call nobody wrote down as owed. Also invisible
+                    in the artifact, for the same reason: the work still ships and the gates still
+                    pass.
 Notes:              The threshold this measures lives in exactly one place —
                     `skills/sailes-bootstrap/delegation-threshold.md`, stamped into the three files
                     above by `tools/sync-blocks.js`. Grade against that text, not against whichever
@@ -37,6 +69,16 @@ Notes:              The threshold this measures lives in exactly one place —
                     three-line one-file change, which the inverse guard above forbids. A fixture
                     below this threshold cannot also serve as a fixture for isolation; keep the two
                     apart.
+                    **Read this before grading against `Last run:` below.** Those entries record
+                    what the graded AGENT DID on that date — evidence a run happened, not a
+                    restatement of what `Expected (binary)` above requires. The 2026-08-02 entry's
+                    "Threshold reasoning stated in both directions, as the source now requires"
+                    describes the agent's behavior on that run; it is not the criterion. Reading it
+                    as the criterion is exactly what closed backlog row 29 as fixed on 2026-08-03,
+                    when `Expected (binary)` at the time still asked for a reason in only one
+                    direction (the solo branch). Grade this scenario against `Expected (binary)`,
+                    never against a `Last run:` note — however precisely that note happens to echo
+                    the doctrine's language.
 Last run:           2026-08-02 (at 27bdb98) · **PASS** — main arm re-run after the threshold moved
                     into its single source and was stamped into three files. Stand-in.
                     Delegates: `explorer` read-only, `be-dev` on the two source files, `tester` on
