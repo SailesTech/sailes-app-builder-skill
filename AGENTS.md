@@ -100,9 +100,14 @@ The live plugin does **not** run from this working directory. It runs from a clo
    the human answers (`skills/sailes-bootstrap/spec-writing-template.md`).
 
 ## Verification
-- `npm test` — hook tests (`hooks/*.test.js`), the Codex TOML validator, the Claude role-frontmatter
-  validator, the eval provenance reporter's tests, and release hygiene (five stamps + CHANGELOG
-  heading). No framework, no deps, and **nothing external**: every step is deterministic.
+- `npm test` — eleven suites: hook tests (`hooks/*.test.js`), the four **governance tools**
+  (`tools/{sync-blocks,ownership-check,worker-status,mcp-toolnames-check}.test.js`), the client-repo
+  hook templates (`hooks-template/*.test.js`, incl. `brief-closure`), the Codex TOML validator and
+  the role parity check, the eval provenance reporter, spec-status evidence, the repo-done
+  checklist, and release hygiene (five stamps + CHANGELOG heading). No framework, no deps, and
+  **nothing external**: every step is deterministic. *(The `tools/` suites have run in this gate
+  since 1.27.0 and this sentence did not mention them until 2026-08-03 — found by a `docs-author`
+  reconciling the architecture diagram against `package.json`, not by anyone reading this file.)*
 - `npm run test:browser` — the design probe's fixtures, kept out of the default gate on purpose.
   It self-SKIPs when no browser is present, but it fails under browser *contention* ("the browser
   never exposed a CDP target"), which is a failure with nothing to do with the code. Measured twice
