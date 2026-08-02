@@ -4650,15 +4650,15 @@
         <text data-detail="context" x="320" y="286" class="t-muted" font-size="9" text-anchor="middle">evals/*.md + harness/</text>
         </g>
 
-        <g id="node-tools" data-node-id="tools" data-node-label="Governance Tools" tabindex="0" role="button" aria-label="Focus Governance Tools, tools/*.js — sync-blocks, ownership-check, worker-status, Framework repo — sailes-app-builder-skill (this repo)" aria-pressed="false" data-node-kind="backend" data-node-sublabel="tools/*.js — sync-blocks, ownership-check, worker-status" data-node-tag="npm test" data-node-context="Framework repo — sailes-app-builder-skill (this repo)">
-          <title>Governance Tools · tools/*.js — sync-blocks, ownership-check, worker-status · Framework repo — sailes-app-builder-skill (this repo) · npm test</title>
+        <g id="node-tools" data-node-id="tools" data-node-label="Governance Tools" tabindex="0" role="button" aria-label="Focus Governance Tools, tools/*.js — sync-blocks, ownership-check, worker-status, mcp-toolnames-check, Framework repo — sailes-app-builder-skill (this repo)" aria-pressed="false" data-node-kind="backend" data-node-sublabel="tools/*.js — sync-blocks, ownership-check, worker-status, mcp-toolnames-check" data-node-tag="npm test" data-node-context="Framework repo — sailes-app-builder-skill (this repo)">
+          <title>Governance Tools · tools/*.js — sync-blocks, ownership-check, worker-status, mcp-toolnames-check · Framework repo — sailes-app-builder-skill (this repo) · npm test</title>
           <rect x="250" y="80" width="140" height="64" rx="6" class="c-mask"/>
           <rect x="250" y="80" width="140" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(256 86) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-detail-anchor x="320" y="110" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Governance Tools</text>
-        <text data-detail="context" x="320" y="126" class="t-muted" font-size="9" text-anchor="middle">tools/*.js — sync-blocks, ownership-check, worker-status</text>
+        <text data-detail="context" x="320" y="126" class="t-muted" font-size="9" text-anchor="middle">tools/*.js — sync-blocks, ownership-check, worker-status, mcp-toolnames-check</text>
         <text data-detail="fine" x="320" y="136" class="t-backend" font-size="7" text-anchor="middle">npm test</text>
         </g>
 
@@ -5001,6 +5001,7 @@
           <li>&bull; Agent roles ship as Claude .md and Codex .toml twins, kept in parity</li>
           <li>&bull; Hooks fire at SessionStart; evals gate edits to protected behaviors</li>
           <li>&bull; tools/sync-blocks.js stamps a rule from one canonical source into every consumer file; --check runs in npm test (added 1.27.0)</li>
+          <li>&bull; tools/mcp-toolnames-check.js checks role tool names against the real MCP server surface; wired into npm test (added 1.28.0)</li>
         </ul>
       </div>
 
