@@ -80,9 +80,24 @@ esac
 # `permissions.deny` (glob matching, no false positives) rather than here — a substring test for
 # `.key` fires on `Object.keys(...)`, and a guard that cries wolf is a guard that gets muted.
 # `.env.prod` below covers `.env.production` by prefix.
+# F9 fix (2026-08-02): the ORIGINAL pattern below —  *'/migrations/'*|*'\migrations\'*  — required
+# a LEADING SEPARATOR before the protected segment. A repo-relative path like
+# `migrations/003_deals.sql` (no leading `/`) has nothing before "migrations" to match, so it
+# passed straight through, while `/d/repo/migrations/003_deals.sql` correctly blocked. Reproduced
+# directly. The relative form is what an agent types most: it is what `git status` prints and what
+# a brief's prose contains, and this hook ships to every client repo protecting applied migrations.
+# Audited every protected segment in this file for the same shape — `.env.prod`/`.env.staging` and
+# `.ai/specs/implemented/` are plain substring matches with no leading-separator requirement, so
+# they already catch both forms; only this one line carried the defect, in one place.
+# Fix: also catch the segment when it OPENS the value — right after the JSON quote (file_path or
+# command starts with it) or after a shell-command space — not only after a real path separator.
+# Left deliberately narrow: matching is still anchored on a required TRAILING "/" or "\" after
+# "migrations", so a longer, unrelated name is never caught — `src/migrations-guide.md` has no
+# separator after "migrations" and stays legitimate.
 case "$payload" in
   *'.env.prod'*|*'.env.staging'*)      block "production/staging env is protected — the LOCAL .env is yours to read and write";;
-  *'/migrations/'*|*'\migrations\'*) block "applied migrations are immutable — add a NEW migration";;
+  *'/migrations/'*|*'\migrations\'*|*'"migrations/'*|*'"migrations\'*|*' migrations/'*|*' migrations\'*)
+                                        block "applied migrations are immutable — add a NEW migration";;
   *'.ai/specs/implemented/'*)          block "implemented specs are frozen — write a new spec";;
 esac
 

@@ -425,6 +425,175 @@ test('Object.keys survives — the guard does not substring-match key material',
   }
 });
 
+// ---------------------------------------------------------------- relative path leaks the guard (F9)
+//
+// The most serious finding of the 2026-08-02 session, reproduced directly before the fix:
+//   {"file_path":"migrations/003_deals.sql"}        → exit 0  PASSED THROUGH
+//   {"file_path":"/d/repo/migrations/003_deals.sql"} → exit 2  blocked
+// The old pattern — `*'/migrations/'*|*'\migrations\'*` — required a separator BEFORE the
+// protected segment, so a repo-relative path (no leading `/`) had nothing to match against.
+// That is the form an agent types most: it is what `git status` prints and what a brief's prose
+// contains. Every protected segment in the file gets a PAIRED case below — relative and absolute,
+// both must block — plus a fixture that must NOT fire: the protected word as part of a longer,
+// unrelated name.
+
+test('migrations: RELATIVE file_path is blocked — the defect this closes', () => {
+  const { dir } = makeRepo();
+  try {
+    const r = runHook(
+      GUARD,
+      dir,
+      JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: 'migrations/003_deals.sql' } })
+    );
+    assert.strictEqual(
+      r.status,
+      2,
+      'a repo-relative migrations path passed through — this is the reproduced F9 defect'
+    );
+  } finally {
+    rm(dir);
+  }
+});
+
+test('migrations: ABSOLUTE file_path is blocked — no regression on the form that already worked', () => {
+  const { dir } = makeRepo();
+  try {
+    const r = runHook(
+      GUARD,
+      dir,
+      JSON.stringify({
+        tool_name: 'Edit',
+        tool_input: { file_path: '/d/repo/migrations/003_deals.sql' },
+      })
+    );
+    assert.strictEqual(r.status, 2, 'the absolute form regressed while fixing the relative one');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('migrations: a relative path referenced from a Bash command is blocked too', () => {
+  const { dir } = makeRepo();
+  try {
+    const r = runHook(
+      GUARD,
+      dir,
+      JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'cat migrations/003_deals.sql' } })
+    );
+    assert.strictEqual(r.status, 2, 'a relative migrations path in a shell command passed through');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('migrations: src/migrations-guide.md is NOT blocked — the fixture that must not fire', () => {
+  // The second-order trap: broadening the match to catch the start of a path is how a guard
+  // starts blocking correct work. "migrations" here is part of a longer, unrelated filename —
+  // there is no separator after it, so the fix must not reach it.
+  const { dir } = makeRepo();
+  try {
+    const r = runHook(
+      GUARD,
+      dir,
+      JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: 'src/migrations-guide.md' } })
+    );
+    assert.strictEqual(
+      r.status,
+      0,
+      'a legitimate file named migrations-guide.md was blocked — the fix over-broadened'
+    );
+  } finally {
+    rm(dir);
+  }
+});
+
+test('.env.prod / .env.staging: RELATIVE form is blocked (already correct — no leading-separator requirement here)', () => {
+  const { dir } = makeRepo();
+  try {
+    for (const relPath of ['.env.production', '.env.staging']) {
+      const r = runHook(
+        GUARD,
+        dir,
+        JSON.stringify({ tool_name: 'Read', tool_input: { file_path: relPath } })
+      );
+      assert.strictEqual(r.status, 2, `${relPath} (relative) is not blocked`);
+    }
+  } finally {
+    rm(dir);
+  }
+});
+
+test('.env.prod / .env.staging: ABSOLUTE form is blocked', () => {
+  const { dir } = makeRepo();
+  try {
+    for (const absPath of ['/d/repo/.env.production', '/d/repo/apps/api/.env.staging']) {
+      const r = runHook(
+        GUARD,
+        dir,
+        JSON.stringify({ tool_name: 'Read', tool_input: { file_path: absPath } })
+      );
+      assert.strictEqual(r.status, 2, `${absPath} (absolute) is not blocked`);
+    }
+  } finally {
+    rm(dir);
+  }
+});
+
+test('.env.prod / .env.staging: docs/env.production-notes.md is NOT blocked — the fixture that must not fire', () => {
+  const { dir } = makeRepo();
+  try {
+    const r = runHook(
+      GUARD,
+      dir,
+      JSON.stringify({
+        tool_name: 'Edit',
+        tool_input: { file_path: 'docs/env.production-notes.md' },
+      })
+    );
+    assert.strictEqual(
+      r.status,
+      0,
+      'a legitimate docs file about env.production was blocked — the tier collapsed to a substring guess'
+    );
+  } finally {
+    rm(dir);
+  }
+});
+
+test('.ai/specs/implemented/: RELATIVE form is blocked', () => {
+  const { dir } = makeRepo();
+  try {
+    const r = runHook(
+      GUARD,
+      dir,
+      JSON.stringify({
+        tool_name: 'Edit',
+        tool_input: { file_path: '.ai/specs/implemented/2026-07-01-old-spec.md' },
+      })
+    );
+    assert.strictEqual(r.status, 2, 'a relative implemented-spec path is not blocked');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('.ai/specs/implemented/: ABSOLUTE form is blocked', () => {
+  const { dir } = makeRepo();
+  try {
+    const r = runHook(
+      GUARD,
+      dir,
+      JSON.stringify({
+        tool_name: 'Edit',
+        tool_input: { file_path: '/d/repo/.ai/specs/implemented/2026-07-01-old-spec.md' },
+      })
+    );
+    assert.strictEqual(r.status, 2, 'an absolute implemented-spec path is not blocked');
+  } finally {
+    rm(dir);
+  }
+});
+
 // ---------------------------------------------------------------- .env production markers (1.25.2)
 
 test('session-start WARNS when the local .env carries production markers', () => {
