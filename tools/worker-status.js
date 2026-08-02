@@ -207,6 +207,17 @@ function evaluateFile(filePath) {
     (f) => `missing required field "${f}:"`
   );
 
+  // The claim block is checked for SHAPE while the file is still open, not only at closure.
+  // Measured 2026-08-02 on the first live run of this mechanism: a worker wrote `claimed: 2026-08-02`
+  // — a date where a path list belongs — and nothing said so, because shape was graded on close only.
+  // That is backwards. If the worker dies, the claim block is ALL that survives, and its single job
+  // is to say which files were taken; a claim nobody can read is the state this artifact exists to
+  // prevent, discovered at the moment it can no longer be fixed.
+  const claimShapeProblems = [];
+  if (fields.claimed !== undefined && !Array.isArray(fields.claimed)) {
+    claimShapeProblems.push('"claimed" must be a list of paths, e.g. ["path/a", "path/b"]');
+  }
+
   if (isMissing(fields.closed)) {
     // Died mid-run and still-running are indistinguishable from this file alone, and the spec
     // treats that as correct: both mean "not done, go look" to a lead deciding whether to chase.
@@ -214,6 +225,7 @@ function evaluateFile(filePath) {
       `worker-status: ${filePath} — no "closed:" — ${worker} died mid-run (base ${base})`,
     ];
     for (const p of openProblems) messages.push(`  also: ${p}`);
+    for (const p of claimShapeProblems) messages.push(`  also: ${p}`);
     return { state: 'died-mid-run', ok: false, messages, fields };
   }
 
@@ -239,9 +251,7 @@ function evaluateFile(filePath) {
       );
     }
   }
-  if (fields.claimed !== undefined && !Array.isArray(fields.claimed)) {
-    problems.push('"claimed" must be a list of paths, e.g. ["path/a", "path/b"]');
-  }
+  for (const p of claimShapeProblems) problems.push(p);
   if (fields.touched !== undefined && !Array.isArray(fields.touched)) {
     problems.push('"touched" must be a list of paths, e.g. ["path/a", "path/b"]');
   }

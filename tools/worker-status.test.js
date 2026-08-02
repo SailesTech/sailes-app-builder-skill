@@ -139,6 +139,32 @@ test('file present without closed: -> exit 1, "died mid-run", names worker and b
   }
 });
 
+test('a malformed claim is caught while the file is STILL OPEN, not only at closure', () => {
+  // Found on the first live run of this mechanism, 2026-08-02: a worker wrote `claimed: 2026-08-02`
+  // — a date where a path list belongs — and the validator said only "died mid-run". Shape was
+  // graded on close alone, which is backwards: if the worker dies, the claim block is ALL that
+  // survives and its one job is to name the files it took. A claim nobody can read is exactly the
+  // state this artifact exists to prevent, discovered when it can no longer be fixed.
+  const dir = tmpDir();
+  try {
+    const f = writeFixture(
+      dir,
+      'be-dev-9.md',
+      'worker: be-dev-9\ntask: something\nbase: e276a5e\nclaimed: 2026-08-02\nopened: 2026-08-02\n'
+    );
+    const r = run(f);
+    const out = r.stdout + r.stderr;
+    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}`);
+    assert.ok(/died mid-run/.test(out), 'the open state is no longer reported');
+    assert.ok(
+      /"claimed" must be a list of paths/.test(out),
+      'the malformed claim went unreported on an open file — the defect this test exists for'
+    );
+  } finally {
+    rm(dir);
+  }
+});
+
 // -------------------------------------------------------------------- state 3: closed, complete
 
 test('file closed with a complete field set -> exit 0', () => {

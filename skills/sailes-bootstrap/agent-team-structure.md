@@ -215,6 +215,19 @@ the worktree shares the main `.git`, the commit is visible from the main tree **
 `git log <branch>` and `git cherry-pick` work with no push and no copying. A changed worktree
 survives the agent's termination.
 
+**Take the BRANCH, not the last commit — the two stopped being the same thing when `WIP:` arrived.**
+The commit without a `WIP:` prefix is the worker's *declaration that it finished*; it is **not the
+unit that carries the work**. A worker checkpointing properly leaves its changes spread across every
+commit it made, and cherry-picking only the declaration silently takes whatever happened to land in
+that last commit. Measured 2026-08-02, on the first run after the `WIP:` convention shipped: a
+worker's declaration carried 6 of the 16 files it had changed, the cherry-pick reported success, and
+**only an unrelated grep caught the missing ten.** Nothing in git complained, because nothing was
+wrong from git's point of view.
+
+So: read `git log <branch>` to see *whether* it declared, then integrate the whole branch —
+`git merge --no-ff <branch>`, or `git cherry-pick <base>..<branch>` when you want the commits
+individually. The declaration tells you the work is ready; the branch is what you take.
+
 **Check the base of your worktree before working — a harness defect, and the brief is the only
 place it can be caught.** Measured 2026-08-01: **five of twelve** workers were given a worktree cut
 from a commit *before* half the session's work — one from before an entire completed phase, one
