@@ -177,7 +177,33 @@ Last-commit: 907a071
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-08-01 (**resume here**): **1.25.2 and 1.26.0 are written, green, evaluated — and NOT on
+- 2026-08-02: **1.25.2 + 1.26.0 + 1.27.0 shipped to `main`** after the human's explicit
+  "napraw wszystko teraz i dopiero wypchnij", then "posprzątaj i pushuj". Twenty commits.
+  - **1.27.0 — mechanism where prose was re-derivable.** Seven phases of
+    `.ai/specs/2026-08-01-delegation-precision-and-agent-control.md`; five ran in parallel in
+    worker worktrees, two by the lead. The delegation threshold and the gate rule now have **one
+    source each**, stamped into three consumers by `tools/sync-blocks.js` with `--check` in the
+    gate. Brief closure, file-ownership intersections and the worker status file are all checks
+    with tests now, not paragraphs.
+  - **Three measurements that decided design, all in the spec:** `PreToolUse` does not fire on a
+    subagent spawn and `SubagentStart` carries no brief → the brief check is a test, not a hook.
+    `TaskGet` silently drops the `metadata` it accepts → files in the repo are the source of truth.
+    The `.output` transcript pointer is **0 bytes** while real transcripts run 388 KB → `tail -3`
+    joins the observation ladder as a convenience, and the status file stays because a log is a
+    narrative and a declaration is not.
+  - **Five of five workers got a worktree cut from `5a1d2f8`** — the pre-session HEAD. All five
+    checked merge-base, fast-forwarded and reported **before** working. The brief clause added in
+    1.26.0 paid for itself five times out of five; the harness defect is unchanged and systematic.
+  - **Still NEVER-RUN and this is the one soft spot in 1.27.0:** `worker-claims-before-it-writes`
+    and `lead-verifies-status-against-worktree`. Added with control arms, not yet proven. Running
+    them is the first job of the next session — and if a control arm reaches the right answer
+    without the doctrine, say so, the way 1.26.0's CHANGELOG had to be corrected to.
+  - Open in `.ai/backlog.md`: `lead-delegates-instead-of-bulk-coding` demands a stated reason only
+    for going solo while the threshold owes one in both directions; and the docs-delta scenario is
+    a RED baseline whose fix shipped long ago and which nobody has re-run for GREEN.
+  - 22 evals remain STALE by file mtime with no content contact. Deliberately not milled.
+
+- 2026-08-01: **1.25.2 and 1.26.0 were written, green, evaluated — and at that point NOT on
   production.** Everything sits on branch `release/1.25.2`, unpushed, six commits. Source: the
   2026-08-01 wnioski file; spec `.ai/specs/2026-08-01-milestone-lessons-to-doctrine.md`,
   `Status: in-progress`. Human stopped the session before the push, deliberately — Saturday
