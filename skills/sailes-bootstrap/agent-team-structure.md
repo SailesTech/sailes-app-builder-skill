@@ -252,6 +252,55 @@ completion. Any other commit is the **declaration** the lead reads as finished. 
 "commit often" quietly destroys the rule it sits next to, because a log full of commits stops
 answering the only question the lead asks it.
 
+### The worker status file — a declaration the lead can verify
+
+**Every worker that WRITES claims `.ai/status/<worker-id>.md` as its FIRST action and closes it as
+its LAST** — the identical test as the worktree mandate above, "does it write" rather than "is it on
+a list", so a role added next year inherits the rule instead of being omitted by an outdated list.
+
+```yaml
+worker: be-dev-3
+task: "F2 — brief-closure check"
+base: e276a5e            # sha the worktree was cut from
+claimed: ["skills/sailes-bootstrap/hooks-template/brief-closure.js"]
+opened: <timestamp>
+# --- appended at close ---
+closed: <timestamp>
+outcome: done | blocked | policy-refusal
+commit: <sha>             # empty unless outcome: done
+touched: [...]             # what actually moved
+```
+
+**Why it exists, in three states where today there is one silence.** No file means the worker never
+started. A file with no `closed:` means it died mid-run. A closed file is a declaration. Until this
+doctrine those three read identically from outside the worktree, and on 2026-08-01 that
+indistinguishability cost twice in one day: a lead reported finished work as unfinished — what got
+lost was the *report*, not the work — and, separately, two workers lost their work outright across
+five machine crashes, with nothing on disk saying a run had ever started.
+
+**The lead verifies the file AGAINST the worktree — metadata only, never content**: does `commit`
+exist, does `touched` match `git diff --stat`, was `base` current. **It reports loudly and does NOT
+block.** Blocking was rejected deliberately: this repo already has two documented cases of a check
+disabled for crying wolf, and a check that fires on harmless drift teaches everyone to ignore it. A
+discrepancy lands in the verdict and the run log; it never stops acceptance on its own.
+
+**The lead cleans up at acceptance, and the cleanup is a move, not a delete.** On accepting a
+worker's result, the lead folds the file's substance into the run log — one line: worker · task ·
+`outcome` · `commit` · `base` · discrepancies from verification — and **removes the file**. Three
+rules keep this from rotting into either a lost record or a stale pile:
+- **Deletion only together with the run-log entry.** A deletion with no entry is a lost declaration,
+  indistinguishable from a skipped gate.
+- **A file from a worker that died and was NOT accepted does not vanish quietly.** It lands in the
+  run log as a **loss** — with whatever it managed to declare — and is removed only after that. It
+  is the only record that the run ever happened.
+- **`.ai/status/` is gitignored.** It is live state, meant to survive a process crash on disk, not
+  meant to be versioned — the run log is the history, and the run log is what gets committed.
+
+**The invariant is the product: whatever sits in `.ai/status/` is either running or dead.** A file
+left behind after acceptance breaks that within a week, because then answering "is this worker still
+running" means reading every file and comparing dates against the run log by hand — exactly the work
+this artifact exists to save.
+
 ### Observing a worker — metadata is observation, content is integration
 
 The 2026-07-30 incident that produced "no commit = not finished" was an **integration** from an
@@ -267,20 +316,33 @@ The ladder, cheapest and least intrusive first. Stop at the first rung that answ
    is the designed channel and it costs nothing — reach for it *before* git. With teams mode off,
    a scoped subagent has no live channel and this rung does not exist; know which mode you are in
    before quoting a procedure that cannot be run.
-2. **Read the declarations.** `git -C <worktreePath> log --oneline` — what the worker committed,
-   and which of those are `WIP:` checkpoints rather than a finished claim.
-3. **Read the metadata, never the content.** `git -C <worktreePath> status --porcelain` (which
+2. **`tail -3` the subagent transcript.**
+   `~/.claude/projects/<repo>/<session>/subagents/agent-<id>.jsonl` — a bounded read of the worker's
+   last few lines. Measured 2026-08-02: the `.output` path the harness hands you at spawn is **0
+   bytes** on Windows, not a link Node follows; the real transcripts sit at the path above — 64
+   files, 5.2 MB in one session, largest 388 KB, so reading one whole file is ~100k tokens spent on a
+   yes/no question. But 57 JSONL lines at ~1.8 KB each means `tail -3` costs **~5 KB** — cheap enough
+   to actually use. State the caveat every time you reach for it: this path is **harness-internal,
+   session-scoped, and does not exist under Codex** — a convenience, never a condition. And it is the
+   worker's **narrative**, never a substitute for the status file's **declaration** (above) — a
+   transcript says what the agent claimed about itself, which is exactly the kind of self-report gate
+   isolation elsewhere in this document refuses to trust.
+3. **Read the declarations.** `git -C <worktreePath> log --oneline` — what the worker committed, and
+   which of those are `WIP:` checkpoints rather than a finished claim — and the worker's own
+   `.ai/status/<worker-id>.md`, if the brief carries one: `base`/`claimed` from before it started,
+   and, once closed, `outcome`/`touched`.
+4. **Read the metadata, never the content.** `git -C <worktreePath> status --porcelain` (which
    paths are dirty, names only), `git -C <worktreePath> diff --stat` (how much moved in each file,
    no lines), and the files' modification times. This answers the questions that actually matter
    for a silent worker — *is it still moving, or did it die forty minutes ago, and how far did it
    get* — and answers them without ever putting a half-written signature in front of you.
-4. **Forbidden, unchanged.** `git diff` without `--stat`, reading those files, copying them out,
+5. **Forbidden, unchanged.** `git diff` without `--stat`, reading those files, copying them out,
    committing or cherry-picking uncommitted work. That is integration, and integration reads only
-   declarations. If rungs 1–3 say the work exists but is not declared, the move is to **get the
+   declarations. If rungs 1–4 say the work exists but is not declared, the move is to **get the
    worker to commit it** — or, if it is truly dead, to record the loss and re-spawn. Never to
    finish somebody else's commit for them.
 
-What rung 3 buys that rung 2 cannot: a worker that has been silent for an hour with an untouched
+What rung 4 buys that rung 3 cannot: a worker that has been silent for an hour with an untouched
 tree is dead, and one whose files moved ninety seconds ago is working. Those two need completely
 different responses from the lead, and until now nothing in this document let them be told apart.
 
@@ -441,6 +503,11 @@ Blocked:     stuck more than one round on something that is NOT a key decision �
              costs the round; picking silently costs the lead a decision they never saw.
              Key decisions (stack, contract, data-model, auth, roles) are never
              substitutable — escalate and wait.
+Status:      claim `.ai/status/<worker-id>.md` as your FIRST action (`worker`, `task`,
+             `base` sha, `claimed` paths, `opened`) and close it as your LAST (`closed`,
+             `outcome`, `commit`, `touched`). No file = you never started; a file with no
+             `closed:` = you died mid-run; a closed file is your declaration. [read-only
+             roles: drop this line — you write nothing, so nothing to claim.]
 Checkpoint:  write progress to files as you go. Your in-memory state does not survive your
              process; disk does.
 Verification: exact commands to run + the e2e requirement.
@@ -475,6 +542,13 @@ that exchange is to grade the **second-order effect**, not the justification. `C
 worker died together with its process and its entire in-memory state went with it. The existing rule
 that a graded deliverable must be a FILE covers the **result**; this one covers the **run**, and they
 fail differently: a lost result costs a re-run, a lost run costs everything learned during it.
+
+**`Status:` was earned on 2026-08-01, and it is not `Checkpoint:` again.** `Checkpoint:` is written
+by the worker, for the worker — a hedge against its own process dying. `Status:` is written by the
+worker, for the *lead*, and answers a question `Checkpoint:` was never built to answer: not "how far
+did I get" but "did I ever start, and did I finish". Three states, one file: absent means never
+started, present without `closed:` means died mid-run, closed means a declaration — see Isolation
+below for why that distinction did not exist until now and what it cost.
 
 **Migration numbers are handed out in the spec, up front** — an anti-collision device, not tidiness.
 Two workers adding migrations in the same phase will pick the same next number, and the collision
