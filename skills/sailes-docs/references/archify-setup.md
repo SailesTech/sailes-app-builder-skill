@@ -85,6 +85,11 @@ NEVER block the phase, and NEVER pass it silently. In order:
 
 ## Ignore wiring (once per repo, at bootstrap/adopt)
 
+This block is `docs-author`'s single sanctioned write outside its lane — `agents/docs-author.md`
+(and its Codex twin `codex-agents/docs-author.toml`) name `.claudeignore` as one explicit, bounded
+exception to "writes land under `docs/architecture/` and `.ai/docs-deltas/` only": one block,
+written once per repo, at bootstrap/adopt, never elsewhere.
+
 ```bash
 # .claudeignore — generated HTML is large and derivable; JSON stays readable to agents
 for l in 'docs/architecture/*.html' 'docs/architecture/client-package/' '.ai/docs-deltas/*.html'; do
