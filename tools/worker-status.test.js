@@ -46,6 +46,12 @@ function run(...args) {
   return spawnSync(process.execPath, [BIN, ...args], { encoding: 'utf8' });
 }
 
+/** Like run(), but with a chosen working directory — needed for the bare `--sweep` tests below,
+ * since a bare `--sweep` resolves `.claude/status/` (and `.claude/worktrees/`) relative to cwd. */
+function runIn(cwd, args) {
+  return spawnSync(process.execPath, [BIN, ...args], { encoding: 'utf8', cwd });
+}
+
 /** A complete, valid, closed status file — the baseline every mutation test starts from. */
 const CLOSED_OK = [
   'worker: be-dev-3',
@@ -244,6 +250,125 @@ test('--sweep ignores non-.md files sharing the directory', () => {
   }
 });
 
+// ------------------------------------------------------ --sweep (bare): worktree fallback walk
+
+test('bare --sweep finds a status file that fell back into a worktree, and labels it', () => {
+  const root = tmpDir();
+  try {
+    const wtStatusDir = path.join(root, '.claude', 'worktrees', 'agent-fallback', '.claude', 'status');
+    fs.mkdirSync(wtStatusDir, { recursive: true });
+    writeFixture(wtStatusDir, 'be-dev-9.md', OPEN_ONLY);
+
+    const r = runIn(root, ['--sweep']);
+    const out = r.stdout + r.stderr;
+    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}\n${out}`);
+    assert.ok(/agent-fallback/.test(out), 'the worktree name is not named');
+    assert.ok(/be-dev-9\.md/.test(out), 'the fallback file is not named');
+    assert.ok(/worktree/i.test(out), 'the finding is not labelled as a worktree fallback');
+  } finally {
+    rm(root);
+  }
+});
+
+test('bare --sweep reports a normal local claim WITHOUT a worktree label', () => {
+  const root = tmpDir();
+  try {
+    const statusDir = path.join(root, '.claude', 'status');
+    fs.mkdirSync(statusDir, { recursive: true });
+    writeFixture(statusDir, 'be-dev-3.md', OPEN_ONLY);
+
+    const r = runIn(root, ['--sweep']);
+    const out = r.stdout + r.stderr;
+    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}\n${out}`);
+    assert.ok(/be-dev-3\.md/.test(out), 'the local claim is not named');
+    assert.ok(!/\[worktree/.test(out), 'a normal local claim must not be labelled as a fallback');
+  } finally {
+    rm(root);
+  }
+});
+
+test('a worktree with no .claude/status/ is skipped silently — not reported at all', () => {
+  const root = tmpDir();
+  try {
+    // A worktree directory that exists but never hit the fallback path — the normal case.
+    fs.mkdirSync(path.join(root, '.claude', 'worktrees', 'agent-clean'), { recursive: true });
+
+    const r = runIn(root, ['--sweep']);
+    const out = r.stdout + r.stderr;
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\n${out}`);
+    assert.ok(!/agent-clean/.test(out), 'a worktree with no status dir must not appear in the report');
+  } finally {
+    rm(root);
+  }
+});
+
+test('--sweep <explicit-dir> does NOT walk worktrees, even when a fallback claim exists', () => {
+  const root = tmpDir();
+  try {
+    // Deliberately reuse the SAME `.claude/status` path the bare form would default to, and put
+    // the worktree fallback at the exact sibling location the walk logic would compute from it
+    // (`.claude/worktrees`) — so passing the dir explicitly is the only thing standing between this
+    // test and the fallback being found. A weaker fixture (an unrelated directory elsewhere) would
+    // pass this test even if the "explicit dir disables the walk" guard were deleted, because the
+    // walk would then be looking in the wrong place by accident rather than being off by design.
+    const statusDir = path.join(root, '.claude', 'status');
+    fs.mkdirSync(statusDir, { recursive: true }); // exists and is empty
+
+    const wtStatusDir = path.join(root, '.claude', 'worktrees', 'agent-fallback', '.claude', 'status');
+    fs.mkdirSync(wtStatusDir, { recursive: true });
+    writeFixture(wtStatusDir, 'be-dev-9.md', OPEN_ONLY);
+
+    const r = runIn(root, ['--sweep', statusDir]);
+    const out = r.stdout + r.stderr;
+    assert.strictEqual(
+      r.status,
+      0,
+      `explicit dir is empty and worktrees must not be walked, expected exit 0, got ${r.status}\n${out}`
+    );
+    assert.ok(!/agent-fallback/.test(out), 'an explicit --sweep <dir> walked worktrees — it must not');
+    assert.ok(!/be-dev-9/.test(out), 'the worktree-only fallback file leaked into an explicit-dir sweep');
+  } finally {
+    rm(root);
+  }
+});
+
+test('bare --sweep with nothing at all (no status dir, no worktrees dir) -> exit 0', () => {
+  // The fixture most likely to be broken by a careless worktree-walk rewrite: an empty repo, no
+  // `.claude/status/`, no `.claude/worktrees/` — must still pass, not throw and not report.
+  const root = tmpDir();
+  try {
+    const r = runIn(root, ['--sweep']);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\n${r.stdout}${r.stderr}`);
+  } finally {
+    rm(root);
+  }
+});
+
+test('findWorktreeStatusFallbacks: finds fallbacks, skips worktrees with no status dir, tolerates a missing worktrees root', () => {
+  const { findWorktreeStatusFallbacks } = require('./worker-status.js');
+  const root = tmpDir();
+  try {
+    assert.deepStrictEqual(
+      findWorktreeStatusFallbacks(path.join(root, 'does-not-exist')),
+      [],
+      'a missing worktrees root must yield no findings, not throw'
+    );
+
+    const worktreesRoot = path.join(root, 'worktrees');
+    fs.mkdirSync(path.join(worktreesRoot, 'agent-clean'), { recursive: true });
+    const wtStatusDir = path.join(worktreesRoot, 'agent-fallback', '.claude', 'status');
+    fs.mkdirSync(wtStatusDir, { recursive: true });
+    writeFixture(wtStatusDir, 'be-dev-9.md', OPEN_ONLY);
+
+    const found = findWorktreeStatusFallbacks(worktreesRoot);
+    assert.strictEqual(found.length, 1, 'expected exactly one fallback finding');
+    assert.strictEqual(found[0].worktree, 'agent-fallback');
+    assert.strictEqual(found[0].name, 'be-dev-9.md');
+  } finally {
+    rm(root);
+  }
+});
+
 // -------------------------------------------------------------------- module-level API
 
 test('evaluateFile returns the four distinct states by name', () => {
@@ -268,6 +393,11 @@ test('evaluateFile returns the four distinct states by name', () => {
 // complete field set -> exit 0') are the ones a closed-detection mutation must turn red, the same
 // way sync-blocks.test.js relies on its own '--check FAILS on drift' test rather than a separate
 // test-of-the-test.
+//
+// Same discipline applies to the worktree walk added for the fallback-claim sweep: 'bare --sweep
+// finds a status file that fell back into a worktree, and labels it' and '--sweep <explicit-dir>
+// does NOT walk worktrees, even when a fallback claim exists' are the pair a walk-breaking mutation
+// must turn red — proof pasted into the delivery report the same way.
 
 console.log(failures === 0 ? '\nworker-status: all tests passed' : `\nworker-status: ${failures} failing`);
 process.exitCode = failures === 0 ? 0 : 1;
