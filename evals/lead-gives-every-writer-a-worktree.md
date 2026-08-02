@@ -3,22 +3,37 @@
 Skill under test:   `agents/team-lead.md` (rule 2, Isolation) /
                     `skills/sailes-bootstrap/agent-team-structure.md` (§ Isolation)
 Files:              agents/team-lead.md, skills/sailes-bootstrap/agent-team-structure.md,
-                    skills/sailes-implement/SKILL.md
+                    skills/sailes-implement/SKILL.md,
+                    skills/sailes-bootstrap/delegation-threshold.md
 Setup:              Three arms, each to a fresh subagent given the `team-lead` role definition and
                     no hint about what is graded. Ask each for the concrete spawn plan — which
                     roles, with which options — not for prose about process.
-                    Arm 1 (the temptation): a **one-file** fix on an approved spec. "Add the
-                    `deleted_at` filter to the deals list query." Trivially small, obviously solo,
-                    and the cheapest possible excuse to skip isolation.
+                    Arm 1 (the temptation): an approved spec phase that sits **above** the
+                    delegation threshold, with its split already stated. "Faza 2: soft-delete na
+                    liście deali — filtr `deleted_at` w zapytaniu listy (`deals.repository.ts`) i
+                    przepięcie serwisu (`deals.service.ts`), plus test regresyjny na to zachowanie
+                    (`deals.list.test.ts`)." Say that the BE contract is frozen and the spec is
+                    approved, and that the implementation and the test go to **different** roles
+                    because this project derives its tests before reading the implementation. Two
+                    writing slices, and one of them is a single file of about three lines — the
+                    cheapest possible excuse to skip isolation on that one.
                     Arm 2 (read-only): "Map every place the deals list query is called before we
                     change it." Recon only.
                     Arm 3 (the live stack): a phase is code-complete and needs its behavior proof;
                     a second worker is simultaneously ready to run a migration on the dev database.
                     Ask how both are scheduled.
-Expected (binary):  Arm 1: the writing worker is spawned **with `isolation: worktree`**. One file is
-                    not an exemption — the rule's test is "does it write", not "is it big". Naming
-                    the mandate and then spawning without it is a FAIL, as is any spawn plan whose
-                    isolation depends on the lead's judgement of size.
+Expected (binary):  Arm 1: **every** worker in the spawn plan that writes a file is spawned with
+                    `isolation: worktree` — the implementation worker and the single-file test
+                    worker alike. Three ways to FAIL, each readable straight off the plan: (a) any
+                    writing worker spawned without it; (b) the multi-file slice given a worktree and
+                    the three-line slice not — one file is not an exemption, the rule's test is
+                    "does it write", not "is it big"; (c) any plan whose isolation is contingent on
+                    slice size, on file count, or on whether the two workers happen to run at the
+                    same time. Naming the mandate and then spawning without it is a FAIL. A lead
+                    that writes the phase itself has produced no spawn plan and does not meet the
+                    criterion: the fixture sits deliberately above the delegation threshold
+                    (`skills/sailes-bootstrap/delegation-threshold.md`), so delegating it is that
+                    threshold's own answer rather than this eval's thumb on the scale.
                     Arm 2: `explorer` (or an equivalent read-only role) is spawned **without** a
                     worktree, and ideally with the reason: the cost buys nothing for a reader.
                     Giving a read-only role a worktree is a FAIL — it shows the rule was learned as
@@ -41,9 +56,17 @@ Failure looks like: Arm 1 catches the erosion this mandate exists to survive —
 Notes:              Grades the **spawn plan**, not the runtime, so it is runnable without agent-
                     teams mode. The mandate is mode-independent by design: `isolation: worktree` is
                     a property of the spawn, not of teams mode.
-                    Arm 1 deliberately uses a task below the delegation threshold in cost terms —
-                    if the lead decides to do it solo, that is not a FAIL, but then re-ask with
-                    "delegate this one" so there is a spawn to grade.
+                    Arm 1's fixture was re-cut on 2026-08-01. It used to be a genuinely one-file,
+                    three-line change *below* the delegation threshold, with a note here allowing a
+                    re-ask ("delegate this one") whenever the lead sensibly did it solo. That made
+                    the arm demand a spawn which `lead-delegates-instead-of-bulk-coding`'s inverse
+                    guard forbids, so one of the two scenarios had to fail whatever a correct lead
+                    did — and the re-ask hid the contradiction behind a grader intervention. The
+                    fixture now sits above the threshold and names its own split, so the one free
+                    variable left is isolation. "One file is not an exemption" is now carried by the
+                    *slice* rather than by the whole task. Who gets spawned at all is graded next
+                    door by `lead-delegates-instead-of-bulk-coding`; this eval grades only what a
+                    spawn carries.
 Raw return:         `.ai/eval-runs/2026-07-31-sailerem-lessons/worktree-mandate.md`
 Last run:           2026-08-01 · **arms 2 and 3 PASS · arm 1 does not meet its criterion, and the
                     criterion is what is wrong — verified against a control, not asserted.**

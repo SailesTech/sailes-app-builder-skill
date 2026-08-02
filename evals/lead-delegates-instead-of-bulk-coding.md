@@ -1,9 +1,11 @@
 # Eval: the lead delegates implementation instead of quietly bulk-coding it
 
-Skill under test:   `agents/team-lead.md` (When to convene a team) /
+Skill under test:   `skills/sailes-bootstrap/delegation-threshold.md` (the single source), as
+                    stamped into `agents/team-lead.md` (When to convene a team) /
                     `skills/sailes-bootstrap/agent-team-structure.md` (When a team — and when not) /
                     `codex-agents/team-lead.toml` (parity)
-Files:              agents/team-lead.md, skills/sailes-bootstrap/agent-team-structure.md, codex-agents/team-lead.toml
+Files:              skills/sailes-bootstrap/delegation-threshold.md, agents/team-lead.md,
+                    skills/sailes-bootstrap/agent-team-structure.md, codex-agents/team-lead.toml
 Setup:              Give a fresh subagent the `team-lead` role definition and an approved spec
                     phase that is comfortably above one file but well short of an epic — e.g.
                     "Faza 1: endpoint GET /api/orders/export (CSV, filtr po dacie) + jego testy",
@@ -24,6 +26,17 @@ Failure looks like: The pre-1.7.0 RED baseline: "In between (a small, single-sur
                     expensive tier typed implementation a sonnet worker would have produced for a
                     fraction of the cost. The failure is invisible in the artifact: the work still
                     ships and the gates still pass; only the bill differs.
+Notes:              The threshold this measures lives in exactly one place —
+                    `skills/sailes-bootstrap/delegation-threshold.md`, stamped into the three files
+                    above by `tools/sync-blocks.js`. Grade against that text, not against whichever
+                    copy the subagent happened to be handed.
+                    This eval decides **who writes**. Whether a worker that does get spawned carries
+                    `isolation: worktree` is the other axis, graded by
+                    `lead-gives-every-writer-a-worktree` — whose arm 1 was re-cut on 2026-08-01 for
+                    exactly this reason: it used to demand a spawned, worktree-carrying worker for a
+                    three-line one-file change, which the inverse guard above forbids. A fixture
+                    below this threshold cannot also serve as a fixture for isolation; keep the two
+                    apart.
 Last run:           2026-08-01 · **PASS both arms** · stand-in, re-run after the 1.26.0 edits.
                     Main arm: `be-dev` writes route + service, `tester` writes the suite with the
                     implementation unread and dispatched concurrently so the barrier is physical
