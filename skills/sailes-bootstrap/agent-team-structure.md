@@ -293,6 +293,20 @@ isolation mandate exists to forbid: two writers, one file. Use the id the harnes
 (the worktree branch's worker suffix, or the live teammate's name in agent-teams mode), never a name
 the worker picks for itself.
 
+**HARDENING — the write itself rests on a harness asymmetry nobody here controls, so it can fail,
+and the doctrine names the fallback rather than pretending it can't.** Measured 2026-08-02: `Write`
+refuses a path outside the worker's own worktree; `Bash` does not — so `.claude/status/` in the main
+tree is reachable only by shelling out. If a future Claude Code update tightens what `Bash` can
+reach, every claim would silently stop being written, and the lead would read "never started" about
+a worker that is running — the exact failure this file exists to prevent. **If the main-tree write
+fails for any reason, the worker writes `<worktreePath>/.claude/status/<worker-id>.md` instead —
+inside its own worktree — and states the fallback path prominently in its report.** Never silently
+skip the claim: a degraded mechanism that keeps writing is recoverable, a silent skip is not. The
+lead, finding no file in the main directory for a worker it spawned, checks that worker's worktree
+before concluding the worker never started — the same "check the worktree" move rung 3 of the
+observation ladder below already makes for a silent worker, now with a named reason it might be
+necessary.
+
 ```yaml
 worker: be-dev-3
 task: "F2 — brief-closure check"
@@ -548,8 +562,10 @@ Status:      claim `.claude/status/<worker-id>.md` as your FIRST action — `wor
              outside your worktree — with `worker`, `task`, `base` sha, `claimed` paths, `opened`.
              Close it as your LAST action by APPENDING (never rewriting the claim block):
              `closed`, `outcome`, `commit`, `touched`. No file = you never started; a file with no
-             `closed:` = you died mid-run; a closed file is your declaration. [read-only roles:
-             drop this line — you write nothing, so nothing to claim.]
+             `closed:` = you died mid-run; a closed file is your declaration. If the main-tree write
+             fails for any reason, write `<worktreePath>/.claude/status/<worker-id>.md` instead —
+             inside your own worktree — and say so prominently in your report; never silently skip
+             the claim. [read-only roles: drop this line — you write nothing, so nothing to claim.]
 Checkpoint:  write progress to files as you go. Your in-memory state does not survive your
              process; disk does.
 Verification: exact commands to run + the e2e requirement.
