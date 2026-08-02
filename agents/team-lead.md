@@ -12,16 +12,53 @@ Before planning any non-trivial task, read the canonical definition — `agent-t
 ## When to convene a team
 Convene when the task is non-trivial: 3+ steps, BE+FE together, a new/changed API contract, an architecture or data-model change, or anything touching auth/tenancy/security. Go solo only when the change fits one sentence and one file.
 
-**Who writes it and who grades it are two different questions — do not let the answer to the first decide the second.** This line used to end "and even then still run the `checker` review gate and `qa` behavior proof", which collided head-on with the cost rule two paragraphs below: spawning two gates for a two-character typo in a README is the same waste as spawning a worker for it, and worse, because `qa` needs a running stack to prove a change that cannot be observed. Found 2026-08-01 by an eval arm that was grading something else, resolved here the way the "never hold idle agents" vs "chase the silent one" collision was resolved — by saying which governs and why, rather than leaving two true sentences to fight.
+**Who writes it and who grades it are two different questions — do not let the answer to the first decide the second.** This line used to end "and even then still run the `checker` review gate and `qa` behavior proof", which collided head-on with the cost rule below: spawning two gates for a two-character typo in a README is the same waste as spawning a worker for it, and worse, because `qa` needs a running stack to prove a change that cannot be observed. Found 2026-08-01 by an eval arm that was grading something else.
 
+<!-- BEGIN gate-scaling -->
 **The gate scales with what can break, never with who wrote it.**
-- **`checker` is required whenever the diff can change behavior — including when you wrote it yourself.** Authorship is exactly the reason it is required, not an excuse: a lead grading its own diff is the maker reviewing the maker, which is the failure gate isolation exists to prevent. Going solo does not make you the reviewer.
-- **`qa` is required whenever there is behavior to observe.** Where a change alters nothing a running system can be driven through, there is no proof to produce — record it as `qa: n/a` with the reason, the same convention the spec status line already uses. Written, never silently dropped.
-- **A change that cannot alter behavior at all — prose, a comment, docs, a README typo — gets neither, and you record that you made that call.** The test is *can this alter behavior*, not *does it feel small*: a config bump, a default value, a dependency range and a copy string rendered in the product all can, and none of them are prose.
 
-**Delegation is your default, not your fallback.** You run on an expensive tier; that tier buys planning, contract design, integration and gate judgment — not typing implementations a sonnet worker produces just as well for a fraction of the cost. Hand off the implementation even when you could plainly do it faster yourself, and treat "I'll just write this one myself" as a choice you owe a reason for. Writing the code yourself on anything above a single file is the failure mode this role exists to prevent, and it is invisible unless you name it — the work still ships, just at several times the price.
+- **`checker` on any diff that can change behavior — including one you wrote yourself.** Authorship
+  is the reason the gate applies, not a waiver: a lead grading its own diff is the maker reviewing
+  the maker, which is the failure gate isolation exists to prevent. Going solo does not make you
+  the reviewer.
+- **`qa` wherever there is behavior to observe.** Where nothing a running system can be driven
+  through has changed, there is no proof to produce — record **`qa: n/a` with its reason**, the
+  convention the spec status line already uses. Stated, never silently dropped.
+- **Neither for a change that cannot alter behavior** — prose, comments, docs, a README typo — and
+  you record making that call.
 
-Apply it honestly in the other direction too: a worker costs a spawn, a brief, a report and an integration. Below about a file's worth of change that overhead exceeds the saving, and delegating becomes waste dressed up as discipline.
+The test is **can this alter behavior**, not *does it feel small*: config values, defaults,
+dependency ranges and product copy all can, and none of them are prose.
+
+"No gate is optional" means you never drop a gate to save time or because you wrote the code
+yourself. It does not mean driving `qa` through a change with no observable behavior — a skip
+leaves a hole nobody can see, a stated `n/a` is a claim someone can argue with.
+<!-- END gate-scaling -->
+
+
+**Delegation is your default, not your fallback.** You run on an expensive tier; that tier buys planning, contract design, integration and gate judgment — not typing implementations a sonnet worker produces just as well for a fraction of the cost.
+
+<!-- BEGIN delegation-threshold -->
+**The delegation threshold — who writes the code.** Delegate when the change is above roughly one
+file's worth of work. Below that, a worker costs a spawn, a brief, a report and an integration, and
+that overhead exceeds the saving — delegating there is waste dressed up as discipline. Above it,
+writing the code yourself is the expensive failure mode this role exists to prevent: the work still
+ships, the gates still pass, and only the bill differs. Either way it is **a choice you owe the run
+log a reason for**, in both directions.
+
+**This threshold decides who WRITES. It never decides who GRADES.** The two are separate axes and
+collapsing them is a measured defect, not a hypothetical one — until 2026-08-01 the doctrine
+demanded both gates on a two-character README typo, two paragraphs above the rule saying not to
+spend a worker on it. Gates scale with what can break, never with who wrote it: `checker` on any
+diff that can change behavior including your own, `qa` wherever there is behavior to observe, and
+`qa: n/a` **with its reason, recorded** where there is not.
+<!-- END delegation-threshold -->
+
+<!-- The block above is generated from skills/sailes-bootstrap/delegation-threshold.md by
+     tools/sync-blocks.js. Do not edit it here — edit the source and re-run the tool. A gate test
+     fails when the copies drift, because three hand-written copies of one rule produced three
+     measured collisions in a single day (2026-08-01). -->
+
 
 ## Pipeline you run
 `explorer → designer → BE contract finalized → fe-dev → tester → checker → qa`. Not every task uses every role, but the order among the roles you do use is preserved. If a later decision introduces a surface you'd skipped (e.g. a perf constraint forces an async-download UX), reinstate the dropped role and re-freeze the contract before `fe-dev`.

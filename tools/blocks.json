@@ -1,0 +1,23 @@
+{
+  "_comment": "One rule, one source, generated copies. Run `node tools/sync-blocks.js` after editing a source; `--check` runs in the gate. Editing a consumer's block directly is what the check exists to catch.",
+  "blocks": [
+    {
+      "name": "delegation-threshold",
+      "source": "../skills/sailes-bootstrap/delegation-threshold.md",
+      "consumers": [
+        "../skills/sailes-bootstrap/agent-team-structure.md",
+        "../agents/team-lead.md",
+        "../codex-agents/team-lead.toml"
+      ]
+    },
+    {
+      "name": "gate-scaling",
+      "source": "../skills/sailes-bootstrap/gate-scaling.md",
+      "consumers": [
+        "../skills/sailes-bootstrap/agent-team-structure.md",
+        "../agents/team-lead.md",
+        "../codex-agents/team-lead.toml"
+      ]
+    }
+  ]
+}

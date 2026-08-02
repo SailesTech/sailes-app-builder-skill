@@ -96,6 +96,32 @@ touched: [...]           # co realnie ruszył
 bez `closed:` = „padł w trakcie", plik domknięty = deklaracja. Dziś wszystkie trzy są jedną ciszą
 i to jest przyczyna obu strat pracy z 2026-08-01.
 
+**Dlaczego nie wystarczy przeczytać logu workera — uzasadnienie poprawione po pomiarze.** Pierwsza
+wersja tego specu opierała plik statusu na tym, że *lider nie widzi, co się dzieje*. To było
+nieprawdziwe i zostało obalone pytaniem człowieka, a potem pomiarem:
+
+| Co zmierzone (2026-08-02, ta maszyna) | Wynik |
+|---|---|
+| Plik `.output`, którego ścieżkę harness podaje przy każdym powołaniu | **0 bajtów** — nie dowiązanie, za którym Node podąży, nie plik z treścią |
+| Prawdziwe transkrypty | `~/.claude/projects/<repo>/<sesja>/subagents/` — **64 pliki, 5,2 MB** w tej sesji, największy 388 KB |
+| Koszt odczytu jednego w całości | ~100k tokenów, żeby odpowiedzieć na pytanie tak/nie |
+| **Koszt `tail -3`** | 57 linii JSONL po ~1,8 KB → **~5 KB. Wykonalne i tanie.** |
+
+Więc lider **może** tanio zobaczyć ostatnią wypowiedź workera, i uzasadnienie „nie widać" upada.
+Zostaje uzasadnienie węższe i prawdziwe: **log jest narracją, plik statusu jest zobowiązaniem.**
+Transkrypt mówi, co agent powiedział; plik statusu mówi, do czego zobowiązał się **przed** pracą
+i czy to domknął. Trzy rzeczy, których `tail` nie da i tylko one bronią tego artefaktu:
+
+- **`base` i `claimed` sprzed startu** — deklaracja, nie wypowiedź; w narracji ich nie ma;
+- **rozróżnienie „nigdy nie wystartował" od „padł w trakcie"** — martwy worker też ma transkrypt;
+- **czytanie logu workera to czytanie relacji twórcy** — dokładnie to, czego zakazuje izolacja
+  bramek. Lider oceniałby skończoność po tym, co agent o sobie napisał.
+
+**Skutek uboczny, który wchodzi do zakresu (F5):** `tail -3` transkryptu jest **nowym, zmierzonym
+szczeblem drabiny obserwacji** i dziś nie ma go tam wcale. Wchodzi między „zapytaj agenta"
+a „czytaj deklaracje", z jawnym zastrzeżeniem, że ścieżka jest wewnętrzna dla harnessu, sesyjna
+i nie istnieje po stronie Codeksa — więc jest wygodą, nigdy warunkiem.
+
 **Obowiązek ma każdy piszący** — ten sam test co przy worktree („czy to pisze"), więc rola dodana
 za rok dziedziczy regułę zamiast omijać ją przez pominięcie na liście.
 
@@ -216,7 +242,7 @@ node tools/worker-status.test.js              → 0 failing
 |---|---|
 | `agent-team-structure.md` (brief + Isolation) | D5.1 (eval `worker-claims-before-it-writes`) |
 | `agents/be-dev.md` · `fe-dev.md` · `tester.md` · `designer.md` · `docs-author.md` | D5.1 |
-| `agents/team-lead.md` (weryfikacja przeciw worktree **+ sprzątanie przy akceptacji**) | D5.2 (eval `lead-verifies-status-against-worktree`), D5.4 |
+| `agents/team-lead.md` (weryfikacja przeciw worktree **+ sprzątanie przy akceptacji + szczebel `tail -3`**) | D5.2 (eval `lead-verifies-status-against-worktree`), D5.4, D5.5 |
 | `skills/sailes-bootstrap/skeleton.md` (`.ai/status/` w `.gitignore`) | D5.4 |
 | `codex-agents/*.toml` (pięć bliźniaków) | D5.3 (parytet zielony) |
 
