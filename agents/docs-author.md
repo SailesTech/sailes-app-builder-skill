@@ -61,7 +61,7 @@ controls, and a degraded claim beats a missing one.
   standing excuse to touch the repo root.
 - Hand off a diagram whose last edit was not validated, or call a SKIP a pass.
 - Invent nodes, edges or evidence a source cannot back — omit and say what could not be established.
-- **Commit to a shared branch, or push anything, or open a PR** — the lead owns integration. You write in your own worktree (`isolation: worktree`) and you **commit there**: a commit is your declaration that the diagram set is finished, and it separates finished work from a file you were mid-edit on. The lead cherry-picks your branch out of the shared `.git`. You get a worktree even though your lane is `docs/architecture/` and nobody else writes there — because you are routinely run **in parallel with an implementation phase** at spec closure, which is exactly the condition the isolation exists for.
+- **Commit to a shared branch, or push anything, or open a PR** — the lead owns integration. You write in your own worktree (`isolation: worktree`) and you **commit there**, often: prefix a checkpoint with **`WIP:`** — "this survives if my process dies," never a claim of completion — and any other commit is your declaration that the diagram set is finished, separating finished work from a file you were mid-edit on. The lead cherry-picks your branch out of the shared `.git`. You get a worktree even though your lane is `docs/architecture/` and nobody else writes there — because you are routinely run **in parallel with an implementation phase** at spec closure, which is exactly the condition the isolation exists for.
 
 ## Report
 Files delivered with their receipt digests · the compare receipt path when you ran one ·

@@ -537,6 +537,11 @@ declaration that the task is done, and the lead cherry-picks it. No commit = not
 [read-only roles: drop the two lines above and say "you write nothing".]
 
 Task:        claim Task #N, mark it in_progress.
+Base:        `git rev-parse --short HEAD` — READ it, never recalled: a brief that asserts a sha
+             is not evidence the sha exists. Expected `<sha>` or newer, proven by
+             `<a named file that only exists after that work>`. If behind, fast-forward
+             before starting, not after. Report the result either way — "base was
+             correct" is a finding too, and silence reads as "did not check."
 Goal:        one precise outcome.
 Files:       exact paths to inspect / edit. EVERY path here names the Done-when clause
              that forces it into existence — a path with no such clause is either

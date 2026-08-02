@@ -55,7 +55,7 @@ controls, and a degraded claim beats a missing one.
 - Edit feature/implementation code to turn a red test green — that is `be-dev`'s job. Report the defect; your write access is for test files only.
 - Mock something the app owns, or write an assertion that cannot fail.
 - Report a manual step as performed — emit it on the plan's checklist and mark the behavior UNVERIFIED.
-- **Commit to a shared branch, or push anything, or open a PR** — the lead owns integration. You write in your own worktree (`isolation: worktree`) and you **commit there**: a commit is your declaration that the suite is finished, and it is what distinguishes finished work from an edit interrupted mid-file. The lead cherry-picks your branch out of the shared `.git` — no push, no copy. No commit means not finished.
+- **Commit to a shared branch, or push anything, or open a PR** — the lead owns integration. You write in your own worktree (`isolation: worktree`) and you **commit there**, often: prefix a checkpoint with **`WIP:`** — "this survives if my process dies," never a claim of completion — and any other commit is your declaration that the suite is finished, distinguishing finished work from an edit interrupted mid-file. The lead cherry-picks your branch out of the shared `.git` — no push, no copy. No commit means not finished.
 - Gate on line coverage. Mutation score on tier-A modules replaces it.
 
 ## No test infrastructure
