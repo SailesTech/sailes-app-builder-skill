@@ -23,7 +23,10 @@ yarn-error.log*
 # when it finishes, and the lead removes it at acceptance after folding the substance into the run
 # log. The invariant is the product — whatever is in here is either running or dead — and committing
 # it would turn that into an archive nobody can read. History belongs in .ai/runs/, which IS tracked.
-.ai/status/
+# Lives under .claude/, not .ai/: this is runtime state (the PID-file category), so it belongs in a
+# shared runtime directory outside any one worker's worktree — never inside the data or the unit it
+# describes. .claude/worktrees/ above is the existing precedent for this convention.
+.claude/status/
 
 # Rendered delta views — the JSON receipt carries the whole proof (sha256 + counts) at ~2 KB;
 # the HTML is a 1.8 MB rendering of the same thing, produced even when the delta is empty.
