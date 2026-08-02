@@ -93,6 +93,21 @@ const INVARIANTS = {
     // backstop anywhere, so losing this from a twin loses it entirely for that harness.
     ['never kills a process not identified by its command line', /command line/i],
     ['never kills an editor process or an MCP server', /MCP server/i],
+    // Added retroactively, after the checker's mutation proof that stripping every `.claude/status/`
+    // line (8,069 bytes, all six twins) passed this file with exit 0. These three cover the LEAD's
+    // half of the worker-status doctrine — the per-role writers' claim-before-write half is covered
+    // above, per role.
+    ['no file / unclosed file / closed file are the three lifecycle states', /no file means it never started/i],
+    ['the claim write can fail — worker falls back to its own worktree path', /write can fail/i],
+    ['acceptance folds the status file into the run log, then removes it', /fold.{0,40}run log/i],
+    // D8 — the WIP: checkpoint-versus-declaration convention. Inventoried 2026-08-02 (.ai/backlog.md)
+    // as present on both sides with no invariant, surviving by luck rather than by a gate.
+    ["the WIP commit is a checkpoint, not the worker's declaration of completion", /non-WIP:?\s*commit is the worker.s declaration/i],
+    // D9 — worktree-base verification. Inventoried 2026-08-02 (.ai/backlog.md) as present in
+    // agents/team-lead.md and ABSENT from codex-agents/team-lead.toml entirely — a live drift, not
+    // just a missing guard. This invariant is expected to fail on the Codex side until the twin is
+    // fixed; do not weaken the regex to force green — the red result IS the finding.
+    ["verifies the worker's worktree base is current before it starts", /worktree.s base is current before the worker starts/i],
   ],
   explorer: [
     ['strictly read-only', /read-only/i],
@@ -114,16 +129,24 @@ const INVARIANTS = {
     ['measuring its own spec is not a gate', /is not a gate/i],
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
     ['commits inside its own worktree', /own worktree/i],
+    // Added retroactively — a mutation stripping every `.claude/status/` line (8,069 bytes across
+    // the six twins) passed this file with exit 0 until now. Claim-before-write is the whole
+    // worker-status doctrine for a writing role; losing it from a twin loses the crash-survival
+    // mechanism entirely for that harness.
+    ['claims `.claude/status/designer-<n>.md` before the first edit', /\.claude\/status\/designer/i],
   ],
   'be-dev': [
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
     ['commits inside its own worktree', /own worktree/i],
     ['implements the approved scope only', /approved|exactly the/i],
+    // See designer's note above — same retroactive gap, same fix, per writing role.
+    ['claims `.claude/status/be-dev-<n>.md` before the first edit', /\.claude\/status\/be-dev/i],
   ],
   'fe-dev': [
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
     ['commits inside its own worktree', /own worktree/i],
     ['works against the frozen contract', /frozen|contract/i],
+    ['claims `.claude/status/fe-dev-<n>.md` before the first edit', /\.claude\/status\/fe-dev/i],
   ],
   tester: [
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
@@ -131,6 +154,7 @@ const INVARIANTS = {
     ['derives cases before reading the implementation', /before reading|code UNREAD|unread/i],
     ['never weakens a frozen assertion', /weaken/i],
     ['reports a code defect rather than fixing it', /report/i],
+    ['claims `.claude/status/tester-<n>.md` before the first edit', /\.claude\/status\/tester/i],
   ],
   checker: [
     ['never sees the maker narrative', /narrative|maker/i],
@@ -155,6 +179,7 @@ const INVARIANTS = {
     ['missing archify is an explicit SKIP, never silence', /SKIP archify/],
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
     ['commits inside its own worktree', /own worktree/i],
+    ['claims `.claude/status/docs-author-<n>.md` before the first edit', /\.claude\/status\/docs-author/i],
   ],
 };
 
