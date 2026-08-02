@@ -2,8 +2,8 @@
 'use strict';
 
 /**
- * worker-status — reads and validates `.ai/status/<worker-id>.md`, the file a worker claims at the
- * start of its run and closes at the end.
+ * worker-status — reads and validates `.claude/status/<worker-id>.md`, the file a worker claims at
+ * the start of its run and closes at the end.
  *
  * The problem it exists for, measured 2026-08-01: a lead reported finished work as unfinished,
  * twice, because three genuinely different states — never started, died mid-run, finished and
@@ -33,7 +33,26 @@
  *
  * The file body is a small, fixed YAML shape (see worker-status-template.md) — not general YAML.
  * Parsing it by hand keeps this at zero dependencies; a real YAML parser would be solving a much
- * bigger problem than "read six flat keys and two inline lists".
+ * bigger problem than "read six flat keys and two list-valued fields".
+ *
+ * Why `.claude/status/`, not `.ai/status/` (moved 2026-08-02): a status file is live runtime
+ * state — the same category as a PID file — and the Unix convention puts that in a shared runtime
+ * directory, never inside the data it describes and never inside the unit it describes. `AGENTS.md`
+ * is explicit that `.ai/` is memory, not scratch, so an ephemeral gitignored directory nested inside
+ * it is an anomaly someone eventually commits by habit. `.claude/worktrees/` is the existing
+ * precedent for shared ephemeral state living under `.claude/`, not `.ai/`.
+ *
+ * Append-only close: a worker claims the file once (the open block, `worker` through `opened`)
+ * and later APPENDS the closing block (`closed` through `touched`/`note`) beneath it — it never
+ * rewrites or truncates the open block to add the close one. This matters to THIS reader, not just
+ * to worker discipline: `--sweep` can observe a file at any point in its lifetime, including mid-
+ * write, and a writer that rewrites-in-place (truncate, then write the whole file back out) can be
+ * caught by a sweep between those two steps with a file that is momentarily empty or half-written —
+ * which this tool would have to report as "invalid" or worse, not as "still running". A writer that
+ * only ever appends can, at worst, be caught with the open block present and the close block not
+ * yet started, which is exactly the pre-existing, correctly-handled "died mid-run" (or still
+ * running) state. Append-only is what keeps every partial read a VALID intermediate state instead
+ * of a corrupt one.
  */
 
 const fs = require('fs');
@@ -42,6 +61,12 @@ const path = require('path');
 const REQUIRED_OPEN_FIELDS = ['worker', 'task', 'base', 'claimed', 'opened'];
 const REQUIRED_CLOSE_FIELDS = ['closed', 'outcome', 'touched'];
 const VALID_OUTCOMES = ['done', 'blocked', 'policy-refusal'];
+
+// A status file is live runtime state — the same category as a PID file — so it lives in a shared
+// runtime directory, never inside the data it describes (`.ai/`, which AGENTS.md is explicit is
+// memory, not scratch) and never inside the unit it describes. `.claude/worktrees/` is the existing
+// precedent for shared ephemeral state living under `.claude/`.
+const DEFAULT_STATUS_DIR = '.claude/status';
 
 /**
  * Strips a trailing `# comment` from a YAML-ish scalar, but only when the `#` sits outside any
@@ -99,17 +124,53 @@ function parseValue(raw) {
  * Reads the flat `key: value` shape described in worker-status-template.md. Tolerant of CRLF and
  * LF (this repo is mixed on disk — never assume one) and of full-line `#` comments like the
  * template's own "appended at closure" marker.
+ *
+ * List-valued fields (`claimed`, `touched`) accept BOTH syntaxes the doctrine and real usage both
+ * produce: inline (`claimed: ["a", "b"]`, handled by parseValue) and block —
+ *
+ *   claimed:
+ *     - a
+ *     - b
+ *
+ * — a bare `key:` with nothing after the colon, followed by one or more `  - item` lines. The
+ * first real status file ever written (2026-08-02) used block form and was rejected: the validator
+ * was stricter than the format it validates. A `key:` line with no trailing block list is still a
+ * legal empty scalar (e.g. an omitted `commit:`), so block detection only fires when at least one
+ * `- ` line actually follows.
  */
 function parseStatus(text) {
   const fields = {};
   const lines = text.split(/\r?\n/);
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
     if (!line.trim()) continue;
     if (/^\s*#/.test(line)) continue; // a full-line comment, not a field
     const m = line.match(/^([A-Za-z_][A-Za-z0-9_-]*):\s*(.*)$/);
     if (!m) continue; // not a `key: value` line — ignore rather than fail on stray prose
     const key = m[1];
     const value = stripTrailingComment(m[2]);
+
+    if (value.trim() === '') {
+      // Bare `key:` — look ahead for an indented block list. Stop at the first line that is not
+      // a `  - item` entry (blank line, next `key:`, a comment, or end of file).
+      const items = [];
+      let j = i + 1;
+      while (j < lines.length) {
+        const itemMatch = lines[j].match(/^\s+-\s*(.*)$/);
+        if (!itemMatch) break;
+        const itemValue = stripTrailingComment(itemMatch[1]).trim().replace(/^["']|["']$/g, '');
+        items.push(itemValue);
+        j++;
+      }
+      if (items.length > 0) {
+        fields[key] = items;
+        i = j - 1; // skip the block-list lines already consumed
+        continue;
+      }
+      fields[key] = ''; // a genuinely empty scalar, e.g. an omitted `commit:`
+      continue;
+    }
+
     fields[key] = parseValue(value);
   }
   return fields;
@@ -164,9 +225,19 @@ function evaluateFile(filePath) {
     problems.push(`outcome "${fields.outcome}" is not one of ${VALID_OUTCOMES.join('|')}`);
   }
   if (fields.outcome === 'done' && isMissing(fields.commit)) {
-    // The whole point of Q3/D4.2: "done" is a claim, `commit:` is what makes it checkable. A done
-    // with nothing to point at is exactly the silence this file was built to remove.
-    problems.push('outcome: done requires "commit:" — a done result with nothing to point at');
+    // The whole point of Q3/D4.2: "done" is a claim, and there must be something checkable behind
+    // it. Usually that is `commit:` — but a plan-only or docs-only task's evidence is a FILE, not a
+    // commit, so a non-empty `touched:` paired with a `note:` explaining what it points at is the
+    // other legal form of "checkable". An empty `commit` with an empty `touched` still fails: that
+    // really is "a done result with nothing to point at".
+    const touchedList = Array.isArray(fields.touched) ? fields.touched : [];
+    const hasEvidence = touchedList.length > 0 && !isMissing(fields.note);
+    if (!hasEvidence) {
+      problems.push(
+        'outcome: done requires "commit:", or a non-empty "touched:" plus "note:" — a done ' +
+          'result with nothing to point at'
+      );
+    }
   }
   if (fields.claimed !== undefined && !Array.isArray(fields.claimed)) {
     problems.push('"claimed" must be a list of paths, e.g. ["path/a", "path/b"]');
@@ -196,9 +267,10 @@ function evaluateFile(filePath) {
 }
 
 /**
- * `--sweep <dir>`: the directory-level check for the invariant this whole file exists to hold —
- * "whatever sits in .ai/status/ is either still running, dead, or awaiting acceptance" (Design
- * §3b). It never distinguishes those three further than that; a lead reads the per-file reason.
+ * `--sweep [dir]` (defaults to `.claude/status/`): the directory-level check for the invariant
+ * this whole file exists to hold — "whatever sits there is either still running, dead, or awaiting
+ * acceptance" (Design §3b). It never distinguishes those three further than that; a lead reads the
+ * per-file reason.
  * An empty directory is the ONLY passing case, and it is also the fixture most likely to be broken
  * by a careless "any file present -> fail" rewrite, which is why it is tested explicitly below.
  */
@@ -243,18 +315,16 @@ function sweep(dir) {
 
 function main(argv) {
   if (argv[0] === '--sweep') {
-    const dir = argv[1];
-    if (!dir) {
-      console.error('worker-status --sweep: missing <dir>');
-      return 2;
-    }
+    // `<dir>` is optional: with none given, sweep the default runtime location every worker and
+    // lead already agree on rather than requiring it be typed out every time.
+    const dir = argv[1] || DEFAULT_STATUS_DIR;
     return sweep(dir);
   }
 
   const filePath = argv[0];
   if (!filePath) {
     console.error('usage: node tools/worker-status.js <file>');
-    console.error('       node tools/worker-status.js --sweep <dir>');
+    console.error(`       node tools/worker-status.js --sweep [dir]   # defaults to ${DEFAULT_STATUS_DIR}`);
     return 2;
   }
 
@@ -269,4 +339,4 @@ if (require.main === module) {
   process.exit(main(process.argv.slice(2)));
 }
 
-module.exports = { evaluateFile, sweep, parseStatus, main };
+module.exports = { evaluateFile, sweep, parseStatus, main, DEFAULT_STATUS_DIR };

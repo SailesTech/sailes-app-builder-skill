@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Tests for tools/worker-status.js — the reader/validator for `.ai/status/<worker-id>.md`.
+ * Tests for tools/worker-status.js — the reader/validator for `.claude/status/<worker-id>.md`.
  *
  * What is under test is the one distinction the whole artifact exists for (Design §3 of
  * 2026-08-01-delegation-precision-and-agent-control.md): **no file, an unclosed file, and a
@@ -46,6 +46,10 @@ function run(...args) {
   return spawnSync(process.execPath, [BIN, ...args], { encoding: 'utf8' });
 }
 
+function runIn(cwd, ...args) {
+  return spawnSync(process.execPath, [BIN, ...args], { encoding: 'utf8', cwd });
+}
+
 /** A complete, valid, closed status file — the baseline every mutation test starts from. */
 const CLOSED_OK = [
   'worker: be-dev-3',
@@ -61,12 +65,40 @@ const CLOSED_OK = [
   '',
 ].join('\n');
 
+/** Same file, same content, written with the block-list syntax instead of inline `[...]`. */
+const CLOSED_OK_BLOCK = [
+  'worker: be-dev-3',
+  'task: "F2 — check domkniecia briefu"',
+  'base: e276a5e',
+  'claimed:',
+  '  - skills/sailes-bootstrap/hooks-template/brief-closure.js',
+  'opened: 2026-08-02T09:14:00Z',
+  '# --- appended at closure ---',
+  'closed: 2026-08-02T10:41:00Z',
+  'outcome: done',
+  'commit: 4f2a9c1',
+  'touched:',
+  '  - skills/sailes-bootstrap/hooks-template/brief-closure.js',
+  '  - skills/sailes-bootstrap/hooks-template/brief-closure.test.js',
+  '',
+].join('\n');
+
 const OPEN_ONLY = [
   'worker: be-dev-3',
   'task: "F2 — check domkniecia briefu"',
   'base: e276a5e',
   'claimed: ["skills/sailes-bootstrap/hooks-template/brief-closure.js"]',
   'opened: 2026-08-02T09:14:00Z',
+  '',
+].join('\n');
+
+/** The closing block appended, verbatim, beneath OPEN_ONLY — never rewriting it. */
+const CLOSING_BLOCK_APPEND = [
+  '# --- appended at closure ---',
+  'closed: 2026-08-02T10:41:00Z',
+  'outcome: done',
+  'commit: 4f2a9c1',
+  'touched: ["skills/sailes-bootstrap/hooks-template/brief-closure.js"]',
   '',
 ].join('\n');
 
@@ -183,6 +215,98 @@ test('a missing required open field (base) is rejected even when closed', () => 
   }
 });
 
+// -------------------------------------------------------------------- claimed/touched list syntax
+
+test('inline-list syntax (["a","b"]) for claimed/touched is accepted', () => {
+  const { evaluateFile } = require('./worker-status.js');
+  const dir = tmpDir();
+  try {
+    const f = writeFixture(dir, 'be-dev-3.md', CLOSED_OK);
+    const result = evaluateFile(f);
+    assert.strictEqual(result.state, 'ok', `expected ok, got ${result.state}: ${result.messages.join(' ')}`);
+    assert.ok(Array.isArray(result.fields.claimed), 'claimed is not parsed as an array');
+    assert.ok(Array.isArray(result.fields.touched), 'touched is not parsed as an array');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('block-list syntax ("  - item" lines) for claimed/touched is accepted, not just inline', () => {
+  const dir = tmpDir();
+  try {
+    const f = writeFixture(dir, 'be-dev-3.md', CLOSED_OK_BLOCK);
+    const r = run(f);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\n${r.stdout}${r.stderr}`);
+  } finally {
+    rm(dir);
+  }
+});
+
+test('evaluateFile parses block-list claimed/touched into arrays with the right items', () => {
+  const { evaluateFile } = require('./worker-status.js');
+  const dir = tmpDir();
+  try {
+    const f = writeFixture(dir, 'be-dev-3.md', CLOSED_OK_BLOCK);
+    const result = evaluateFile(f);
+    assert.deepStrictEqual(result.fields.claimed, [
+      'skills/sailes-bootstrap/hooks-template/brief-closure.js',
+    ]);
+    assert.deepStrictEqual(result.fields.touched, [
+      'skills/sailes-bootstrap/hooks-template/brief-closure.js',
+      'skills/sailes-bootstrap/hooks-template/brief-closure.test.js',
+    ]);
+  } finally {
+    rm(dir);
+  }
+});
+
+// ------------------------------------------------------- outcome: done without commit, D4.2
+
+test('outcome: done, empty commit, non-empty touched + note -> exit 0', () => {
+  const dir = tmpDir();
+  try {
+    const content = CLOSED_OK.replace(/^commit: 4f2a9c1\n/m, '').replace(
+      /^touched: \["skills\/sailes-bootstrap\/hooks-template\/brief-closure\.js"\]\n/m,
+      'touched: ["skills/sailes-bootstrap/hooks-template/brief-closure.js"]\n' +
+        'note: "plan-only task; evidence is the touched file, not a commit"\n'
+    );
+    const f = writeFixture(dir, 'be-dev-3.md', content);
+    const r = run(f);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\n${r.stdout}${r.stderr}`);
+  } finally {
+    rm(dir);
+  }
+});
+
+test('outcome: done, empty commit, empty touched -> exit 1 even with a note', () => {
+  const dir = tmpDir();
+  try {
+    const content = CLOSED_OK.replace(/^commit: 4f2a9c1\n/m, '')
+      .replace(/^touched: \[.*\]\n/m, 'touched: []\n')
+      .concat('note: "nothing actually happened"\n');
+    const f = writeFixture(dir, 'be-dev-3.md', content);
+    const r = run(f);
+    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}`);
+    assert.ok(/commit/i.test(r.stdout + r.stderr), 'the missing evidence is not named');
+  } finally {
+    rm(dir);
+  }
+});
+
+// -------------------------------------------------------------------- append-only close
+
+test('append-only close: the closing block appended beneath an unmodified open block -> exit 0', () => {
+  const dir = tmpDir();
+  try {
+    const f = writeFixture(dir, 'be-dev-3.md', OPEN_ONLY);
+    fs.appendFileSync(f, CLOSING_BLOCK_APPEND);
+    const r = run(f);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\n${r.stdout}${r.stderr}`);
+  } finally {
+    rm(dir);
+  }
+});
+
 // -------------------------------------------------------------------- --sweep
 
 test('--sweep on a directory with a leftover (closed) file -> exit 1, lists it', () => {
@@ -242,6 +366,40 @@ test('--sweep ignores non-.md files sharing the directory', () => {
   } finally {
     rm(dir);
   }
+});
+
+test('--sweep with no <dir> argument defaults to .claude/status/', () => {
+  const dir = tmpDir();
+  try {
+    const statusDir = path.join(dir, '.claude', 'status');
+    fs.mkdirSync(statusDir, { recursive: true });
+
+    const empty = runIn(dir, '--sweep');
+    assert.strictEqual(
+      empty.status,
+      0,
+      `expected exit 0 on an empty default dir, got ${empty.status}\n${empty.stdout}${empty.stderr}`
+    );
+    assert.ok(
+      /\.claude[\\/]status/.test(empty.stdout + empty.stderr),
+      'the default-dir message does not name .claude/status'
+    );
+
+    writeFixture(statusDir, 'be-dev-1.md', OPEN_ONLY);
+    const withFile = runIn(dir, '--sweep');
+    assert.strictEqual(withFile.status, 1, `expected exit 1 once a file exists, got ${withFile.status}`);
+    assert.ok(
+      /be-dev-1\.md/.test(withFile.stdout + withFile.stderr),
+      'the file sitting in the default .claude/status/ is not named'
+    );
+  } finally {
+    rm(dir);
+  }
+});
+
+test('DEFAULT_STATUS_DIR is exported and is .claude/status', () => {
+  const { DEFAULT_STATUS_DIR } = require('./worker-status.js');
+  assert.strictEqual(DEFAULT_STATUS_DIR, '.claude/status');
 });
 
 // -------------------------------------------------------------------- module-level API
