@@ -41,17 +41,25 @@
  *   node tools/mcp-toolnames-check.js --timeout <ms>               # discovery timeout, default 30000
  *
  * Exit codes:
- *   0 — the role union and the server's tool list agree exactly, OR the server could not be reached
+ *   0 — the role union and the server's tool list agree exactly (modulo `SERVER_TOOL_WAIVERS`,
+ *       printed every run with their reasons — see below), OR the server could not be reached
  *       (printed as `SKIP: <reason>`, not as a pass).
- *   1 — a role names a tool the server lacks, and/or the server offers a tool no role lists, and/or
- *       a role file could not be parsed (malformed frontmatter is rejected loudly, not read as
- *       "no tools").
+ *   1 — a role names a tool the server lacks, and/or the server offers a tool that is neither claimed
+ *       by any role nor named in `SERVER_TOOL_WAIVERS`, and/or a role file could not be parsed
+ *       (malformed frontmatter is rejected loudly, not read as "no tools").
+ *
+ * Waivers (F5b, human decision 2026-08-02): the F5a measurement against the live server found two
+ * `missingFromRoles` entries — `get_console_message`, `take_heapsnapshot` — that no doctrine asks any
+ * role to carry. `SERVER_TOOL_WAIVERS` names them individually, each with its own reason, and the
+ * check still passes when they are the ONLY differences — but it prints them regardless, labeled as
+ * deliberately ungranted, on every run including a green one. The waiver is per-tool: a brand-new
+ * server tool with no entry in that map is not covered by it and still fails this check.
  *
  * This script is intentionally NOT wired into `npm test`: that gate must stay deterministic and
  * external-free (AGENTS.md "Verification"), and this check depends on an installed MCP server
- * that npm test's environment does not guarantee. See the governing spec
- * (.ai/specs/2026-08-03-outstanding-debt-and-docs-delta.md, phase F5a) for where it is recommended
- * to live instead.
+ * that npm test's environment does not guarantee. It is wired into `npm run test:all` instead — same
+ * risk profile as the browser probe (AGENTS.md), moved out of the default gate for the same reason.
+ * See the governing spec (.ai/specs/2026-08-02-outstanding-debt-and-docs-delta.md, phase F5b).
  */
 
 const fs = require('fs');
@@ -65,6 +73,26 @@ const DEFAULT_ROLE_FILES = [
   path.join(__dirname, '..', 'agents', 'fe-dev.md'),
   path.join(__dirname, '..', 'agents', 'designer.md'),
 ];
+
+/**
+ * Server tools that no role lists, waived BY NAME with a stated reason — human decision, 2026-08-02
+ * (spec 2026-08-02-outstanding-debt-and-docs-delta, F5b), taken against the F5a measurement of the
+ * live chrome-devtools MCP server (v1.6.0, 29 tools). The third tool that measurement found —
+ * `type_text` — is NOT here: it was granted to `qa` instead (`agents/qa.md`, `codex-agents/qa.toml`),
+ * because `fill` sets a value and does not dispatch keystrokes, so `qa` needs the real call.
+ *
+ * This map is deliberately per-tool and never a global mute. A waived name still prints on every run
+ * (`main()` below), labeled as deliberately ungranted with its reason — an instrument that goes silent
+ * about a known gap is how the gap gets forgotten (AGENTS.md, "a gate that fails for an unrelated
+ * reason gets argued with once and ignored after that" — this waiver exists to prevent exactly that
+ * argument, not to manufacture silence). A NEW server tool with no entry here is NOT covered by this
+ * map and must still fail `diffToolSets`'s `missingFromRoles` check — see `applyServerToolWaivers`.
+ */
+const SERVER_TOOL_WAIVERS = {
+  get_console_message:
+    'single-message read; list_console_messages is already granted to the roles that need console output',
+  take_heapsnapshot: 'memory profiling, which no current doctrine asks any role to perform',
+};
 
 // `--isolated --headless`: no running Chrome instance required, and nothing this run does persists
 // past it — this call only wants the static tool schema, never a page.
@@ -160,6 +188,27 @@ function diffToolSets(roleToolsMap, serverToolNames) {
   const missingFromRoles = [...serverSet].filter((t) => !unionRoleTools.has(t)).sort();
 
   return { missingFromServer, missingFromRoles };
+}
+
+/**
+ * Splits `missingFromRoles` (server tools no role claims) into `waived` (has a by-name entry in
+ * `waivers`, carried alongside its stated reason) and `unwaived` (does not — a gate failure). Kept
+ * separate from `diffToolSets` on purpose: the diff is the raw measurement, the waiver is a policy
+ * layer applied on top of it, and the two must be testable independently — a fixture that adds a
+ * brand-new server tool with NO waiver entry has to still land in `unwaived` and fail the check,
+ * which is the whole point of a by-name waiver instead of a blanket "ignore anything unclaimed".
+ */
+function applyServerToolWaivers(missingFromRoles, waivers = SERVER_TOOL_WAIVERS) {
+  const waived = [];
+  const unwaived = [];
+  for (const tool of missingFromRoles) {
+    if (Object.prototype.hasOwnProperty.call(waivers, tool)) {
+      waived.push({ tool, reason: waivers[tool] });
+    } else {
+      unwaived.push(tool);
+    }
+  }
+  return { waived, unwaived };
 }
 
 // ---------------------------------------------------------------- live server discovery
@@ -404,18 +453,31 @@ async function main(argv) {
   }
 
   const diff = diffToolSets(roleToolsMap, serverTools);
+  const { waived, unwaived } = applyServerToolWaivers(diff.missingFromRoles);
   const distinctRoleTools = new Set([...roleToolsMap.values()].flatMap((s) => [...s])).size;
 
-  if (diff.missingFromServer.length === 0 && diff.missingFromRoles.length === 0) {
+  // Printed on EVERY run, pass or fail — a waiver that only shows up when it fires is a waiver that
+  // is easy to forget exists. This is what keeps it from being a silent global mute (F5b.2).
+  const printWaivers = () => {
+    if (waived.length === 0) return;
+    console.log('  deliberately NOT granted to any role (waived by name, with reason):');
+    for (const { tool, reason } of waived) {
+      console.log(`    ${MCP_TOOL_PREFIX}${tool} — ${reason}`);
+    }
+  };
+
+  if (diff.missingFromServer.length === 0 && unwaived.length === 0) {
     console.log(
       `mcp-toolnames-check: ${roleToolsMap.size} role(s), ${distinctRoleTools} distinct ` +
-        `${MCP_TOOL_PREFIX}* tool(s) claimed, ${serverTools.length} server tool(s) — lists agree. (${sourceNote})`
+        `${MCP_TOOL_PREFIX}* tool(s) claimed, ${serverTools.length} server tool(s) — lists agree ` +
+        `once ${waived.length} waived entr${waived.length === 1 ? 'y' : 'ies'} ${waived.length === 1 ? 'is' : 'are'} accounted for. (${sourceNote})`
     );
+    printWaivers();
     return 0;
   }
 
   console.error(
-    `mcp-toolnames-check: FAILED — ${diff.missingFromServer.length + diff.missingFromRoles.length} mismatch(es). (${sourceNote})`
+    `mcp-toolnames-check: FAILED — ${diff.missingFromServer.length + unwaived.length} mismatch(es). (${sourceNote})`
   );
   if (diff.missingFromServer.length > 0) {
     console.error('  role claims a tool the server does not have (fails mid-gate on a live app):');
@@ -423,12 +485,13 @@ async function main(argv) {
       console.error(`    ${role}: ${MCP_TOOL_PREFIX}${tool}`);
     }
   }
-  if (diff.missingFromRoles.length > 0) {
-    console.error('  server offers a tool no role lists (capability silently unavailable):');
-    for (const tool of diff.missingFromRoles) {
+  if (unwaived.length > 0) {
+    console.error('  server offers a tool no role lists and no waiver names (capability silently unavailable):');
+    for (const tool of unwaived) {
       console.error(`    ${MCP_TOOL_PREFIX}${tool}`);
     }
   }
+  printWaivers();
   return 1;
 }
 
@@ -447,10 +510,12 @@ module.exports = {
   DEFAULT_ROLE_FILES,
   DEFAULT_SERVER_COMMAND,
   DEFAULT_TIMEOUT_MS,
+  SERVER_TOOL_WAIVERS,
   extractFrontmatterToolsLine,
   parseMcpToolNames,
   collectRoleTools,
   diffToolSets,
+  applyServerToolWaivers,
   parseToolsListResult,
   queryServerTools,
   killSpawnedTree,

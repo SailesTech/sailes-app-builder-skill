@@ -149,6 +149,39 @@ test('diffToolSets: the same missing tool claimed by two roles is reported once 
   ]);
 });
 
+// ================================================================== unit-level: waivers (F5b)
+
+test('applyServerToolWaivers: a waived tool is split into `waived` with its reason, not `unwaived`', () => {
+  const { waived, unwaived } = mod.applyServerToolWaivers(['take_heapsnapshot'], {
+    take_heapsnapshot: 'memory profiling, no doctrine asks for it',
+  });
+  assert.deepStrictEqual(waived, [{ tool: 'take_heapsnapshot', reason: 'memory profiling, no doctrine asks for it' }]);
+  assert.deepStrictEqual(unwaived, []);
+});
+
+test('applyServerToolWaivers: a tool with NO entry in the waiver map lands in `unwaived` — the waiver is not global', () => {
+  const { waived, unwaived } = mod.applyServerToolWaivers(['brand_new_uncovered_tool'], {
+    take_heapsnapshot: 'memory profiling, no doctrine asks for it',
+  });
+  assert.deepStrictEqual(waived, []);
+  assert.deepStrictEqual(unwaived, ['brand_new_uncovered_tool']);
+});
+
+test('applyServerToolWaivers: mixed input splits correctly, one waived one not', () => {
+  const { waived, unwaived } = mod.applyServerToolWaivers(['take_heapsnapshot', 'brand_new_uncovered_tool'], {
+    take_heapsnapshot: 'memory profiling, no doctrine asks for it',
+  });
+  assert.deepStrictEqual(waived, [{ tool: 'take_heapsnapshot', reason: 'memory profiling, no doctrine asks for it' }]);
+  assert.deepStrictEqual(unwaived, ['brand_new_uncovered_tool']);
+});
+
+test('applyServerToolWaivers: default waiver map (SERVER_TOOL_WAIVERS) names exactly get_console_message and take_heapsnapshot', () => {
+  assert.deepStrictEqual(Object.keys(mod.SERVER_TOOL_WAIVERS).sort(), ['get_console_message', 'take_heapsnapshot']);
+  for (const reason of Object.values(mod.SERVER_TOOL_WAIVERS)) {
+    assert.ok(typeof reason === 'string' && reason.length > 0, 'every waiver entry must carry a non-empty reason');
+  }
+});
+
 // ================================================================== unit-level: tools/list response shape
 
 test('parseToolsListResult reads names off a well-formed tools/list response', () => {
@@ -219,15 +252,17 @@ test('fixture: role names a tool the server lacks -> exit 1, names the role and 
   }
 });
 
-test('fixture: server offers a tool no role lists -> exit 1, names the tool', () => {
+test('fixture: server offers a tool no role lists and no waiver names -> exit 1, names the tool', () => {
   const dir = tmpDir();
   try {
     const roleA = roleFile(dir, 'qa', ['click']);
-    const serverJson = serverToolsJson(dir, ['click', 'take_heapsnapshot']);
+    // `brand_new_uncovered_tool` is deliberately NOT one of the two waived names — this is the
+    // fixture that proves the waiver is per-tool, not a blanket mute of every unclaimed tool.
+    const serverJson = serverToolsJson(dir, ['click', 'brand_new_uncovered_tool']);
     const r = run(['--role-files', roleA, '--server-tools-json', serverJson]);
     assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
     const out = r.stdout + r.stderr;
-    assert.ok(/take_heapsnapshot/.test(out), 'the unclaimed server tool is not named');
+    assert.ok(/brand_new_uncovered_tool/.test(out), 'the unclaimed, unwaived server tool is not named');
   } finally {
     rm(dir);
   }
@@ -242,6 +277,47 @@ test('fixture: lists agree -> exit 0 (MUST NOT fire)', () => {
     const r = run(['--role-files', `${roleA},${roleB}`, '--server-tools-json', serverJson]);
     assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
     assert.ok(/agree/.test(r.stdout), 'exit 0 did not explain why (no "agree" in stdout)');
+  } finally {
+    rm(dir);
+  }
+});
+
+// ================================================================== CLI-level: waivers (F5b)
+
+test('fixture: the only server-side differences are the two named waivers -> exit 0, both printed with reasons', () => {
+  const dir = tmpDir();
+  try {
+    const roleA = roleFile(dir, 'qa', ['click']);
+    // `get_console_message` and `take_heapsnapshot` are the two names in the default
+    // SERVER_TOOL_WAIVERS map — no role claims either, and the check must still pass.
+    const serverJson = serverToolsJson(dir, ['click', 'get_console_message', 'take_heapsnapshot']);
+    const r = run(['--role-files', roleA, '--server-tools-json', serverJson]);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.ok(/get_console_message/.test(r.stdout), 'the get_console_message waiver is not printed');
+    assert.ok(/take_heapsnapshot/.test(r.stdout), 'the take_heapsnapshot waiver is not printed');
+    assert.ok(
+      /list_console_messages is already granted/.test(r.stdout),
+      'the get_console_message waiver reason is not printed'
+    );
+    assert.ok(
+      /memory profiling/.test(r.stdout),
+      'the take_heapsnapshot waiver reason is not printed'
+    );
+  } finally {
+    rm(dir);
+  }
+});
+
+test('fixture: a waived tool PLUS a brand-new unwaived tool -> exit 1, only the unwaived one is a failure, the waived one still prints', () => {
+  const dir = tmpDir();
+  try {
+    const roleA = roleFile(dir, 'qa', ['click']);
+    const serverJson = serverToolsJson(dir, ['click', 'take_heapsnapshot', 'brand_new_uncovered_tool']);
+    const r = run(['--role-files', roleA, '--server-tools-json', serverJson]);
+    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const out = r.stdout + r.stderr;
+    assert.ok(/brand_new_uncovered_tool/.test(out), 'the unwaived tool is not named as a failure');
+    assert.ok(/take_heapsnapshot/.test(out), 'the waived tool disappeared instead of still being printed');
   } finally {
     rm(dir);
   }
