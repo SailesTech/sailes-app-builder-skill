@@ -36,9 +36,28 @@ graphify codex install
 #    local binary path (e.g. C:/Users/you/.local/bin/graphify.EXE) into
 #    .claude/settings.json and .codex/hooks.json. Both files are committed, so
 #    that path would break the hooks on every other machine. Normalize to the
-#    bare `graphify` command — it resolves from PATH (uv/pipx put it there):
+#    bare `graphify` command — it resolves from PATH (uv/pipx put it there).
+#    `sed -i` with no backup-suffix argument is GNU-only: BSD/macOS `sed -i`
+#    consumes the next argument as that suffix and either errors or silently
+#    does the wrong thing, leaving the absolute path committed. Use a temp
+#    file + `mv` instead — portable on both, no `uname` branch needed.
 for f in .claude/settings.json .codex/hooks.json; do
-  [ -f "$f" ] && sed -i -E 's#"[^"]*/graphify(\.EXE|\.exe)? #"graphify #g' "$f"
+  if [ -f "$f" ]; then
+    sed -E 's#"[^"]*/graphify(\.EXE|\.exe)? #"graphify #g' "$f" > "$f.graphify-tmp" \
+      && mv "$f.graphify-tmp" "$f"
+  fi
+done
+
+# Verify the rewrite actually landed. This defect's failure shape is a silent
+# no-op, not a syntax error, so a step with no check here cannot tell "fixed"
+# from "did nothing". The pattern below MUST NOT match once the step ran
+# correctly — if it still does, the substitution failed and the commit would
+# ship an absolute path.
+for f in .claude/settings.json .codex/hooks.json; do
+  if [ -f "$f" ] && grep -q '"[^"]*/graphify' "$f"; then
+    echo "graphify path normalization FAILED in $f — absolute path still present" >&2
+    exit 1
+  fi
 done
 ```
 
