@@ -80,24 +80,40 @@ esac
 # `permissions.deny` (glob matching, no false positives) rather than here — a substring test for
 # `.key` fires on `Object.keys(...)`, and a guard that cries wolf is a guard that gets muted.
 # `.env.prod` below covers `.env.production` by prefix.
-# F9 fix (2026-08-02): the ORIGINAL pattern below —  *'/migrations/'*|*'\migrations\'*  — required
-# a LEADING SEPARATOR before the protected segment. A repo-relative path like
-# `migrations/003_deals.sql` (no leading `/`) has nothing before "migrations" to match, so it
-# passed straight through, while `/d/repo/migrations/003_deals.sql` correctly blocked. Reproduced
-# directly. The relative form is what an agent types most: it is what `git status` prints and what
-# a brief's prose contains, and this hook ships to every client repo protecting applied migrations.
-# Audited every protected segment in this file for the same shape — `.env.prod`/`.env.staging` and
-# `.ai/specs/implemented/` are plain substring matches with no leading-separator requirement, so
-# they already catch both forms; only this one line carried the defect, in one place.
-# Fix: also catch the segment when it OPENS the value — right after the JSON quote (file_path or
-# command starts with it) or after a shell-command space — not only after a real path separator.
-# Left deliberately narrow: matching is still anchored on a required TRAILING "/" or "\" after
-# "migrations", so a longer, unrelated name is never caught — `src/migrations-guide.md` has no
-# separator after "migrations" and stays legitimate.
 case "$payload" in
   *'.env.prod'*|*'.env.staging'*)      block "production/staging env is protected — the LOCAL .env is yours to read and write";;
-  *'/migrations/'*|*'\migrations\'*|*'"migrations/'*|*'"migrations\'*|*' migrations/'*|*' migrations\'*)
-                                        block "applied migrations are immutable — add a NEW migration";;
+esac
+
+# MIGRATIONS: broad on purpose, and this comment says so instead of claiming narrowness it does
+# not have. The prior pattern `*'/migrations/'*|*'\migrations\'*` required a literal `/` or `\`
+# on BOTH sides and missed the single most common real shape: a RELATIVE path with nothing before
+# it, e.g. an Edit `file_path` of `migrations/003.sql` or a Bash command `cat migrations/003.sql` —
+# no leading `/`, so the old pattern let an agent edit an applied migration in place undetected.
+# The class below requires only
+# a NON-identifier character (or nothing, i.e. payload start) immediately before `migrations/` or
+# `migrations\`, which is what every real invocation has — a JSON `"`, a space, a quote, a slash —
+# while `db_migrations/`, `docs-migrations/` and `my.migrations/` keep passing because `_` `.` `-`
+# stay in the allowed set. The `\t`/`\n`/`\r` alternatives exist because the guard reads the RAW
+# JSON text, not a parsed string: a real tab used as a shell word-separator arrives on the wire as
+# the two literal characters `\` `t` (JSON escapes control bytes), and the second one is `t` —
+# alphanumeric — so the single-character class alone would miss it.
+#
+# THE COST, MEASURED: this now also blocks `git log --oneline -- migrations/`, `rg -n migrations/ .`,
+# a `git commit -m` whose MESSAGE names a migrations/ path, and a Write whose PROSE content mentions
+# "migrations/" — none of which mutate an applied migration. A read/write split was considered and
+# rejected: telling `cat migrations/003.sql` (read) from `psql -f migrations/003.sql` piped into a
+# destructive session, or a `sed -i` hidden behind a variable, apart from a raw JSON substring is
+# exactly the semantic parsing this file avoids everywhere else (see the `.key`/`Object.keys` note
+# above) — a leading-verb allowlist has the same shape of hole this fix just closed on the path side.
+# Accepted: false-positive friction on a handful of read-only commands, with an easy workaround
+# (rephrase, or drop the pathspec), over a silent false negative on the one thing this guard exists
+# to stop.
+case "$payload" in
+  'migrations/'*|'migrations\'*|*[!A-Za-z0-9_.-]'migrations/'*|*[!A-Za-z0-9_.-]'migrations\'*|*'\t''migrations/'*|*'\t''migrations\'*|*'\n''migrations/'*|*'\n''migrations\'*|*'\r''migrations/'*|*'\r''migrations\'*)
+    block "applied migrations are immutable — add a NEW migration";;
+esac
+
+case "$payload" in
   *'.ai/specs/implemented/'*)          block "implemented specs are frozen — write a new spec";;
 esac
 

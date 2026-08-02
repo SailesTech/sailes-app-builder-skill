@@ -640,6 +640,76 @@ test('no .env at all is SILENT', () => {
   }
 });
 
+// ---------------------------------------------------------------- migrations guard is delimiter-aware (1.28.0)
+//
+// The prior pattern (`*'/migrations/'*|*'\\migrations\\'*`) required a literal `/` or `\\` on BOTH
+// sides of the word, which missed the single most common real shape: a RELATIVE path with nothing
+// before it (`migrations/003.sql`, no leading `/`). Checked and NOT fixed by the enumeration this
+// replaces it with either — `=`, a single quote and a raw TAB used as a shell word-separator all
+// still had to be added by name.
+
+const migrationsBlockCases = [
+  ['relative Edit file_path, no leading separator', { tool_name: 'Edit', tool_input: { file_path: 'migrations/003.sql', new_string: 'x' } }],
+  ['relative ./ Edit file_path', { tool_name: 'Edit', tool_input: { file_path: './migrations/003.sql', new_string: 'x' } }],
+  ['nested relative path', { tool_name: 'Bash', tool_input: { command: 'cat db/migrations/003.sql' } }],
+  ['absolute POSIX path', { tool_name: 'Edit', tool_input: { file_path: '/repo/migrations/003.sql', new_string: 'x' } }],
+  ['absolute Windows path', { tool_name: 'Edit', tool_input: { file_path: 'D:\\repo\\migrations\\003.sql', new_string: 'x' } }],
+  ['single-quoted path — agents quote paths routinely', { tool_name: 'Bash', tool_input: { command: "cat 'migrations/003.sql'" } }],
+  ['= delimiter', { tool_name: 'Bash', tool_input: { command: 'psql --file=migrations/003.sql' } }],
+  ['TAB delimiter — a real tab byte, JSON-escaped on the wire like any real hook call', { tool_name: 'Bash', tool_input: { command: 'cat\tmigrations/003.sql' } }],
+  ['Write to a relative migration path', { tool_name: 'Write', tool_input: { file_path: 'migrations/005_new.sql', content: 'ALTER TABLE x ADD y int;' } }],
+];
+
+test('every protected migrations path blocks — relative, absolute, and every delimiter shape', () => {
+  const { dir } = makeRepo();
+  try {
+    for (const [label, payload] of migrationsBlockCases) {
+      const r = runHook(GUARD, dir, JSON.stringify(payload));
+      assert.strictEqual(r.status, 2, `${label}: not blocked — an applied migration is editable undetected`);
+    }
+  } finally {
+    rm(dir);
+  }
+});
+
+test('lookalike directory names never fire — the allowed-character class is real, not a narrowing story', () => {
+  const { dir } = makeRepo();
+  try {
+    for (const [label, cmd] of [
+      ['db_migrations/', 'cat db_migrations/x.sql'],
+      ['docs-migrations/', 'cat docs-migrations/x.sql'],
+      ['my.migrations/', 'cat my.migrations/x.sql'],
+      ['src/migrations-guide.md — no trailing separator after the word', 'cat src/migrations-guide.md'],
+    ]) {
+      const r = runHook(GUARD, dir, JSON.stringify({ tool_name: 'Bash', tool_input: { command: cmd } }));
+      assert.strictEqual(r.status, 0, `${label} was blocked — a lookalike name must not fire`);
+    }
+  } finally {
+    rm(dir);
+  }
+});
+
+test('read-only commands that merely NAME migrations/ still block — a documented cost, not a bug', () => {
+  // Substring matching on the raw JSON payload cannot tell `cat migrations/003.sql` (a mutation
+  // target) from `git log --oneline -- migrations/` or a commit message that mentions the same
+  // text — both contain the identical ` migrations/` shape. The guard's own comment names this
+  // trade-off; this test is what keeps the comment honest if the pattern narrows again by accident.
+  const { dir } = makeRepo();
+  try {
+    for (const [label, payload] of [
+      ['git commit -m names a migrations/ path', { tool_name: 'Bash', tool_input: { command: 'git commit -m "feat: add migrations/004_x.sql"' } }],
+      ['git log -- migrations/', { tool_name: 'Bash', tool_input: { command: 'git log --oneline -- migrations/' } }],
+      ['rg -n migrations/ .', { tool_name: 'Bash', tool_input: { command: 'rg -n migrations/ .' } }],
+      ['Write content mentions migrations/ in prose', { tool_name: 'Write', tool_input: { file_path: 'README.md', content: 'See migrations/ for details' } }],
+    ]) {
+      const r = runHook(GUARD, dir, JSON.stringify(payload));
+      assert.strictEqual(r.status, 2, `${label}: expected this documented false-positive to still fire`);
+    }
+  } finally {
+    rm(dir);
+  }
+});
+
 console.log(
   failures === 0 ? '\nhooks-template: all tests passed' : `\nhooks-template: ${failures} failing`
 );
