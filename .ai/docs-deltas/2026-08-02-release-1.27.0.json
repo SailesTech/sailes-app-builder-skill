@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "compare",
+  "type": "architecture",
+  "comparatorVersion": 1,
+  "canonicalVersion": 1,
+  "completeness": "complete",
+  "proofLevel": "authored",
+  "base": {
+    "title": "Sailes App-Builder Framework Architecture",
+    "rawSha256": "07c85a66b94dcdaddfb6cba2cbca9201e9442477f5e9ea09e8d26dc887fd429a",
+    "semanticSha256": "0fe3f04420d224d4f194bac1cc385d2265957f342f03357abcc81bd6e1ae1334",
+    "bytes": 5797
+  },
+  "head": {
+    "title": "Sailes App-Builder Framework Architecture",
+    "rawSha256": "43b2a6ec42e7eb664935a57bbec724642afedacb7014466ea6f9298b584a0c2b",
+    "semanticSha256": "3bfaeb3d65c30dc75672cc68841926eeacdc3b26d0f4f6fa208a6b88a3b9ba9a",
+    "bytes": 6180
+  },
+  "summary": {
+    "components": {
+      "added": 1,
+      "changed": 0,
+      "evidenceChanged": 0,
+      "removed": 0,
+      "moved": 0
+    },
+    "connections": {
+      "added": 0,
+      "changed": 0,
+      "removed": 0,
+      "rerouted": 0
+    },
+    "boundaries": {
+      "added": 0,
+      "changed": 1,
+      "removed": 0,
+      "geometryChanged": 0
+    },
+    "presentationChanged": true,
+    "provenanceChanged": false
+  },
+  "changes": {
+    "components": [
+      {
+        "id": "tools",
+        "headLabel": "Governance Tools",
+        "status": "added",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": []
+      }
+    ],
+    "connections": [],
+    "boundaries": [
+      {
+        "key": "region:Framework repo — sailes-app-builder-skill (this repo)",
+        "kind": "region",
+        "label": "Framework repo — sailes-app-builder-skill (this repo)",
+        "status": "changed",
+        "classifications": [
+          "scope"
+        ],
+        "changedFields": [
+          "/wraps"
+        ]
+      }
+    ]
+  },
+  "identity": {
+    "components": "components[].id",
+    "connections": "connections[].id (required)",
+    "boundaries": "boundaries[].kind + boundaries[].label (derived)"
+  },
+  "view": {
+    "visualPreset": "classic"
+  },
+  "limitations": [
+    "Authored Architecture IR only; no runtime impact, causality, risk, or mergeability is inferred.",
+    "Boundary identity is conservatively derived from kind + label."
+  ],
+  "artifact": {
+    "sha256": "62812206da6535f50d8bc3e641938fa3bf6c5aa9eb2a6735c66c6094fb63cf97",
+    "bytes": 1805291
+  },
+  "validation": {
+    "checksPassed": 28,
+    "checkCount": 28,
+    "baseComposition": "pass",
+    "headComposition": "pass"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "compare",
+  "type": "architecture",
+  "comparatorVersion": 1,
+  "canonicalVersion": 1,
+  "completeness": "complete",
+  "proofLevel": "authored",
+  "base": {
+    "title": "Sailes App-Builder Framework Architecture",
+    "rawSha256": "43b2a6ec42e7eb664935a57bbec724642afedacb7014466ea6f9298b584a0c2b",
+    "semanticSha256": "3bfaeb3d65c30dc75672cc68841926eeacdc3b26d0f4f6fa208a6b88a3b9ba9a",
+    "bytes": 6180
+  },
+  "head": {
+    "title": "Sailes App-Builder Framework Architecture",
+    "rawSha256": "43b2a6ec42e7eb664935a57bbec724642afedacb7014466ea6f9298b584a0c2b",
+    "semanticSha256": "3bfaeb3d65c30dc75672cc68841926eeacdc3b26d0f4f6fa208a6b88a3b9ba9a",
+    "bytes": 6180
+  },
+  "summary": {
+    "components": {
+      "added": 0,
+      "changed": 0,
+      "evidenceChanged": 0,
+      "removed": 0,
+      "moved": 0
+    },
+    "connections": {
+      "added": 0,
+      "changed": 0,
+      "removed": 0,
+      "rerouted": 0
+    },
+    "boundaries": {
+      "added": 0,
+      "changed": 0,
+      "removed": 0,
+      "geometryChanged": 0
+    },
+    "presentationChanged": false,
+    "provenanceChanged": false
+  },
+  "changes": {
+    "components": [],
+    "connections": [],
+    "boundaries": []
+  },
+  "identity": {
+    "components": "components[].id",
+    "connections": "connections[].id (required)",
+    "boundaries": "boundaries[].kind + boundaries[].label (derived)"
+  },
+  "view": {
+    "visualPreset": "classic"
+  },
+  "limitations": [
+    "Authored Architecture IR only; no runtime impact, causality, risk, or mergeability is inferred.",
+    "Boundary identity is conservatively derived from kind + label."
+  ],
+  "artifact": {
+    "sha256": "707a05a494f142d6881d92de20063f6bf72941ae41996ffca3ac54e544d70324",
+    "bytes": 1804559
+  },
+  "validation": {
+    "checksPassed": 28,
+    "checkCount": 28,
+    "baseComposition": "pass",
+    "headComposition": "pass"
+  }
+}

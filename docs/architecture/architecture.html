@@ -4501,7 +4501,7 @@
       <p class="subtitle">Skills, agent roles, hooks, and evals in the framework repo — a push to main deploys through the plugin marketplace to every session, which generates client repos</p>
     </div>
 
-    <script id="archify-guided-views-data" type="application/json">[{"id":"distribution-path","label":"Push to main is the deploy","focus":["skills","github-main","marketplace-clone","plugin-cache","claude-session"],"note":"Follow a framework edit from push to every session on every machine — no install step."},{"id":"framework-components","label":"What the framework repo holds","focus":["skills","agents","codex-agents","hooks","evals","memory"],"note":"Skills as source of truth, agent roles with Codex twins, guardrail hooks, and evals that gate edits."},{"id":"client-generation","label":"Client repos are generated","focus":["claude-session","client-repo"],"note":"sailes-bootstrap generates a client repo carrying its own AGENTS.md/.ai/graphify/docs — separate from the framework's own memory."}]</script>
+    <script id="archify-guided-views-data" type="application/json">[{"id":"distribution-path","label":"Push to main is the deploy","focus":["skills","github-main","marketplace-clone","plugin-cache","claude-session"],"note":"Follow a framework edit from push to every session on every machine — no install step."},{"id":"framework-components","label":"What the framework repo holds","focus":["skills","agents","codex-agents","hooks","evals","memory","tools"],"note":"Skills as source of truth, agent roles with Codex twins, guardrail hooks, gating evals, and tools/ stamping one canon into consumers."},{"id":"client-generation","label":"Client repos are generated","focus":["claude-session","client-repo"],"note":"sailes-bootstrap generates a client repo carrying its own AGENTS.md/.ai/graphify/docs — separate from the framework's own memory."}]</script>
 
     <div class="guided-views no-print" id="guided-views" hidden aria-label="Guided diagram views">
       <button id="guided-view-prev" type="button" aria-label="Previous guided view" title="Previous guided view ([)">&#8592;</button>
@@ -4648,6 +4648,18 @@
           </g>
           <text data-detail-anchor x="320" y="270" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Evals + Harness</text>
         <text data-detail="context" x="320" y="286" class="t-muted" font-size="9" text-anchor="middle">evals/*.md + harness/</text>
+        </g>
+
+        <g id="node-tools" data-node-id="tools" data-node-label="Governance Tools" tabindex="0" role="button" aria-label="Focus Governance Tools, tools/*.js — sync-blocks, ownership-check, worker-status, Framework repo — sailes-app-builder-skill (this repo)" aria-pressed="false" data-node-kind="backend" data-node-sublabel="tools/*.js — sync-blocks, ownership-check, worker-status" data-node-tag="npm test" data-node-context="Framework repo — sailes-app-builder-skill (this repo)">
+          <title>Governance Tools · tools/*.js — sync-blocks, ownership-check, worker-status · Framework repo — sailes-app-builder-skill (this repo) · npm test</title>
+          <rect x="250" y="80" width="140" height="64" rx="6" class="c-mask"/>
+          <rect x="250" y="80" width="140" height="64" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(256 86) scale(0.6875)">
+            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
+          </g>
+          <text data-detail-anchor x="320" y="110" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Governance Tools</text>
+        <text data-detail="context" x="320" y="126" class="t-muted" font-size="9" text-anchor="middle">tools/*.js — sync-blocks, ownership-check, worker-status</text>
+        <text data-detail="fine" x="320" y="136" class="t-backend" font-size="7" text-anchor="middle">npm test</text>
         </g>
 
         <g id="node-memory" data-node-id="memory" data-node-label="Framework Memory" tabindex="0" role="button" aria-label="Focus Framework Memory, .ai/STATE.md, lessons.md, backlog.md, Framework repo — sailes-app-builder-skill (this repo)" aria-pressed="false" data-node-kind="database" data-node-sublabel=".ai/STATE.md, lessons.md, backlog.md" data-node-context="Framework repo — sailes-app-builder-skill (this repo)">
@@ -4988,6 +5000,7 @@
           <li>&bull; Skills are the source of truth (skills/*/SKILL.md)</li>
           <li>&bull; Agent roles ship as Claude .md and Codex .toml twins, kept in parity</li>
           <li>&bull; Hooks fire at SessionStart; evals gate edits to protected behaviors</li>
+          <li>&bull; tools/sync-blocks.js stamps a rule from one canonical source into every consumer file; --check runs in npm test (added 1.27.0)</li>
         </ul>
       </div>
 
