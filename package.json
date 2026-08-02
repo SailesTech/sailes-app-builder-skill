@@ -1,11 +1,11 @@
 {
   "name": "sailes-app-builder-skill",
-  "version": "1.25.1",
+  "version": "1.27.0",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "node hooks/workflow-router.test.js && node hooks/framework-version-check.test.js && node codex-agents/validate-toml.test.js && node codex-agents/parity.test.js && node evals/harness/eval-status.test.js && node agents/validate-frontmatter.test.js && node release-hygiene.test.js && node spec-status-evidence.test.js && node skills/sailes-bootstrap/repo-done-checklist.test.js && node skills/sailes-bootstrap/hooks-template/hooks-template.test.js",
+    "test": "node tools/sync-blocks.test.js && node tools/ownership-check.test.js && node tools/worker-status.test.js && node skills/sailes-bootstrap/hooks-template/brief-closure.test.js && node hooks/workflow-router.test.js && node hooks/framework-version-check.test.js && node codex-agents/validate-toml.test.js && node codex-agents/parity.test.js && node evals/harness/eval-status.test.js && node agents/validate-frontmatter.test.js && node release-hygiene.test.js && node spec-status-evidence.test.js && node skills/sailes-bootstrap/repo-done-checklist.test.js && node skills/sailes-bootstrap/hooks-template/hooks-template.test.js",
     "test:browser": "node evals/fixtures/browser-probe/run-probe.mjs",
     "test:all": "npm test && npm run test:browser"
   },

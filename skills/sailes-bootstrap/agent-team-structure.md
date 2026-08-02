@@ -8,16 +8,55 @@ Convene a team when the task is **non-trivial**: 3+ steps, BE+FE together, a new
 
 Go **solo** when the change fits one sentence and one file — a typo, a copy fix, a single guard, a config bump. Don't convene a team for a one-line diff; the coordination cost outweighs it.
 
+**Going solo decides who writes it. It does not decide who grades it, and the two must not be collapsed.** `agents/team-lead.md` carried "go solo … and even then still run the `checker` review gate and `qa` behavior proof" while this file — the canonical one — said nothing about gates here at all, so the two definitions of one rule had already drifted. Worse, that clause fought the cost rule below it: two gates for a two-character README typo is the same waste as a worker for it, and `qa` in particular has nothing to drive. Found 2026-08-01 by an eval arm grading something else.
+
+<!-- BEGIN gate-scaling -->
+**The gate scales with what can break, never with who wrote it.**
+
+- **`checker` on any diff that can change behavior — including one you wrote yourself.** Authorship
+  is the reason the gate applies, not a waiver: a lead grading its own diff is the maker reviewing
+  the maker, which is the failure gate isolation exists to prevent. Going solo does not make you
+  the reviewer.
+- **`qa` wherever there is behavior to observe.** Where nothing a running system can be driven
+  through has changed, there is no proof to produce — record **`qa: n/a` with its reason**, the
+  convention the spec status line already uses. Stated, never silently dropped.
+- **Neither for a change that cannot alter behavior** — prose, comments, docs, a README typo — and
+  you record making that call.
+
+The test is **can this alter behavior**, not *does it feel small*: config values, defaults,
+dependency ranges and product copy all can, and none of them are prose.
+
+"No gate is optional" means you never drop a gate to save time or because you wrote the code
+yourself. It does not mean driving `qa` through a change with no observable behavior — a skip
+leaves a hole nobody can see, a stated `n/a` is a claim someone can argue with.
+<!-- END gate-scaling -->
+
+
 **Delegation is the default for everything above that line.** An opus-tier lead that bulk-codes a
 feature itself is the expensive failure mode this structure exists to prevent: the lead's scarce
 capability is planning, contract design, integration and judgment on the gates — not typing the
-implementation. Hand the implementation to a sonnet worker even when the lead could plainly do it
-faster alone, and treat "I'll just write this one myself" as a decision that needs a reason
-(genuinely one file, or a change so entangled that briefing costs more than doing).
+implementation.
 
-The cost argument cuts both ways, so apply it honestly: a worker costs a spawn, a brief, a report
-and an integration. Below roughly a file's worth of change that overhead exceeds the saving, and
-delegating is waste dressed up as discipline. Above it, the lead coding solo is the waste.
+<!-- BEGIN delegation-threshold -->
+**The delegation threshold — who writes the code.** Delegate when the change is above roughly one
+file's worth of work. Below that, a worker costs a spawn, a brief, a report and an integration, and
+that overhead exceeds the saving — delegating there is waste dressed up as discipline. Above it,
+writing the code yourself is the expensive failure mode this role exists to prevent: the work still
+ships, the gates still pass, and only the bill differs. Either way it is **a choice you owe the run
+log a reason for**, in both directions.
+
+**This threshold decides who WRITES. It never decides who GRADES.** The two are separate axes and
+collapsing them is a measured defect, not a hypothetical one — until 2026-08-01 the doctrine
+demanded both gates on a two-character README typo, two paragraphs above the rule saying not to
+spend a worker on it. Gates scale with what can break, never with who wrote it: `checker` on any
+diff that can change behavior including your own, `qa` wherever there is behavior to observe, and
+`qa: n/a` **with its reason, recorded** where there is not.
+<!-- END delegation-threshold -->
+
+<!-- Generated from delegation-threshold.md by tools/sync-blocks.js — edit the source, not this
+     copy. The gate fails on drift; three hand-written copies of this rule produced three measured
+     criterion collisions on 2026-08-01. -->
+
 
 Whichever path, the **test gate** (`tester`), the **review gate** (`checker`) and the **behavior proof** (`qa`) still run before it
 is called done. The gate scales down; it never disappears.
@@ -131,6 +170,8 @@ explorer → designer → BE contract finalized → fe-dev → tester → checke
 
 1. **Load context before planning** — Task Router guides for the touched areas + `.ai/lessons.md` (institutional memory). Planning without these repeats known mistakes.
 2. **Decompose into one-task units.** Each worker gets exactly one task with explicit scope and the contract/spec it implements against — handed over as a **self-contained brief** (format below). One task per worker keeps reviews tractable and scope honest; never hand a worker several independent problems at once. **Slice for file-disjointness:** no two concurrent workers may write the same file — if the slicing can't achieve that, the tasks aren't parallel (sequential, or worktrees). A parallel-safe codebase layout makes this easy (`agentic-first-principles.md` §E).
+
+   **What may run in parallel is read off the FILE-OWNERSHIP TABLE, never off the phase graph's arrows.** A work plan that draws `F1 → F2 → {F3, …}` is drawing the order somebody *thought* about the phases in, and an arrow in it does not assert a technical dependency. Measured 2026-08-01: the same plan document that called F2 "solitary" carried, twenty lines below, an ownership table showing F2's and F3's file sets were disjoint — so disjoint that F3's brief listed F2's file as forbidden. The cost was a phase idling behind six others for no reason. **The critical-path section of a work plan therefore carries both drawings** — the graph of concepts *and* the file-disjointness matrix — because the first one misleads on its own. The dispatch question is never "which arrow points here" but *does this task's file set intersect anything already running?* An intersection on a **single** file is not a reason to serialize two phases: take that file away from both and integrate it yourself, which is cheaper than the wait.
 3. **Assign and integrate.** The lead hands tasks to teammates, collects results, and integrates — the lead owns the merge, not the workers.
 4. **Escalation is upward only.** A worker that hits a scope question or a **key decision** (stack, contract shape, data-model, auth, roles) stops and escalates to the lead; the lead escalates to the human. Workers never silently decide a key decision or widen scope.
    - **Escalating without a recommendation is allowed.** The lead normally arrives with options and a reasoned pick. When it genuinely cannot ground one, "nie mam podstaw, żeby wskazać" is the honest line — and where the decision is also expensive or hard to reverse, the lead offers a fourth move next to the options: **settle it by measurement**, with the criterion fixed and mechanically derived *before* anything is dispatched, and the run priced so the human can decline. Record which way it was settled, argued or measured. See `deciding-under-uncertainty.md`.
@@ -174,6 +215,22 @@ the worktree shares the main `.git`, the commit is visible from the main tree **
 `git log <branch>` and `git cherry-pick` work with no push and no copying. A changed worktree
 survives the agent's termination.
 
+**Check the base of your worktree before working — a harness defect, and the brief is the only
+place it can be caught.** Measured 2026-08-01: **five of twelve** workers were given a worktree cut
+from a commit *before* half the session's work — one from before an entire completed phase, one
+**nineteen commits back**. All five diagnosed it themselves and fast-forwarded, but the cost landed
+anyway: one reported a **false test-count regression** (556 against the real 570) that took a
+separate investigation to dismiss, and one had to `pnpm install` from scratch because its checkout
+predated `node_modules`. A worktree should be cut from the tip of the branch the session is on, not
+from where the session started; until the harness does that, every brief carries the check:
+
+> **VERIFY YOUR WORKTREE'S BASE BEFORE YOU WORK.** `git log --oneline -3` — you must see `<sha>`
+> or newer, and the file `<a named file that only exists after that work>`. If you do not: report
+> it and fast-forward **before** starting, not after.
+
+Name a *file* as well as a sha. A sha proves the history; a file proves the history you actually
+depend on, and it is the one a worker can check without knowing what the sha meant.
+
 **Why the worker commits, when the old rule said never.** The old absolute existed to protect the
 shared branch, and git now guarantees that outright: the shared branch is checked out in the main
 tree, so no worktree can take it. What a commit adds is what prose could not — **a worker's commit is
@@ -181,6 +238,113 @@ its declaration that the work is finished.** Reading an uncommitted worktree can
 work from an edit interrupted mid-file, which reproduces incident one *inside* the isolation. **No
 commit means not finished**, and that is a useful thing for the lead to learn rather than something
 to salvage.
+
+**Commit often, `WIP:` included — and the two kinds of commit mean different things.** "No commit =
+not finished" protects the lead from *guessing* whether work is done. It does **not** protect the
+work from the machine: measured 2026-08-01, five crashes in one day (drivers, editor, an agent API
+error, Docker twice) and **two workers lost their work outright** — one was rescued only by copying
+three files out of a worktree by hand. The worker that had been checkpointing with `WIP:` lost
+nothing across two of those crashes.
+
+So the convention, and it is load-bearing in both directions: a commit whose subject starts with
+`WIP:` is a **checkpoint** — "this is what survives if my process dies", never a claim of
+completion. Any other commit is the **declaration** the lead reads as finished. Without that split,
+"commit often" quietly destroys the rule it sits next to, because a log full of commits stops
+answering the only question the lead asks it.
+
+### The worker status file — a declaration the lead can verify
+
+**Every worker that WRITES claims `.ai/status/<worker-id>.md` as its FIRST action and closes it as
+its LAST** — the identical test as the worktree mandate above, "does it write" rather than "is it on
+a list", so a role added next year inherits the rule instead of being omitted by an outdated list.
+
+```yaml
+worker: be-dev-3
+task: "F2 — brief-closure check"
+base: e276a5e            # sha the worktree was cut from
+claimed: ["skills/sailes-bootstrap/hooks-template/brief-closure.js"]
+opened: <timestamp>
+# --- appended at close ---
+closed: <timestamp>
+outcome: done | blocked | policy-refusal
+commit: <sha>             # empty unless outcome: done
+touched: [...]             # what actually moved
+```
+
+**Why it exists, in three states where today there is one silence.** No file means the worker never
+started. A file with no `closed:` means it died mid-run. A closed file is a declaration. Until this
+doctrine those three read identically from outside the worktree, and on 2026-08-01 that
+indistinguishability cost twice in one day: a lead reported finished work as unfinished — what got
+lost was the *report*, not the work — and, separately, two workers lost their work outright across
+five machine crashes, with nothing on disk saying a run had ever started.
+
+**The lead verifies the file AGAINST the worktree — metadata only, never content**: does `commit`
+exist, does `touched` match `git diff --stat`, was `base` current. **It reports loudly and does NOT
+block.** Blocking was rejected deliberately: this repo already has two documented cases of a check
+disabled for crying wolf, and a check that fires on harmless drift teaches everyone to ignore it. A
+discrepancy lands in the verdict and the run log; it never stops acceptance on its own.
+
+**The lead cleans up at acceptance, and the cleanup is a move, not a delete.** On accepting a
+worker's result, the lead folds the file's substance into the run log — one line: worker · task ·
+`outcome` · `commit` · `base` · discrepancies from verification — and **removes the file**. Three
+rules keep this from rotting into either a lost record or a stale pile:
+- **Deletion only together with the run-log entry.** A deletion with no entry is a lost declaration,
+  indistinguishable from a skipped gate.
+- **A file from a worker that died and was NOT accepted does not vanish quietly.** It lands in the
+  run log as a **loss** — with whatever it managed to declare — and is removed only after that. It
+  is the only record that the run ever happened.
+- **`.ai/status/` is gitignored.** It is live state, meant to survive a process crash on disk, not
+  meant to be versioned — the run log is the history, and the run log is what gets committed.
+
+**The invariant is the product: whatever sits in `.ai/status/` is either running or dead.** A file
+left behind after acceptance breaks that within a week, because then answering "is this worker still
+running" means reading every file and comparing dates against the run log by hand — exactly the work
+this artifact exists to save.
+
+### Observing a worker — metadata is observation, content is integration
+
+The 2026-07-30 incident that produced "no commit = not finished" was an **integration** from an
+uncommitted tree: a lead committed someone's half-written file. On 2026-08-01 the opposite failure
+ran twice in one day — the lead declared work unfinished while it **sat finished on disk**, because
+the report was what got lost, not the work. Both are real, and they are not in tension once the line
+is drawn in the right place: **you may look at everything except the content.**
+
+The ladder, cheapest and least intrusive first. Stop at the first rung that answers the question.
+
+1. **Ask the worker.** In teams mode a live teammate answers `SendMessage`, and the task tools
+   (`TaskList` / `TaskGet` / `TaskOutput`) report its state without touching the disk at all. This
+   is the designed channel and it costs nothing — reach for it *before* git. With teams mode off,
+   a scoped subagent has no live channel and this rung does not exist; know which mode you are in
+   before quoting a procedure that cannot be run.
+2. **`tail -3` the subagent transcript.**
+   `~/.claude/projects/<repo>/<session>/subagents/agent-<id>.jsonl` — a bounded read of the worker's
+   last few lines. Measured 2026-08-02: the `.output` path the harness hands you at spawn is **0
+   bytes** on Windows, not a link Node follows; the real transcripts sit at the path above — 64
+   files, 5.2 MB in one session, largest 388 KB, so reading one whole file is ~100k tokens spent on a
+   yes/no question. But 57 JSONL lines at ~1.8 KB each means `tail -3` costs **~5 KB** — cheap enough
+   to actually use. State the caveat every time you reach for it: this path is **harness-internal,
+   session-scoped, and does not exist under Codex** — a convenience, never a condition. And it is the
+   worker's **narrative**, never a substitute for the status file's **declaration** (above) — a
+   transcript says what the agent claimed about itself, which is exactly the kind of self-report gate
+   isolation elsewhere in this document refuses to trust.
+3. **Read the declarations.** `git -C <worktreePath> log --oneline` — what the worker committed, and
+   which of those are `WIP:` checkpoints rather than a finished claim — and the worker's own
+   `.ai/status/<worker-id>.md`, if the brief carries one: `base`/`claimed` from before it started,
+   and, once closed, `outcome`/`touched`.
+4. **Read the metadata, never the content.** `git -C <worktreePath> status --porcelain` (which
+   paths are dirty, names only), `git -C <worktreePath> diff --stat` (how much moved in each file,
+   no lines), and the files' modification times. This answers the questions that actually matter
+   for a silent worker — *is it still moving, or did it die forty minutes ago, and how far did it
+   get* — and answers them without ever putting a half-written signature in front of you.
+5. **Forbidden, unchanged.** `git diff` without `--stat`, reading those files, copying them out,
+   committing or cherry-picking uncommitted work. That is integration, and integration reads only
+   declarations. If rungs 1–4 say the work exists but is not declared, the move is to **get the
+   worker to commit it** — or, if it is truly dead, to record the loss and re-spawn. Never to
+   finish somebody else's commit for them.
+
+What rung 4 buys that rung 3 cannot: a worker that has been silent for an hour with an untouched
+tree is dead, and one whose files moved ninety seconds ago is working. Those two need completely
+different responses from the lead, and until now nothing in this document let them be told apart.
 
 **Entry condition — do not skip it quietly.** The mandate assumes a fresh checkout can be made to
 run: dependencies, environment. A worker that cannot execute its verification commands has been
@@ -194,6 +358,38 @@ monorepo does not, which is exactly why the condition is written down.
 ENVIRONMENT.** Database, ports, buckets and containers are shared by the whole machine. Without
 rule 4b's environment exclusivity, "we gave everyone a worktree" is a **false sense of security**:
 the files are safe and `qa` still loses its run to somebody else's `docker compose down`.
+
+### The fourth axis of collision — the shared TOOLCHAIN, and it fails by going quiet
+
+Three axes are named above and each has its isolation: **files** → the worktree, **contract** →
+freezing it before the consumer starts, **runtime environment** → `qa`'s exclusivity. The fourth
+went unnamed until 2026-08-01, and it is the only one whose symptom is **silence rather than an
+error**: the package manager's store and the machine's cores are shared by every process on it.
+
+What it looked like. `pnpm check` — normally about a minute — **hung for ten minutes** and was
+killed by a timeout. The first hypothesis was tempting and wrong: seventeen `node` processes,
+therefore orphaned debris, therefore kill them. `STATE.md` even carried a real precedent of
+twenty-four orphans. Counting them by **command line** instead of by number: **thirteen of the
+seventeen were editor language servers and MCP servers**, and the two that mattered were a worker's
+live `pnpm install`, started in the same second as the gate. A shared store and a `tsc --build
+--force` do not add up — they serialize.
+
+Three rules, and the first is the one that generalizes past this incident:
+
+- **Count and break down by command line before you kill anything.** A process count is not a
+  diagnosis. The control question before any `taskkill`: *does this process have a parent I
+  recognise, and did it start when I asked for something?*
+- **Never kill editor processes or MCP servers.** They are the largest part of that list and the
+  part least connected to your tests, and killing them takes the human's tooling down with them.
+- **The lead does not start a gate while a worker is standing up a worktree.** Installing
+  dependencies and a full typecheck contend for the same store and the same cores; run them
+  nose-to-tail and both finish sooner than either does interleaved.
+
+**Removing worktrees on Windows — a known procedure, because it recurs at every cleanup.**
+`git worktree remove` fails with *"Filename too long"* on nested `node_modules`. What works is
+mirroring an empty directory over it (`robocopy <empty> <worktree> /MIR`) and then removing the
+husk — and it takes **upwards of ten minutes for eight worktrees**, so budget it rather than
+discovering it. Do not reach for `rm -rf` and do not mask the failure with `|| true`.
 
 Housekeeping: add `.claude/worktrees/` to `.gitignore`. In a generated repo `.claude/settings.json`
 is committed, so without it the workers' checkouts appear as untracked debris inside a tracked
@@ -288,7 +484,10 @@ declaration that the task is done, and the lead cherry-picks it. No commit = not
 
 Task:        claim Task #N, mark it in_progress.
 Goal:        one precise outcome.
-Files:       exact paths to inspect / edit.
+Files:       exact paths to inspect / edit. EVERY path here names the Done-when clause
+             that forces it into existence — a path with no such clause is either
+             surplus on this list or a hole in the phase, and which one is a question
+             you answer NOW, not two days from now.
 Contract:    request/response/types/events/DB fields other slices depend on.
 Constraints: the toolchain is the constraint (lint/types/convention tests enforce
              no-any, tokens-only, import direction); list here ONLY what it can't see —
@@ -304,6 +503,11 @@ Blocked:     stuck more than one round on something that is NOT a key decision �
              costs the round; picking silently costs the lead a decision they never saw.
              Key decisions (stack, contract, data-model, auth, roles) are never
              substitutable — escalate and wait.
+Status:      claim `.ai/status/<worker-id>.md` as your FIRST action (`worker`, `task`,
+             `base` sha, `claimed` paths, `opened`) and close it as your LAST (`closed`,
+             `outcome`, `commit`, `touched`). No file = you never started; a file with no
+             `closed:` = you died mid-run; a closed file is your declaration. [read-only
+             roles: drop this line — you write nothing, so nothing to claim.]
 Checkpoint:  write progress to files as you go. Your in-memory state does not survive your
              process; disk does.
 Verification: exact commands to run + the e2e requirement.
@@ -318,6 +522,17 @@ Delivery:    [scoped subagent] your final message is returned automatically — 
 
 Drop the lines that don't apply to the role (a `be-dev` brief has no design tokens; an `explorer` brief is read-only with no Constraints/Verification). The non-negotiables in every brief: **one goal, the contract it must honor, the verification commands, the commit rule in its current form ("commit in your own worktree; never to a shared branch, never push"), and the report clause.**
 
+**`Files:` and `Done-when` are two lists that drift apart in silence, and 2026-08-01 measured it
+three times inside one milestone.** The allowed-files list says *what may be touched*; `Done-when`
+says *what must come to exist*. `checker` grades the diff against the phase's scope, and **the
+phase's scope is its `Done-when`** — so a path that appears only on the file list is a thing nobody
+ever checks for. The gate does not fail; there is nothing for it to fail on. In that milestone it
+cost, in order: the write half of a resource's CRUD, so for two days no custom field could be
+created through the API — during the milestone *whose entire subject was custom fields*; a deferral
+that existed **only as a comment in the code**; and the milestone's whole READ surface, without
+which the frontend had nothing to render a form from. Walking the file list against `Done-when`
+while writing the brief takes a minute and is the only moment the question is cheap.
+
 **Three of these lines were earned on 2026-07-30 and are worth their space for a reason each.**
 `Forbidden:` — with two parallel tracks it was the only device that kept them disjoint, and its
 second effect mattered more than its first: crossing a *named* boundary got **reported**, where
@@ -327,6 +542,13 @@ that exchange is to grade the **second-order effect**, not the justification. `C
 worker died together with its process and its entire in-memory state went with it. The existing rule
 that a graded deliverable must be a FILE covers the **result**; this one covers the **run**, and they
 fail differently: a lost result costs a re-run, a lost run costs everything learned during it.
+
+**`Status:` was earned on 2026-08-01, and it is not `Checkpoint:` again.** `Checkpoint:` is written
+by the worker, for the worker — a hedge against its own process dying. `Status:` is written by the
+worker, for the *lead*, and answers a question `Checkpoint:` was never built to answer: not "how far
+did I get" but "did I ever start, and did I finish". Three states, one file: absent means never
+started, present without `closed:` means died mid-run, closed means a declaration — see Isolation
+below for why that distinction did not exist until now and what it cost.
 
 **Migration numbers are handed out in the spec, up front** — an anti-collision device, not tidiness.
 Two workers adding migrations in the same phase will pick the same next number, and the collision
@@ -450,5 +672,5 @@ So the answer to "will this work without the experimental mode?" is **yes** — 
 ## The hard lines
 
 - **The human owns every key decision; the lead owns coordination; workers own only their one task.** A worker never makes a key decision.
-- **No gate is optional.** Scale the team down for small work, but `tester` (suite), `checker` (review) and `qa` (behavior proof) still run.
+- **No gate is optional.** Scale the team down for small work, but `tester` (suite), `checker` (review) and `qa` (behavior proof) still run. "Not optional" bars dropping a gate to save time or because the lead wrote the diff itself; it does not require driving `qa` through a change with no observable behavior — that is `qa: n/a` **with its reason, recorded** (see "When a team — and when not"). A skip leaves a hole nobody can see; a stated `n/a` is a claim someone can argue with.
 - **Behavior before diff.** Done means the running system was observed doing the thing — not that the build is green. (`qa`'s deliverable.)

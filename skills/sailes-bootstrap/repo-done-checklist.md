@@ -120,8 +120,15 @@ first real feature lands):
     repo (deps reachable, env resolvable). This is the entry condition for the worker-isolation
     mandate — every writing agent runs in `isolation: worktree`, and a worker that cannot run
     its verification commands has been converted from "verified" to "cannot verify", which is a
-    straight regression against VERIFIED. Missing → ENV-DEFECT reported to the human (the fix
-    usually needs `.env*`, which agents may not touch), never a quietly dropped isolation.
+    straight regression against VERIFIED. Missing → ENV-DEFECT reported to the human, never a
+    quietly dropped isolation.
+[ ] APP LOADS ITS OWN ENV: each runnable app's `dev` script resolves the repo-root `.env`
+    (`node --env-file-if-exists=../../.env …`, see skeleton.md) so the boot path is one command
+    with no env handling in it. This line used to read "the fix usually needs `.env*`, which
+    agents may not touch" — the checklist had recorded the dead end as an accepted cost, and on
+    2026-08-01 it came due: `qa` could not start the app for ANY task for two days. The local
+    `.env` is now the agent's to read and write (env is tiered by risk — see
+    guard-protected-paths.sh); production values live in the platform, not in a repo file.
 ```
 
 ## Freshness check — docs that lie are worse than none

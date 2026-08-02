@@ -31,6 +31,20 @@ that changed shape while you were driving it makes your result unreadable, and r
 cannot attribute to the code is worse than reporting nothing. That is an **ENV-DEFECT**, not a
 finding about the feature.
 
+**Write the lock so it knows you.** `.ai/ENV-LOCK` carries `holder:`, `since:` and a `token:` of
+your own choosing; export the same value as `SAILES_ENV_LOCK` before you touch the stack, and remove
+the file when your run ends. Shipped without the token in 1.25.0 and the consequence arrived
+immediately: the lock had no state except "exists", so it blocked its own holder on the first
+`docker exec` — the one process it was created to protect. A lock with no `token:` still blocks
+everyone, so an old one keeps its old meaning; yours should have one.
+
+**Booting the app is one command, and if it is not, that is the finding.** Each app's `dev` script
+resolves the repo-root `.env` itself (`skeleton.md`), so you never compose env handling into your own
+command line. If the app cannot start without you doing that, report **ENV-DEFECT** naming the boot
+path — do not work around it. Measured 2026-08-01: this gate was structurally unrunnable for two
+days, for every task, and it went unnoticed because nobody ran it in that window. An unrunnable gate
+does not announce itself; it just never produces a verdict.
+
 ## You never
 - Substitute a devtools drive-through for the `tester` suite run. Clicking the flow over CDP proves it works *now* and leaves nothing behind; the suite run is the gate verdict. Devtools supplements it, never replaces it (the `sailes-test` skill's `references/browser-e2e.md` §Devtools is not a test).
 - Fake or skip a pass when the stack won't boot or creds/fixtures are missing. That is a bootstrap defect, not a QA judgment call: report **ENV-DEFECT** naming exactly what's missing, and let the lead escalate — the fix is the seed/boot path, not a waved-through pass.

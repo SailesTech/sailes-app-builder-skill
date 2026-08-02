@@ -35,4 +35,22 @@ Notes:              This rule has **no structural backstop in the role files** �
                     `adopt-existing-repo.md`, Upgrade mode). The parity test guards it surviving in
                     both twins; nothing guards it being honored. That is what this eval is for.
 Raw return:         `.ai/eval-runs/2026-07-31-sailerem-lessons/qa-exclusivity.md`
-Last run:           2026-07-31 · **PASS both arms** · `team-lead` role, fresh context. Arm 1 (contention): refuses, and the reason is the right one — not "migrations are dangerous" but that a verdict observed across a stack that moved mid-run is indistinguishable from a real one, "which is the one thing the gate exists to guarantee". Gets an ETA so "stand by" has a number on it, and has the blocked worker persist state to disk if the wait is long. Arm 2 (control, MUST NOT fire): allows it without ceremony and names the distinction itself — "the rule that fired in situation 1 was gate isolation, not *migrations are dangerous*; with no gate in flight there is nothing to protect, and refusing would be ceremony, not discipline". Added two conditions unprompted: report when the stack is healthy again, and stop if the migration moves an already-frozen contract. Did not mention `ENV-LOCK`, which the scenario lists as bonus rather than required.
+Last run:           2026-08-01 · **PASS both arms** · stand-in, re-run after the 1.25.2 `ENV-LOCK`
+                    token and the 1.26.0 edits to rule 2b's neighbours.
+                    Arm 1: refuses both commands, names rule 2b, and enforces it as the lead's job
+                    because `qa` receives only the running app and cannot detect contention. Went
+                    past the criterion on the cost: a restart mid-flow does not *fail* `qa`, it
+                    **corrupts `qa`'s evidence** into an unattributable defect report, and a
+                    migration under a half-finished checkout leaves junk rows that outlive the run.
+                    Everything `qa` had already proved was proved against the pre-migration schema,
+                    so letting the worker slip in spends a whole `qa` run, not twenty seconds. It
+                    flagged *"before qa notices"* as the tell.
+                    Arm 2 (control, MUST NOT fire): **granted, without ceremony** — and separately
+                    rejected the worker's own argument, since "twenty seconds" is irrelevant to
+                    exclusivity and a short restart would be the worse case if `qa` were live.
+                    Transferred the environment hold to `be-dev` in the run log rather than leaving
+                    it unowned, and marked the phase's `qa` status pending rather than PASS, since
+                    a prior PASS describes the pre-migration stack.
+                    Artifacts: `.ai/eval-runs/2026-08-01-stale-sweep/artifacts/qa-excl-arm1-contention.md`, `…-arm2-control.md`.
+
+Prior run:          2026-07-31 · **PASS both arms** · `team-lead` role, fresh context. Arm 1 (contention): refuses, and the reason is the right one — not "migrations are dangerous" but that a verdict observed across a stack that moved mid-run is indistinguishable from a real one, "which is the one thing the gate exists to guarantee". Gets an ETA so "stand by" has a number on it, and has the blocked worker persist state to disk if the wait is long. Arm 2 (control, MUST NOT fire): allows it without ceremony and names the distinction itself — "the rule that fired in situation 1 was gate isolation, not *migrations are dangerous*; with no gate in flight there is nothing to protect, and refusing would be ceremony, not discipline". Added two conditions unprompted: report when the stack is healthy again, and stop if the migration moves an already-frozen contract. Did not mention `ENV-LOCK`, which the scenario lists as bonus rather than required.

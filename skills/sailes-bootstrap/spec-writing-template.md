@@ -44,7 +44,7 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 - **Problem Statement** — what we're solving.
 - **Proposed Solution** — high-level approach.
 - **Data Model** — tables/columns touched or added (snake_case, UUID PK, timestamps; organizationId only if multi-tenant). **Hand out the migration numbers here, up front** (a range per phase, or a number per planned migration) — an anti-collision device: two workers adding migrations in the same phase both pick the same next number, and the collision surfaces at merge.
-- **API & UI Surface** — routes, server actions, pages, components. **Name the contract artifact path(s)** this spec creates/extends (shared Zod schemas / TS types both slices import — the frozen-contract artifact, not a prose shape).
+- **API & UI Surface** — routes, server actions, pages, components. **Name the contract artifact path(s)** this spec creates/extends (shared Zod schemas / TS types both slices import — the frozen-contract artifact, not a prose shape). **The API half is a fenced `yaml` block — method, path, phase — so it can be diffed against what the app actually serves as a set equality**, with out-of-scope paths listed explicitly. A prose table reads well and cannot be compared to anything: measured 2026-08-01, a check that every route *file* was imported by the router passed while three endpoints were missing, because it compared files to imports and both sets agreed.
 - **Integration / Webhooks** — for each external system: intake (verify→validate→persist→202), idempotency, retry, sync tables.
 - **Jobs / Workflows** — cron vs job vs durable workflow; which tier.
 - **Security** — auth + permission checks, Zod validation, signed secrets, audit log, file access control; mark which security-checklist items apply. **A spec touching auth/roles declares the permission matrix** — a table of actions × roles → allow/deny — which implementation turns into the generated authz matrix test suite (every action × role asserted, plus the anonymous row).
@@ -76,6 +76,8 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 - [ ] Integration coverage lists every affected API + key UI path, each with a test.
 - [ ] Phases leave the app working; each step is testable.
 - [ ] Every phase has a binary `Done-when` (exact commands + expected result), not a qualitative statement.
+- [ ] **Every phase's `Done-when` covers that phase's own allowed-files list** — each path names the clause that forces it into existence. A path with no clause is surplus or a hole; decide which while writing. `checker` grades the diff against the phase's scope, and the phase's scope IS its `Done-when`, so a path that lives only on the file list is something no gate ever looks for.
+- [ ] API surface is a machine-comparable `yaml` block (method · path · phase), out-of-scope paths listed explicitly.
 - [ ] Every constraint states its reason — a bare prohibition is reversible only by guessing why it is there.
 - [ ] Migration numbers assigned in the spec (per phase or per migration) — parallel workers otherwise collide on the same next number, at merge.
 - [ ] `Status: implemented` carries pasted gate verdicts (**both** `checker:` and `qa:`; a gate that does not apply is written `qa: n/a`, never dropped), not an assertion written ahead of the gate.

@@ -24,6 +24,16 @@ and it is the only thing that tells the lead apart finished work from an edit yo
 through. The lead reads your branch from the shared `.git` and cherry-picks it; nothing is pushed,
 nothing is copied. No commit means not finished, which is itself useful for the lead to know.
 
+## Claim the status file first, close it last
+Before your first edit, write `.ai/status/fe-dev-<n>.md`: `worker`, `task`, `base` (the sha your
+worktree was cut from), `claimed` (the paths you're about to touch), `opened`. As your last action,
+append `closed`, `outcome` (`done` | `blocked` | `policy-refusal`), `commit` (empty unless
+`outcome: done`), `touched` (what you actually moved). No file means you never started; a file with
+no `closed:` means you died mid-run; a closed file is your declaration — those three were one
+silence until 2026-08-01, when it cost a lead a false "unfinished" verdict on work that had already
+landed, and cost two workers their work outright across five crashes. The lead checks this against
+your worktree — metadata only — and reports what it finds; it does not block on it.
+
 ## You never
 - Start before the BE contract is frozen — you build against a committed shape, not a moving target.
 - **Commit to a shared branch, or push anything, or open a PR** — the lead owns integration. Git enforces the first one for you: the shared branch is checked out in the main tree, so your worktree cannot take it.

@@ -4,6 +4,253 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.27.0 — 2026-08-02 · one rule cannot live in three hand-written copies
+
+Everything here follows one finding: **doctrine is largely re-derivable by the model, artifacts are
+not.** Thirteen eval arms on 2026-08-01 produced exactly one clean discrimination, and it landed
+where the rule changed *what gets produced* rather than *what gets concluded*. So this release turns
+prose into mechanism wherever mechanism is possible, and leaves prose only where it is not.
+
+**The delegation threshold and the gate rule now have one source each.** `tools/sync-blocks.js`
+stamps them from `skills/sailes-bootstrap/delegation-threshold.md` and `gate-scaling.md` into
+`agent-team-structure.md`, `agents/team-lead.md` and `codex-agents/team-lead.toml`; `--check` runs in
+the gate and fails on the smallest drift, naming the file. This closes the meta-defect behind three
+criterion collisions measured in a single day: a rule written in more than one place drifts, and the
+evals then encode different versions of it. Twice the copies disagreed; once the **canonical** file
+did not carry the clause its own role was enforcing. `AGENTS.md` has asked people to "change all
+three or none" in prose for weeks and it prevented none of them.
+
+Copies rather than a pointer, and that is a measured choice: a role definition sending the reader to
+`skills/sailes-bootstrap/…` resolves **only inside this framework's own repo**, because the plugin
+serves skills from outside a client's working tree. `agents/team-lead.md` had been doing exactly that
+since it was written, so every lead on every client repo was told to read the canon by a path that is
+not there. Fixed in the same pass, in both places it occurred. Two blocks rather than one, also
+deliberately: who *writes* and who *grades* are separate axes, and collapsing them is the defect
+1.26.x had just finished repairing.
+
+**A brief that does not close does not pass.** `brief-closure.js` checks that the required fields are
+present and that **every path on the Files list is named by something that forces it into existence**
+— the 1.26.0 rule that was the only addition of that release to measure cleanly, now mechanised. A
+path may be exempted only by marking it touched-but-not-produced *with a stated reason*; the marker
+without the reason fails.
+
+**The file-ownership matrix is a `yaml` artifact, and intersections are computed rather than read.**
+`ownership-check.js` exits 1 naming the path and every task that claims it. Prose ownership tables
+outside a fence are never parsed, so the old form cannot pass as green. The incident: a work plan
+called a phase "solitary" twenty lines above its own table showing that phase was disjoint from the
+next — arrows record the order someone thought about phases in, not dependency.
+
+**Workers claim a status file before they write and close it when they finish.** `.ai/status/<id>.md`
+carries `worker`, `task`, `base`, `claimed`, `opened` from the first action, and `closed`, `outcome`,
+`commit`, `touched` from the last. The point is three states that were one silence: **no file means
+"never started", a file with no `closed:` means "died mid-run", a closed file is a declaration.** On
+2026-08-01 that silence twice made a lead report finished work as unfinished, and two workers lost
+their work across five machine crashes. The lead verifies the declaration **against the worktree** —
+metadata only, never content — and **reports loudly without blocking**; blocking was rejected
+because this repo has two documented cases of a check disabled for crying wolf. At acceptance the
+lead folds the substance into the run log and **removes the file**, so the directory keeps the
+invariant that is the actual product: *whatever is in `.ai/status/` is either running or dead.*
+Deletion only ever happens together with the run-log line; a file from a worker that died unaccepted
+is recorded as a loss first. `.ai/status/` is gitignored — live state, not history.
+
+**Why a status file when the lead can read the worker's log.** Because it measured badly: the
+`.output` path the harness hands the lead is **0 bytes** on this machine, and the real transcripts are
+64 files / 5.2 MB in one session, largest 388 KB — about 100k tokens to answer a yes/no. A `tail -3`
+costs ~5 KB and *is* cheap, so it enters the lead's observation ladder as a new rung. But it answers a
+different question: a log is the worker's **narrative**, a status file is its **declaration**, and
+`base`/`claimed` exist before the work does. Reading a worker's log to decide whether it finished is
+reading the maker's story, which is what gate isolation exists to prevent.
+
+Also measured and recorded rather than assumed: `PreToolUse` does **not** fire when a subagent is
+spawned, `SubagentStart` cannot block and does not carry the brief, and `TaskGet` silently drops the
+`metadata` it accepts — which is why the brief check is a test and the status file is a file.
+
+Two new evals (`worker-claims-before-it-writes`, `lead-verifies-status-against-worktree`), each with a
+control arm that must produce the opposite result, and each with a second arm against over-applying
+the rule. Both are NEVER-RUN — added, not yet proven. And the two scenarios whose criteria demanded
+opposite behaviour from a correct lead were re-cut by a sub-team with no sight of the verdicts that
+exposed them.
+
+## 1.26.0 — 2026-08-01 · two lists that drift apart in silence, and three more the doctrine never held
+
+The doctrine half of the 2026-08-01 milestone lessons; 1.25.2 shipped the harness half.
+
+**A phase's `Done-when` must now cover that phase's own allowed-files list.** The allowed-files list
+says what may be touched; `Done-when` says what must come to exist. `checker` grades the diff against
+the phase's scope, and **the phase's scope is its `Done-when`** — so a path living only on the file
+list is something no gate ever looks for. The two lists drift apart with no signal at all, and the
+gate does not fail because there is nothing for it to fail on. Measured three times inside one
+milestone: the write half of a resource's CRUD (so for two days nothing could be created through the
+API, during the milestone whose entire subject was that resource), a deferral that existed only as a
+code comment, and the milestone's whole read surface. Now a checklist item in `sailes-spec` and the
+generated template, a red flag, and a `Files:` clause in the worker brief — every path names the
+clause that forces it into existence, and a path with none is resolved as surplus or hole *while
+writing*, which is the only moment the question is cheap.
+
+**`checker` opens every verdict with what the diff does NOT do.** Reading changed lines and asking
+whether they are right is a different task from reading the surface and asking what should be there,
+and the second one is the only one that finds an absent handler. An omission changes no line, so a
+patch review cannot find it *by construction*.
+
+**What that claim is and is not worth, measured the same day.** `checker-reports-what-the-diff-omits`
+was run twice, and **both times the control — the role without this clause — found the missing
+endpoint anyway**, the second time with every trace removed from the diff. So on a four-route spec
+this clause buys **provenance and ordering, not detection**: the arm carrying it states that it
+derived the finding from the API block rather than the changed lines, and leads with it; the control
+arrives at the same place without saying how. A plausible reading the run raises and does not settle
+is that the `yaml` surface below is what makes the omission findable, and that this clause rides on
+it. The case for keeping it rests on the three measured client gaps, not on that eval.
+
+**The API surface is a `yaml` block, not a prose table.** A table reads well and can be compared to
+nothing. The lesson that produced this was a check that passed while three endpoints were missing:
+it compared route *files* to router *imports*, and both sets agreed perfectly, because two of the
+gaps were absent handlers inside existing files. Method · path · phase in `yaml` can be diffed
+against what the app actually serves, as a set equality with explicit out-of-scope entries.
+
+**Parallelism is read off the file-ownership table, never off the phase graph's arrows.** An arrow
+records the order somebody thought about the phases in. Measured 2026-08-01: one plan called a phase
+"solitary" twenty lines above its own table showing that phase's files were disjoint from the next
+one's — the next phase's brief even listed the first one's file as forbidden — and it idled behind
+six others for nothing. The critical-path section now carries **both** drawings, and dispatch asks
+whether a task's file set intersects anything running. An intersection on a single file means take
+that file from both and integrate it yourself, not serialize two phases behind it.
+
+**The fourth axis of collision is named: the shared toolchain, and it fails by going quiet.** Files
+have the worktree, the contract has freezing, the runtime environment has `qa`'s exclusivity; the
+package store and the machine's cores have nothing. A one-minute gate hung for ten and was killed.
+The tempting diagnosis — seventeen `node` processes, therefore orphans — was wrong: thirteen were
+editor language servers and MCP servers, and the cause was a worker's `pnpm install` started in the
+same second, contending for the same store. Three rules follow, and one is now a Hard Safety Rule in
+both this repo and the generated template: **count and break down by command line before killing
+anything** (a process count is not a diagnosis), **never kill editor processes or MCP servers**, and
+**do not start a gate while a worker is standing up a worktree**.
+
+**Commit often, `WIP:` included — and observing a worker is not integrating from it.** "No commit =
+not finished" protects the lead from guessing; it does nothing about a machine that crashes five
+times in one day and takes two workers' output with it. So `WIP:` is a checkpoint and any other
+subject is the declaration of completion — the split is load-bearing, because without it "commit
+often" destroys the rule it sits beside. And the lead now has a stated observation ladder: **ask the
+worker** (`SendMessage` / the task tools, which touch no disk and do not exist with teams mode off),
+then `git log` for declarations, then `git status --porcelain` / `git diff --stat` / modification
+times for metadata — *is it still moving or did it die forty minutes ago*. Never content, never a
+cherry-pick of uncommitted work. **Metadata is observation; content is integration.** The 2026-07-30
+rule against salvaging a half-written tree was about integration and is unchanged — nothing in it
+ever required staying blind, and twice on 2026-08-01 work was declared unfinished while it sat
+finished on disk, because what got lost was the report.
+
+**Every brief verifies its worktree's base before working.** Five of twelve workers received a
+checkout cut from before half the session's work, one from nineteen commits back. All five caught it
+themselves, but one reported a **false test-count regression** off the stale base that cost a
+separate investigation, and one paid a six-minute install for a checkout predating `node_modules`.
+The brief names a sha *and* a file that only exists after the work being depended on — a sha proves
+the history, a file proves the history you actually need.
+
+**Two more, smaller.** The capability sweep gains its mirror-image pattern class: a comment claiming
+something **is** enforced, which is more dangerous than one claiming something is missing — both
+2026-08-01 instances were correct when written, one an aspiration described as a description, one
+true in the morning and wrong in both directions by the afternoon. And the docs-delta step is
+restated as **a second independent reading of the surface** rather than a receipt to collect: it
+found one of those two, and a step run as paperwork produces an identical-looking receipt with none
+of the detection power. Mutation testing now reports the **delta** and forbids a `break` threshold —
+a milestone lowered the score 94.07 → 90.98 and a green threshold would have hidden it — with
+survivors accounted for by name, equivalents identified as such (five of eleven were Zod message
+strings that never reach a client; a count would have read as eleven holes, a percentage as five).
+Known Windows procedure recorded: `git worktree remove` fails on nested `node_modules`, and mirroring
+an empty directory with `robocopy /MIR` is what works, at roughly ten minutes for eight worktrees.
+
+**A contradiction the release's own eval run found, in the file this release edits most.**
+`agents/team-lead.md` said "go solo only when the change fits one sentence and one file — **and even
+then still run the `checker` review gate and `qa` behavior proof**", two paragraphs above the rule
+that below about a file's worth of change the delegation overhead exceeds the saving. On a
+two-character README typo those are irreconcilable, and `qa` in particular has nothing to drive.
+`skills/sailes-bootstrap/agent-team-structure.md` — the **canonical** file — carried no gate clause
+there at all, so the two definitions of one rule had already drifted apart.
+
+The resolution, in both files and the Codex twin: **who writes a change and who grades it are
+separate questions, and the gate scales with what can break, never with who wrote it.** `checker`
+applies to any diff that can change behavior *including one the lead wrote itself* — authorship is
+the reason it applies, not a waiver, because a lead grading its own work is the maker reviewing the
+maker. `qa` applies wherever there is behavior to observe; where nothing observable changed the
+record is **`qa: n/a` with its reason**, matching the convention the spec status line already uses.
+A change that cannot alter behavior at all — prose, comments, docs — gets neither, and the lead
+records making that call. The test is *can this alter behavior*, not *does it feel small*: config
+values, defaults, dependency ranges and product copy all can. The "no gate is optional" line in both
+files was amended in the same pass, since read literally it demanded the thing just ruled out — a
+skip leaves a hole nobody can see, a stated `n/a` is a claim someone can argue with.
+
+Three evals added for the parts a test cannot reach — `done-when-covers-the-allowed-files-list`,
+`checker-reports-what-the-diff-omits`, `lead-diagnoses-processes-before-killing-them` — each with a
+control arm that must produce the opposite result, and the `checker` one with a second arm against
+learning to always invent an omission.
+
+**Run twice, thirteen arms, and the results do not flatter this release.** One clean PASS on the
+`Done-when` coverage clause: given a fifteen-file map, the control's catalog phase allowed two paths
+that no clause of its own forces, and the arm carrying the clause listed only what it could justify.
+One clean PASS on the overfire guard — the `checker` given a complete diff reported the surface
+complete rather than inventing a gap. **Everything else is INCONCLUSIVE because the control reached
+the right answer without the doctrine**, once by re-deriving the fourth-axis rule from first
+principles and proposing it be written down. `agents/team-lead.md` already answers that — a rule
+surviving only as long as the model re-deriving it is not a rule — but the honest position is that
+most of this release rests on the measured client incidents rather than on anything measured here.
+Full run, including three fixture defects that were mine: `.ai/eval-runs/2026-08-01-doctrine-1.26.0/`.
+
+## 1.25.2 — 2026-08-01 · the behavioral gate had been structurally unrunnable for two days
+
+**Four harness defects from one client milestone, all measured, none of them about model behavior.**
+Adopted repos pick these up by re-copying `settings-template.json` and `hooks-template/*.sh`.
+
+**`qa` could not start the app — for any task.** The 1.25.1 hardening closed the last path by which
+an agent could get environment variables into an application process: `deny` on `Read(./.env.*)`
+blocked even `.env.example`, and the guard blocked **any** payload containing the four characters
+`.env`, so `--env-file=` failed before the process started and the older legal pattern
+(`set -a && . ./.env`) was blocked too. The role whose entire mandate is "prove the running system
+does the thing" had no way to run the system. Nobody noticed for two days because nobody ran it in
+that window — **an unrunnable gate does not announce itself, it just stops producing verdicts.**
+
+What the ban actually protected was nothing: `sailes-hosting/references/env-i-sekrety.md` already
+states that config and secrets live in the platform's env and that `.env.example` is a list of keys.
+The denied file holds a localhost database password. `repo-done-checklist.md` had even recorded the
+dead end in prose — *"the fix usually needs `.env*`, which agents may not touch"* — and accepted it.
+
+**Env is now tiered by risk, not by filename prefix.** `.env.example` (keys, committed) and the
+local `.env` (local values, gitignored) are the agent's to read and write; `.env.production*`,
+`.env.staging*` and key material (`*.pem`, `*.key`, `*.p12`) stay denied, path-precisely via
+`permissions.deny` globs rather than a substring test — a guard matching `.key` fires on
+`Object.keys(…)`, and an alarm that cries wolf gets muted. The tier is enforced at session start by
+a warning that names **keys, never values**, when the local `.env` carries production markers
+(`.railway.app`, `sk_live_`, …) — a blocklist of production tells, deliberately not a "must be
+localhost" allowlist, which would fire on tunnels and shared staging.
+
+Generated repos also get the other half: each runnable app's `dev` script resolves the root `.env`
+itself — `node --env-file-if-exists=../../.env --import tsx --watch src/index.ts` — so the boot path
+is one command containing no env handling, and no rule about env can break it. Side effect found on
+the way: `pnpm dev` did not work on a fresh clone **for humans either**, and had not for some time.
+Nobody reported it because everyone already had the variables exported in their shell.
+
+**`.ai/ENV-LOCK` now knows its owner.** Shipped in 1.25.0 with no state except "exists", so it
+blocked its own holder: `qa` wrote the lock and was stopped by it on its first `docker exec`. The
+lock carries a `token:`, the holder exports the same value as `SAILES_ENV_LOCK`, and a matching
+token passes — collision protection, not access control, which is the correct threat model for a
+rule whose every incident was an accident. A lock with **no** token still blocks everyone, so locks
+written by an older `qa` keep their old meaning instead of silently opening. This defect was named
+in `.ai/audits/2026-07-30-pre-implement-sailerem-lessons.md` *before* 1.25.0 shipped, as a designed
+patch that was not implemented, and it shipped anyway.
+
+**The PreToolUse matcher was `Edit|Write`, so the guard's entire command surface never ran.**
+`guard-protected-paths.sh` carries a *Protected command surface (Bash tool_input.command)* section —
+`reset --hard`, shell redirects into protected files — which in a Claude repo had never once
+executed, while the script's own comments described it as active. `permissions.deny` still covered
+force-push and prod migrate; `reset --hard` had **no** backstop despite being in the Hard Safety
+Rules. The Codex twin (`codex-config-template.md`) had the `Bash` matcher all along — the two
+harness configs sharing one script disagreed about when to call it. Matcher is now `Bash|Edit|Write`.
+
+**Writing roles can commit again.** `permissions.allow` gains `git add`, `git commit` and `git log`.
+Doctrine mandates that every writing worker commits in its own worktree — that commit is its
+declaration the task is finished — and the permission layer prompted on it, which for a subagent is
+a block. `docs-author` hit it twice in both command forms; the lead ended up committing the
+artifacts on its behalf, which is the maker/reviewer boundary quietly dissolving. **A mandate the
+permission layer refuses is not a mandate.**
+
 ## 1.25.1 — 2026-07-31 · the STATE.md check cried wolf at every session start
 
 **A defect in 1.25.0, found an hour after it shipped, by running the convention instead of reading

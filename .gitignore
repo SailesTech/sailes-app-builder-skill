@@ -19,6 +19,12 @@ yarn-error.log*
 # lives in the shared .git and is what gets cherry-picked, so the directory itself is never content.
 .claude/worktrees/
 
+# Worker status files. LIVE state, not history: a worker claims one before it writes and closes it
+# when it finishes, and the lead removes it at acceptance after folding the substance into the run
+# log. The invariant is the product — whatever is in here is either running or dead — and committing
+# it would turn that into an archive nobody can read. History belongs in .ai/runs/, which IS tracked.
+.ai/status/
+
 # Rendered delta views — the JSON receipt carries the whole proof (sha256 + counts) at ~2 KB;
 # the HTML is a 1.8 MB rendering of the same thing, produced even when the delta is empty.
 .ai/docs-deltas/*.html

@@ -1,7 +1,7 @@
 # Agents Guidelines — sailes-app-builder framework repo
 
 > Single source of truth for how agents work in **this** repo. CLAUDE.md imports this via @AGENTS.md.
-> Framework-Version: 1.25.1
+> Framework-Version: 1.27.0
 >
 > This repo is not a product — it is the framework that generates and governs product repos.
 > `skills/sailes-bootstrap/agents-md-template.md` is what a *client* repo gets; this file is what
@@ -181,6 +181,13 @@ Delegation is the lead's default (`agents/team-lead.md`). Two rules earn their p
   `git show HEAD:<file>` returns the normalized LF blob. Comparing that against the working tree to
   "detect" an ending change reports every file as changed — a false alarm that also cost time on
   2026-07-26. Compare disk against disk, or check a file for internal consistency.
+- **Never kill a process you have not identified by its command line, and never kill an editor
+  process or an MCP server.** A process *count* is not a diagnosis. Measured 2026-08-01: a gate hung
+  for ten minutes, seventeen `node` processes were visible, and the tempting read — "orphaned debris,
+  pozabijaj" — was wrong; thirteen were language servers and MCP servers, and the actual cause was a
+  worker's `pnpm install` contending for the same package store and the same cores. The question
+  before any `taskkill`: *does this process have a parent I recognise, and did it start when I asked
+  for something?*
 - `.ai/` is memory, not scratch: STATE.md, lessons.md and backlog.md are read by the next session.
 
 ## Task router

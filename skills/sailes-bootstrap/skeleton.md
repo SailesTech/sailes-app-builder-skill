@@ -67,10 +67,13 @@ repo/
   .claude/                # Claude Code harness guardrails — structural discipline, not agent goodwill
     settings.json         #   ONE JSON file with two keys (copy from sailes-bootstrap/settings-template.json):
                           #   "permissions" — ALLOW the verify commands (test/lint/typecheck/build/dev)
-                          #     without prompts; DENY the protected surface (.env* reads/writes, prod
-                          #     migrate/deploy commands, force-push) — the mechanical backstop for
-                          #     "workers never push / never commit to a shared branch" and the
-                          #     Hard Safety Rules
+                          #     AND git add/commit/log (every writing role is mandated to commit in
+                          #     its own worktree; a mandate the permission layer prompts on fails);
+                          #     DENY the protected surface (PRODUCTION/staging env files, key
+                          #     material, prod migrate/deploy commands, force-push) — the mechanical
+                          #     backstop for "workers never push / never commit to a shared branch"
+                          #     and the Hard Safety Rules. The LOCAL .env is NOT denied: env is
+                          #     tiered by risk, not by filename (see guard-protected-paths.sh)
                           #   "hooks" — SessionStart injects .ai/STATE.md + Task Router pointer into
                           #     context ("read at session start" stops being a memory test);
                           #     PreToolUse blocks edits to protected paths (applied migrations,
@@ -103,6 +106,23 @@ repo/
 **Single-repo vs monorepo:** default to the monorepo above even for a small first project — it's ready for worker, integrations, email, reports, files, tests. Start single-repo only if you're certain you won't split web/worker/extensions; even then keep the full agentic-first skeleton (`AGENTS.md`, `CLAUDE.md`, `.ai/`, reusable CI workflows).
 
 ## Key implementation rules (carry into the spec + AGENTS.md)
+
+**The app loads its own env — the dev script does it, never the caller's command.** Every runnable
+app's `dev` script resolves the repo-root `.env` itself:
+
+```json
+"dev": "node --env-file-if-exists=../../.env --import tsx --watch src/index.ts"
+```
+
+Two separate reasons, and the second is the one that bites. **For the human:** `pnpm dev` works on a
+fresh clone. Measured 2026-08-01 on a client repo — it did not, and nobody had reported it, because
+everyone already had the variables exported in their shell; the defect was invisible to exactly the
+people who could have found it. **For agents:** `qa`'s whole mandate is to drive the running system,
+and a role that has to compose its own `--env-file=` or `set -a && . ./.env` is one guard rule away
+from being unable to start the app at all — which is what happened, for two days, for every task.
+When the app loads its own env, the boot path is one command with no env handling in it, so no rule
+about env can break it. Use `--env-file-if-exists`, not `--env-file`: a missing file must not take
+down CI or production, where the platform supplies the variables (`sailes-hosting`).
 
 **Parallel-safe layout rule (applies to everything under `apps/`):** a feature's route,
 components, server functions, schemas, and tests **colocate under one feature folder** — one
@@ -141,6 +161,11 @@ merge-conflict magnets that make concurrent agents collide. (`agentic-first-prin
   `.claude/settings.json` **is** committed, so without this line those checkouts show up as untracked
   debris inside a tracked directory. The branch in the shared `.git` is the artifact; the directory
   never is.
+- **Worker-status ignore:** `.gitignore` gets `.ai/status/`. Every writing worker claims
+  `.ai/status/<worker-id>.md` on start and closes it on finish (`agent-team-structure.md`, Isolation
+  → "The worker status file"); it is live state meant to survive a process crash on disk, not a
+  history meant to be versioned. The lead folds each file into the run log and removes it at
+  acceptance — the run log is the artifact that gets committed, the status file never is.
 - **Code map ignores:** `.gitignore` gets `graphify-out/cost.json` + `graphify-out/cache/`;
   `.claudeignore` gets `graphify-out/` + `graph.json` (prompt-cache guard). The map itself
   (`graphify-out/graph.json`, `GRAPH_REPORT.md`) IS committed — it is the team's shared map.

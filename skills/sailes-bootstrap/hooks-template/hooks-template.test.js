@@ -72,12 +72,17 @@ function makeRepo() {
 
 const rm = (d) => fs.rmSync(d, { recursive: true, force: true });
 
-/** Run a hook the way the harness does: cwd = repo, JSON on stdin. */
-function runHook(script, repoDir, stdin) {
+/**
+ * Run a hook the way the harness does: cwd = repo, JSON on stdin.
+ * `env` merges over the inherited environment — the ENV-LOCK holder is identified by
+ * SAILES_ENV_LOCK, so the token tests need to drive that variable.
+ */
+function runHook(script, repoDir, stdin, env) {
   return spawnSync('sh', [script], {
     cwd: repoDir,
     input: stdin === undefined ? '' : stdin,
     encoding: 'utf8',
+    env: env ? { ...process.env, ...env } : process.env,
   });
 }
 
@@ -284,12 +289,183 @@ test('the pre-existing protected surface still blocks — no regression', () => 
       );
       assert.strictEqual(r.status, 2, `${label} is no longer blocked — the ENV-LOCK edit broke it`);
     }
-    const envRead = runHook(
+    const prodRead = runHook(
       GUARD,
       dir,
-      JSON.stringify({ tool_name: 'Read', tool_input: { file_path: 'apps/web/.env.local' } })
+      JSON.stringify({ tool_name: 'Read', tool_input: { file_path: 'apps/web/.env.production' } })
     );
-    assert.strictEqual(envRead.status, 2, '.env is no longer protected');
+    assert.strictEqual(prodRead.status, 2, 'production env is no longer protected');
+  } finally {
+    rm(dir);
+  }
+});
+
+// ---------------------------------------------------------------- ENV-LOCK knows its owner (1.25.2)
+
+test('ENV-LOCK: the HOLDER passes its own lock', () => {
+  // The defect this closes. `qa` wrote the lock and was blocked by it on its own first `docker
+  // exec` — a lock whose only state is "exists" locks out the one process it was created for.
+  const { dir } = makeRepo();
+  try {
+    fs.writeFileSync(
+      path.join(dir, '.ai', 'ENV-LOCK'),
+      'holder: qa\nsince: 2026-08-01T10:00:00Z\ntoken: run-4711\n'
+    );
+    const r = runHook(GUARD, dir, dockerCall, { SAILES_ENV_LOCK: 'run-4711' });
+    assert.strictEqual(r.status, 0, 'the holder is still locked out of its own run');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('ENV-LOCK: a DIFFERENT token is still blocked — the lock still keeps others out', () => {
+  const { dir } = makeRepo();
+  try {
+    fs.writeFileSync(path.join(dir, '.ai', 'ENV-LOCK'), 'holder: qa\ntoken: run-4711\n');
+    const r = runHook(GUARD, dir, dockerCall, { SAILES_ENV_LOCK: 'run-0000' });
+    assert.strictEqual(r.status, 2, 'any token now opens the lock — it protects nothing');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('ENV-LOCK: no token in the lock blocks EVERYONE, as before — old locks keep their meaning', () => {
+  // Backward compatibility is the point: a lock written by a pre-1.25.2 `qa` has no token line,
+  // and it must not silently become an open door because the guard learned a new field.
+  const { dir } = makeRepo();
+  try {
+    fs.writeFileSync(path.join(dir, '.ai', 'ENV-LOCK'), 'holder: qa\n');
+    const r = runHook(GUARD, dir, dockerCall, { SAILES_ENV_LOCK: 'run-4711' });
+    assert.strictEqual(r.status, 2, 'a tokenless lock opened for a caller that guessed a token');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('ENV-LOCK: the block tells the holder how to identify itself', () => {
+  const { dir } = makeRepo();
+  try {
+    fs.writeFileSync(path.join(dir, '.ai', 'ENV-LOCK'), 'holder: qa\ntoken: run-4711\n');
+    const r = runHook(GUARD, dir, dockerCall);
+    assert.ok(
+      /SAILES_ENV_LOCK/.test(r.stderr),
+      'the escape path for the holder is not stated — it cannot tell it is being mistaken for someone else'
+    );
+  } finally {
+    rm(dir);
+  }
+});
+
+// ---------------------------------------------------------------- env tiered by risk (1.25.2)
+
+test('the LOCAL .env is NOT blocked — this is the fixture that must NOT fire', () => {
+  // The inversion. Until 1.25.1 the guard blocked the four characters `.env` anywhere in the
+  // payload, which made `qa` structurally unable to boot the app for ANY task. If this test ever
+  // goes red the behavioral gate is unrunnable again, and it fails silently in production.
+  const { dir } = makeRepo();
+  try {
+    for (const [label, payload] of [
+      ['reading it', { tool_name: 'Read', tool_input: { file_path: '.env' } }],
+      ['reading the example', { tool_name: 'Read', tool_input: { file_path: '.env.example' } }],
+      ['writing it', { tool_name: 'Write', tool_input: { file_path: '.env', content: 'PORT=3000\n' } }],
+      [
+        'authoring the dev script that loads it',
+        {
+          tool_name: 'Edit',
+          tool_input: {
+            file_path: 'apps/api/package.json',
+            new_string: '"dev": "node --env-file-if-exists=../../.env --import tsx --watch src/index.ts"',
+          },
+        },
+      ],
+      ['a command that merely mentions it', { tool_name: 'Bash', tool_input: { command: 'pnpm dev' } }],
+    ]) {
+      const r = runHook(GUARD, dir, JSON.stringify(payload));
+      assert.strictEqual(r.status, 0, `${label}: the local .env is blocked again — qa cannot boot`);
+    }
+  } finally {
+    rm(dir);
+  }
+});
+
+test('production and staging env stay protected — the tier is real, not a removal', () => {
+  const { dir } = makeRepo();
+  try {
+    for (const [label, payload] of [
+      ['prod read', { tool_name: 'Read', tool_input: { file_path: '.env.production' } }],
+      ['prod short form', { tool_name: 'Read', tool_input: { file_path: 'apps/api/.env.prod' } }],
+      ['staging read', { tool_name: 'Read', tool_input: { file_path: '.env.staging' } }],
+      ['shell read', { tool_name: 'Bash', tool_input: { command: 'cat .env.production' } }],
+    ]) {
+      const r = runHook(GUARD, dir, JSON.stringify(payload));
+      assert.strictEqual(r.status, 2, `${label} is not protected — the tier collapsed to "anything goes"`);
+    }
+  } finally {
+    rm(dir);
+  }
+});
+
+test('Object.keys survives — the guard does not substring-match key material', () => {
+  // Why `*.key` / `*.pem` live in permissions.deny (glob, path-precise) and not in this script:
+  // a substring test for `.key` fires on ordinary JavaScript, and a guard that cries wolf is a
+  // guard that gets muted.
+  const { dir } = makeRepo();
+  try {
+    const r = runHook(
+      GUARD,
+      dir,
+      JSON.stringify({
+        tool_name: 'Edit',
+        tool_input: { file_path: 'src/util.ts', new_string: 'return Object.keys(config)' },
+      })
+    );
+    assert.strictEqual(r.status, 0, 'ordinary code was blocked as if it were key material');
+  } finally {
+    rm(dir);
+  }
+});
+
+// ---------------------------------------------------------------- .env production markers (1.25.2)
+
+test('session-start WARNS when the local .env carries production markers', () => {
+  const { dir } = makeRepo();
+  try {
+    fs.writeFileSync(
+      path.join(dir, '.env'),
+      'DATABASE_URL=postgres://u:p@shinkansen.proxy.rlwy.railway.app:5432/db\nPORT=3000\n'
+    );
+    const r = runHook(SESSION_START, dir, '{}');
+    assert.ok(/PRODUCTION markers/.test(r.stdout), 'a prod credential in the local .env went unreported');
+    assert.ok(/DATABASE_URL/.test(r.stdout), 'the offending key is not named — nobody knows what to move');
+    assert.ok(!/shinkansen/.test(r.stdout), 'the VALUE was printed: the warning leaked the secret it warns about');
+    assert.strictEqual(r.status, 0, 'the env warning must never block a session');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('a clean local .env is SILENT — the fixture that must not fire', () => {
+  const { dir } = makeRepo();
+  try {
+    fs.writeFileSync(
+      path.join(dir, '.env'),
+      'DATABASE_URL=postgres://postgres:postgres@localhost:5432/app\nS3_ENDPOINT=http://localhost:9000\n'
+    );
+    const r = runHook(SESSION_START, dir, '{}');
+    assert.ok(
+      !/PRODUCTION markers/.test(r.stdout),
+      'an ordinary local .env triggers the alarm — this is the cries-wolf shape that gets hooks muted'
+    );
+  } finally {
+    rm(dir);
+  }
+});
+
+test('no .env at all is SILENT', () => {
+  const { dir } = makeRepo();
+  try {
+    const r = runHook(SESSION_START, dir, '{}');
+    assert.ok(!/PRODUCTION markers/.test(r.stdout), 'warned about a file that does not exist');
   } finally {
     rm(dir);
   }

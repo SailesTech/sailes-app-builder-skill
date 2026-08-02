@@ -1,0 +1,252 @@
+diff --git a/packages/contracts/src/field.ts b/packages/contracts/src/field.ts
+new file mode 100644
+--- /dev/null
++++ b/packages/contracts/src/field.ts
+@@ -0,0 +1,38 @@
++import { z } from 'zod';
++
++export const FieldType = z.enum(['text', 'number', 'select', 'date']);
++
++export const FieldDefinition = z.object({
++  id: z.string().uuid(),
++  key: z.string().min(1).max(64),
++  label: z.string().min(1),
++  type: FieldType,
++  options: z.array(z.string()).nullable(),
++  requiredAtStages: z.array(z.string()),
++  createdAt: z.string().datetime(),
++});
++export type FieldDefinition = z.infer<typeof FieldDefinition>;
++
++export const CreateFieldDefinition = FieldDefinition.omit({
++  id: true,
++  createdAt: true,
++});
++export type CreateFieldDefinition = z.infer<typeof CreateFieldDefinition>;
++
++export const UpdateFieldDefinition = CreateFieldDefinition.partial().omit({ key: true });
++export type UpdateFieldDefinition = z.infer<typeof UpdateFieldDefinition>;
++
++export const IndexRequestState = z.enum(['pending', 'building', 'ready', 'failed']);
++
++export const IndexRequest = z.object({
++  id: z.string().uuid(),
++  fieldDefinitionId: z.string().uuid(),
++  state: IndexRequestState,
++  requestedAt: z.string().datetime(),
++  completedAt: z.string().datetime().nullable(),
++});
++export type IndexRequest = z.infer<typeof IndexRequest>;
+
+diff --git a/apps/api/src/services/field-definition.ts b/apps/api/src/services/field-definition.ts
+new file mode 100644
+--- /dev/null
++++ b/apps/api/src/services/field-definition.ts
+@@ -0,0 +1,52 @@
++import { eq } from 'drizzle-orm';
++import type { CreateFieldDefinition, UpdateFieldDefinition } from '@app/contracts/field';
++import { db } from '../db';
++import { fieldDefinition, fieldIndexRequest } from '@app/db/schema/field-definition';
++
++export async function listDefinitions() {
++  return db.select().from(fieldDefinition).orderBy(fieldDefinition.key);
++}
++
++export async function createDefinition(input: CreateFieldDefinition) {
++  if (input.type !== 'select' && input.options !== null) {
++    throw new BadRequest('options are only valid for select fields');
++  }
++  const [row] = await db.insert(fieldDefinition).values(input).returning();
++  return row;
++}
++
++export async function updateDefinition(id: string, input: UpdateFieldDefinition) {
++  const [row] = await db
++    .update(fieldDefinition)
++    .set(input)
++    .where(eq(fieldDefinition.id, id))
++    .returning();
++  if (!row) throw new NotFound('field definition');
++  return row;
++}
++
++export async function listIndexRequests() {
++  return db.select().from(fieldIndexRequest).orderBy(fieldIndexRequest.requestedAt);
++}
+
+diff --git a/apps/api/src/routes/field-definitions.ts b/apps/api/src/routes/field-definitions.ts
+new file mode 100644
+--- /dev/null
++++ b/apps/api/src/routes/field-definitions.ts
+@@ -0,0 +1,61 @@
++import type { FastifyInstance } from 'fastify';
++import { CreateFieldDefinition, UpdateFieldDefinition } from '@app/contracts/field';
++import { requirePermission } from '../auth/permissions';
++import {
++  listDefinitions,
++  createDefinition,
++  updateDefinition,
++  listIndexRequests,
++} from '../services/field-definition';
++
++export async function fieldDefinitionRoutes(app: FastifyInstance) {
++  app.get(
++    '/field-definitions',
++    { preHandler: requirePermission('field_config.read') },
++    async () => {
++      return listDefinitions();
++    }
++  );
++
++  app.post(
++    '/field-definitions',
++    { preHandler: requirePermission('field_config.write') },
++    async (req, reply) => {
++      const input = CreateFieldDefinition.parse(req.body);
++      const row = await createDefinition(input);
++      return reply.code(201).send(row);
++    }
++  );
++
++  app.get(
++    '/field-definitions/index-requests',
++    { preHandler: requirePermission('field_config.read') },
++    async () => {
++      return listIndexRequests();
++    }
++  );
++
++  app.patch<{ Params: { id: string } }>(
++    '/field-definitions/:id',
++    { preHandler: requirePermission('field_config.write') },
++    async (req) => {
++      const input = UpdateFieldDefinition.parse(req.body);
++      return updateDefinition(req.params.id, input);
++    }
++  );
++}
+
+diff --git a/apps/api/src/index.ts b/apps/api/src/index.ts
+--- a/apps/api/src/index.ts
++++ b/apps/api/src/index.ts
+@@ -12,6 +12,7 @@ import { dealRoutes } from './routes/deals';
+ import { userRoutes } from './routes/users';
++import { fieldDefinitionRoutes } from './routes/field-definitions';
+
+ export function buildApp() {
+   const app = Fastify({ logger: true });
+@@ -21,6 +22,7 @@ export function buildApp() {
+   app.register(dealRoutes, { prefix: '/api' });
+   app.register(userRoutes, { prefix: '/api' });
++  app.register(fieldDefinitionRoutes, { prefix: '/api' });
+   return app;
+ }
+
+diff --git a/apps/api/src/routes/field-definitions.test.ts b/apps/api/src/routes/field-definitions.test.ts
+new file mode 100644
+--- /dev/null
++++ b/apps/api/src/routes/field-definitions.test.ts
+@@ -0,0 +1,74 @@
++import { describe, it, expect, beforeEach } from 'vitest';
++import { buildApp } from '../index';
++import { seedAdmin, seedViewer, authHeader } from '../../test/fixtures';
++
++describe('GET /field-definitions', () => {
++  it('returns the definitions ordered by key', async () => {
++    const app = buildApp();
++    const res = await app.inject({
++      method: 'GET',
++      url: '/api/field-definitions',
++      headers: authHeader(await seedViewer()),
++    });
++    expect(res.statusCode).toBe(200);
++    expect(res.json().map((d: any) => d.key)).toEqual(['budget', 'source']);
++  });
++
++  it('401s anonymously', async () => {
++    const app = buildApp();
++    const res = await app.inject({ method: 'GET', url: '/api/field-definitions' });
++    expect(res.statusCode).toBe(401);
++  });
++});
++
++describe('POST /field-definitions', () => {
++  it('creates and returns 201', async () => {
++    const app = buildApp();
++    const res = await app.inject({
++      method: 'POST',
++      url: '/api/field-definitions',
++      headers: authHeader(await seedAdmin()),
++      payload: { key: 'region', label: 'Region', type: 'text', options: null, requiredAtStages: [] },
++    });
++    expect(res.statusCode).toBe(201);
++    expect(res.json().key).toBe('region');
++  });
++
++  it('rejects options on a non-select field', async () => {
++    const app = buildApp();
++    const res = await app.inject({
++      method: 'POST',
++      url: '/api/field-definitions',
++      headers: authHeader(await seedAdmin()),
++      payload: { key: 'x', label: 'X', type: 'text', options: ['a'], requiredAtStages: [] },
++    });
++    expect(res.statusCode).toBe(400);
++  });
++
++  it('403s for a viewer', async () => {
++    const app = buildApp();
++    const res = await app.inject({
++      method: 'POST',
++      url: '/api/field-definitions',
++      headers: authHeader(await seedViewer()),
++      payload: { key: 'region', label: 'Region', type: 'text', options: null, requiredAtStages: [] },
++    });
++    expect(res.statusCode).toBe(403);
++  });
++});
++
++describe('PATCH /field-definitions/:id', () => {
++  it('updates the label', async () => {
++    const app = buildApp();
++    const { id } = await seedDefinition({ key: 'budget', label: 'Budget' });
++    const res = await app.inject({
++      method: 'PATCH',
++      url: `/api/field-definitions/${id}`,
++      headers: authHeader(await seedAdmin()),
++      payload: { label: 'Deal budget' },
++    });
++    expect(res.statusCode).toBe(200);
++    expect(res.json().label).toBe('Deal budget');
++  });
++
++  it('404s for an unknown id', async () => {
++    const app = buildApp();
++    const res = await app.inject({
++      method: 'PATCH',
++      url: '/api/field-definitions/00000000-0000-0000-0000-000000000000',
++      headers: authHeader(await seedAdmin()),
++      payload: { label: 'x' },
++    });
++    expect(res.statusCode).toBe(404);
++  });
++});
++
++describe('GET /field-definitions/index-requests', () => {
++  it('returns the requests with their state', async () => {
++    const app = buildApp();
++    const res = await app.inject({
++      method: 'GET',
++      url: '/api/field-definitions/index-requests',
++      headers: authHeader(await seedViewer()),
++    });
++    expect(res.statusCode).toBe(200);
++    expect(res.json()[0].state).toBe('pending');
++  });
++
++  it('401s anonymously', async () => {
++    const app = buildApp();
++    const res = await app.inject({ method: 'GET', url: '/api/field-definitions/index-requests' });
++    expect(res.statusCode).toBe(401);
++  });
++});
