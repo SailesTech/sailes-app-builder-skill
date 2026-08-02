@@ -1,9 +1,16 @@
 # Wnioski 08-01 → doktryna — spec
 
-Status: in-progress — obie fazy napisane i zielone lokalnie (1.25.2, 1.26.0); **bramki `checker`
-i `qa` NIE zostały uruchomione** (człowiek wyłączył delegację w tej sesji), więc spec nie może
-dostać `implemented` — status niesie wklejone werdykty, a nie ma czego wkleić. Nic nie jest
-wypchnięte na `main`.
+Status: in-progress — **obie fazy są na produkcji od 2026-08-02** (1.25.2 i 1.26.0 wypchnięte na
+`main`, czyli wdrożone na każdą maszynę z `enable-plugin.sh`). Do `implemented/` brakuje dwóch
+rzeczy, obu proceduralnych: bramka `checker` na całości nigdy nie została uruchomiona (człowiek
+wyłączył delegację w sesji 2026-08-01, a potem wydanie poszło bez niej), i **nie ma kwitu delty
+architektury** — `.ai/docs-deltas/` kończy się na `2026-07-31`. Domykane w
+`.ai/specs/2026-08-03-outstanding-debt-and-docs-delta.md`, fazy F8a i F8b.
+
+> **Ten nagłówek do 2026-08-03 mówił „Nic nie jest wypchnięte na `main`".** To przestało być prawdą
+> nazajutrz po zapisaniu i nikt nie wrócił do zdania. Zostawiam ślad, bo to jest dokładnie ta klasa
+> błędu, którą ten spec nazywa w swoim własnym Problemie: nieobecność — tu nieobecność aktualizacji —
+> wygląda identycznie jak zgodność. Kolejny czytelnik tego pliku planowałby wydanie, które już weszło.
 Source: `skile do inspiracji/wnioski z projektow/2026-08-01-wnioski-do-sailes-app-builder.md`
 Precedes: 1.26.0
 Related: `.ai/specs/implemented/2026-07-30-sailerem-lessons-to-doctrine.md` (poprzedni zestaw, 1.25.0)

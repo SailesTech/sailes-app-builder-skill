@@ -1,6 +1,15 @@
 # Spec: precyzja delegowania i kontrola nad agentami
 
-Status: approved
+Status: in-progress — **wszystkie siedem faz zrobionych i na produkcji** (1.27.0, wypchnięte
+2026-08-02; F1 dostała jeszcze poprawki w 1.27.1 i 1.27.2 z czterech defektów znalezionych przez
+używanie mechanizmu). Do `implemented/` brakuje jednej rzeczy: **kwitu delty architektury**.
+`.ai/docs-deltas/` kończy się na `2026-07-31`, a F1–F5 dołożyły `tools/` z czterema skryptami
+i zmieniły przepływ dispatchu — to jest zmiana architektury, nie kosmetyka. Domykane w
+`.ai/specs/2026-08-03-outstanding-debt-and-docs-delta.md`, fazy F8a i F8b.
+
+Otwarte, przeniesione do `.ai/backlog.md`, żeby nie zginęły przy zamknięciu: plik statusu stoi na
+asymetrii harnessu (`Write` odmawia ścieżki spoza worktree, `Bash` nie) — łagodzone fallbackiem
+w F4 nowego specu, nie naprawione, bo to nie nasz kod.
 Brief: `.ai/briefs/2026-08-01-delegation-precision-and-agent-control.md`
 Framework-Version target: 1.27.0
 Related: `.ai/specs/2026-08-01-milestone-lessons-to-doctrine.md` (in-progress, 1.25.2 + 1.26.0)

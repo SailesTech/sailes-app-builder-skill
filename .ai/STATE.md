@@ -119,7 +119,13 @@ Last-commit: 907a071
   `main` is not a staging area.
 
 ## Open failures
-- **1.15.0 shipped without re-running the three evals that name the files it edited** —
+- ~~**1.15.0 shipped without re-running the three evals that name the files it edited**~~
+  **CLOSED 2026-07-26** — all three `lead-*` scenarios were re-dispatched to fresh workers and
+  PASSed, which is what closed this specific debt; the wider sweep the same day took the suite to
+  25/29 FRESH. Left in place with its original text below because the *shape* it names recurs and
+  the entry is cited elsewhere. **The count in it is long dead — as of 2026-08-03 the board reads
+  29 STALE of 44**, and that staleness is by file mtime with no content contact, which is a weaker
+  claim than the 2026-07-25 measurement this paragraph reports. Original text:
   `lead-chases-an-empty-worker-return` (which covers the very rule that was rewritten),
   `lead-delegates-instead-of-bulk-coding`, `lead-honors-codex-delegation-and-still-gates`. The
   `evals/README.md` rule is explicit: editing a skill means re-running every scenario naming it.
@@ -138,7 +144,14 @@ Last-commit: 907a071
   cannot render its own spec before handoff; the integrity gate runs on whoever builds. Widening
   that role is a human call, left unchanged. See `.ai/specs/2026-07-25-browser-devtools-instrument.md`
   §5 — a three-line edit once answered.
-- **`prompt-anchor` Phase 5 is INCONCLUSIVE and the decision is re-opened (D3 triggered).** Both
+- ~~**`prompt-anchor` Phase 5 is INCONCLUSIVE and the decision is re-opened (D3 triggered).**~~
+  **MOOT 2026-07-26 — the subject was retired by human decision** and the four `enforce/*` branches
+  deleted (SHAs preserved in `.ai/specs/archived/2026-07-18-prompt-anchor.md`, which is where the
+  spec now lives). The path this entry lays out — rebase, build a real-distance fixture, re-run,
+  merge or drop — was never walked; the decision went the other way without it. **Read the rest as
+  history, not as work.** Its one durable lesson is already promoted: a fixture that cannot create
+  the condition under test proves nothing, which is now the standing rule for new scenarios.
+  Original text:
   eval arms passed identically — but the fixture condensed 58 turns into ten lines, leaving the
   SessionStart mandate ~500 tokens from the hostile brief instead of 80k. The control held
   because the mandate was still in view; the condition an anchor would address was never created.
@@ -159,9 +172,11 @@ Last-commit: 907a071
   eval's BOM-broken feature), and the third one was fixed with a technique that works. Path:
   rebase `enforce/*` onto current `main` → build a fixture with **real** context distance (a long
   session, not a summary of one) → re-run the eval → merge or drop on the verdict.
-- Behavioral GREEN re-runs for the 1.1.0 text-level changes are still pending — inherited, open
-  since July. Either run them or write them off deliberately; they have been "pending" long enough
-  that nobody now knows which.
+- ~~Behavioral GREEN re-runs for the 1.1.0 text-level changes are still pending~~ **CLOSED
+  2026-07-26** — the whole suite was re-run to currency (25/29 FRESH, 12 re-dispatched, all PASS);
+  the four that stayed STALE were environment-blocked and triaged by name. `.ai/backlog.md` recorded
+  the closure the same day and this entry was never updated, so it has read as open debt for a week.
+  The instruction it carried — "either run them or write them off deliberately" — was followed.
 - **Five silent failures in one day**, four of them fixtures: MSYS paths in a hook test; a typo
   that did not exist; a `git checkout -- <path>` that destroyed an uncommitted edit; a CRLF regex
   that no-op'd; backticks in a shell heredoc that ate half a STATE.md rewrite. Plus the
