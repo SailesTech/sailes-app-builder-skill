@@ -1,8 +1,14 @@
 # Wnioski 08-01 → doktryna — spec
 
-Status: in-progress — **obie fazy są na produkcji od 2026-08-02** (1.25.2 i 1.26.0 wypchnięte na
-`main`, czyli wdrożone na każdą maszynę z `enable-plugin.sh`). Do `implemented/` brakuje dwóch
-rzeczy. Jedna została zdjęta 2026-08-02: kwit delty architektury istnieje
+Status: implemented — dowody: `npm test` → 15/15 suites, exit 0 · `node codex-agents/parity.test.js` → all passed (10 roles, both sides) · checker: CHANGES-REQUIRED, retroaktywnie 2026-08-02 na `5a1d2f8..415a3f1`, sześć pozycji (cztery nazwane w specu po pliku i nigdy nienapisane) → pięć naprawionych w 1.28.1, szósta (`WIP:` w pięciu bliźniakach Codex) w `.ai/backlog.md` z niezmiennikiem, żeby nie zginęła po cichu · qa: n/a — repo frameworkowe, nie ma aplikacji do uruchomienia ani obserwowalnego zachowania do udowodnienia; bramką zachowania są tu `evals/`, trzy z nich dodane w 1.26.0 i uruchomione (jedna PASS z realnym rozróżnieniem, dwie INCONCLUSIVE, bo kontrola doszła do tego samego bez doktryny — zapisane tak, a nie jako PASS)
+
+**Obie fazy były na produkcji od 2026-08-02** (1.25.2 i 1.26.0 wypchnięte na `main`, czyli wdrożone
+na każdą maszynę z `enable-plugin.sh`) **zanim bramka na nich przebiegła** — to jest fakt o tym
+specu, nie szczegół. Człowiek wybrał przegląd retroaktywny zamiast spisania go bez bramki, i ten
+wybór zwrócił się: sześć pozycji, z czego cztery to rzeczy, które ten spec nazwał po pliku
+i których nikt nie napisał. Żadna nie była do znalezienia przez czytanie łatki.
+
+Wcześniej brakowało dwóch rzeczy. Jedna została zdjęta 2026-08-02: kwit delty architektury istnieje
 (`.ai/docs-deltas/2026-08-01-release-1.25.2.json` i `…-1.26.0.json`, oba puste i **zapisane jako
 puste**, bo żadne z tych wydań nie zmieniło architektury).
 

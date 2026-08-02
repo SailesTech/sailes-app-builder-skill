@@ -1,8 +1,10 @@
 # Spec: precyzja delegowania i kontrola nad agentami
 
-Status: in-progress — **wszystkie siedem faz zrobionych i na produkcji** (1.27.0, wypchnięte
-2026-08-02; F1 dostała jeszcze poprawki w 1.27.1 i 1.27.2 z czterech defektów znalezionych przez
-używanie mechanizmu).
+Status: implemented — dowody: `npm test` → 15/15 suites, exit 0 · `node codex-agents/parity.test.js` → all passed (10 roles, both sides) · checker: CHANGES-REQUIRED, retroaktywnie 2026-08-02 na `8f9bc95..9de90e8` (zakres ustalony przez bramkę samodzielnie i udowodniony rozłączny z poprzednim przez `git merge-base --is-ancestor`) — powierzchnia KOMPLETNA, wszystkie ścieżki z siedmiu tabel istnieją, ale trzy klauzule `Done-when` nazywały mechanizm i nie wymuszały niczego: C1 parytet nie strzegł doktryny statusu (dowiedzione mutacją — 8069 bajtów usunięte ze wszystkich sześciu bliźniaków, `exit=0`), C2 dwie instrukcje niewykonalne w repo klienta, C4 przenosiny katalogu nieprzemiecione → wszystkie naprawione w 1.28.2; C3 (`brief-closure` bez wołającego) zapisane w Non-goals jako niedowiezione, decyzją człowieka · qa: n/a — repo frameworkowe, nie ma aplikacji do uruchomienia; zachowanie mechanizmów udowodnione mutacją per narzędzie (`sync-blocks`, `brief-closure`, `ownership-check`, `worker-status`), a doktrynę grają `evals/` — F6 i F7, oba z ramieniem kontrolnym, przy czym F6 raportuje wprost, że kontrola wykryła wszystko i dopiero potem zamroziła integrację, czyli „ta doktryna kupuje dysponowanie, nie wykrywanie"
+
+**Wszystkie siedem faz było zrobionych i na produkcji** (1.27.0, wypchnięte 2026-08-02; F1 dostała
+jeszcze poprawki w 1.27.1 i 1.27.2 z czterech defektów znalezionych przez używanie mechanizmu)
+**zanim jakakolwiek bramka na nich przebiegła.**
 
 **Poprawka nagłówka 2026-08-02: brakowało DWÓCH rzeczy, nie jednej.** Zdanie poniżej mówiło „brakuje
 jednej rzeczy: kwitu delty" i było nieprawdziwe — **bramka `checker` nigdy nie przebiegła na tych
@@ -311,6 +313,22 @@ człowieka, i ta sama izolacja, którą framework wymusza przy `checkerze`.
 - Żywy podgląd przebiegu. Plik zajmowany na starcie daje wgląd w trakcie jako **skutek uboczny**.
 - Zastępowanie run logu. Plik statusu odpowiada na „czy ten worker skończył i co ruszył".
 - Naprawa `TaskGet` ani hooków — defekty poza tym repo.
+- **`brief-closure.js` jest ręcznym linterem, nie bramką — i to jest odstępstwo od TLDR tego specu,
+  dopisane 2026-08-02 po bramce retroaktywnej, decyzją człowieka.** TLDR obiecuje „brief, którego
+  nie da się oddać niedomkniętym". F2 dowiózł narzędzie, które poprawnie wykrywa niedomknięty brief
+  — i **nic go nie woła**: grep po repo znajduje `brief-closure` w tym specu, w CHANGELOG-u,
+  w `package.json` (jego własny test), w `AGENTS.md` i jako string w przykładowym pliku statusu.
+  W żadnej definicji roli, żadnym skillu, żadnej liście kontrolnej. Przyczyna jest głębsza niż
+  brakujący odsyłacz: `agent-team-structure.md:532` przepisuje brief jako **wiadomość w czacie**,
+  nigdy jako plik, więc nie istnieje artefakt, na którym check mógłby przejechać.
+  Odrzucone świadomie: robienie z briefów plików (`.claude/briefs/<worker-id>.md`) dowiozłoby
+  obietnicę naprawdę, ale to zmiana doktryny delegowania w kilkunastu miejscach plus nowy artefakt
+  na każdego workera — własny spec, nie łatka. I dokładnie ten kształt, plik per worker, kosztował
+  cztery defekty przy pliku statusu w tym samym wydaniu.
+  **Zapisane jako niedowiezione, nie jako dowiezione inaczej.** F2 spełnił swoją literalną klauzulę
+  `Done-when` (fixture'y plus `0 failing`) i nie spełnił tego, co spec o nim twierdzi w TLDR — czyli
+  jest własnym przykładem defektu, który ten spec opisuje: **klauzula `Done-when`, która nie wymusza
+  tego, co faza obiecuje.**
 - Hook blokujący domknięcie workera. Odrzucony wraz z Q4; wraca tylko wtedy, gdy test w bramce
   okaże się niewystarczający, i wtedy z własną sondą i ścieżką wyjścia.
 - Przemiał 22 evali bez styku.

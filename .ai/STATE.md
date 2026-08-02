@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: 6041c5d
+Last-commit: PENDING-1.28.2
 
 > Read at session start; write before walking away. Facts enter **Verified facts** only with
 > evidence; hypotheses stay in **Open failures**.

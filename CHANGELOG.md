@@ -4,6 +4,54 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.28.2 — 2026-08-02 · clauses that name a mechanism and force nothing
+
+A second retroactive `checker`, this time on the delegation spec (1.27.0, live since 2026-08-02).
+Its shape is different from the first and more useful. **The surface was complete** — every path in
+all seven file tables exists, every literal `Done-when` reproduced. What failed is subtler: **three
+of the spec's own enforcement clauses name a mechanism and force nothing.**
+
+**`parity.test.js` did not guard the doctrine it was named as guarding — proven by mutation.** F5
+listed `codex-agents/*.toml` as "forced by parity green". Strip **every line containing
+`.claude/status/` from all six Codex twins — 8,069 bytes, the entire worker-status doctrine — and
+parity still exits 0.** The doctrine was there; nothing would have noticed its loss. This is the
+second instance of one shape in two releases (1.28.1 found all of 1.26.0 missing from the twins with
+parity green), so the generalisation is now the finding: **`parity.test.js` guards only the concepts
+someone hand-added to `INVARIANTS`, and its output does not say which.** Eleven invariants added,
+each mutation-proven. One of them went red on a real gap — `codex-agents/team-lead.toml` had no
+worktree-base-verification rule at all, while its Claude twin has carried one since 1.26.0. The
+invariant was **not weakened to make the suite green**; the twin got the rule.
+
+**Two shipped instructions could not execute in the repos they ship to.**
+`sailes-implement/SKILL.md` and `worker-status-template.md` both said `node tools/…`. `tools/`
+exists only in this framework repo — the generated skeleton creates none, and the plugin serves
+`skills/`, `agents/` and `hooks/` from outside the working tree. In a client-shaped directory both
+died with `MODULE_NOT_FOUND`. Now routed through `${CLAUDE_PLUGIN_ROOT}`, verified by execution from
+a directory with no `tools/`, **and both say what to do when that variable is unset** — the failure
+otherwise reads as a broken tool rather than an inactive plugin. This is the same defect class the
+delegation spec was *designed around*: its own line 63 records `team-lead.md` sending every lead to
+a repo path that does not exist in a client repo, and that measurement is why Q1 became "one source,
+generated copies". The phases that followed reintroduced the shape in a different form.
+
+**A directory move was never swept.** 1.27.1 moved `.ai/status/` → `.claude/status/`.
+`tools/worker-status.js` asserted the old path in its **opening line** while implementing the new
+one 49 lines below; the same contradiction sat in its test, in a live eval grading surface, and in
+seven lines of the spec — including a `Done-when` grep that returned **0** where the spec claimed
+≥1. That spec could not have closed honestly: closing it meant pasting a gate whose greps fail.
+
+**`brief-closure.js` is recorded as a hand-run linter, not a gate — an admitted shortfall, not a
+reframing.** It detects an unclosed brief correctly and **nothing calls it**; more fundamentally,
+the doctrine prescribes a brief as a *chat message*, so no artifact exists to run it against. The
+spec's TLDR promised "a brief that cannot be handed over unclosed". Making briefs files would
+deliver that and is a spec of its own — and is the same per-worker-file shape that cost four defects
+in this same release. Written into Non-goals as undelivered, because F2 met its literal `Done-when`
+while missing what the spec claims it does, which makes it an instance of the very defect the spec
+was written to remove.
+
+**Upgrade note.** If you invoked `node tools/ownership-check.js` or `node tools/worker-status.js`
+from a client repo and it failed, that is fixed — use the form the skills now show. No API or layout
+change.
+
 ## 1.28.1 — 2026-08-02 · what a gate finds when you run it a day late
 
 Everything here was found by a **retroactive `checker`** on 1.25.2 + 1.26.0 — code that had been on
