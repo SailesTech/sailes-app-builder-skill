@@ -101,9 +101,17 @@ Field notes:
 ## Validating one
 
 ```
-node tools/worker-status.js .claude/status/be-dev-3.md      # one file, exit 0/1, names what's wrong
-node tools/worker-status.js --sweep .claude/status/          # every file still open or still present
+node "${CLAUDE_PLUGIN_ROOT}/tools/worker-status.js" .claude/status/be-dev-3.md      # one file, exit 0/1, names what's wrong
+node "${CLAUDE_PLUGIN_ROOT}/tools/worker-status.js" --sweep .claude/status/          # every file still open or still present
 ```
+
+`tools/` ships with the plugin, not the client repo's working tree — `${CLAUDE_PLUGIN_ROOT}` is how
+a hook already reaches it (`hooks/hooks.json`); an unqualified path into `tools/worker-status.js`
+only resolves from inside the framework repo itself. **If `CLAUDE_PLUGIN_ROOT` is unset** (a session outside the
+plugin, or one that only ran the pre-plugin `install.sh`, which copies `skills/` only), there is no
+script at that path to run — treat it as "the check is unavailable here", not as a crash: report the
+worker status by reading the file's `closed:`/`outcome:`/`commit:` fields by hand rather than let
+`node` fail with `MODULE_NOT_FOUND`, which reads as a broken tool rather than a missing variable.
 
 See `tools/worker-status.js` for the exact rules and `tools/worker-status.test.js` for the states it
 proves against.

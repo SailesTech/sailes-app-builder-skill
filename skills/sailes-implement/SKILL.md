@@ -29,7 +29,7 @@ description: Use to implement an approved, ready spec (or specific phases of it)
      F2:
        - path/three
    ```
-   Run `node tools/ownership-check.js .ai/runs/{YYYY-MM-DD}-{slug}.md` before dispatching phases in parallel — it exits 1 and names the path and both tasks the moment two phases' path sets stop being disjoint.
+   Run `node "${CLAUDE_PLUGIN_ROOT}/tools/ownership-check.js" .ai/runs/{YYYY-MM-DD}-{slug}.md` before dispatching phases in parallel — it exits 1 and names the path and both tasks the moment two phases' path sets stop being disjoint. `tools/` ships with the plugin, not the client repo's working tree — `${CLAUDE_PLUGIN_ROOT}` is how a hook already reaches it (`hooks/hooks.json`); an unqualified path into `tools/` only resolves from inside this framework repo itself. **If `CLAUDE_PLUGIN_ROOT` is unset** (a session running the pre-plugin `install.sh` path, which copies `skills/` only), the check has no script to reach — report that as a blocker ("ownership-check unavailable — plugin not active, verify the file-ownership matrix by hand") rather than let `node` die with `MODULE_NOT_FOUND`, which reads as a broken tool rather than a missing variable.
 4. Branch off; never implement on the default branch.
 
 ## Implementation loop — per Phase, then per Step
