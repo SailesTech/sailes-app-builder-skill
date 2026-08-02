@@ -254,9 +254,31 @@ answering the only question the lead asks it.
 
 ### The worker status file — a declaration the lead can verify
 
-**Every worker that WRITES claims `.ai/status/<worker-id>.md` as its FIRST action and closes it as
-its LAST** — the identical test as the worktree mandate above, "does it write" rather than "is it on
-a list", so a role added next year inherits the rule instead of being omitted by an outdated list.
+**Every worker that WRITES claims `.claude/status/<worker-id>.md` as its FIRST action and closes it
+as its LAST** — the identical test as the worktree mandate above, "does it write" rather than "is it
+on a list", so a role added next year inherits the rule instead of being omitted by an outdated list.
+
+**This is live runtime state, not memory — the PID-file category — so it lives in a shared runtime
+directory, never inside the data it describes and never inside the unit it describes.** A status file
+kept inside the worker's own worktree is unreadable exactly when it is needed: after a crash or a
+context reset the lead no longer knows the worktree path, and the record that would recover that path
+is the same record that just went missing. `AGENTS.md` already draws this line for `.ai/` — "memory,
+not scratch" — and `.claude/worktrees/` is the existing precedent for a shared runtime directory that
+sits outside any single worker's checkout; `.claude/status/` follows the same pattern.
+
+**A writing worker therefore writes exactly ONE file outside its own worktree — and that does not
+weaken the isolation mandate above.** The mandate exists against two processes writing the SAME
+file: that is where silent loss happens, because git sees only the survivor and has nothing to
+report. Here every worker owns a unique filename (`<worker-id>.md`), so there is no second writer to
+collide with — the property the worktree protects, that no worker can damage another worker's output,
+holds exactly as before.
+
+**HARDENING — `worker-id` is the harness's agent id, never the worker's own choosing.** A self-chosen
+id can collide with another worker's; a collision silently overwrites that worker's declaration,
+which reproduces — inside the very mechanism meant to detect it — the exact failure class the
+isolation mandate exists to forbid: two writers, one file. Use the id the harness assigned at spawn
+(the worktree branch's worker suffix, or the live teammate's name in agent-teams mode), never a name
+the worker picks for itself.
 
 ```yaml
 worker: be-dev-3
@@ -264,12 +286,17 @@ task: "F2 — brief-closure check"
 base: e276a5e            # sha the worktree was cut from
 claimed: ["skills/sailes-bootstrap/hooks-template/brief-closure.js"]
 opened: <timestamp>
-# --- appended at close ---
+# --- appended at close, never rewritten above this line ---
 closed: <timestamp>
 outcome: done | blocked | policy-refusal
 commit: <sha>             # empty unless outcome: done
 touched: [...]             # what actually moved
 ```
+
+**HARDENING — closing APPENDS, never rewrites.** The claim block written at start (`worker`, `task`,
+`base`, `claimed`, `opened`) is never edited once it exists; closing only adds lines beneath it. A
+`--sweep` that read a file mid-rewrite would report a live worker as corrupt instead of running —
+append-only means there is never a window where the file is neither the old shape nor the new one.
 
 **Why it exists, in three states where today there is one silence.** No file means the worker never
 started. A file with no `closed:` means it died mid-run. A closed file is a declaration. Until this
@@ -293,10 +320,10 @@ rules keep this from rotting into either a lost record or a stale pile:
 - **A file from a worker that died and was NOT accepted does not vanish quietly.** It lands in the
   run log as a **loss** — with whatever it managed to declare — and is removed only after that. It
   is the only record that the run ever happened.
-- **`.ai/status/` is gitignored.** It is live state, meant to survive a process crash on disk, not
-  meant to be versioned — the run log is the history, and the run log is what gets committed.
+- **`.claude/status/` is gitignored.** It is live state, meant to survive a process crash on disk,
+  not meant to be versioned — the run log is the history, and the run log is what gets committed.
 
-**The invariant is the product: whatever sits in `.ai/status/` is either running or dead.** A file
+**The invariant is the product: whatever sits in `.claude/status/` is either running or dead.** A file
 left behind after acceptance breaks that within a week, because then answering "is this worker still
 running" means reading every file and comparing dates against the run log by hand — exactly the work
 this artifact exists to save.
@@ -329,7 +356,7 @@ The ladder, cheapest and least intrusive first. Stop at the first rung that answ
    isolation elsewhere in this document refuses to trust.
 3. **Read the declarations.** `git -C <worktreePath> log --oneline` — what the worker committed, and
    which of those are `WIP:` checkpoints rather than a finished claim — and the worker's own
-   `.ai/status/<worker-id>.md`, if the brief carries one: `base`/`claimed` from before it started,
+   `.claude/status/<worker-id>.md`, if the brief carries one: `base`/`claimed` from before it started,
    and, once closed, `outcome`/`touched`.
 4. **Read the metadata, never the content.** `git -C <worktreePath> status --porcelain` (which
    paths are dirty, names only), `git -C <worktreePath> diff --stat` (how much moved in each file,
@@ -503,11 +530,13 @@ Blocked:     stuck more than one round on something that is NOT a key decision �
              costs the round; picking silently costs the lead a decision they never saw.
              Key decisions (stack, contract, data-model, auth, roles) are never
              substitutable — escalate and wait.
-Status:      claim `.ai/status/<worker-id>.md` as your FIRST action (`worker`, `task`,
-             `base` sha, `claimed` paths, `opened`) and close it as your LAST (`closed`,
-             `outcome`, `commit`, `touched`). No file = you never started; a file with no
-             `closed:` = you died mid-run; a closed file is your declaration. [read-only
-             roles: drop this line — you write nothing, so nothing to claim.]
+Status:      claim `.claude/status/<worker-id>.md` as your FIRST action — `worker-id` is the id
+             the harness assigned you, never one you pick, and this is the one file you write
+             outside your worktree — with `worker`, `task`, `base` sha, `claimed` paths, `opened`.
+             Close it as your LAST action by APPENDING (never rewriting the claim block):
+             `closed`, `outcome`, `commit`, `touched`. No file = you never started; a file with no
+             `closed:` = you died mid-run; a closed file is your declaration. [read-only roles:
+             drop this line — you write nothing, so nothing to claim.]
 Checkpoint:  write progress to files as you go. Your in-memory state does not survive your
              process; disk does.
 Verification: exact commands to run + the e2e requirement.
