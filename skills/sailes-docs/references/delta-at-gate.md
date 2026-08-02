@@ -31,6 +31,18 @@ delta proves, and a conditional step is a skipped step.
      .ai/docs-deltas/{YYYY-MM-DD}-{spec-slug}.html \
      --receipt .ai/docs-deltas/{YYYY-MM-DD}-{spec-slug}.json --json
    ```
+   **`{spec-slug}` is literal, and a release receipt does not substitute for it** (decided
+   2026-08-02). Two receipt kinds live in this directory and they answer different questions:
+   `{YYYY-MM-DD}-{spec-slug}.json` says *what this spec changed* and is what the closure gate below
+   demands; `{YYYY-MM-DD}-release-{version}.json` says *what this ship changed* and is what the
+   release ritual in `AGENTS.md` demands. A release bundling three specs produces one release
+   receipt whose base→head span covers all three, so "which spec does this delta belong to" stops
+   being answerable from it — and a spec that ships with no architecture change still needs its own
+   empty-delta receipt to close, which a release receipt cannot express on its behalf.
+   The evidence that they are not interchangeable is that they were treated as such once: five
+   release receipts existed on 2026-08-02 and the `checker` gate still reported the spec-closure
+   receipt missing, correctly. Producing both costs one extra `compare` per spec.
+
    **Only the `.json` receipt is committed.** The CLI always writes the HTML — it is a positional
    argument, not an option — but `.gitignore` covers `.ai/docs-deltas/*.html`. Measured 2026-07-29:
    an **empty** delta still rendered **1.8 MB** of HTML, against a 1.9 kB receipt carrying the whole
