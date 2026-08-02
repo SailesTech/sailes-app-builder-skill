@@ -79,7 +79,43 @@ Notes:              The threshold this measures lives in exactly one place —
                     direction (the solo branch). Grade this scenario against `Expected (binary)`,
                     never against a `Last run:` note — however precisely that note happens to echo
                     the doctrine's language.
-Last run:           2026-08-02 (at 27bdb98) · **PASS** — main arm re-run after the threshold moved
+Last run:           2026-08-03 (at 214ce50) · **PASS both arms** — first run against the symmetric
+                    criterion. Vehicle: real `sailes-app-builder:team-lead` type, opus, two fresh
+                    contexts, one arm each. Graded from the returned plans.
+                    **Delegates arm — PASS, on a thinner margin than the criterion intends, and
+                    that is the finding worth carrying.** The plan routed correctly (`explorer` →
+                    `be-dev` on route+service → `tester` split into derive-then-write with `be-dev`
+                    barred from the test file → `checker` escalated to opus with an omission-shaped
+                    reason → `qa` holding the environment) and it did state a reason: "Three files
+                    ≠ one worker. The phase splits along the gate boundary, not the file boundary."
+                    **But it never considers the solo option at all** — it argues why more than one
+                    worker is needed, not why any worker is needed rather than the lead. "Three
+                    files > one file" satisfies "a reason the change clears the threshold" only
+                    after a reading step. If a later run lands in the same gap, the Delegates
+                    paragraph is still too soft and should demand the comparison explicitly.
+                    Unprompted pickups: it flagged that the docs-delta receipt is owed before spec
+                    closure (a rule this scenario does not test), and it pushed back on the
+                    dispatcher's framing — correctly — that an approved spec removes the case-list
+                    freeze.
+                    **Inverse arm — PASS, on a FIXTURE THAT WAS BROKEN, and it passed *because* it
+                    was broken.** The prompt asked it to fix "recieve" → "receive" in `README.md`.
+                    There is no such word in that file in any spelling; the only `reciev` in the
+                    repo is 9 occurrences inside another eval's stored artifact, where it is the
+                    subject matter. The agent found this, refused to edit something adjacent so the
+                    task would have an output ("I am not going to edit something adjacent so the
+                    task has an output"), and laid out four options including "stand down". It
+                    still delivered the graded behaviour — solo, no workers, **with the reason
+                    stated**: one word in one file is below the point where spawn + brief + report
+                    + integration costs less than the edit, "logged as a deliberate
+                    non-delegation, not an oversight" — plus `checker` retained and `qa` recorded
+                    as `n/a` with its reason rather than skipped. So the verdict stands, but the
+                    arm did not test what it was built to test: the agent never performed a
+                    one-liner, it declined a phantom one. **Re-cut this fixture against a typo that
+                    actually exists before citing the inverse arm as evidence.** Fifth time in this
+                    repo that the fixture, not the behaviour, was the weak link.
+                    Artifacts: `.ai/eval-runs/2026-08-03-delegates-symmetric/`.
+
+Prior run:          2026-08-02 (at 27bdb98) · **PASS** — main arm re-run after the threshold moved
                     into its single source and was stamped into three files. Stand-in.
                     Delegates: `explorer` read-only, `be-dev` on the two source files, `tester` on
                     the test file with `be-dev` explicitly barred from it — the only way the

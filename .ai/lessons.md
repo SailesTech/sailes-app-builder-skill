@@ -7,6 +7,44 @@
 
 ## Lessons
 
+### 2026-08-03 — a brief that points at an uncommitted file points at nothing
+- **Context:** six workers were dispatched with `isolation: worktree`, each brief opening "read
+  `.ai/specs/2026-08-03-outstanding-debt-and-docs-delta.md`, phase Fn". The spec had been written
+  with `Write` and **never committed** — `git status` showed it as `??` in the main tree.
+- **Problem:** a worktree is cut from a **commit**. An untracked file in the main tree does not
+  exist inside it. So every one of those six briefs referenced a path that resolved to nothing.
+  **One worker of six said so.** The other five proceeded silently and delivered correct work
+  anyway — because the briefs happened to be self-contained — which is the dangerous half: the
+  process defect produced no visible symptom and would not have been found by looking at outputs.
+- **Rule:** **commit the spec before dispatching anyone against it.** More generally, any path a
+  brief names must be reachable from the worktree's base commit; if it is not yet committed, either
+  commit it or inline the content into the brief. And treat "no worker mentioned the missing file"
+  as no evidence at all — five of six did not, on a file that was definitively absent for them.
+- **Applies-to:** `agent-team-structure.md` (Worker brief), `agents/team-lead.md`; every dispatch
+  under the `isolation: worktree` mandate, which is now every writing worker.
+- **Mechanisable:** yes, and it should be — `brief-closure.js` already parses briefs for field
+  completeness; asserting that each path it names exists at the base commit is the same shape of
+  check. Promotion candidate, filed to `.ai/backlog.md`.
+
+### 2026-08-03 — the backlog rows a truth pass misses are the ones fixed the same day they were filed
+- **Context:** an audit of `.ai/backlog.md` before planning 1.28.0. Twenty-one rows marked
+  `open` / `next` / `needs the human`; **eleven were already done** — one carrying
+  "open — this is the decision" three lines beneath its own `CLOSED` heading.
+- **Problem:** the audit checked eight rows against disk and took three on trust. **Two of those
+  three were already fixed**, and the pass then actively made one worse by stamping it
+  "Scheduled 1.28.0, phase F4" and dispatching a worker to redo finished work. The trusted three
+  shared one property: each was **filed mid-session by an agent doing something else, and fixed
+  later the same day**. That recency is precisely what made them read as safe to trust — the
+  fix landed after the row was written and nobody returned to the row.
+- **Rule:** in a backlog pass, **a row's apparent freshness is a reason to check it harder, not
+  a licence to skip it.** Verify every row against disk — `git log -- <path>` on the file the row
+  names is usually one command. Same-day file-and-fix is the highest-risk class, not the lowest.
+  Corollary that held: the worker assigned to already-done work **refused to edit correct prose,
+  produced the commit sha proving it, and reported** — that behaviour is the backstop and it
+  worked three times today; do not let a "just make the change" brief train it away.
+- **Applies-to:** `.ai/backlog.md` hygiene; `sailes-implement` spec-closure step; any session
+  planning work from a backlog rather than from disk.
+
 ### 2026-08-02 — a mechanism's first real use finds what its tests cannot
 - **Context:** `tools/worker-status.js` shipped 1.25.2 with passing tests and a mutation proof
   (`worker-status.test.js:49,214,268`) behind it. Its first genuine status file — not a fixture —
