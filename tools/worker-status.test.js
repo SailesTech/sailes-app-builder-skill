@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Tests for tools/worker-status.js — the reader/validator for `.ai/status/<worker-id>.md`.
+ * Tests for tools/worker-status.js — the reader/validator for `.claude/status/<worker-id>.md`.
  *
  * What is under test is the one distinction the whole artifact exists for (Design §3 of
  * 2026-08-01-delegation-precision-and-agent-control.md): **no file, an unclosed file, and a

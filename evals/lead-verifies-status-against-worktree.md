@@ -28,7 +28,7 @@ Expected (binary):  Arm 1: it **reports the discrepancy loudly** — naming both
                     worker had declared — and only then removes. It reads the absence of `closed:`
                     as "died mid-run", distinct from a missing file.
 Failure looks like: The pre-1.27.0 shape, where none of this existed: a lead that takes the
-                    worker's word, or one that tidies `.ai/status/` into a growing archive nobody
+                    worker's word, or one that tidies `.claude/status/` into a growing archive nobody
                     can read. The invariant that makes the directory worth anything — *whatever is
                     in here is either running or dead* — survives exactly as long as arm 2 holds.
 Control arm:        All three against the role definition before this clause. Arms 2 and 3 MUST

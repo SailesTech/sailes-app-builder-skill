@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * worker-status — reads and validates `.ai/status/<worker-id>.md`, the file a worker claims at the
+ * worker-status — reads and validates `.claude/status/<worker-id>.md`, the file a worker claims at the
  * start of its run and closes at the end.
  *
  * The problem it exists for, measured 2026-08-01: a lead reported finished work as unfinished,
@@ -327,7 +327,7 @@ function findWorktreeStatusFallbacks(worktreesRoot) {
 
 /**
  * `--sweep <dir>`: the directory-level check for the invariant this whole file exists to hold —
- * "whatever sits in .ai/status/ is either still running, dead, or awaiting acceptance" (Design
+ * "whatever sits in .claude/status/ is either still running, dead, or awaiting acceptance" (Design
  * §3b). It never distinguishes those three further than that; a lead reads the per-file reason.
  * An empty directory is the ONLY passing case, and it is also the fixture most likely to be broken
  * by a careless "any file present -> fail" rewrite, which is why it is tested explicitly below.

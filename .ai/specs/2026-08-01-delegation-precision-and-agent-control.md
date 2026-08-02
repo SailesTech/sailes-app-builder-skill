@@ -103,7 +103,7 @@ z niczym porównać.
 
 ### 3. Plik statusu workera
 
-`.ai/status/<worker-id>.md`, **zajmowany pierwszą czynnością** i **domykany ostatnią**:
+`.claude/status/<worker-id>.md`, **zajmowany pierwszą czynnością** i **domykany ostatnią**:
 
 ```yaml
 worker: be-dev-3
@@ -153,7 +153,7 @@ za rok dziedziczy regułę zamiast omijać ją przez pominięcie na liście.
 
 ### 3b. Cykl życia katalogu — plik znika przy akceptacji, treść zostaje
 
-**Niezmiennik, i to on jest produktem:** *cokolwiek leży w `.ai/status/`, albo jeszcze biegnie, albo
+**Niezmiennik, i to on jest produktem:** *cokolwiek leży w `.claude/status/`, albo jeszcze biegnie, albo
 padło.* Katalog, w którym zostają pliki zaakceptowanych zadań, po tygodniu przestaje odpowiadać na
 jedyne pytanie, dla którego powstał — trzeba by czytać wszystkie i porównywać daty, czyli dokładnie
 ta praca, której ma oszczędzić.
@@ -169,7 +169,7 @@ Trzy reguły, bez których to się psuje:
 - **Plik po workerze, który padł i NIE został zaakceptowany, nie znika po cichu.** Ląduje w run logu
   jako strata — z tym, co zdążył zadeklarować — i dopiero wtedy jest usuwany. To jest jedyny zapis,
   że powołanie w ogóle było, a dziś ta informacja przepada w całości.
-- **`.ai/status/` jest gitignorowany.** To stan żywy, nie historia; ma przeżyć padnięcie procesu
+- **`.claude/status/` jest gitignorowany.** To stan żywy, nie historia; ma przeżyć padnięcie procesu
   (dysk), nie wersjonowanie. Historia jest w run logu, który jest commitowany.
 
 ### 4. Weryfikacja przez lidera
@@ -258,7 +258,7 @@ plik domknięty z outcome=done bez commit:     → exit 1
 --sweep na katalogu z jednym plikiem sprzed
   akceptacji                                  → wypisuje go jako zaległy, exit 1
 --sweep na pustym katalogu                    → exit 0  (fixture, który MUSI NIE strzelić)
-.ai/status/ obecne w .gitignore szablonu      → grep trafia
+.claude/status/ obecne w .gitignore szablonu  → grep trafia
 node tools/worker-status.test.js              → 0 failing
 ```
 
@@ -269,12 +269,12 @@ node tools/worker-status.test.js              → 0 failing
 | `agent-team-structure.md` (brief + Isolation) | D5.1 (eval `worker-claims-before-it-writes`) |
 | `agents/be-dev.md` · `fe-dev.md` · `tester.md` · `designer.md` · `docs-author.md` | D5.1 |
 | `agents/team-lead.md` (weryfikacja przeciw worktree **+ sprzątanie przy akceptacji + szczebel `tail -3`**) | D5.2 (eval `lead-verifies-status-against-worktree`), D5.4, D5.5 |
-| `skills/sailes-bootstrap/skeleton.md` (`.ai/status/` w `.gitignore`) | D5.4 |
+| `skills/sailes-bootstrap/skeleton.md` (`.claude/status/` w `.gitignore`) | D5.4 |
 | `codex-agents/*.toml` (pięć bliźniaków) | D5.3 (parytet zielony) |
 
 **Done-when:** `node codex-agents/parity.test.js` → all passed · `npm test` → all passed ·
 oba evale z F6 → PASS wraz z ramionami kontrolnymi ·
-`grep -c "\.ai/status/" skills/sailes-bootstrap/skeleton.md` → ≥1 (D5.4) ·
+`grep -c "\.claude/status/" skills/sailes-bootstrap/skeleton.md` → ≥1 (D5.4) ·
 `grep -ci "usuwa plik\|removes the file" agents/team-lead.md` → ≥1 wraz z warunkiem wpisu do run
 logu w tym samym zdaniu (D5.4).
 
@@ -303,7 +303,7 @@ człowieka, i ta sama izolacja, którą framework wymusza przy `checkerze`.
 | `brief-closure` | test z fixture'em, który MUSI NIE strzelić |
 | `ownership-check` | test na przecięciu i na rozłączności |
 | `worker-status` | test na trzech stanach + na `done` bez commita + `--sweep` na zaległym i na pustym katalogu |
-| cykl życia katalogu | `.ai/status/` gitignorowany w szablonie; reguła kasowania-tylko-z-wpisem obecna w definicji lidera |
+| cykl życia katalogu | `.claude/status/` gitignorowany w szablonie; reguła kasowania-tylko-z-wpisem obecna w definicji lidera |
 | doktryna ról | parytet Codeksa (10 ról) + dwa evale z kontrolą |
 
 ## Non-goals
