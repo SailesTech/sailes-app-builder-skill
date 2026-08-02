@@ -89,6 +89,10 @@ const INVARIANTS = {
     ['workers commit inside their own worktree', /own worktree/i],
     ['every writing worker is isolated', /isolation:\s*worktree/i],
     ['checker sees the diff and spec ONLY', /ONLY the diff|diff \+ spec|only diff/i],
+    // Added for 1.26.0 D5/D6 — the fourth axis of collision (shared toolchain) has no structural
+    // backstop anywhere, so losing this from a twin loses it entirely for that harness.
+    ['never kills a process not identified by its command line', /command line/i],
+    ['never kills an editor process or an MCP server', /MCP server/i],
   ],
   explorer: [
     ['strictly read-only', /read-only/i],
@@ -132,6 +136,9 @@ const INVARIANTS = {
     ['never sees the maker narrative', /narrative|maker/i],
     ['read-only', /read-only|never edit|do not edit/i],
     ['returns a verdict', /APPROVE|CHANGES-REQUIRED/i],
+    // Added for 1.26.0 D2 — an absent handler changes no line, so a patch-only read cannot find
+    // it; the verdict's opening section is where the omission has to surface.
+    ['opens every verdict with what the diff does NOT do — mandatory, comes first', /does not do|omission/i],
   ],
   qa: [
     ['never fakes a pass', /fake|ENV-DEFECT/i],
