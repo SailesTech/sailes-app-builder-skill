@@ -2,7 +2,22 @@
 
 Status: in-progress — **wszystkie siedem faz zrobionych i na produkcji** (1.27.0, wypchnięte
 2026-08-02; F1 dostała jeszcze poprawki w 1.27.1 i 1.27.2 z czterech defektów znalezionych przez
-używanie mechanizmu). Do `implemented/` brakuje jednej rzeczy: **kwitu delty architektury**.
+używanie mechanizmu).
+
+**Poprawka nagłówka 2026-08-02: brakowało DWÓCH rzeczy, nie jednej.** Zdanie poniżej mówiło „brakuje
+jednej rzeczy: kwitu delty" i było nieprawdziwe — **bramka `checker` nigdy nie przebiegła na tych
+siedmiu fazach.** `grep -c checker .ai/runs/2026-08-02-delegation-spec-and-1.27.x.md` zwraca **0**,
+a `spec-status-evidence.js` żąda wklejonego dowodu obu bramek. Znalezione przy próbie domknięcia
+specu, nie przy jego pisaniu. To trzeci nagłówek specu tego dnia, którego twierdzenie o własnym
+stanie nie wytrzymało sprawdzenia — i dokładnie ta klasa, którą ten spec nazywa w swoim Problemie:
+**nieobecność wygląda identycznie jak zgodność.**
+
+Kwit delty istnieje od 2026-08-02
+(`.ai/docs-deltas/2026-08-02-delegation-precision-and-agent-control.json`, `components.changed: 1`).
+Bramka retroaktywna zamówiona tego samego dnia, tą samą drogą, którą człowiek wybrał dla specu
+milestone: przegląd kodu, który jest już na produkcji, zamiast spisania go bez bramki.
+
+Pierwotne, niepełne zdanie: do `implemented/` brakuje jednej rzeczy: **kwitu delty architektury**.
 `.ai/docs-deltas/` kończy się na `2026-07-31`, a F1–F5 dołożyły `tools/` z **trzema** skryptami
 (`sync-blocks`, `ownership-check`, `worker-status` — czwarty, `mcp-toolnames-check`, doszedł
 dopiero w 1.28.0; ten akapit mówił „czterema", policzone przez `checker` z `git ls-tree 9de90e8`)
