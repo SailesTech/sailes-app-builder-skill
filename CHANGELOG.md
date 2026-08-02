@@ -4,6 +4,73 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.27.0 — 2026-08-02 · one rule cannot live in three hand-written copies
+
+Everything here follows one finding: **doctrine is largely re-derivable by the model, artifacts are
+not.** Thirteen eval arms on 2026-08-01 produced exactly one clean discrimination, and it landed
+where the rule changed *what gets produced* rather than *what gets concluded*. So this release turns
+prose into mechanism wherever mechanism is possible, and leaves prose only where it is not.
+
+**The delegation threshold and the gate rule now have one source each.** `tools/sync-blocks.js`
+stamps them from `skills/sailes-bootstrap/delegation-threshold.md` and `gate-scaling.md` into
+`agent-team-structure.md`, `agents/team-lead.md` and `codex-agents/team-lead.toml`; `--check` runs in
+the gate and fails on the smallest drift, naming the file. This closes the meta-defect behind three
+criterion collisions measured in a single day: a rule written in more than one place drifts, and the
+evals then encode different versions of it. Twice the copies disagreed; once the **canonical** file
+did not carry the clause its own role was enforcing. `AGENTS.md` has asked people to "change all
+three or none" in prose for weeks and it prevented none of them.
+
+Copies rather than a pointer, and that is a measured choice: a role definition sending the reader to
+`skills/sailes-bootstrap/…` resolves **only inside this framework's own repo**, because the plugin
+serves skills from outside a client's working tree. `agents/team-lead.md` had been doing exactly that
+since it was written, so every lead on every client repo was told to read the canon by a path that is
+not there. Fixed in the same pass, in both places it occurred. Two blocks rather than one, also
+deliberately: who *writes* and who *grades* are separate axes, and collapsing them is the defect
+1.26.x had just finished repairing.
+
+**A brief that does not close does not pass.** `brief-closure.js` checks that the required fields are
+present and that **every path on the Files list is named by something that forces it into existence**
+— the 1.26.0 rule that was the only addition of that release to measure cleanly, now mechanised. A
+path may be exempted only by marking it touched-but-not-produced *with a stated reason*; the marker
+without the reason fails.
+
+**The file-ownership matrix is a `yaml` artifact, and intersections are computed rather than read.**
+`ownership-check.js` exits 1 naming the path and every task that claims it. Prose ownership tables
+outside a fence are never parsed, so the old form cannot pass as green. The incident: a work plan
+called a phase "solitary" twenty lines above its own table showing that phase was disjoint from the
+next — arrows record the order someone thought about phases in, not dependency.
+
+**Workers claim a status file before they write and close it when they finish.** `.ai/status/<id>.md`
+carries `worker`, `task`, `base`, `claimed`, `opened` from the first action, and `closed`, `outcome`,
+`commit`, `touched` from the last. The point is three states that were one silence: **no file means
+"never started", a file with no `closed:` means "died mid-run", a closed file is a declaration.** On
+2026-08-01 that silence twice made a lead report finished work as unfinished, and two workers lost
+their work across five machine crashes. The lead verifies the declaration **against the worktree** —
+metadata only, never content — and **reports loudly without blocking**; blocking was rejected
+because this repo has two documented cases of a check disabled for crying wolf. At acceptance the
+lead folds the substance into the run log and **removes the file**, so the directory keeps the
+invariant that is the actual product: *whatever is in `.ai/status/` is either running or dead.*
+Deletion only ever happens together with the run-log line; a file from a worker that died unaccepted
+is recorded as a loss first. `.ai/status/` is gitignored — live state, not history.
+
+**Why a status file when the lead can read the worker's log.** Because it measured badly: the
+`.output` path the harness hands the lead is **0 bytes** on this machine, and the real transcripts are
+64 files / 5.2 MB in one session, largest 388 KB — about 100k tokens to answer a yes/no. A `tail -3`
+costs ~5 KB and *is* cheap, so it enters the lead's observation ladder as a new rung. But it answers a
+different question: a log is the worker's **narrative**, a status file is its **declaration**, and
+`base`/`claimed` exist before the work does. Reading a worker's log to decide whether it finished is
+reading the maker's story, which is what gate isolation exists to prevent.
+
+Also measured and recorded rather than assumed: `PreToolUse` does **not** fire when a subagent is
+spawned, `SubagentStart` cannot block and does not carry the brief, and `TaskGet` silently drops the
+`metadata` it accepts — which is why the brief check is a test and the status file is a file.
+
+Two new evals (`worker-claims-before-it-writes`, `lead-verifies-status-against-worktree`), each with a
+control arm that must produce the opposite result, and each with a second arm against over-applying
+the rule. Both are NEVER-RUN — added, not yet proven. And the two scenarios whose criteria demanded
+opposite behaviour from a correct lead were re-cut by a sub-team with no sight of the verdicts that
+exposed them.
+
 ## 1.26.0 — 2026-08-01 · two lists that drift apart in silence, and three more the doctrine never held
 
 The doctrine half of the 2026-08-01 milestone lessons; 1.25.2 shipped the harness half.

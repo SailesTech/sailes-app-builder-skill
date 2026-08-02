@@ -68,6 +68,13 @@ Notes:              Grades the **spawn plan**, not the runtime, so it is runnabl
                     door by `lead-delegates-instead-of-bulk-coding`; this eval grades only what a
                     spawn carries.
 Raw return:         `.ai/eval-runs/2026-07-31-sailerem-lessons/worktree-mandate.md`
+Arm 1 records below are SUPERSEDED (stamped 2026-08-02): the arm-1 fixture was re-cut that day,
+                    so `worktree-arm1-onefile.md` and `worktree-arm1-CONTROL.md` are evidence about
+                    a fixture that no longer exists. They remain valid as the record of WHY it was
+                    re-cut — the control is what proved the old arm-1 result was a criterion defect
+                    rather than a regression — and they are not evidence about the current arm 1,
+                    which has never been run. **Arms 2 and 3 below are current.**
+
 Last run:           2026-08-01 · **arms 2 and 3 PASS · arm 1 does not meet its criterion, and the
                     criterion is what is wrong — verified against a control, not asserted.**
                     Arm 2: three `explorer` spawns, **none** with a worktree, with the reason — the
