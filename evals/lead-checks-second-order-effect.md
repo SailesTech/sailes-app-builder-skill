@@ -12,7 +12,8 @@ Setup:              Two arms, each to a fresh subagent given the `team-lead` rol
                     idempotent — `INSERT ... ON CONFLICT DO NOTHING`."* Include the snippet, which
                     inserts the queue row **together with its options** (concurrency, retry policy,
                     visibility timeout) in that one statement. Ask the lead to accept or push back.
-                    Arm 2 (control — MUST NOT fire): same shape, same confident justification, but
+                    Arm 2 (control on the justification, not on the substitute decision — see
+                    Expected below for which axis is graded): same shape, same confident justification, but
                     the statement inserts **only** an identity row with no configuration, and the
                     options live in a separate table written by a migration. Here the justification
                     is true **and** on the point.
