@@ -47,7 +47,7 @@ breaks every call below on Windows, and the reason is recorded there.
 | `workflow` | the business process the app implements (approvals, pipelines, runbooks) |
 | `sequence` | the one or two request chains that ARE the product (e.g. webhook → job → CRM) |
 | `dataflow` | integrations and lineage — where each field comes from and who consumes it |
-| `lifecycle` | the core entity's states (deal, invoice, application) with retries and failures |
+| `lifecycle` | the core entity's states (deal, invoice, application) with retries and failures. **Every state carries its business meaning and the actor that sets it** — source both from the glossary in `.ai/business-logic.md`, not from the enum. "`EXPIRED`" is a state name; "a lost deal, set by the 03:00 Make scenario for deals marked LOST in the CRM — not by the app's cron" is what a reader needs, and its absence cost a whole investigation branch on 2026-07-29. Where the setter is unknown, label it `UNKNOWN` on the diagram rather than omitting it |
 
 Five sources are maintained; only `architecture` gets a rendered compare at the gate
 (upstream `compare` supports that type alone) — the other four are reviewed as git diffs of

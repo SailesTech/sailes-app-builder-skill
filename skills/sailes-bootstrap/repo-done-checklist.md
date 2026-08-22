@@ -16,6 +16,7 @@ Every item MUST exist on disk. The manifest decides *optional packages*, never t
 | `.ai/skills/spec-writing/SKILL.md` | Phase 3 (spec) depends on it existing, tuned to the locked stack. |
 | `.ai/checklists/` (≥ security.md, testing.md, deployment.md) | Working discipline made concrete. |
 | `.ai/adr/template.md` + `ADR-001-*` (stack decision) | First architectural decision recorded. |
+| `.ai/business-logic.md` (header + empty sections) | Where domain rulings survive instead of dying in `STATE.md`. Measured 2026-08-22: a section titled "business rules established by the owner" sat at line 168 of a 197 KB session file rewritten at every compaction, and a rule captured a month earlier was a thousand lines further down, unfindable. Header-only at bootstrap is correct — the convention has to be visible before the first ruling arrives. Shape: `business-logic-template.md`. |
 | `apps/web/` + `apps/worker/` | Worker is mandatory from day one. |
 | `package.json` + `pnpm-workspace.yaml` | The monorepo actually resolves. |
 | `.gitignore` | Before the first commit. |
@@ -54,7 +55,7 @@ echo "== git =="
 git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 && echo "OK   git initialized" || echo "MISS git init"
 echo "first commit: $(git -C "$ROOT" rev-list --all --count 2>/dev/null || echo 0) commit(s)"
 echo "== full .ai/ structure (idempotent: pre-existing files are fine, never overwritten) =="
-for f in .ai/specs .ai/specs/implemented .ai/specs/archived .ai/backlog.md .ai/lessons.md .ai/STATE.md; do
+for f in .ai/specs .ai/specs/implemented .ai/specs/archived .ai/backlog.md .ai/lessons.md .ai/STATE.md .ai/business-logic.md; do
   [ -e "$ROOT/$f" ] && echo "OK   $f" || echo "MISS $f (scaffold it; do not overwrite if it appears later)"
 done
 echo "== harness guardrails + client status =="

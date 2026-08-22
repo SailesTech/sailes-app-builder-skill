@@ -172,6 +172,7 @@ produced a fix with a hole in it.
 Detail lives in `diagnosis-loop.md`; this is the shape.
 
 ```
+0. TERMS      resolve every domain term in the hypothesis FIRST  →  glossary hits + questions asked
 0. SCOPE      what is broken, for whom, since when, how noticed  →  the reported case
 1. LIVE       reproduce it for real; capture evidence            →  evidence log (started)
 2. HYPOTHESES ≥3, each with its refuting observation             →  hypothesis ledger
@@ -180,6 +181,19 @@ Detail lives in `diagnosis-loop.md`; this is the shape.
 5. MECHANISM  state the causal chain with citations              →  contributing factors
 6. HAND OFF   one-line fix, or a fix spec                        →  back into the pipeline
 ```
+
+**Step 0/TERMS is not ceremony — it is the cheapest step here and it was added because it was
+missing.** Before scoping anything, list the domain terms your hypothesis leans on (a status name,
+a state, a role, a threshold). Look each one up in `.ai/business-logic.md`. **Whatever is not there,
+ASK THE HUMAN before you collect a single piece of evidence** — and write the answer back into the
+glossary, so the next session does not pay for it again.
+
+Measured 2026-07-29 in a client repo: an agent assumed `EXPIRED` with a future pickup date was
+unnatural, built a 2858-row population from that premise, and reported "19 deals vanish every
+night". The owner's answer was that `EXPIRED` means a *lost* deal and the behaviour was correct.
+The incident's own words: *"the domain rule was known to the human from the start and one question
+would have saved this entire branch."* A query can produce an impressive number that measures
+something other than what it appears to.
 
 **Step 3 is where agents help — and only when the cause is not obvious.** One alert with a clear
 stack trace does not need a fleet; the lead reads it. When the cause is *not* obvious, fan out

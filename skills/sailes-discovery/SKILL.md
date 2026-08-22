@@ -95,6 +95,8 @@ Ask: "Czy zgadzasz się z każdą decyzją w tabeli (możesz zmienić dowolną),
 
 Write the structured brief (see `brief-template.md` for both formats). It is the single artifact discovery produces. Keep it tight — decisions and constraints, not prose.
 
+**Then harvest the durable half into `.ai/business-logic.md`.** The brief is dated and per-task; it gets archived, and everything durable in it is archived with it. Before you hand off, walk the answers once and ask of each: *does this stay true after the work we just scoped ships?* What does — a term's meaning, a rule the client stated, which system owns which data, an explicitly-out-of-scope direction — is business logic and belongs in the standing artifact, stamped with who said it and when. What does not stays in the brief. This step exists because the same knowledge was being elicited over and over: measured 2026-08-22, 461 owner-provenance mentions scattered across 79 files in one repo, and the rules among them findable only by luck.
+
 ## Step 4 — Handoff (MANDATORY chain — do not stop after the brief)
 
 **The brief is NOT the finish line.** A confirmed brief with nothing after it is the single most common failure of this skill: the spec (or worse, just the brief) gets written and the agentic-first repo standard — `AGENTS.md`, `CLAUDE.md`, `README.md`, `.ai/skills/`, `.ai/checklists/`, `.ai/adr/`, git init — never gets generated. Discovery MUST chain forward.

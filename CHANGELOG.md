@@ -4,6 +4,79 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.29.0 — 2026-08-22 · domain rulings stop dying in session memory
+
+**New artifact: `.ai/business-logic.md`.** Every repo generated or adopted from now on carries a
+standing place for what the *business* wants — as distinct from what the code does. Header-only at
+bootstrap, like `lessons.md` and `backlog.md`; seeded from existing material at adopt.
+
+**What an older-stamped repo is missing.** Scaffold `.ai/business-logic.md` from
+`skills/sailes-bootstrap/business-logic-template.md`, and copy `business-logic-check.js` from the
+hooks template into the repo's `.claude/hooks/`. On a brownfield repo, seed rather than leave empty:
+`.ai/incidents/`, `.ai/STATE.md`, any `dokumentacja/` and the code's own constants already hold most
+of it. `adopt-existing-repo.md` §4 carries the procedure, including the instruction **not** to
+migrate an existing business-logic document by copying it.
+
+**Why, measured 2026-08-22 across two real client repos** (full audit:
+`.ai/audits/2026-08-22-business-logic-inventory.md`):
+
+- A section titled *"business rules established by the owner (do not ask about these again)"* sat at
+  line 168 of a **197 KB** `STATE.md` that is rewritten at every compaction. The artifact was already
+  being created spontaneously — it had nowhere to live.
+- Of its four items, three were durable rules and one was a release decision untrue within days:
+  **25% contamination in a four-item list written deliberately as business rules.** Hence an
+  admission test, not just a folder.
+- A rule captured a month earlier sat a thousand lines further down, unfindable. Hence greppable IDs.
+- The naive version had already been tried and rotted: a **760-line** business-logic document whose
+  title said v.2 in a v.3 project, whose body described a cron that does not exist, whose line 1
+  carried a banner contradicting that body — and whose index still advertised the claim the banner
+  retracted. Three layers of one document saying three different things. Hence six hard maintenance
+  rules, the first being *never correct with a banner*.
+- What worked, in a sibling project: a **9 KB** synthesis over 480 KB of recon — mission, index,
+  date-stamped owner rulings, a systems table with a `source of truth for` column, `UNKNOWN` written
+  into the text, and a section naming where one business entity is duplicated across systems. The
+  section list is taken from it.
+
+**The grammar.** `- **[R-ID]** <one normative sentence> · source: <who + when> · enforced: <file:line
+| NONE | N/A>`. `enforced: NONE` is a full answer — it says the rule lives only in an agreement
+between people. Field labels accept both English and Polish spellings; these repos are bilingual in
+practice and one alias table is not drift.
+
+**The check.** `tools/business-logic-check.js` (framework) and its client copy in the hooks template
+verify that every rule carries provenance and an enforcement handle, that every `file:line` resolves
+on disk, and that IDs are unique. It checks whether a claim is **checkable, not whether it is true**
+— and says so in its own failure output, because a green check otherwise reads as "the rules are
+right". Oversize is a warning, never a failure: a length gate gets bypassed, not obeyed.
+
+**Sixteenth suite in the gate**, `tools/business-logic-check.test.js`. It also asserts **byte-parity**
+between the two copies plus behavioural parity on every fixture, and includes a mutation proof that
+the parity assertion is not vacuous. Two copies rather than a pointer because the plugin serves
+`skills/` from outside a client's working tree — the finding `sync-blocks` recorded for prose,
+applied to code `sync-blocks` cannot carry (its markers are HTML comments).
+
+**`sailes-diagnose` gains Step 0/TERMS.** Resolve every domain term the hypothesis leans on *before*
+collecting evidence; whatever the glossary does not answer, ask the human, then write the answer
+back. From an incident on 2026-07-29 where an agent assumed a state's meaning, built a 2858-row
+population on that premise, and reported a defect that was correct behaviour. The incident's own
+words: *"the domain rule was known to the human from the start and one question would have saved
+this entire branch."*
+
+**`sailes-discovery` Step 3 gains a harvest.** The brief is dated and gets archived with everything
+durable inside it; the durable half now moves to the standing artifact. Measured: 461
+owner-provenance mentions scattered across 79 files in one repo.
+
+**`lifecycle` diagram contract extended** (`sailes-docs/references/authoring.md`): every state
+carries its business meaning and the actor that sets it, sourced from the glossary rather than the
+enum. Not a sixth diagram — `lifecycle` was already one of the five, and its contract was purely
+mechanical.
+
+**Known limits, stated rather than discovered later.** The format ships **unused in anger** — it is
+derived from two field artifacts but nobody has yet written one with it; the first real filling may
+force a template change, and repos started on 1.29.0 will then differ in shape from later ones.
+There is **no eval**: the tests prove the text is in the file and the checker works, not that an
+agent honours the instruction. And nothing yet **detects** that a human is handing over a business
+rule, nor forces the artifact to be filled — both deliberately deferred.
+
 ## 1.28.2 — 2026-08-02 · clauses that name a mechanism and force nothing
 
 A second retroactive `checker`, this time on the delegation spec (1.27.0, live since 2026-08-02).

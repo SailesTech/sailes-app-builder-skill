@@ -1,7 +1,7 @@
 # Agents Guidelines — sailes-app-builder framework repo
 
 > Single source of truth for how agents work in **this** repo. CLAUDE.md imports this via @AGENTS.md.
-> Framework-Version: 1.28.2
+> Framework-Version: 1.29.0
 >
 > This repo is not a product — it is the framework that generates and governs product repos.
 > `skills/sailes-bootstrap/agents-md-template.md` is what a *client* repo gets; this file is what
@@ -100,8 +100,10 @@ The live plugin does **not** run from this working directory. It runs from a clo
    the human answers (`skills/sailes-bootstrap/spec-writing-template.md`).
 
 ## Verification
-- `npm test` — fifteen suites: hook tests (`hooks/*.test.js`), the four **governance tools**
-  (`tools/{sync-blocks,ownership-check,worker-status,mcp-toolnames-check}.test.js`), the client-repo
+- `npm test` — sixteen suites: hook tests (`hooks/*.test.js`), the five **governance tools**
+  (`tools/{sync-blocks,ownership-check,worker-status,mcp-toolnames-check,business-logic-check}.test.js`
+  — the last one also asserts byte-parity between the framework checker and its client-repo copy,
+  because sync-blocks cannot carry JS: its markers are HTML comments), the client-repo
   hook templates (`hooks-template/*.test.js`, incl. `brief-closure`), the Codex TOML validator and
   the role parity check, the role frontmatter validator, the eval provenance reporter, spec-status
   evidence, the repo-done checklist, and release hygiene (five stamps + CHANGELOG heading). No

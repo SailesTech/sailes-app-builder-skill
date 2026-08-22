@@ -48,6 +48,10 @@ repo/
       discovery/SKILL.md       # carried over if useful
     backlog.md            # deferred ideas / future features / tech debt (non-goals land here, not lost). See modules-catalog / discovery.
     lessons.md            # institutional memory: Context/Problem/Rule/Applies-to. Created with header; filled on first real lesson.
+    business-logic.md     # what the BUSINESS wants, not what the code does — glossary, systems + source-of-truth,
+                          #   stamped rules, end-to-end flow, target state. Created with header + empty sections;
+                          #   filled as rulings arrive. Splits into business-logic/ past the threshold.
+                          #   Shape + admission test + the six maintenance rules: business-logic-template.md.
     STATE.md              # session memory (header-only): Verified facts / General rules / Open failures /
                           #   Lessons learned / Last session. Read at session start; written before walking away.
     runbook.md            # ops one-pager (filled at first deploy): where it's deployed, how to see logs,
