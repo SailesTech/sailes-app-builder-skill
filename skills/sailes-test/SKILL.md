@@ -90,6 +90,17 @@ Specification-based derivation systematically misses what implementation reveals
 overflow, a vendor field that is nullable in practice but not in the docs. Read the diff and **add**
 those cases.
 
+**Promoted checks come in here.** The implementer's inner loop is fast, disposable and unlabelled
+(`sailes-implement` step 1) with one reportable exception: a check that went red on a **real defect**.
+That is this step's own class — something the implementation revealed — found the expensive way, and
+it is the only case on your list whose detection is **proven** rather than argued. ID it, record the
+defect it caught, fold it in.
+
+Two limits keep a second suite from following it through: **take what was reported, do not mine their
+scratch files**, and **refuse a check that was red only because the code did not exist yet** — every
+TDD check was, so accepting those promotes the whole inner loop and hands you the mirror-the-code
+suite this skill exists to prevent.
+
 **Weakening an assertion is forbidden.** A red test means the code is wrong or the frozen
 expectation was wrong — and the second is a question for the human, not an edit you make. Deleting a
 test to reach green is the same violation wearing a different hat. Adding a case is always allowed;

@@ -56,6 +56,11 @@ Frozen: <date> by <human>
 | ID | Trigger | Expected outcome | Level |
 |---|---|---|---|
 | B4 | <duplicate delivery / bad input / partial failure / out-of-order> | <exact expected state> | browser / api / unit |
+| B5 | <promoted — the defect it caught> | <exact expected state> | unit · **promoted from the inner loop** |
+
+> A **promoted** case came from an implementer's inner-loop check that went red on a real defect
+> during the build. Record what it caught, not just what it asserts: it is the only line in this
+> table whose detection is proven rather than argued, and that provenance is the reason it is here.
 
 ---
 

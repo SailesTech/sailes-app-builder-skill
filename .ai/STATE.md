@@ -192,6 +192,29 @@ Last-commit: bc5e159
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
+- 2026-08-30, third release of the session (**resume here**): **1.32.0, local commits only, nothing
+  pushed.** The human asked "kiedy i jakie testy … żeby usprawniać implementację i przyspieszyć
+  proces". Two forks were put to them; they chose **keep the frozen case list after implementation**
+  (against my recommendation to move it into the spec — oracle independence stays bought the
+  expensive way, deliberately) and **split the inner loop out with a promotion path**. Spec:
+  `.ai/specs/2026-08-30-inner-loop-and-promotion.md`.
+  - **The gap:** `sailes-implement` called the implementer's check "scaffolding" and nothing asked
+    what it caught. A check red on a real defect is the only test here whose detection was *earned
+    rather than argued*, and it died with the step. Now: the inner loop is named as an instrument
+    (fast, plural, no IDs, no freeze, never gate evidence), and the one that caught something is
+    reported under a fixed `Promotion candidate:` label that `tester` greps at step 4 — the door
+    that already existed for implementation-revealed cases.
+  - **Measured, PARTIAL PASS.** Arm A is a competent control: both arms found the planted
+    `parseAmount('') === 0` defect and neither built a second ID-bearing suite (the failure mode this
+    change was most likely to have). The difference is what reaches the report — arm A the diagnosis,
+    arm B the check plus the diagnosis. The fixed label came out of the run and is itself
+    **unmeasured**.
+  - **Still unproven, and it is the human's actual question:** nothing measures SPEED. All three
+    releases argue from structure and artifact counts, never from wall-clock. Owed, top of backlog.
+  - **Session totals:** 1.30.0 → 1.31.0 → 1.32.0, +6.83% context across all skill entrypoints and
+    role definitions against 1.29.0. Deploy (a push to `main`) was authorised by the human in
+    principle and **not performed** — confirm before pushing.
+
 - 2026-08-30 later (**resume here**): **1.31.0 prepared on the same branch, local commits only,
   nothing pushed.** Human's brief: "optymalizacja skilla żeby nie produkował zbędnego kodu, działał
   szybciej ale zachował zalety testowania", scoped by them to **test volume + process ceremony**

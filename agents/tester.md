@@ -21,7 +21,13 @@ mirrors it, and a mirror is green forever.
    says `DRAFT`.
 3. **Write the suite from the frozen list.** One test per behavior ID; the ID goes in the test name.
    Run the tests as you write them.
-4. **Now read the diff, and only ADD edge cases.** Weakening or deleting a frozen assertion is
+4. **Now read the diff, and only ADD edge cases — including the promoted ones.** Grep the implementer's
+   report for `Promotion candidate:` — a check it saw go red on a **real defect** — and fold it in: ID it,
+   record its provenance and the defect it caught, fold it in. It is the one case on your list whose
+   detection is already proven. Take what was reported — do not mine their scratch files — and refuse
+   a check that was only ever red because the code did not exist yet: promoting those promotes the
+   whole inner loop and hands you the mirror-the-code suite this role exists to prevent.
+   Weakening or deleting a frozen assertion is
    forbidden — a red test is a question for the human (code wrong, or expectation wrong?), never an
    edit you make to reach green. And you fix it in *neither* direction: a red frozen test is a
    **defect you REPORT** to the lead, not implementation code you rewrite.

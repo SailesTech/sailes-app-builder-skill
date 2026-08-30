@@ -51,4 +51,8 @@ controls, and a degraded claim beats a missing one.
 The toolchain enforces no-`any`, tokens-only, import direction. Honor what it can't see: a backward-compatible public contract and no destructive commands.
 
 ## Report
-Per-file diff summary · command output · the contract shape you consumed · the integrity-gate measurement (on a UI repo the instrument is required since 2026-07-26 — absent means `ENV-DEFECT`, not a skipped gate) · any blockers or deviations.
+Per-file diff summary · command output · the contract shape you consumed · the integrity-gate measurement (on a UI repo the instrument is required since 2026-07-26 — absent means `ENV-DEFECT`, not a skipped gate) · **`Promotion candidate:` — the exact name of any inner-loop check that went red on a REAL defect, plus the defect** (omit the field when there is none) · any blockers or deviations.
+
+Inner-loop checks are yours — fast, plural, no IDs, deleted freely, never gate evidence. Reporting
+the one that caught a real fault is the exception: its detection is *proven* rather than argued, so
+`tester` folds it into the frozen list at step 4. You report it; you never ID it or add it yourself.

@@ -4,6 +4,51 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.32.0 — 2026-08-30 · the inner loop, and the one test that earned its place
+
+`sailes-implement` already named the implementer's check "scaffolding for the step". Three things
+were wrong with that and all three cost implementation speed: it read as a **TDD ritual** rather
+than a feedback loop, so nothing said it should be fast or licensed several of them; `tester` could
+only **supersede** it, never take it on evidence; and **nothing ever asked what it caught.** A check
+that goes red on a real defect in real code is the only test in this pipeline whose detection power
+was *earned rather than argued* — and it died with the step.
+
+**The inner loop is now an instrument, with the opposite properties to the gate suite.** Seconds to
+run, run constantly, as many as the step needs, implementation-shaped by design, **no ID, no freeze,
+no detection proof**, deleted freely, and **never gate evidence**. The graded suite is still authored
+later by `tester` from the spec with the implementation unread — that decision was put to the human
+this session and kept deliberately, against the recommendation to move it earlier.
+
+**Promotion, through a door that already existed.** A check that went red on a **real defect** is
+reported under a fixed `Promotion candidate:` label, and `tester` folds it in at **step 4** — the
+existing "read the diff and ADD edge cases" step, which is already the sanctioned entry for cases the
+implementation revealed and the spec could not. No new machinery, and the frozen list still derives
+from the spec at step 1. Two limits keep a second suite from following it through: take what was
+reported rather than mining scratch files, and refuse a check that was red only because the code did
+not exist yet — every TDD check was.
+
+This inherits 1.31.0's rule pointing the other way. A case that cannot kill its own mutant is `DEAD`
+and leaves; a check proven to catch a real fault gets in. **The suite grows from evidence and shrinks
+from evidence, instead of growing from mandate.**
+
+**What an older-stamped repo is missing.** Nothing to regenerate — the change lives entirely in
+plugin-served skills and roles.
+
+**Measured.** `.ai/eval-runs/2026-08-30-inner-loop-promotion/VERDICT.md`. Both arms were given a
+shared helper they were forbidden to modify, carrying a real planted defect (`parseAmount('')`
+returns `0`, not `null`, so a blank CSV cell is indistinguishable from a genuine zero). **Arm A is a
+competent control** — it found the defect too, and wrote 9 checks to arm B's 8. The difference is
+what reaches the report: arm A reports the **diagnosis**, arm B reports the **check plus** the
+diagnosis, named. **Neither arm built a second ID-bearing suite**, which was this change's most
+likely failure mode. Verdict recorded as **PARTIAL PASS**: routing was left to inference — arm B
+titled its section something no role would grep — which produced the fixed label, and that label is
+**unmeasured**, since the arms ran against the wording before it. **Nothing here measures speed;** the
+case for the inner loop is structural (21 mandated steps, tests at step 12, no fast check named
+before it), not timed. A wall-clock A/B is owed.
+
+**Context cost:** +2,884 bytes (+0.90%) across every skill entrypoint and role definition. The three
+releases of this session total +6.83% against 1.29.0.
+
 ## 1.31.0 — 2026-08-30 · the suite was a one-way ratchet
 
 1.30.0 said volume at the wrong surface is not coverage. This one asks what happens to the volume

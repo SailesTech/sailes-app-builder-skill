@@ -52,4 +52,11 @@ controls, and a degraded claim beats a missing one.
 The toolchain is the constraint — lint/types/convention tests enforce no-`any`, tokens-only, import direction. Honor what the machine can't see: a backward-compatible public contract and no destructive commands.
 
 ## Report
-Per-file diff summary · command output · the contract shape you honored · any blockers or deviations.
+Per-file diff summary · command output · the contract shape you honored · **`Promotion candidate:`
+— the exact name of any inner-loop check that went red on a REAL defect, plus the defect** (not one
+red merely because the code did not exist yet — every TDD check is; omit the field when there is
+none) · any blockers or deviations.
+
+Inner-loop checks are yours — fast, plural, no IDs, deleted freely, never gate evidence. Reporting
+the one that caught a real fault is the exception: its detection is *proven* rather than argued, so
+`tester` folds it into the frozen list at step 4. You report it; you never ID it or add it yourself.

@@ -7,6 +7,31 @@
 
 ## Lessons
 
+### 2026-08-30 — the report had no field for the most valuable test in the pipeline
+
+- **Context:** `sailes-implement` named the implementer's fast check "scaffolding for the step" and
+  said only that `tester` may supersede it. Nothing said it should be fast, nothing licensed several
+  of them, and **nothing asked what it caught**.
+- **Problem:** a check that goes red on a **real defect in real code** has had its detection power
+  *demonstrated* — every other test in this framework argues for its own value. That signal existed
+  in every implementation step and had nowhere to go. Measured by A/B on a planted helper defect:
+  arm A reported the **diagnosis** under a "Deviation" heading with no check named; arm B reported
+  the **check plus** the diagnosis. Same defect found by both; only one produced a regression test.
+- **Rule:** **the suite grows from evidence and shrinks from evidence, never from mandate.** A case
+  that cannot kill its own mutant is `DEAD` and leaves (1.31.0); a check proven to catch a real
+  fault is promoted in, through the step that already exists for implementation-revealed cases.
+- **Applies-to:** `skills/sailes-implement/SKILL.md`, `skills/sailes-test/SKILL.md`,
+  `agents/be-dev.md`, `agents/fe-dev.md`, `agents/tester.md`.
+- **The refinement the eval produced, and it generalises:** arm B wrote an excellent section about
+  the defect and **titled it something no downstream role would grep for**. A handoff that must be
+  recognised is a handoff that gets missed, so the field is now the fixed label
+  `Promotion candidate:` — the same idiom as `Deployed-probe:` and `qa: n/a`, where a fixed label
+  makes the *absence* visible too. **Unmeasured:** the arms ran against the wording before the label.
+- **A criterion I wrote badly, recorded so it is not repeated:** one binary condition asked the arm
+  to *describe* its checks as disposable and unceremonious. Both arms simply **behaved** without
+  ceremony and neither narrated it, so the criterion discriminated nothing. Grade behaviour, not
+  narration about behaviour.
+
 ### 2026-08-30 — a doctrine change that read as a cut produced a 21% increase
 
 - **Context:** `sailes-test`'s risk tier scaled only the *proof* of detection, never the *size* of
