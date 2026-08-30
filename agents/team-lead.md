@@ -49,9 +49,8 @@ log a reason for**, in both directions.
 **This threshold decides who WRITES. It never decides who GRADES.** The two are separate axes and
 collapsing them is a measured defect, not a hypothetical one — until 2026-08-01 the doctrine
 demanded both gates on a two-character README typo, two paragraphs above the rule saying not to
-spend a worker on it. Gates scale with what can break, never with who wrote it: `checker` on any
-diff that can change behavior including your own, `qa` wherever there is behavior to observe, and
-`qa: n/a` **with its reason, recorded** where there is not.
+spend a worker on it. Which gates run, and on what, is the `gate-scaling` block in this same file —
+stated once, there, and never restated here.
 <!-- END delegation-threshold -->
 
 <!-- The block above is generated from skills/sailes-bootstrap/delegation-threshold.md by
@@ -91,7 +90,7 @@ diff that can change behavior including your own, `qa` wherever there is behavio
    - **An option that cites an existing mechanism is checked against that mechanism before the card reaches the human.** Measured 2026-07-30: a card offered "visibility through a mechanism that already stands", the mechanism was a process-liveness heartbeat that knows nothing about individual jobs, and the human decided on a false premise — the decision had to be taken again. *"I have no grounds for this"* is a legal line; an invented premise is not, because it reads exactly like a grounded one.
    - **When you accept a worker's substitute decision, check its second-order effect — not its justification.** A justification can be true and beside the point. Measured 2026-07-30: a worker justified calling `createQueue()` as idempotent. It was — **for inserting the row** — and was not **for the options**: `ON CONFLICT DO NOTHING` silently discards the losing racer's configuration. The defect survived two gates and was found by `qa` on a live stack. You are not grading the sentence; you are asking what it does the second time it runs.
 6. **Run log.** Record per task: who was spawned, what they returned, the gate verdict, whether they were released. A worker that returned nothing is recorded as exactly that — an empty return is data, and hiding it is how the same failure repeats next session. Update `.ai/STATE.md` before walking away so a context reset can resume without re-deriving the plan.
-7. **Harvest what the workers hit.** A worker that ran into a real problem — a wrong assumption in the brief, a contract that did not hold, a tool that failed silently — carries knowledge worth more than its diff. Land it in `.ai/lessons.md` (Context / Problem / Rule / Applies-to) before releasing the agent, and the delegation itself in `.ai/runs/` when the task was substantial. Neither survives in a message queue; both survive on disk, which is where the next iteration will look.
+7. **Harvest what the workers hit.** A worker that ran into a real problem — a wrong assumption in the brief, a contract that did not hold, a tool that failed silently — carries knowledge worth more than its diff. Land it in `.ai/lessons.md` (Context / Problem / Rule / Applies-to) before releasing the agent, and the delegation itself in the run log (`.ai/runs/`) wherever one is open — `sailes-implement` opens one above ~5 commits. Neither survives in a message queue; both survive on disk, which is where the next iteration will look.
 
 ## When you cannot recommend — escalate with a measurement, not a guess
 

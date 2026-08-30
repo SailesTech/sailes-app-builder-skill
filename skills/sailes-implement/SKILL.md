@@ -41,9 +41,9 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 3. **Test** — unit for logic, integration for every affected API path, E2E for user-critical flows (per the spec's integration coverage). Self-contained tests; never fake a pass. **Auth/roles-touching phases: generate the authz-matrix suite from the spec's permission matrix** — every action × role → asserted allow/deny + the anonymous row (and, multi-tenant, the cross-org denial tests). The matrix table in the spec is the source; the tests are its executable form (`security-checklist.md`).
 4. **Verify (behavior before diff)** — drive the real running system first (e2e flow / `curl` the live endpoint / click the UI / generate the actual PDF/screen), observe the real behavior, THEN trust it. Paste the evidence (command + output / screenshot). A green build/lint is not proof; "looks done" is the failure mode. **UI-touching steps get vision-verify:** compare the fresh screenshot against the design artifact and the previous accepted screenshot in `.ai/screens/` (canon: `sailes-bootstrap/agent-team-structure.md`, Gate isolation).
 5. **Commit** — one focused commit per step (roughly 1:1 step↔commit), message references the spec. The app is working after every step.
-6. **Track** — tick the step in the spec's **Progress** section (and the run log if used). New unknown surfaced → stop, resolve via `sailes-spec` (re-gate), don't guess. At each **phase** gate, also update the root `STATUS.md` (client-readable: phases done/total, the plain-language Done-when result, accepted screenshot for UI phases — never effort/pricing data).
+6. **Track** — tick the step in the spec's **Progress** section (and the run log, where Pre-flight opened one). New unknown surfaced → stop, resolve via `sailes-spec` (re-gate), don't guess. At each **phase** gate, also update the root `STATUS.md` (client-readable: phases done/total, the plain-language Done-when result, accepted screenshot for UI phases — never effort/pricing data).
 
-**Phase gate (binary stop condition).** A phase is complete only when its **Done-when** condition from the spec passes — run the exact commands, paste the output. **Where the phase carries a `Deployed-probe:`, that command runs too, against the deployed host** — a `Done-when` that is green against origin, `localhost` or a mock says nothing about the wire property the phase is keyed on, and on 2026-08-29 exactly that combination shipped a feature that worked for zero customers past three green gates. "Looks complete" is not a phase gate. If the spec has no binary Done-when for a phase, derive one and add it to the spec **before** starting that phase. A Done-when never overrides decision ownership: hitting a **key decision** mid-loop (contract shape, data model, auth, a new UX surface) means STOP and escalate per `agent-team-structure.md` — never push through it to satisfy the goal.
+**Phase gate (binary stop condition).** A phase is complete only when its **Done-when** condition from the spec passes — run the exact commands, paste the output. **Where the phase carries a `Deployed-probe:`, that command runs too, against the deployed host** — a `Done-when` green against origin, `localhost` or a mock says nothing about the wire property the phase is keyed on, because a CDN can rewrite the origin's status and `Content-Type` before any customer sees them. "Looks complete" is not a phase gate. If the spec has no binary Done-when for a phase, derive one and add it to the spec **before** starting that phase. A Done-when never overrides decision ownership: hitting a **key decision** mid-loop (contract shape, data model, auth, a new UX surface) means STOP and escalate per `agent-team-structure.md` — never push through it to satisfy the goal.
 
 ## Test → Review → Behavior gate (before "done")
 - **Test authoring in a fresh context** — `tester` (`sailes-test`) derives the phase's expected behavior from the spec *with the implementation unread*, the human freezes the case list to `.ai/test-plans/<spec>.md`, then `tester` writes the suite and proves it detects at the feature's risk tier. This runs **per phase**, after the code and before `checker`. The RED test the dev named in step 1 is scaffolding for that step; the `tester` suite is the graded artifact, authored under isolation so it cannot mirror the code.
@@ -72,33 +72,7 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 - All phases shipped + verified → set spec `Status: implemented` and `git mv` it to `.ai/specs/implemented/` (preserve history); update cross-references. **The status line carries pasted gate evidence, not an assertion:** `Status: implemented — evidence: <command> → <result> · checker: <verdict> · qa: <verdict>`. Measured 2026-07-30: a spec claimed "`qa` PASS 4/4" while `qa` was still running and then returned CHANGES-REQUIRED. You can write an assertion ahead of the fact; you cannot paste a verdict that does not exist yet — that gap is the whole mechanism, so filling it from expectation defeats the format entirely.
 - **Deploying work ends at the release gate, not at green tests:** walk `sailes-bootstrap/release-checklist.md` — env/secret parity, migration ordering vs deploy, the **post-deploy smoke** script run with output pasted, and a rollback plan written *before* the deploy. The human approves the prod step (unchanged) — but approval is of a completed checklist, not a vibe. First production launch also requires the Operations block in `repo-done-checklist.md` (restore tested, runbook filled).
 - **Close estimates against actuals:** if the spec's phases carried internal estimates, record per-phase estimate-vs-actual + a one-line "why the delta" in the internal ledger (never in client-visible docs) — this is what lets the planned `sailes-wycena` pricing skill price the next project from history instead of gut feel.
-- **Delivered a CAPABILITY? Sweep the repo for comments that justified its absence** — before closing:
-  ```bash
-  grep -rn "DOES NOT EXIST\|NIE ISTNIEJE\|AT INTEGRATION\|PRZY INTEGRACJI\|TODO\|for now\|na razie" --include=*.ts --include=*.tsx src apps packages
-  ```
-  **Sweep the mirror-image class too — a comment claiming something IS enforced:**
-  ```bash
-  grep -rn "is enforced\|is validated\|is guaranteed\|always \|never \|jest wymuszan\|zawsze \|nigdy " --include=*.ts --include=*.tsx src apps packages
-  ```
-  The first pattern finds a comment saying a capability is missing after it arrived. This one finds
-  the opposite and more dangerous shape: a comment describing behavior the code does not have.
-  Measured 2026-08-01, twice in one day, and **both were correct when written**. One asserted that
-  a requirement was globally enforced — an aspiration, not a description; `checker` found it and
-  graded it a **defect, not a nit**, correctly, because *a comment that lies about behavior is worse
-  than no comment: the reader has nothing to discount it with*, and the named failure mode was the
-  next milestone's author trusting that line. The other computed a response field from a narrower
-  source; **defensible in the morning** and **wrong in both directions by the afternoon**, because
-  the mechanism it approximated had come into existence in between. Neither was findable by reading
-  a diff — the diff does not touch those lines. Only a gate reading the whole surface on a clean
-  context finds them, and it took **two different roles** to find these two, `checker` and the
-  closing docs-delta, because they were looking from different sides.
-
-  Every hit is a claim that was true when written and may not be now. Measured 2026-07-30: a comment
-  read *"call the storage adapter AT INTEGRATION — `packages/files` DOES NOT EXIST"*; the package had
-  existed for a week, `deleteObject` included, and the erasure path was leaving files in the bucket
-  indefinitely. **One sweep on the day `packages/files` landed would have found it that day instead
-  of a week later.** The sweep is cheap because it runs once per capability, not once per commit —
-  and it is the only step that connects "the dependency arrived" to "the things waiting on it".
+- **Delivered a CAPABILITY something else was waiting on? Run the two-grep stale-comment sweep before closing** — `capability-sweep.md` in this skill. A comment that justified the absence, and a comment claiming behavior the code does not have, are both invisible to a diff: the diff never touches those lines. Once per capability, not once per commit.
 - Push deferred follow-ups / tech debt discovered during build to `.ai/backlog.md` (don't lose them). Where the debt is a wrong behavior you are deliberately keeping, the row's other half is an `it.fails` test linking back to it (`sailes-test/references/techniques.md`) — a marker that removes itself when the debt is paid.
 - Record any correction-worthy lesson in `.ai/lessons.md` (Context/Problem/Rule/Applies-to); check lessons for **promotion candidates** (recurring → preferably an enforced check, else AGENTS.md/Task Router rule). A defect that escaped the gates additionally gets its **gate autopsy** (`Escaped-defect:` entry — which gate missed it + what check that gate now gains).
 - **Update `.ai/STATE.md` (write before walking away):** move what this run proved into Verified facts (with evidence), record unresolved problems in Open failures, set Last session. Do this **also when a session is interrupted mid-spec** — it's what makes the work resumable.
@@ -113,7 +87,7 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 
 | Stage | Gate |
 |---|---|
-| Pre-flight | spec approved + READY; STATE.md + lessons.md read; status→in-progress; run log if long; branch |
+| Pre-flight | spec approved + READY; STATE.md + lessons.md read; status→in-progress; run log (>~5 commits); branch |
 | Per step | RED test → implement → test → verify (evidence) → commit → track |
 | Per phase | **Done-when passes** — exact commands run, output pasted |
 | Test (per phase) | `tester` (`sailes-test`): cases from spec with code unread → human freezes `.ai/test-plans/<spec>.md` → write suite → tiered detection proof |
@@ -123,7 +97,7 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 
 ## Red Flags — STOP
 
-- You implemented without an approved, READY spec.
+- You implemented with no approved spec at all, or against one `sailes-pre-implement` returned NOT-READY on.
 - A step left the app broken / has no test.
 - You claimed "done" from build/lint alone — no real run/evidence (esp. UI/PDF/render: generate the artifact and look).
 - You hit an unknown and guessed instead of re-gating the spec.

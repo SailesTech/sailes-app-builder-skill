@@ -1,0 +1,50 @@
+[
+  {
+    "id": "F1-name-lower-bound",
+    "rule": "companyName min is 3 inclusive",
+    "from": "name.length < 3",
+    "to": "name.length < 4"
+  },
+  {
+    "id": "F2-name-upper-bound",
+    "rule": "companyName max is 80 inclusive",
+    "from": "name.length > 80",
+    "to": "name.length > 79"
+  },
+  {
+    "id": "F3-email-no-lower",
+    "rule": "email lowercased in value",
+    "from": "v.email.trim().toLowerCase()",
+    "to": "v.email.trim()"
+  },
+  {
+    "id": "F4-nip-no-strip",
+    "rule": "nip strips spaces and hyphens",
+    "from": "v.nip.replace(/[\\s-]/g, '')",
+    "to": "v.nip"
+  },
+  {
+    "id": "F5-seats-low-bound",
+    "rule": "seats min is 1 inclusive",
+    "from": "seats < 1",
+    "to": "seats < 2"
+  },
+  {
+    "id": "F6-seats-high-bound",
+    "rule": "seats max is 500 inclusive",
+    "from": "seats > 500",
+    "to": "seats > 499"
+  },
+  {
+    "id": "F7-seats-float-ok",
+    "rule": "seats must be an integer",
+    "from": "!Number.isInteger(seats)",
+    "to": "false"
+  },
+  {
+    "id": "F8-website-required",
+    "rule": "website is optional",
+    "from": "if (v.website !== undefined && v.website !== null && v.website !== '') {",
+    "to": "if (true) {"
+  }
+]

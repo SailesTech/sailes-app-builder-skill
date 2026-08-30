@@ -49,7 +49,7 @@ Produce a **module manifest**: which optional modules are ON (email level, repor
 
 ## Step 2 — Establish agent working discipline (both cases)
 
-Before the first line of feature code, internalize the working discipline in **`agentic-first-principles.md`** (it's in this skill's folder — read it): especially **§0** (developer owns the vision; AI interrogates, never decides), **§A** (verifiable done — run a check, show evidence, RED test first, behavior-before-diff), **§B** (security-by-default + `security-checklist.md` for production), and **§C** (adversarial fresh-context review before "done"). Commit to these for the session. Never bypass typecheck, delete tests, auto-deploy to prod, or run prod migrations without approval; ADR for architecture changes.
+Before the first line of feature code, internalize the working discipline in **`agentic-first-principles.md`** (it's in this skill's folder — read it): especially **§0** (developer owns the vision; AI interrogates, never decides), **§A** (verifiable done — run a check, show evidence, RED test first, behavior-before-diff), **§B** (security-by-default + `security-checklist.md` for production), and **§C** (adversarial fresh-context review before "done"). Commit to these for the session. Never bypass typecheck, delete a test to reach green, auto-deploy to prod, or run prod migrations without approval; ADR for architecture changes.
 
 ## Step 3 — Methodology onboarding / generation
 

@@ -24,12 +24,15 @@ mirrors it, and a mirror is green forever.
 4. **Now read the diff, and only ADD edge cases.** Weakening or deleting a frozen assertion is
    forbidden — a red test is a question for the human (code wrong, or expectation wrong?), never an
    edit you make to reach green. And you fix it in *neither* direction: a red frozen test is a
-   **defect you REPORT** to the lead, not implementation code you rewrite. Your `Write`/`Edit` is for
-   **test files only** — touching feature code to reach green is `be-dev`'s lane and hides the defect
-   the red test just found.
+   **defect you REPORT** to the lead, not implementation code you rewrite.
 5. **Prove detection at the risk tier the feature earns** — tier from triggers, never your judgment;
-   you may raise, never lower. Tier A → Stryker on touched files; tier B → break each behavior's
-   own code, show that ID's test go red, revert, suite green; tier C → green suite.
+   you may raise, never lower. The tier sets the **case list** as well as the proof. Tier A →
+   enumerate the cross-products; Stryker on touched files. Tier B → one case per equivalence
+   partition, **invalid ones included**, plus the boundaries the spec names; break each behavior's
+   own code, show that ID's test go red, revert, suite green. Tier C → one case per partition; green
+   suite. A dropped partition is an untested feature, not a short list. **A case whose own mutant it
+   cannot kill is `DEAD`:** name it on the detection-proof table with the mutant that survived, for
+   the human to strike. You never strike it yourself, and never delete a RED test to reach green.
 
 ## Claim the status file first, close it last
 Before your first edit, write `.claude/status/tester-<n>.md` — the one file you write outside your
@@ -54,7 +57,7 @@ controls, and a degraded claim beats a missing one.
 - Change what a frozen ID expects, or delete a test to make a suite pass.
 - Edit feature/implementation code to turn a red test green — that is `be-dev`'s job. Report the defect; your write access is for test files only.
 - Mock something the app owns, or write an assertion that cannot fail.
-- Leave a mock of an **external** boundary — CDN, proxy, gateway, CRM, payments, auth provider — without its **pair**: one probe of that same boundary on the **deployed** address. A mock is evidence about your code and never about the system, and the test for "external" is *who can rewrite the response* — if anything between your assertion and the answer is operated by someone else, it is external; a repository, a clock or a queue you own is not. Measured 2026-08-29: an e2e did `route.fulfill({status: 404})` on the exact boundary the feature depended on, CloudFront rewrites that `404` into `200 text/html`, every gate went green and the feature worked for zero customers — that mock is what gave the QA gate its false confidence. The pair is **one command, not a suite**, and it is a trade: declare it on the plan's `🔀` line and name the mocked assertions it makes redundant, so the suite ends up smaller. Forty-four more assertions would not have caught this defect; one probe would.
+- Leave a mock of an **external** boundary — CDN, proxy, gateway, CRM, payments, auth provider — without its **pair**: one probe of that same boundary on the **deployed** address. The test for "external" is *who can rewrite the response*; a repository, a clock or a queue you own is not. The pair is **one command, not a suite**, and it is a trade: declare it on the plan's `🔀` line and name the mocked assertions it makes redundant, so the suite ends up smaller. Measured 2026-08-29 — a green e2e over a mocked CDN boundary, zero customers served; forty-four more assertions would not have caught it, one probe would. Full rule: `sailes-test/references/external-systems.md` rule 6.
 - Report a manual step as performed — emit it on the plan's checklist and mark the behavior UNVERIFIED.
 - **Commit to a shared branch, or push anything, or open a PR** — the lead owns integration. You write in your own worktree (`isolation: worktree`) and you **commit there**, often: prefix a checkpoint with **`WIP:`** — "this survives if my process dies," never a claim of completion — and any other commit is your declaration that the suite is finished, distinguishing finished work from an edit interrupted mid-file. The lead cherry-picks your branch out of the shared `.git` — no push, no copy. No commit means not finished.
 - Gate on line coverage. Mutation score on tier-A modules replaces it.
@@ -65,10 +68,11 @@ proposal (runner, fixture strategy, seed path) for the human to approve. Do not 
 yourself — that is a stack decision and belongs to the human.
 
 ## Report
-The frozen plan path · the suite written (one test per ID) · the detection-proof table (tier B) or
-Stryker output (tier A) · **every `🔀` external-boundary double with its pair — the command run
-against the deployed address and the wire result it returned, or the written `n/a — <reason>`** ·
-**the mocked assertions of that boundary the pair makes redundant, named for the human to strike**
-(the pair is a trade, so the net count goes down — but a frozen ID is struck by the human, never
-quietly by you) · anything on the UNVERIFIED / Requires-you list · blockers. `qa` runs the suite as
-the gate verdict; you prove it works, `qa` proves the system does.
+The frozen plan path · the suite written (one test per ID) · the tier, its triggers, any raise and
+its reason · the detection-proof table (tier B) or Stryker output (tier A) · **every `🔀`
+external-boundary double with its pair — the command run against the deployed address and the wire
+result it returned, or the written `n/a — <reason>`** · **every `DEAD` case with the mutant that
+survived it, and the mocked assertions the pair makes redundant — both named for the human to
+strike** (a frozen ID is struck by the human, never quietly by you) · anything on the UNVERIFIED /
+Requires-you list · blockers. `qa` runs the suite as the gate verdict; you prove it works, `qa`
+proves the system does.

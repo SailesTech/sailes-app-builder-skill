@@ -4,6 +4,65 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.31.0 — 2026-08-30 · the suite was a one-way ratchet
+
+1.30.0 said volume at the wrong surface is not coverage. This one asks what happens to the volume
+already there, and the audit that opened it found two things the framework had never noticed about
+itself:
+
+- **The risk tier scaled only the PROOF, never the LIST.** `every field × 4 cases`, `every action ×
+  every role`, `min−1…max+1 at every boundary`, `every illegal transition` — all applied identically
+  at tier C and tier A.
+- **No rule anywhere removed a test.** Growth was per-item and automatic; shrinkage needed
+  flakiness, a named replacement, or a human's strike — never *this test detects nothing*. The
+  mutation machinery already **finds** tautological assertions and offered only two exits, both of
+  which add text.
+
+**The tier now conditions the case list too.** A third column in the same table: tier A enumerates
+the cross-products; B and C take one case per equivalence partition, **invalid partitions always
+included**, and at each named edge the **straddle pair** — the last accepted value and the first
+rejected one, not the six. A dropped partition is an untested feature, not a short list.
+
+**The ratchet gained a reverse gear.** A case that cannot kill its own mutant is named `DEAD` on the
+detection-proof table with the mutant that survived it, and goes to the human as a strike candidate.
+`tester` names, the human strikes; a RED test is still never deleted to reach green, and a dead case
+and an equivalent mutant never collapse into each other.
+
+**`checker` got the mirror it was missing.** It had a mandatory heading for *"what the diff does NOT
+do that the spec requires"* and, for surplus, the words "scope creep" fifth in a comma list. An
+absent handler was hunted; an invented one was not. There is now a second mandatory section — *"what
+the diff contains that the spec does not require"* — guarded by a parity invariant on both twins.
+
+**Ceremony: contradictions deleted rather than documented.** A contradiction is ceremony in its
+purest form — the agent resolves it at runtime, every run, forever. Removed: the gate rule stamped
+**twice** into every lead context by machine (`delegation-threshold` restated what `gate-scaling`
+owns); a skip-trigger that exempted "small bug fixes" four lines above the block saying a contract
+fix is precisely the shape that feels small; three competing conditions for one run log; a
+pre-implement waiver that tripped its own red flag; and the 27-line capability sweep relocated out of
+the always-loaded path into `skills/sailes-implement/capability-sweep.md`, its own text having said
+it "runs once per capability, not once per commit". Also fixed: **"NEVER delete tests"**, shipped
+unqualified into every generated repo, now says what it always meant — never delete a test *to reach
+green*.
+
+**What an older-stamped repo is missing.** Regenerate `.ai/skills/spec-writing/SKILL.md` from
+`spec-writing-template.md` (skip triggers reconciled with the weight block; integration coverage now
+defers case count to the tier) and the `AGENTS.md` line on deleting tests. The rest ships with the
+plugin.
+
+**Measured — including the run where the rule was wrong.**
+`.ai/eval-runs/2026-08-30-test-volume-vs-detection/VERDICT.md`. Each arm's suite was scored by
+**fault injection**, not line count, because a suite half the size catching half the faults is not an
+improvement. The first wording of the tier-B rule told it to walk each named edge "in full" and
+produced **70 cases against arm A's 58** — a 21% increase at identical detection. Corrected to the
+straddle pair: **58 → 42 cases, 497 → 388 lines, detection unchanged at 8/8.** A second fixture with
+no cross-product returned NULL and is recorded as a fixture defect. Detection is measured against
+eight spec-derived faults only; anything outside that set is unmeasured. The harness ships at
+`evals/fixtures/fault-injection/`.
+
+**Context cost:** +508 bytes (+0.20%) across the always-loaded skill and role definitions, with 2,425
+bytes relocated out of that path — effectively −1,917 on a typical implement run. 1.30.0 cost
++11.0%; that was the reason this release had a budget at all.
+
 ## 1.30.0 — 2026-08-30 · the test SURFACE, not the test count
 
 A feature shipped 2026-08-29 with unit tests, Playwright e2e and a green `qa` gate, and worked for

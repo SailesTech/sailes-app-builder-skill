@@ -7,6 +7,65 @@
 
 ## Lessons
 
+### 2026-08-30 — a doctrine change that read as a cut produced a 21% increase
+
+- **Context:** `sailes-test`'s risk tier scaled only the *proof* of detection, never the *size* of
+  the case list — `every field × 4`, `every action × role`, `min−1…max+1` all applied identically at
+  tier C and tier A. The fix was a Case-list column in the same table.
+- **Problem:** the first wording told tier B to walk each named edge **"in full"**. Measured by A/B
+  against a five-field validator: arm B produced **70 cases against arm A's 58** — a 21% increase —
+  at identical fault detection (8/8). The rule intended as a cut grew the suite, and the prose read
+  persuasively in both directions.
+- **Rule:** **a doctrine change about volume is not verifiable by reading it.** Score both arms by
+  fault injection, and count. The correction — at a named edge, tier B takes the **straddle pair**
+  (last accepted value, first rejected one) rather than six values — was settled by evidence rather
+  than argument: an off-by-one moves the comparison one way or the other, both directions die to
+  those two cases, and `min+1`/`max−1` sit inside partitions already covered. Four of the eight
+  faults in the fixture were off-by-one edge mutants and the pair killed all four:
+  **58 → 42 cases, 497 → 388 lines, detection unchanged.**
+- **Applies-to:** `skills/sailes-test/SKILL.md`, `agents/tester.md`,
+  `evals/tier-scales-the-case-list-not-only-the-proof.md`.
+- **Mechanisable:** partly — `evals/fixtures/fault-injection/` is the harness, kept in-repo. It
+  cannot run itself: scoring an arm needs a fresh subagent to write the suite.
+- **Not established:** detection is measured against eight faults derived from the spec's own
+  clauses. A race, an encoding, a vendor field nullable in practice — none are represented, and 16
+  fewer cases could plausibly cost something the harness cannot see. Two fixtures, one run per arm.
+
+### 2026-08-30 — the audit found what nobody had asked about: the suite only grew
+
+- **Context:** an inventory of every "every X gets a Y" mandate in `skills/` and `agents/`, run
+  before writing any rule.
+- **Problem:** two structural findings, neither of them a bug anyone had reported. (1) The risk tier
+  conditioned the proof and nothing else. (2) **No rule anywhere in the repo removed a test.**
+  Deletion was permitted for flakiness, for a mocked assertion a deployed probe replaced, or by a
+  human's strike at freeze time — never for *this test detects nothing*. `techniques.md` even
+  **names** tautological assertions and offers no disposal for them; `SKILL.md` demands every
+  surviving mutant be "killed or explained in writing", and both exits add text.
+- **Rule:** **when a rule can only be satisfied by adding, inventory what removes.** A gate with one
+  direction is a ratchet, and a ratchet on test volume converts every future session's caution into
+  permanent weight. The new exit: a case that cannot kill its own mutant is `DEAD` — named for the
+  human to strike, never removed by the agent that wrote it.
+- **Applies-to:** `skills/sailes-test/SKILL.md`, `skills/sailes-test/test-plan-template.md`,
+  `agents/tester.md`, `agents/checker.md`.
+- **The same shape, found in the same pass:** `checker` had a mandatory heading for omissions and
+  the words "scope creep" fifth in a comma list for surplus. An absent handler was hunted; an
+  invented one was not. That asymmetry is how unrequested code passes a gate that read every line.
+
+### 2026-08-30 — a recon finding is a hypothesis, and one of mine was wrong
+
+- **Context:** a read-only recon reported an orphaned HTML-comment fragment in `agents/team-lead.md`
+  — a dangling `-->` with no opener, allegedly shipped into every lead context. It went into the
+  spec as a deletion item.
+- **Problem:** it did not exist. The worker assigned to delete it counted openers and closers (5/5),
+  stripped every balanced comment span and found zero strays, swept the repo for unbalanced markers,
+  and **refused the task with the measurement** rather than deleting a well-formed comment that
+  happens to be the only in-file warning that a block is machine-generated.
+- **Rule:** **a brief is a hypothesis with an instruction attached, and the worker is the last gate
+  on it.** Refusing an item and showing the count is the correct outcome, not a failure to comply;
+  the alternative is a lead's misreading executed faithfully. State this expectation in briefs —
+  it worked here because the item was checkable.
+- **Applies-to:** `agents/team-lead.md` (briefs), `skills/sailes-bootstrap/agent-team-structure.md`.
+
 ### 2026-08-30 — Escaped-defect: three green gates, zero working customers
 
 - **Context:** spec `2026-08-29-wyscig-wejscia-na-link-oferty.md` shipped a waiting screen keyed on

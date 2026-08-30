@@ -192,6 +192,38 @@ Last-commit: bc5e159
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
+- 2026-08-30 later (**resume here**): **1.31.0 prepared on the same branch, local commits only,
+  nothing pushed.** Human's brief: "optymalizacja skilla żeby nie produkował zbędnego kodu, działał
+  szybciej ale zachował zalety testowania", scoped by them to **test volume + process ceremony**
+  (production-code minimality explicitly out). Spec:
+  `.ai/specs/2026-08-30-the-suite-is-a-one-way-ratchet.md`.
+  - **What the audit found before any rule was written, and neither had been reported:** the risk
+    tier scaled only the *proof* of detection, never the *case list* — every cross-product mandate
+    applied identically at tier C and tier A; and **no rule anywhere in the repo removed a test.**
+    The mutation machinery names tautological assertions and offers only two exits, both additive.
+  - **Shipped:** a Case-list column in the tier table; the `DEAD` disposal route (tester names, human
+    strikes); `checker`'s missing surplus mirror, guarded by a parity invariant on both twins;
+    "NEVER delete tests" qualified to "to reach green"; and six contradictions deleted rather than
+    documented, including the gate rule that had been stamped **twice** into every lead context by
+    machine.
+  - **The result that matters is the one that went the wrong way.** The tier-B rule's first wording
+    ("walk each named edge in full") produced **70 cases against arm A's 58** — a 21% increase at
+    identical 8/8 detection. Only fault injection against real model output showed it; the prose read
+    persuasively either way. Corrected to the **straddle pair** (last accepted value, first rejected
+    one — provable against off-by-one, which is the only fault an edge test exists for):
+    **58 → 42 cases, 497 → 388 lines, 8/8 detection unchanged.**
+  - **Context budget honoured this time:** +508 bytes (+0.20%) always-loaded, 2,425 bytes relocated
+    out of that path — effectively −1,917 per implement run. 1.30.0 had cost +11.0%.
+  - **A worker refused a spec item and was right.** The "orphaned HTML comment in team-lead.md" from
+    recon did not exist; the worker counted 5/5 openers/closers, swept the repo, and reported the
+    refutation instead of deleting a well-formed comment. Recorded in `.ai/lessons.md` as doctrine.
+  - **Owed:** the eval `mock-of-an-external-boundary-carries-a-pair` is still NEVER-RUN;
+    `diagnose-runs-live-case-before-audit` is still STALE against its new criterion (f); fixture 1 of
+    the volume A/B was written under the superseded wording and its NULL result is a fixture
+    critique, not a data point. The authz matrix in `security-checklist.md` remains tier-unconditioned
+    in its own file — correct, since auth is tier A by definition, but worth stating if anyone
+    generalises the Case-list rule.
+
 - 2026-08-30 (**resume here**): **1.30.0 prepared on branch `test-doctrine-from-deployment-lessons`,
   local commits only, nothing pushed.** Source: `wnioski z wdrożeń/2026-08-30-...` — a client
   feature that shipped with unit tests, Playwright e2e and a green `qa` gate and worked for **zero**

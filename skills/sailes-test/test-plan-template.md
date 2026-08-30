@@ -8,6 +8,9 @@ Frozen: <date> by <human>
 
 > `DRAFT` means no test may be written yet. The human moves it to `FROZEN`.
 > Raising the tier is allowed and is recorded here with its reason. Lowering it is not.
+> **The tier sets the length of the list below, not only the proof at the end** — A enumerates the
+> cross-products; B and C take one case per equivalence partition, **invalid ones included**, B also
+> walking every boundary the spec names. A dropped partition is an untested feature, not a short list.
 
 ## I could not derive this from the spec — please decide
 
@@ -32,11 +35,9 @@ Frozen: <date> by <human>
    ↳ pair: n/a — <why this boundary has no deployed surface of ours>      ← the only other legal value
 
 > Every `🔀` on an EXTERNAL boundary — CDN, proxy, gateway, CRM, payments, auth provider — carries a
-> pair. The mock is evidence about the code and never about the system; the paired probe is what
-> makes it evidence about the system. One command, and it is a **trade, not an addition**: the probe
-> makes the mocked assertions of that same boundary redundant, so they are struck here rather than
-> kept beside it. Measured 2026-08-29 — a green e2e mocked a `404` that CloudFront rewrites to
-> `200 text/html`, and the feature worked for zero customers. A blank pair is not a pass.
+> pair, and it is a **trade**: the probe makes that boundary's mocked assertions redundant, so they
+> are struck here. A blank pair is not a pass. Measured 2026-08-29, stated in full:
+> `references/external-systems.md` rule 6.
 
 ## Behaviors
 
@@ -60,8 +61,12 @@ Frozen: <date> by <human>
 
 ## Detection proof (filled at step 5, after the suite exists)
 
-| ID | Mutation applied | Test went red | Reverted, suite green |
-|---|---|---|---|
-| B<n> | <the specific break, dictated by this behavior> | ✅ | ✅ |
+| ID | Mutation applied | Test went red | Reverted, suite green | Verdict |
+|---|---|---|---|---|
+| B<n> | <the specific break, dictated by this behavior> | ✅ | ✅ | detects |
+| B<m> | <the break this case did not notice> | ❌ | — | **DEAD** — strike candidate |
 
 > Tier A instead records Stryker output: surviving mutants killed, or each one explained here.
+> `DEAD` = the case could not kill its own mutant, so it detects nothing — `tester` names it, the
+> human strikes it. A different finding from an equivalent mutant (one no test *should* kill, named
+> and kept), and neither licenses deleting a RED test to reach green.

@@ -163,6 +163,11 @@ const INVARIANTS = {
     // Added for 1.26.0 D2 — an absent handler changes no line, so a patch-only read cannot find
     // it; the verdict's opening section is where the omission has to surface.
     ['opens every verdict with what the diff does NOT do — mandatory, comes first', /does not do|omission/i],
+    // Added 2026-08-30. The omission half above had a mandatory heading and a measured incident;
+    // surplus had the words "scope creep" fifth in a comma list. An absent handler was hunted and
+    // an invented one was not, which is how unrequested code reaches a repo through a gate that
+    // read every line of it. Guarded here because parity green means only what someone listed.
+    ['also hunts SURPLUS — what the diff contains that the spec does not require', /does not require/i],
   ],
   qa: [
     ['never fakes a pass', /fake|ENV-DEFECT/i],

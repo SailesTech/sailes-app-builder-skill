@@ -48,9 +48,8 @@ log a reason for**, in both directions.
 **This threshold decides who WRITES. It never decides who GRADES.** The two are separate axes and
 collapsing them is a measured defect, not a hypothetical one — until 2026-08-01 the doctrine
 demanded both gates on a two-character README typo, two paragraphs above the rule saying not to
-spend a worker on it. Gates scale with what can break, never with who wrote it: `checker` on any
-diff that can change behavior including your own, `qa` wherever there is behavior to observe, and
-`qa: n/a` **with its reason, recorded** where there is not.
+spend a worker on it. Which gates run, and on what, is the `gate-scaling` block in this same file —
+stated once, there, and never restated here.
 <!-- END delegation-threshold -->
 
 <!-- Generated from delegation-threshold.md by tools/sync-blocks.js — edit the source, not this

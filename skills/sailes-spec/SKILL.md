@@ -39,8 +39,8 @@ A repo built with `sailes-bootstrap` has a **local** spec-writing skill at `.ai/
 4. **Iterate** — apply answers, remove the Open Questions block. New unknowns surface → re-gate only those.
 5. **Design** — data model, API surface, UI surface, module boundaries, integration/webhook contracts, jobs/workflows.
 6. **Phasing** — break into **Phases** (stories) and **Steps** (testable tasks). Each step leaves the app working. **Every phase carries a `Done-when`** — a binary, machine-checkable completion condition: the exact command(s) to run + the expected outcome (e.g. `pnpm test src/auth → 0 failures`; `curl -s -o /dev/null -w '%{http_code}' -X POST /api/export → 200 + non-empty file`; UI: screenshot of screen X matches the design artifact). "Works correctly" / "is polished" is not a Done-when — if you can't write the check, the phase isn't specified yet.
-   - **Wire properties are observed on the deployed address, or they are not observed.** A phase whose behavior depends on an HTTP **status code, header or `Content-Type`** carries a `Deployed-probe:` line beside its `Done-when`: one command against the deployed host, with the expected observation written out. Not origin, not `localhost`, not a mock. Where the phase truly has no deployed surface, write `Deployed-probe: n/a — <reason>`; never drop it. `node tools/deployed-surface-check.js <spec>` checks exactly this and nothing else. Measured 2026-08-29: a feature shipped with unit tests, Playwright e2e and a green `qa` gate and worked for **zero** customers — CloudFront rewrites the origin's `404` into `200 text/html`, so the code the whole feature keyed on never reached a browser, and every test had asserted against origin or a mock. One curl would have caught it; forty-four more assertions would not have. **The probe is a trade, not a tax:** when you add it, delete the mocked assertions of the same boundary it makes redundant.
-7. **Integration coverage** — list every affected API path and key UI path; each gets a test in the same change.
+   - **Wire properties are observed on the deployed address, or they are not observed.** A phase whose behavior depends on an HTTP **status code, header or `Content-Type`** carries a `Deployed-probe:` line beside its `Done-when`: one command against the deployed host, with the expected observation written out. Not origin, not `localhost`, not a mock. Where the phase truly has no deployed surface, write `Deployed-probe: n/a — <reason>`; never drop it. `node tools/deployed-surface-check.js <spec>` checks exactly this and nothing else. The mechanism: a CDN can rewrite the origin's status and `Content-Type` before any customer sees them, so a green assertion against origin proves nothing about the wire (2026-08-29). **The probe is a trade, not a tax:** when you add it, delete the mocked assertions of the same boundary it makes redundant.
+7. **Integration coverage** — list every affected API path and key UI path. Each gets a test in the same change; **how many cases each one earns is the risk tier's call, not this list's** (`sailes-test` § Step 5 — tier A enumerates the cross-products, B and C take one case per equivalence partition, invalid partitions always included). Listing a path is naming a surface, not ordering a suite.
 8. **Review** — apply the checklist below; set `Status: approved` when the user signs off, before implementation starts.
 
 ## Spec lifecycle (status + folders — so 50 specs don't become an undifferentiated pile)
@@ -85,7 +85,7 @@ Status: draft | approved | in-progress | implemented | superseded
 
 - **Create** a spec for: a new module, a significant feature, or an architecture change touching multiple files.
 - **Update** an existing live spec when: APIs, data models, workflows, permissions, or cross-module behavior change.
-- **Skip** specs for: small bug fixes, typo-only edits, isolated one-file refactors with no behavior change. (Don't manufacture a spec for a one-liner.)
+- **Skip** specs only where behavior cannot change: typo-only edits, isolated one-file refactors. A bug fix changes behavior — it earns a weight below, never an exemption.
 
 ## How much spec the change earns
 
@@ -133,7 +133,7 @@ this rule exists because the default was never a decision at all.
 - **Jobs / Workflows** — cron vs job vs durable workflow; which tier.
 - **Security** — auth + permission checks, Zod validation, signed secrets, audit log, file access control; mark which security-checklist items apply. **A spec touching auth/roles declares the permission matrix** — a table of actions × roles → allow/deny — which implementation turns into the generated authz matrix test suite (every action × role asserted, plus the anonymous row).
 - **Phasing & Steps** — stories → testable steps; **every phase has a binary `Done-when`** (exact commands + expected output). Each phase may carry an internal estimate (hours) — closed out against actuals at completion; never client-visible.
-- **Integration Coverage** — affected API + UI paths, each with a test.
+- **Integration Coverage** — affected API + UI paths, each with a test (case count per the risk tier).
 - **Non-Goals** — what we explicitly are NOT building. Push deferred-but-worth-keeping items (later phases, tech debt) to `.ai/backlog.md` so they aren't lost in this one spec.
 
 **Every constraint in a spec carries its reason.** "No migrations" reads like a design principle and

@@ -152,7 +152,7 @@ Length is not thoroughness — complete and unreadable delivered nothing. Rule 3
 - NEVER auto-deploy to production; NEVER run production migrations without approval.
 - NEVER change auth/security without the security checklist.
 - NEVER log sensitive data; NEVER treat Google login as Gmail access.
-- NEVER delete tests or bypass typecheck. Don't change architecture without an ADR.
+- NEVER delete a test to reach green, and never bypass typecheck. Don't change architecture without an ADR. (Deleting a case a named replacement made redundant, or one proven to detect nothing, is a different act with its own gate — it goes to the human, never quietly.)
 - NEVER edit a migration that may already be applied — add a new one.
 - After two failed attempts with the same approach: stop, describe what you learned, reformulate.
 
