@@ -29,6 +29,7 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 4. **Iterate** — apply answers, remove the Open Questions block. New unknowns surface → re-gate those only.
 5. **Design** — data model, API surface, UI surface, module boundaries, integration/webhook contracts, jobs/workflows.
 6. **Phasing** — break into **Phases** (stories) and **Steps** (testable tasks). Each step should leave the app working. **Every phase carries a `Done-when`** — a binary, machine-checkable completion condition: the exact command(s) to run + the expected outcome (e.g. `pnpm test src/auth → 0 failures`; `curl -s -o /dev/null -w '%{http_code}' -X POST /api/export → 200 + non-empty file`; UI: screenshot of screen X matches the design artifact). "Works correctly" is not a Done-when — if you can't write the check, the phase isn't specified yet.
+   - **A wire property is observed on the deployed address or it is not observed.** A phase keyed on an HTTP **status code, header or `Content-Type`** carries `Deployed-probe:` beside its `Done-when` — one command against the deployed host with the expected observation written out; not origin, not `localhost`, not a mock. No deployed surface → `Deployed-probe: n/a — <reason>`, never dropped. Measured 2026-08-29: a feature shipped past unit tests, Playwright e2e and a green `qa` gate and worked for zero customers, because a CDN rewrote the origin's `404` into `200 text/html` and nothing had ever asked the deployed host. It is a **trade**: adding the probe earns the deletion of the mocked assertions of that boundary.
 7. **Integration coverage** — list every affected API path and key UI path; each gets a test in the same change.
 8. **Review** — apply the checklist below; set `Status: approved` on sign-off.
 
@@ -37,6 +38,41 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 `Status: draft | approved | in-progress | implemented | superseded`. Folders mark state: `.ai/specs/` = live; `.ai/specs/implemented/` = shipped; `.ai/specs/archived/` = abandoned/superseded. When a feature ships → `Status: implemented` + `git mv` to `implemented/`.
 
 **`implemented` requires quoted gate evidence, not an assertion** — `Status: implemented — evidence: <command> → <result> · checker: <verdict> · qa: <verdict>`. An assertion can be written ahead of the fact; a pasted verdict cannot, because there is nothing to paste yet. Measured 2026-07-30: a spec claimed "`qa` PASS 4/4" while `qa` was still running and then returned CHANGES-REQUIRED. When replaced → old gets `Status: superseded` + `Superseded-by:`, `git mv` to `archived/`; new gets `Supersedes:`. Root = the only live set. **Create** for new module / significant feature / multi-file architecture change; **skip** for typos, one-file refactors, small bug fixes.
+
+## How much spec the change earns
+
+<!-- BEGIN spec-weight -->
+**The spec weight scales with what a wrong assumption costs, never with the template you own.**
+
+Three weights. Pick one deliberately; the failure this rule exists for is the full template being
+applied because it was there.
+
+- **No spec** — a one-liner, a typo, an isolated refactor with no behavior change. Just do it, with
+  a test that pins it. Unchanged.
+- **Contract fix** — behavior changes at a surface someone else depends on, but the data model,
+  the auth model and the module boundaries stay put. **Five sections, and no more:** TLDR · what
+  changes (the surface, before → after) · `Done-when` (carrying `Deployed-probe:` when the change
+  is on the wire) · non-goals · phasing only if there is genuinely more than one phase. Every other
+  required section is written `n/a` on one line or left out. A data-model section for a change that
+  moves no table is filler, and filler costs a spec exactly what it costs an answer: the reader
+  cannot find the four load-bearing lines, and every gate downstream reads the same document.
+- **Feature** — new surface, a data model that moves, tenancy, auth, money, or an integration
+  contract. The full required-sections list, as today.
+
+**Weight goes down, never out.** The opposite failure — skipping the spec because the change "felt
+small" — is behind every escaped contract change this framework records, and a contract fix is
+precisely the shape that feels small. Halving the document is the saving; skipping it is not.
+
+**A spec is rewritten, not patched.** Measured in the same session: eight numbered correction
+sections, accumulated because the spec was being fixed in place instead of re-written. Once the
+corrections outnumber the design, the document describes its own history rather than the change,
+and reading it costs more than replacing it. The `Status:` line and the Decisions Ledger survive a
+rewrite; the correction sections are the thing being deleted.
+
+**Write the weight down.** One line by the `Status:` line — `Weight: contract-fix — no data model
+moves, one API path, one FE screen.` A weight nobody wrote is a weight nobody can argue with, and
+this rule exists because the default was never a decision at all.
+<!-- END spec-weight -->
 
 ## Required sections
 
@@ -76,6 +112,7 @@ Turn an agreed brief into a phased, testable implementation spec — or review a
 - [ ] Integration coverage lists every affected API + key UI path, each with a test.
 - [ ] Phases leave the app working; each step is testable.
 - [ ] Every phase has a binary `Done-when` (exact commands + expected result), not a qualitative statement.
+- [ ] **Any phase depending on a status code, header or `Content-Type` carries a `Deployed-probe:`** — one command against the DEPLOYED host with its expected observation, or `n/a — <reason>`. Origin, `localhost` and a mock are the three surfaces that all answered correctly while the deployed one did not (2026-08-29).
 - [ ] **Every phase's `Done-when` covers that phase's own allowed-files list** — each path names the clause that forces it into existence. A path with no clause is surplus or a hole; decide which while writing. `checker` grades the diff against the phase's scope, and the phase's scope IS its `Done-when`, so a path that lives only on the file list is something no gate ever looks for.
 - [ ] API surface is a machine-comparable `yaml` block (method · path · phase), out-of-scope paths listed explicitly.
 - [ ] Every constraint states its reason — a bare prohibition is reversible only by guessing why it is there.

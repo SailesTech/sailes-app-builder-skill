@@ -186,10 +186,17 @@ One blanket policy is wrong for at least one of your integrations — Slack and 
 carry different costs of being wrong. Present the fork per system, let the human choose, record the
 answer in the plan. Options and their real costs: `references/external-systems.md`.
 
-Two rules that hold regardless: **at least one real-contract check per external system** must exist
-somewhere, and every recorded response carries a recorded-at date plus scheduled re-validation.
-Where no exact oracle exists — LLM-backed features especially — use **metamorphic relations** and
-property-based tests. Asserting exact LLM output is not a test.
+Three rules that hold regardless: **at least one real-contract check per external system** must exist
+somewhere, every recorded response carries a recorded-at date plus scheduled re-validation, and
+**every mock of an external boundary carries a pair** — one probe of that same boundary on the
+deployed address. Where no exact oracle exists — LLM-backed features especially — use **metamorphic
+relations** and property-based tests. Asserting exact LLM output is not a test.
+
+The pair is one command, not a suite, and it is a **trade, not an addition**: the probe makes the
+mocked assertions of that same boundary redundant, so it earns their deletion and the suite gets
+smaller. Measured 2026-08-29: an e2e mocked the exact boundary its feature depended on, every gate
+went green, and the feature worked for zero customers. Full rule, the internal/external test and
+the whole measurement: `references/external-systems.md` rule 6.
 
 ## Never
 
@@ -197,6 +204,12 @@ property-based tests. Asserting exact LLM output is not a test.
   when it should lower it. Mutation score on tier-A modules replaces it.
 - **Never mock inside your own app** to make a test pass. Double at the process boundary — third-party
   HTTP, clock, randomness — and nothing else without saying why.
+- **Never leave a mock of an EXTERNAL boundary unpaired** — CDN, proxy, gateway, CRM, payments, auth
+  provider. It is evidence about your code and never about the system; without one probe of that same
+  boundary on the deployed address it is an assumption written in test syntax, and it grants exactly
+  the confidence that turns out to be false. The distinguishing test is *who can rewrite the
+  response*: if anything between your assertion and the answer is operated by someone else, it is
+  external. Internal boundaries — a repository, a clock, a queue you own — are unaffected.
 - **Never write an assertion that cannot fail**: no lone `toHaveBeenCalled()`, no asserting a value
   the test itself stubbed, no snapshot as the only assertion for logic.
 - **Never claim a manual step was performed.** Emit it as a checklist item and report the behavior
@@ -228,4 +241,6 @@ property-based tests. Asserting exact LLM output is not a test.
 - You proved detection with a mutation you chose freely instead of one the frozen list dictated.
 - You reported a manual step as done.
 - You mocked something you own and the test now asserts your own stub.
+- You mocked an external boundary and nothing anywhere probes that boundary on the deployed address.
+  The suite is green about your code and silent about the system — 2026-08-29's shape exactly.
 - The feature touches money, auth, tenancy or an irreversible outbound write and you ran tier B.

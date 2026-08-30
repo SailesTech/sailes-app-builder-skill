@@ -25,6 +25,56 @@ description: Use AFTER a spec is approved and BEFORE writing implementation code
 3. Use the **Task Router** in `AGENTS.md` to find every guide/module the spec touches — read all matching ones.
 4. Map the existing code the spec affects: entities, API routes, events, exports, jobs. For a large scope, dispatch read-only `Explore`/`explorer` subagents (one area each) — keep main context clean.
 
+### Phase 1b — Is the spec the right weight, and does it probe the wire?
+
+Two cheap reads before the expensive audit, both from failures measured 2026-08-30.
+
+**Weight.** Judge the spec against the block below and say so in the report in one line. A spec
+carrying six sections it does not need is not safer — it is a document whose four load-bearing
+lines nobody can find, and every gate downstream reads the same document. Over-weight is a finding;
+report it as one. Under-weight — a contract change with no spec at all — is a blocker.
+
+<!-- BEGIN spec-weight -->
+**The spec weight scales with what a wrong assumption costs, never with the template you own.**
+
+Three weights. Pick one deliberately; the failure this rule exists for is the full template being
+applied because it was there.
+
+- **No spec** — a one-liner, a typo, an isolated refactor with no behavior change. Just do it, with
+  a test that pins it. Unchanged.
+- **Contract fix** — behavior changes at a surface someone else depends on, but the data model,
+  the auth model and the module boundaries stay put. **Five sections, and no more:** TLDR · what
+  changes (the surface, before → after) · `Done-when` (carrying `Deployed-probe:` when the change
+  is on the wire) · non-goals · phasing only if there is genuinely more than one phase. Every other
+  required section is written `n/a` on one line or left out. A data-model section for a change that
+  moves no table is filler, and filler costs a spec exactly what it costs an answer: the reader
+  cannot find the four load-bearing lines, and every gate downstream reads the same document.
+- **Feature** — new surface, a data model that moves, tenancy, auth, money, or an integration
+  contract. The full required-sections list, as today.
+
+**Weight goes down, never out.** The opposite failure — skipping the spec because the change "felt
+small" — is behind every escaped contract change this framework records, and a contract fix is
+precisely the shape that feels small. Halving the document is the saving; skipping it is not.
+
+**A spec is rewritten, not patched.** Measured in the same session: eight numbered correction
+sections, accumulated because the spec was being fixed in place instead of re-written. Once the
+corrections outnumber the design, the document describes its own history rather than the change,
+and reading it costs more than replacing it. The `Status:` line and the Decisions Ledger survive a
+rewrite; the correction sections are the thing being deleted.
+
+**Write the weight down.** One line by the `Status:` line — `Weight: contract-fix — no data model
+moves, one API path, one FE screen.` A weight nobody wrote is a weight nobody can argue with, and
+this rule exists because the default was never a decision at all.
+<!-- END spec-weight -->
+
+**Wire.** Run `node tools/deployed-surface-check.js <spec>` (or apply its rule by reading, when the
+framework repo is not reachable from here). A phase whose behavior depends on a status code, a
+header or a `Content-Type` must name where that is observed on the **deployed** address. Not
+origin, not localhost, not a mock. This is the cheapest finding in the whole gate: one command,
+and it is the only thing that would have caught 2026-08-29 — a feature that shipped with unit
+tests, Playwright e2e and a green `qa` gate, and worked for zero customers, because CloudFront
+rewrites the origin's `404` into `200 text/html` and nothing ever asked the deployed host.
+
 ### Phase 2 — Backward-compatibility audit
 For each affected surface, ask: does the spec **rename / remove / narrow** something other code depends on? Walk these contract surfaces (drop those that don't apply to this stack):
 

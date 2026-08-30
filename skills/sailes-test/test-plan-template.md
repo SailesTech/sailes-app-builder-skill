@@ -28,6 +28,15 @@ Frozen: <date> by <human>
 🔑 <credential / sandbox account / API key> → blocks B<n>, B<m>
 👉 <manual step no automation can perform> → covers B<n>; report UNVERIFIED until confirmed
 🔀 <external system> → chosen double: mock | fake | cassette | real sandbox — <what this trades away>
+   ↳ pair: <one command against the DEPLOYED address> → <the wire observation it must produce>
+   ↳ pair: n/a — <why this boundary has no deployed surface of ours>      ← the only other legal value
+
+> Every `🔀` on an EXTERNAL boundary — CDN, proxy, gateway, CRM, payments, auth provider — carries a
+> pair. The mock is evidence about the code and never about the system; the paired probe is what
+> makes it evidence about the system. One command, and it is a **trade, not an addition**: the probe
+> makes the mocked assertions of that same boundary redundant, so they are struck here rather than
+> kept beside it. Measured 2026-08-29 — a green e2e mocked a `404` that CloudFront rewrites to
+> `200 text/html`, and the feature worked for zero customers. A blank pair is not a pass.
 
 ## Behaviors
 

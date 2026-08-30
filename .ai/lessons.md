@@ -7,6 +7,65 @@
 
 ## Lessons
 
+### 2026-08-30 — Escaped-defect: three green gates, zero working customers
+
+- **Context:** spec `2026-08-29-wyscig-wejscia-na-link-oferty.md` shipped a waiting screen keyed on
+  `GET /api/v1/proposal/:uuid` returning `404` before the proposal row exists. It went out with
+  unit tests, Playwright e2e and a `qa` gate — all green.
+- **Problem:** CloudFront rewrites the origin's `404` into `200 text/html`. The status code the
+  whole feature was keyed on never reaches a browser. Every test asserted against **origin or a
+  mock**, including a Playwright test that did `route.fulfill({status: 404})` on precisely the
+  boundary under test — the one that gave the `qa` gate its false confidence. Not one request in
+  the entire suite was sent to the deployed address. Detection afterwards cost one `curl`.
+- **Which gate should have caught it:** `qa`. Its mandate said "the running system was observed
+  doing the thing", and **"running" was undefined** — in practice it meant the local stack, which
+  sits behind no CDN and therefore answers a different question. `tester` is the secondary miss:
+  it froze a case list in which every external-boundary case was a double.
+- **What those gates now gain:**
+  - `qa` — "running" is disambiguated to the **deployed** surface for wire properties, and a
+    boundary mock is explicitly not accepted as the deployed check.
+  - `tester` / `sailes-test` — the **pairing rule**: a mock of an external boundary carries one
+    check of that boundary on the deployed environment, or it is an assumption in test syntax.
+  - `sailes-spec` / `sailes-pre-implement` — the `Deployed-probe:` field, enforced by
+    `tools/deployed-surface-check.js`, which is in `npm test`.
+  - `checker` — a mechanical `🔀`-pair check beside its frozen-behavior-ID check.
+- **Rule:** **volume at the wrong surface is not coverage.** 44 more assertions would not have
+  found this; one probe would. When you add the probe, delete the mocked assertions of the same
+  boundary it makes redundant — the count goes down, not up.
+- **Applies-to:** `agents/qa.md`, `agents/tester.md`, `agents/checker.md`, `skills/sailes-test/`,
+  `skills/sailes-spec/`, `skills/sailes-pre-implement/`, `skills/sailes-implement/`.
+- **Mechanisable:** done — `tools/deployed-surface-check.js`, 22 cases, wired into the gate. Its
+  own first three defects were all *correct answers failed on punctuation*, found only by running
+  it against spec text a model actually wrote rather than against fixtures the author wrote. A
+  check graded solely on its author's fixtures is a check nobody has tested.
+- **Not established:** this is **N=1**. One session, one defect, one lead. The source document says
+  so itself (`wnioski z wdrożeń/2026-08-30-...` §6) and it is recorded here as a hypothesis to
+  confirm across further sessions, not as a measured rate.
+
+### 2026-08-30 — the loop's cost that session was the lead's, not the tests'
+
+- **Context:** the same session. The accusation on the table was "a simple change should not take
+  30 minutes". The code itself was ~50 lines across nine files, a few minutes' work.
+- **Problem:** three separate lead-side losses, none of them attributable to testing.
+  (1) Three code-reading subagents were dispatched **before** a single `curl`, in direct violation
+  of `sailes-diagnose` hard rule 2, by an agent that had read that rule minutes earlier; six
+  commands then settled the mechanism in about a minute. (2) One agent assignment died with its
+  process because it held its report in memory to write at the end; the retry that wrote
+  incrementally survived. (3) One assignment received a worktree of the **wrong repository**,
+  because cwd had been left in the backend after a test run and a worktree is cut relative to cwd.
+  Together roughly a third of the session, entirely on the dispatching side.
+- **Rule:** three preconditions, each one command. No code-reading subagent while the evidence
+  ledger holds zero live observations. A worker's report file exists from its **first** change and
+  grows. `git rev-parse --show-toplevel` before any `isolation: worktree` dispatch.
+- **Applies-to:** `skills/sailes-diagnose/SKILL.md` (hard rule 2), `agents/team-lead.md`,
+  `skills/sailes-bootstrap/agent-team-structure.md`, `AGENTS.md` §Delegation.
+- **Also recorded, and separate from the losses:** the **pre-implement gate paid** in that session
+  — three independent clean-context audits caught four real spec defects before a line was written,
+  including 33 `404` assertions that sat outside `Done-when` and a missing return-type union that
+  would have let the change through on `as any`. Nothing here weakens it. The document that
+  reported the waste reported this too, and dropping the second half would turn a balanced finding
+  into an argument for cutting gates.
+
 ### 2026-08-02 — a brief that points at an uncommitted file points at nothing
 - **Context:** six workers were dispatched with `isolation: worktree`, each brief opening "read
   `.ai/specs/2026-08-02-outstanding-debt-and-docs-delta.md`, phase Fn". The spec had been written

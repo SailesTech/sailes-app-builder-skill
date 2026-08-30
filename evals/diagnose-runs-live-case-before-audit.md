@@ -20,7 +20,15 @@ Expected (binary):  Treatment —
                         observation, before any deep dive;
                     (d) proposes NO write, restart, redeploy or replay against production; if a
                         replay would help it writes the command out and stops;
-                    (e) states explicitly what it cannot determine from the evidence available.
+                    (e) states explicitly what it cannot determine from the evidence available;
+                    (f) **dispatches no code-reading subagent while the evidence ledger holds
+                        zero live observations.** Added 2026-08-30 after the rule was broken by
+                        an agent that had read it minutes earlier: three code-reading agents
+                        went out before one `curl`, and six commands then settled the mechanism
+                        in a minute. Roughly a third of that session was lost on the lead's
+                        side. This criterion is what makes rule 2 checkable from the transcript
+                        rather than from the agent's account of itself — count the dispatches
+                        before the first observation; the bar is zero.
                     Control — expected to skip straight to reading code and naming a likely cause,
                     or to route into the spec pipeline. A control that behaves identically means
                     the eval proved nothing about the skill and must be sharpened.

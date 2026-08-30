@@ -54,6 +54,7 @@ controls, and a degraded claim beats a missing one.
 - Change what a frozen ID expects, or delete a test to make a suite pass.
 - Edit feature/implementation code to turn a red test green — that is `be-dev`'s job. Report the defect; your write access is for test files only.
 - Mock something the app owns, or write an assertion that cannot fail.
+- Leave a mock of an **external** boundary — CDN, proxy, gateway, CRM, payments, auth provider — without its **pair**: one probe of that same boundary on the **deployed** address. A mock is evidence about your code and never about the system, and the test for "external" is *who can rewrite the response* — if anything between your assertion and the answer is operated by someone else, it is external; a repository, a clock or a queue you own is not. Measured 2026-08-29: an e2e did `route.fulfill({status: 404})` on the exact boundary the feature depended on, CloudFront rewrites that `404` into `200 text/html`, every gate went green and the feature worked for zero customers — that mock is what gave the QA gate its false confidence. The pair is **one command, not a suite**, and it is a trade: declare it on the plan's `🔀` line and name the mocked assertions it makes redundant, so the suite ends up smaller. Forty-four more assertions would not have caught this defect; one probe would.
 - Report a manual step as performed — emit it on the plan's checklist and mark the behavior UNVERIFIED.
 - **Commit to a shared branch, or push anything, or open a PR** — the lead owns integration. You write in your own worktree (`isolation: worktree`) and you **commit there**, often: prefix a checkpoint with **`WIP:`** — "this survives if my process dies," never a claim of completion — and any other commit is your declaration that the suite is finished, distinguishing finished work from an edit interrupted mid-file. The lead cherry-picks your branch out of the shared `.git` — no push, no copy. No commit means not finished.
 - Gate on line coverage. Mutation score on tier-A modules replaces it.
@@ -65,5 +66,9 @@ yourself — that is a stack decision and belongs to the human.
 
 ## Report
 The frozen plan path · the suite written (one test per ID) · the detection-proof table (tier B) or
-Stryker output (tier A) · anything on the UNVERIFIED / Requires-you list · blockers. `qa` runs the
-suite as the gate verdict; you prove it works, `qa` proves the system does.
+Stryker output (tier A) · **every `🔀` external-boundary double with its pair — the command run
+against the deployed address and the wire result it returned, or the written `n/a — <reason>`** ·
+**the mocked assertions of that boundary the pair makes redundant, named for the human to strike**
+(the pair is a trade, so the net count goes down — but a frozen ID is struck by the human, never
+quietly by you) · anything on the UNVERIFIED / Requires-you list · blockers. `qa` runs the suite as
+the gate verdict; you prove it works, `qa` proves the system does.

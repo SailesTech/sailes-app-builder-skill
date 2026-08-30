@@ -192,6 +192,43 @@ Last-commit: bc5e159
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
+- 2026-08-30 (**resume here**): **1.30.0 prepared on branch `test-doctrine-from-deployment-lessons`,
+  local commits only, nothing pushed.** Source: `wnioski z wdrożeń/2026-08-30-...` — a client
+  feature that shipped with unit tests, Playwright e2e and a green `qa` gate and worked for **zero**
+  customers, because CloudFront rewrites the origin's `404` into `200 text/html` and every test
+  asserted against origin or a mock. Spec: `.ai/specs/2026-08-30-test-surface-not-test-count.md`.
+  - **The human's steer mid-session reframed the whole change set:** *"celem jest optymalizacja
+    skilla pod połączenie szybkości i bezpieczeństwa, teraz jest zbyt w kierunku bezsensownego
+    bezpieczeństwa."* Everything here therefore either replaces work or prevents measured waste:
+    two safety rules that cost one command each, and three speed rules that delete work outright.
+  - **What shipped:** `Deployed-probe:` + `tools/deployed-surface-check.js` (17th suite, 22 cases);
+    the mock-pairing rule across `sailes-test`/`tester`/`qa`/`checker`; **`spec-weight`, a third
+    sync block** beside `delegation-threshold` and `gate-scaling` (365 lines of spec for ~50 lines
+    of code was the measured failure); the diagnose dispatch precondition; incremental worker
+    reports; the cwd-before-worktree check.
+  - **The most transferable finding is about the checker, not the doctrine.** It passed all seven of
+    its author's fixtures and then failed **three correct answers on punctuation** the moment it met
+    spec text a model had actually written — a `**Deployed-probe**` heading, a backticked `n/a`
+    waiver, and a real deployed `curl` sitting unlabelled inside a `Done-when`. A check graded only
+    on its author's fixtures is a check nobody has tested, and all three would have shipped as
+    exactly the ceremony this release exists to remove. Pinned in the suite under "forms real specs
+    are written in".
+  - **Measured / not measured, kept apart on purpose.** The A/B
+    (`.ai/eval-runs/2026-08-30-deployed-surface-probe/VERDICT.md`) discriminates: arm B exits 0,
+    arm A exits 1. The control is **not clean** — arm A reached a deployed phase on its own but
+    pointed it at cache headers while keeping the `404` contract in vitest and Playwright only,
+    i.e. it reproduced the escaped defect rather than the behavior. A second A/B
+    (`.ai/eval-runs/2026-08-30-spec-weight/VERDICT.md`) measures the speed half on a
+    contract-shaped brief: **15,102 → 6,719 bytes, 13 sections → 5**, weight declared, every
+    dropped section disposed of with a one-line `n/a`. On that fixture the probe dimension was a
+    **tie** — both arms probed the deployed host unprompted. Across both runs the honest reading
+    is that the probe rule does not supply an instinct the model lacks; it converts an occasional
+    one into something either present on disk or loudly absent. One run per arm. N=1 source.
+  - **Owed, all in `.ai/backlog.md`:** re-run the diagnose eval against its new criterion (f) — it
+    reads STALE; dispatch `mock-of-an-external-boundary-carries-a-pair` — NEVER-RUN by design, no
+    date; A/B `spec-weight` on a whole-spec prompt; the client-repo copy of the checker (spec Q2);
+    re-ground `brief-closure.js:36-38`, whose comment 1.30.0 contradicts.
+
 - 2026-08-02 close (**resume here**): **1.28.2 on production (`b639c7c`), both 2026-08-01 specs
   CLOSED with pasted gate evidence, branches and worktrees cleaned.** Three releases shipped this
   session: 1.28.0 → 1.28.1 → 1.28.2. One live spec remains, today's.

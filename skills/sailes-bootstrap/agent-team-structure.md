@@ -413,6 +413,19 @@ ENVIRONMENT.** Database, ports, buckets and containers are shared by the whole m
 rule 4b's environment exclusivity, "we gave everyone a worktree" is a **false sense of security**:
 the files are safe and `qa` still loses its run to somebody else's `docker compose down`.
 
+**And it is cut relative to `cwd`, which makes the dispatch the LEAD's to get right.** The base
+check above is the worker's; this one the worker cannot make, because by the time it reads its brief
+the repository has already been chosen for it. Measured 2026-08-30: a brief for FRONTEND work got a
+worktree of the BACKEND repository, because the lead's working directory had been left in
+`partner-portal-be` after running tests there. A whole assignment lost to one unchecked `pwd` — the
+worker was not wrong, the dispatch was. So **before any `isolation: worktree` dispatch the lead
+confirms the working directory is the repo the brief targets**: `git rev-parse --show-toplevel`, one
+command. The same mechanism is on disk a second time, recorded as a one-off deviation rather than
+doctrine — `evals/gate-refuses-to-close-a-spec-without-docs-delta.md`: *"the Agent tool branches the
+cwd repo — the framework repo — not the fixture the work targeted, so isolation would have branched
+the wrong repository."* Running tests, reading logs or inspecting a sibling service all move you;
+the check belongs at the dispatch, not in the lead's memory of where it was.
+
 ### The fourth axis of collision — the shared TOOLCHAIN, and it fails by going quiet
 
 Three axes are named above and each has its isolation: **files** → the worktree, **contract** →
@@ -574,10 +587,12 @@ Status:      claim `.claude/status/<worker-id>.md` as your FIRST action — `wor
 Checkpoint:  write progress to files as you go. Your in-memory state does not survive your
              process; disk does.
 Verification: exact commands to run + the e2e requirement.
-Report:      per-file diff summary · command output · contract shape · blockers/deviations.
-             Your REPORT IS the deliverable — not a summary for a human, not a status
-             line. If you did not finish, say so plainly and list what you did and did
-             not establish. Never return empty.
+Report:      `<path>` — per-file diff summary · command output · contract shape ·
+             blockers/deviations. Your REPORT IS the deliverable — not a summary for a
+             human, not a status line. **Create that file with your FIRST change and
+             append to it as you go**; a report composed at the end dies with the process
+             holding it. If you did not finish, say so plainly and list what you did and
+             did not establish. Never return empty.
 Delivery:    [scoped subagent] your final message is returned automatically — just end with it.
              [background teammate] plain text reaches NO ONE; you must call SendMessage
              to deliver. State which of the two applies — the worker cannot tell.
@@ -622,6 +637,8 @@ surfaces at merge time, when it is most expensive.
 **Name the delivery mechanism, because the worker cannot infer it.** Measured 2026-07-18: of five background teammates given "your final message IS the deliverable", three produced a correct answer and delivered nothing — one said outright it had written the answer as plain text instead of calling `SendMessage`. The instruction was not ignored; it was *true for a different spawn mode*. A scoped subagent returns its final message automatically; a background teammate must send it, and only the lead knows which it spawned. Telling the worker how to deliver is the lead's job, not the worker's guess.
 
 **For work a gate will grade, name a FILE — not a message.** A gate verdict, a review, a findings list, a test-case list: the brief gives the path and says the file is the deliverable ("no file = task not done"), and the lead reads it from disk instead of waiting for a report. Measured 2026-07-25, same session as above: four briefs whose deliverable was the final message produced six empty idle returns and two pointless re-spawns; the one brief that named `VERDICT.md` produced a gradable artifact on the first attempt, with the raw instrument output pasted in. A message is a channel that can drop; a file is an artifact that survives the drop, the context reset, and the worker itself. Ordinary chatter stays on messages — this is about anything whose loss costs a re-run.
+
+**And name WHEN the file is written, because the path alone left the hole open.** The brief says the report exists **from the worker's first change** and grows by appending — it is not a document composed at the end and saved once. A file promised at the end is a report held in memory, and it dies exactly the way a message does. Measured 2026-08-30: two agent assignments burned; one died together with its process holding an unwritten report, and the second attempt at the same task survived only because it wrote incrementally. `Checkpoint:` already covers the worker's **progress** in the same words; this covers the **deliverable**, and until now nothing said the two obey one rule.
 
 ## Agent lifecycle — spawn one task, release when done
 

@@ -11,6 +11,15 @@
       ]
     },
     {
+      "name": "spec-weight",
+      "source": "../skills/sailes-bootstrap/spec-weight.md",
+      "consumers": [
+        "../skills/sailes-spec/SKILL.md",
+        "../skills/sailes-bootstrap/spec-writing-template.md",
+        "../skills/sailes-pre-implement/SKILL.md"
+      ]
+    },
+    {
       "name": "gate-scaling",
       "source": "../skills/sailes-bootstrap/gate-scaling.md",
       "consumers": [

@@ -39,6 +39,7 @@ A repo built with `sailes-bootstrap` has a **local** spec-writing skill at `.ai/
 4. **Iterate** — apply answers, remove the Open Questions block. New unknowns surface → re-gate only those.
 5. **Design** — data model, API surface, UI surface, module boundaries, integration/webhook contracts, jobs/workflows.
 6. **Phasing** — break into **Phases** (stories) and **Steps** (testable tasks). Each step leaves the app working. **Every phase carries a `Done-when`** — a binary, machine-checkable completion condition: the exact command(s) to run + the expected outcome (e.g. `pnpm test src/auth → 0 failures`; `curl -s -o /dev/null -w '%{http_code}' -X POST /api/export → 200 + non-empty file`; UI: screenshot of screen X matches the design artifact). "Works correctly" / "is polished" is not a Done-when — if you can't write the check, the phase isn't specified yet.
+   - **Wire properties are observed on the deployed address, or they are not observed.** A phase whose behavior depends on an HTTP **status code, header or `Content-Type`** carries a `Deployed-probe:` line beside its `Done-when`: one command against the deployed host, with the expected observation written out. Not origin, not `localhost`, not a mock. Where the phase truly has no deployed surface, write `Deployed-probe: n/a — <reason>`; never drop it. `node tools/deployed-surface-check.js <spec>` checks exactly this and nothing else. Measured 2026-08-29: a feature shipped with unit tests, Playwright e2e and a green `qa` gate and worked for **zero** customers — CloudFront rewrites the origin's `404` into `200 text/html`, so the code the whole feature keyed on never reached a browser, and every test had asserted against origin or a mock. One curl would have caught it; forty-four more assertions would not have. **The probe is a trade, not a tax:** when you add it, delete the mocked assertions of the same boundary it makes redundant.
 7. **Integration coverage** — list every affected API path and key UI path; each gets a test in the same change.
 8. **Review** — apply the checklist below; set `Status: approved` when the user signs off, before implementation starts.
 
@@ -86,6 +87,41 @@ Status: draft | approved | in-progress | implemented | superseded
 - **Update** an existing live spec when: APIs, data models, workflows, permissions, or cross-module behavior change.
 - **Skip** specs for: small bug fixes, typo-only edits, isolated one-file refactors with no behavior change. (Don't manufacture a spec for a one-liner.)
 
+## How much spec the change earns
+
+<!-- BEGIN spec-weight -->
+**The spec weight scales with what a wrong assumption costs, never with the template you own.**
+
+Three weights. Pick one deliberately; the failure this rule exists for is the full template being
+applied because it was there.
+
+- **No spec** — a one-liner, a typo, an isolated refactor with no behavior change. Just do it, with
+  a test that pins it. Unchanged.
+- **Contract fix** — behavior changes at a surface someone else depends on, but the data model,
+  the auth model and the module boundaries stay put. **Five sections, and no more:** TLDR · what
+  changes (the surface, before → after) · `Done-when` (carrying `Deployed-probe:` when the change
+  is on the wire) · non-goals · phasing only if there is genuinely more than one phase. Every other
+  required section is written `n/a` on one line or left out. A data-model section for a change that
+  moves no table is filler, and filler costs a spec exactly what it costs an answer: the reader
+  cannot find the four load-bearing lines, and every gate downstream reads the same document.
+- **Feature** — new surface, a data model that moves, tenancy, auth, money, or an integration
+  contract. The full required-sections list, as today.
+
+**Weight goes down, never out.** The opposite failure — skipping the spec because the change "felt
+small" — is behind every escaped contract change this framework records, and a contract fix is
+precisely the shape that feels small. Halving the document is the saving; skipping it is not.
+
+**A spec is rewritten, not patched.** Measured in the same session: eight numbered correction
+sections, accumulated because the spec was being fixed in place instead of re-written. Once the
+corrections outnumber the design, the document describes its own history rather than the change,
+and reading it costs more than replacing it. The `Status:` line and the Decisions Ledger survive a
+rewrite; the correction sections are the thing being deleted.
+
+**Write the weight down.** One line by the `Status:` line — `Weight: contract-fix — no data model
+moves, one API path, one FE screen.` A weight nobody wrote is a weight nobody can argue with, and
+this rule exists because the default was never a decision at all.
+<!-- END spec-weight -->
+
 ## Required sections
 
 - **TLDR & Context** — what & why, in 2-3 sentences.
@@ -131,6 +167,7 @@ without a reason is not a tighter spec, it is a spec that has hidden its own esc
 - [ ] Integration coverage lists every affected API + key UI path, each with a test.
 - [ ] Phases leave the app working; each step is testable.
 - [ ] Every phase has a binary `Done-when` (exact commands + expected result), not a qualitative statement.
+- [ ] **Any phase depending on a status code, header or `Content-Type` carries a `Deployed-probe:`** — a command against the deployed host, or `n/a — <reason>`. `node tools/deployed-surface-check.js <spec>` answers this in a second.
 - [ ] **Every phase's `Done-when` covers that phase's own allowed-files list** — each path names the clause that forces it into existence. A path with no clause is surplus or a hole, and which one is decided while writing, not after shipping.
 - [ ] API surface is a machine-comparable `yaml` block (method · path · phase) with out-of-scope paths listed explicitly, not a prose table nothing can be diffed against.
 - [ ] Every constraint states its reason — a bare prohibition is reversible only by guessing why it is there.
@@ -163,6 +200,8 @@ without a reason is not a tighter spec, it is a spec that has hidden its own esc
 - There's a local `.ai/skills/spec-writing/` and you didn't use it.
 - A phase leaves the app non-working, or a step has no test.
 - A phase's completion is described qualitatively ("improve", "polish", "works well") with no binary `Done-when`.
+- A phase keys on an HTTP status, header or `Content-Type` and every check named runs against origin, `localhost` or a mock. That combination shipped a feature to zero working customers on 2026-08-29 with three green gates behind it.
+- The spec is the full template for a change that moves no data model, no auth model and no module boundary — pick the weight before writing, not after.
 - A phase lists files it may touch that no `Done-when` clause requires — the two lists have drifted, and the drift is invisible to every gate downstream.
 - You're about to hand the spec to implementation with unanswered critical unknowns.
 - You wrote `Status: implemented` with a gate verdict you have not received yet — the format exists so this is unwritable, and filling it from expectation defeats it entirely.

@@ -79,6 +79,20 @@ Do not plan for it. The workable substitutes:
 5. **Credentials come from the human.** An agent cannot create a sandbox account. If a behavior needs
    one and it is absent, it goes on the plan's `🔑` list and the behavior is **UNVERIFIED** — never
    mocked and reported as covered.
+6. **Every mock of an external boundary carries a pair** — one probe of that same boundary on the
+   **deployed address**. Not origin, not localhost, not a second double. This is a different axis
+   from rule 1, and confusing the two is how the gap survived: rule 1 asks whether anything in the
+   repo knows what the **vendor's** API does; rule 6 asks whether anything knows what **your own
+   deployed address** returns after the CDN, proxy or gateway in front of it has had its turn. Both
+   can be satisfied while the system is broken in the other's direction. The distinguishing test for
+   "external" is *who can rewrite the response*: if anything between your assertion and the answer is
+   operated by someone else, it is external — a repository, a clock or a queue you own is not.
+   Measured 2026-08-29: a feature shipped with unit tests, Playwright e2e and a green `qa` gate and
+   worked for zero customers, because CloudFront rewrites the origin's `404` into `200 text/html`
+   and the e2e mocked exactly that boundary (`route.fulfill({status: 404})`). Forty-four more
+   assertions would not have caught it; one `curl` against the deployed host did. The pair is one
+   command and it is a **trade** — it makes the mocked assertions of that same boundary redundant and
+   earns their deletion, so the suite ends up smaller than it started.
 
 ## LLM APIs are a special case
 
@@ -98,8 +112,15 @@ so the next reader sees the decision rather than inheriting it as if it were phy
 ```
 🔀 Pipedrive → cassette recorded 2026-07-20 — real payloads, but a field type change
    will not fail this suite until re-record. Real-contract check: nightly canary B12.
+   ↳ pair: curl -s -o /dev/null -w '%{http_code} %{content_type}' \
+            https://app.example.com/api/v1/crm/deal/<unknown-id>   → expect 404 application/json
 🔀 Slack     → mock — low cost of being wrong, message shape is not our contract.
+   ↳ pair: n/a — outbound only; no wire property of ours depends on Slack's response.
 ```
+
+The `↳ pair` line is the rule-6 half and it is never dropped: either a command against the deployed
+address with the wire observation it must produce, or `n/a — <reason>`. A blank pair is what a green
+suite over an unproven boundary looks like on paper.
 
 References: [Mocks Aren't Stubs](https://martinfowler.com/articles/mocksArentStubs.html) ·
 [SWE at Google ch. 13](https://abseil.io/resources/swe-book/html/ch13.html) ·

@@ -99,6 +99,19 @@ Code-reading answers "what should happen". Only the live run answers "what does 
 expensive miss in both repos lives in that gap. Hypothesis-first audits are for *confirming what
 the live run already showed*.
 
+**The precondition, because the prose above did not hold on its own.** Measured 2026-08-30: a lead
+read this rule and minutes later dispatched **three code-reading subagents before running one
+`curl`**. Six commands then settled the mechanism in about a minute, and roughly a third of the
+session was lost — entirely on the lead's side. So:
+
+> **No code-reading subagent may be dispatched while the evidence ledger holds zero observations
+> from the live system.**
+
+One observation is the bar — one command, one response — and it is usually also the answer. A
+fan-out before the first probe is not thoroughness; it is three agents guessing in parallel about a
+question one command answers, and it costs more than it can return. In that session the probe first
+would have narrowed two of the three briefs out of existence.
+
 ### 3. Three hypotheses before any deep dive
 
 Never carry one. One hypothesis is not a diagnosis, it is a guess with a narrative attached — and

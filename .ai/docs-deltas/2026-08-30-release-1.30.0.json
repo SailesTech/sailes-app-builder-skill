@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "compare",
+  "type": "architecture",
+  "comparatorVersion": 1,
+  "canonicalVersion": 1,
+  "completeness": "complete",
+  "proofLevel": "authored",
+  "base": {
+    "title": "Sailes App-Builder Framework Architecture",
+    "rawSha256": "0bd282a0352343c625b2844d5ae5bad51bdc7f7bc34e4d69d18abd1f60ed682a",
+    "semanticSha256": "021f681e5efa2f0a275949ce2cd82ea7e2cf56fd839adf04d2b1edd9328eec99",
+    "bytes": 6271
+  },
+  "head": {
+    "title": "Sailes App-Builder Framework Architecture",
+    "rawSha256": "66159e43f7b4f273f968d44d0db456742a0ae5cda9f98fd8a7ef753dd990e0c8",
+    "semanticSha256": "77d80b8d42e4d019b2e63c763a33c344a41d475d72dc957172bb4626872fa9b8",
+    "bytes": 6812
+  },
+  "summary": {
+    "components": {
+      "added": 0,
+      "changed": 1,
+      "evidenceChanged": 0,
+      "removed": 0,
+      "moved": 0
+    },
+    "connections": {
+      "added": 0,
+      "changed": 0,
+      "removed": 0,
+      "rerouted": 0
+    },
+    "boundaries": {
+      "added": 0,
+      "changed": 0,
+      "removed": 0,
+      "geometryChanged": 0
+    },
+    "presentationChanged": true,
+    "provenanceChanged": false
+  },
+  "changes": {
+    "components": [
+      {
+        "id": "tools",
+        "baseLabel": "Governance Tools",
+        "headLabel": "Governance Tools",
+        "status": "changed",
+        "classifications": [
+          "semantic"
+        ],
+        "changedFields": [
+          "/sublabel",
+          "/tag"
+        ]
+      }
+    ],
+    "connections": [],
+    "boundaries": []
+  },
+  "identity": {
+    "components": "components[].id",
+    "connections": "connections[].id (required)",
+    "boundaries": "boundaries[].kind + boundaries[].label (derived)"
+  },
+  "view": {
+    "visualPreset": "classic"
+  },
+  "limitations": [
+    "Authored Architecture IR only; no runtime impact, causality, risk, or mergeability is inferred.",
+    "Boundary identity is conservatively derived from kind + label."
+  ],
+  "artifact": {
+    "sha256": "15b0e35e8e05dfd6f7b9b74f12354d21f1bef82ed99ecc1479eb16ba1d7924d4",
+    "bytes": 1807002
+  },
+  "validation": {
+    "checksPassed": 28,
+    "checkCount": 28,
+    "baseComposition": "pass",
+    "headComposition": "pass"
+  }
+}

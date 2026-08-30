@@ -4,6 +4,76 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.30.0 — 2026-08-30 · the test SURFACE, not the test count
+
+A feature shipped 2026-08-29 with unit tests, Playwright e2e and a green `qa` gate, and worked for
+**zero** customers. CloudFront rewrites the origin's `404` into `200 text/html`; the whole feature
+was keyed on a status code that never reaches a browser, and every test asserted against origin or
+a mock. Not one request had ever been sent to the deployed address. Detection cost afterwards: one
+`curl`. Forty-four more assertions would not have found it.
+
+This release is the pair of conclusions that follow — and deliberately, one of each kind. The
+framework was leaning toward safety that buys nothing, so every rule here either replaces work or
+prevents measured waste.
+
+**Safety — `Deployed-probe:`.** A spec phase whose behavior depends on an HTTP **status code,
+header or `Content-Type`** now names where that is observed on the **deployed** address: one
+command, with the expected observation written out. Not origin, not `localhost`, not a mock. Where
+a phase has no deployed surface, `Deployed-probe: n/a — <reason>`; never dropped. Enforced by
+`tools/deployed-surface-check.js` (new, in `npm test`, 22 cases) and read at the pre-implement gate.
+**It is a trade, not a tax:** adding the probe earns the deletion of the mocked assertions of the
+same boundary it makes redundant.
+
+**Safety — mock pairing.** A mock of an *external* boundary (CDN, proxy, gateway, CRM, payments) is
+evidence about your code and never about the system. Each one carries a **pair**: one check of the
+same boundary on the deployed environment. Internal doubles are unaffected — the test is who can
+rewrite the response. Lands in `sailes-test`, `external-systems.md`, the frozen test-plan template,
+`tester`, `qa`, and as a mechanical `🔀`-pair check in `checker`.
+
+**Speed — `spec-weight`, a third sync block.** Sibling to `delegation-threshold` (who writes) and
+`gate-scaling` (who grades); this one answers how much document the change earns. Three weights —
+no spec / **contract fix** (five sections, and no more) / feature (the full list). Until now the
+answer was binary, and the measured result was **365 lines of spec for ~50 lines of code**. Weight
+goes down, never out. A spec is rewritten, not patched, once its correction sections outnumber its
+design sections.
+
+**Speed — no fan-out before the first observation.** `sailes-diagnose` hard rule 2 already said
+"run the live case before you audit code" and was broken by an agent that had read it minutes
+earlier: three code-reading subagents dispatched before one `curl`, ~⅓ of a session lost. It is now
+a precondition — **no code-reading subagent while the evidence ledger holds zero live
+observations.**
+
+**Speed — two dispatch ratchets.** A worker's report is a file that exists from its **first**
+change and grows, not a document composed at the end (one assignment died holding its report in
+memory; the retry that wrote incrementally survived). And the lead confirms its working directory
+before any `isolation: worktree` dispatch — a worktree is cut relative to cwd, so a "frontend" brief
+issued from the backend directory produces a backend worktree. Both cost one command.
+
+**What an older-stamped repo is missing.** The `Deployed-probe:` clause in its local
+`.ai/skills/spec-writing/SKILL.md` (regenerate from `spec-writing-template.md`, which now carries
+the `spec-weight` block and the probe checklist item). The rest ships with the plugin.
+
+**Measured, and what is NOT.** `.ai/eval-runs/2026-08-30-deployed-surface-probe/VERDICT.md` records
+an A/B on the spec skill: arm B passes the checker, arm A fails. The control is **not clean** and
+the verdict says so — arm A reached a deployed phase on its own, but pointed it at cache headers
+while keeping the `404` contract asserted only in vitest and Playwright, reproducing the escaped
+defect rather than the behavior. A second A/B — `.ai/eval-runs/2026-08-30-spec-weight/VERDICT.md`,
+a contract-shaped brief, whole spec asked for — measures the speed half: **15,102 → 6,719 bytes,
+13 sections → 5**, weight declared, and every dropped section carried a one-line `n/a` with a
+reason rather than being silently omitted. On that fixture the probe dimension was a **tie** — both
+arms wrote a deployed `curl` unprompted — which is recorded rather than smoothed over: the probe
+rule's value is that it makes an occasional good instinct either present on disk or loudly absent,
+not that a model would never think of it. One run per arm, both A/Bs. Source evidence is N=1 — one
+session, one defect — and is recorded as a hypothesis to confirm, not an established fact.
+
+**Five defects in the new checker were found by grading real model output, none by its own
+fixtures.** All five were *correct answers failed on punctuation or layout* — a `**Deployed-probe**`
+heading, a backticked `n/a`, an unlabelled `curl` inside a `Done-when`, present-tense `returns 404
+matching rows` counted as a status claim, and a probe whose command sat below a blank line. An
+independent review then broke it twice more, including passing a phase with a Wikipedia link where
+a probe should be. All seven are pinned in the suite. A check graded only on its author's fixtures
+is a check nobody has tested.
+
 ## 1.29.0 — 2026-08-22 · domain rulings stop dying in session memory
 
 **New artifact: `.ai/business-logic.md`.** Every repo generated or adopted from now on carries a

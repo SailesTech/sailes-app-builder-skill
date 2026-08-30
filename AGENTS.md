@@ -1,7 +1,7 @@
 # Agents Guidelines — sailes-app-builder framework repo
 
 > Single source of truth for how agents work in **this** repo. CLAUDE.md imports this via @AGENTS.md.
-> Framework-Version: 1.29.0
+> Framework-Version: 1.30.0
 >
 > This repo is not a product — it is the framework that generates and governs product repos.
 > `skills/sailes-bootstrap/agents-md-template.md` is what a *client* repo gets; this file is what
@@ -100,10 +100,12 @@ The live plugin does **not** run from this working directory. It runs from a clo
    the human answers (`skills/sailes-bootstrap/spec-writing-template.md`).
 
 ## Verification
-- `npm test` — sixteen suites: hook tests (`hooks/*.test.js`), the five **governance tools**
-  (`tools/{sync-blocks,ownership-check,worker-status,mcp-toolnames-check,business-logic-check}.test.js`
-  — the last one also asserts byte-parity between the framework checker and its client-repo copy,
-  because sync-blocks cannot carry JS: its markers are HTML comments), the client-repo
+- `npm test` — seventeen suites: hook tests (`hooks/*.test.js`), the six **governance tools**
+  (`tools/{sync-blocks,ownership-check,worker-status,mcp-toolnames-check,business-logic-check,
+  deployed-surface-check}.test.js` — `business-logic-check` also asserts byte-parity between the
+  framework checker and its client-repo copy, because sync-blocks cannot carry JS: its markers are
+  HTML comments; `deployed-surface-check` also asserts it stays QUIET on this repo's own eighteen
+  implemented specs, because a check that fires on prose is a check somebody disables), the client-repo
   hook templates (`hooks-template/*.test.js`, incl. `brief-closure`), the Codex TOML validator and
   the role parity check, the role frontmatter validator, the eval provenance reporter, spec-status
   evidence, the repo-done checklist, and release hygiene (five stamps + CHANGELOG heading). No
@@ -157,12 +159,16 @@ machine that deliberately wants skills **without** the plugin, and know that it 
 supplements.
 
 ## Delegation
-Delegation is the lead's default (`agents/team-lead.md`). Two rules earn their place from failures:
+Delegation is the lead's default (`agents/team-lead.md`). Three rules earn their place from failures:
 - **An empty return is a failure, not a completion.** It is indistinguishable from "looked and
   found nothing", so accepting it records a false negative as a result. Chase once, then escalate.
   "The agent found no issues" may be said only if an agent actually said so.
 - **Every brief carries the report clause** — including for built-in agent types, whose definitions
   cannot be edited and which are where this has actually gone wrong.
+- **The report is a file written from the worker's first change**, appended to as it goes — never
+  composed at the end. A file promised at the end is a report held in memory. Measured 2026-08-30:
+  two assignments burned; one died with its process holding an unwritten report, the second attempt
+  at the same task wrote incrementally and survived.
 
 ## Hard safety rules
 - Never push to `main` without tests green and a CHANGELOG entry — it is a live deploy.
