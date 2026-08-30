@@ -1,6 +1,8 @@
 # Spec: the inner loop, and the one test that earned its place
 
 Status: implemented — evidence: `npm test` → exit 0 (17 suites) · `node tools/sync-blocks.js --check` → all blocks in sync · `node codex-agents/parity.test.js` → exit 0 · `release-hygiene` → five stamps at 1.32.0 · A/B: **PARTIAL PASS** (`.ai/eval-runs/2026-08-30-inner-loop-promotion/VERDICT.md`) · docs-delta: EMPTY, receipt written by the release lead leaning on 1.31.0's compare rather than its own archify run — stated in the receipt and queued for check · checker: not run on this change · qa: n/a — no running app here
+Shipped: 2026-08-30, `main` at 2549cde — pushed with 1.30.0 and 1.31.0 in one deploy.
+        Moved to `.ai/specs/implemented/` by the push, per the lifecycle.
 Weight: contract fix — it renames and re-purposes an existing concept, adds one report field and one
         intake clause. No new artifact, no new role, no new block, no new tool.
 Source: the human, 2026-08-30 — "kiedy i jakie testy powinny być robione żeby usprawniać

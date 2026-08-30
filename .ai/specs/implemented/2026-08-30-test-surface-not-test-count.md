@@ -2,10 +2,8 @@
 
 Status: implemented — evidence: `npm test` → exit 0 (17 suites) · `node tools/sync-blocks.js --check` → all blocks in sync · `node release-hygiene.test.js` → five stamps at 1.30.0 · checker: CHANGES-REQUIRED (2026-08-30, `.ai/audits/2026-08-30-checker-test-surface.md`) → all five findings addressed, see Closure below · qa: n/a — this repo ships no running app; the behavior gates here are the two A/Bs
 Weight: feature — a new enforced check, a new sync block and rules across nine model-facing files
-Location: still in `.ai/specs/` root, deliberately. The lifecycle moves a spec to `implemented/`
-when the feature is **deployed**, and in this repo deploying means pushing `main`. This work sits
-on a branch by the human's instruction (local commits only), so it is verified and not shipped.
-The `git mv` belongs to whoever pushes.
+Shipped: 2026-08-30, `main` at 2549cde — pushed with 1.30.0 and 1.31.0 in one deploy.
+        Moved to `.ai/specs/implemented/` by the push, per the lifecycle.
 Source: `wnioski z wdrożeń/2026-08-30-wnioski-o-testach-i-procesie.md` (N=1, one session, one escaped defect)
 Framework-Version target: 1.30.0
 

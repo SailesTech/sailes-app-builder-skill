@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: bc5e159
+Last-commit: 2549cde
 
 > Read at session start; write before walking away. Facts enter **Verified facts** only with
 > evidence; hypotheses stay in **Open failures**.
@@ -192,8 +192,9 @@ Last-commit: bc5e159
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-08-30, third release of the session (**resume here**): **1.32.0, local commits only, nothing
-  pushed.** The human asked "kiedy i jakie testy … żeby usprawniać implementację i przyspieszyć
+- 2026-08-30, third release of the session (**resume here**): **1.32.0 — SHIPPED.** 1.30.0, 1.31.0
+  and 1.32.0 went to `main` in one push (`2549cde`); the plugin auto-updates on every machine at
+  its next session start, and all three specs moved to `.ai/specs/implemented/`. The human asked "kiedy i jakie testy … żeby usprawniać implementację i przyspieszyć
   proces". Two forks were put to them; they chose **keep the frozen case list after implementation**
   (against my recommendation to move it into the spec — oracle independence stays bought the
   expensive way, deliberately) and **split the inner loop out with a promotion path**. Spec:
@@ -212,11 +213,11 @@ Last-commit: bc5e159
   - **Still unproven, and it is the human's actual question:** nothing measures SPEED. All three
     releases argue from structure and artifact counts, never from wall-clock. Owed, top of backlog.
   - **Session totals:** 1.30.0 → 1.31.0 → 1.32.0, +6.83% context across all skill entrypoints and
-    role definitions against 1.29.0. Deploy (a push to `main`) was authorised by the human in
-    principle and **not performed** — confirm before pushing.
+    role definitions against 1.29.0. Deployed 2026-08-30: the human authorised the push, `main`
+    fast-forwarded 76554a5 → 2549cde, and `origin/main` was verified carrying all five version
+    stamps at 1.32.0.
 
-- 2026-08-30 later (**resume here**): **1.31.0 prepared on the same branch, local commits only,
-  nothing pushed.** Human's brief: "optymalizacja skilla żeby nie produkował zbędnego kodu, działał
+- 2026-08-30 later: **1.31.0 — shipped in the 2026-08-30 push (`2549cde`).** Human's brief: "optymalizacja skilla żeby nie produkował zbędnego kodu, działał
   szybciej ale zachował zalety testowania", scoped by them to **test volume + process ceremony**
   (production-code minimality explicitly out). Spec:
   `.ai/specs/2026-08-30-the-suite-is-a-one-way-ratchet.md`.
@@ -248,7 +249,7 @@ Last-commit: bc5e159
     generalises the Case-list rule.
 
 - 2026-08-30 (**resume here**): **1.30.0 prepared on branch `test-doctrine-from-deployment-lessons`,
-  local commits only, nothing pushed.** Source: `wnioski z wdrożeń/2026-08-30-...` — a client
+  shipped in the 2026-08-30 push (`2549cde`).** Source: `wnioski z wdrożeń/2026-08-30-...` — a client
   feature that shipped with unit tests, Playwright e2e and a green `qa` gate and worked for **zero**
   customers, because CloudFront rewrites the origin's `404` into `200 text/html` and every test
   asserted against origin or a mock. Spec: `.ai/specs/2026-08-30-test-surface-not-test-count.md`.

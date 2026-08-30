@@ -1,9 +1,8 @@
 # Spec: the suite is a one-way ratchet
 
 Status: implemented — evidence: `npm test` → exit 0 (17 suites) · `node tools/sync-blocks.js --check` → all blocks in sync · `node codex-agents/parity.test.js` → exit 0, new invariant mutation-proven on both twins · `release-hygiene` → five stamps at 1.31.0 · docs-delta: EMPTY, with an `archify compare` receipt showing 0 changes (`.ai/docs-deltas/2026-08-30-release-1.31.0.json`) · checker: not re-run on this change — see Closure · qa: n/a — this repo ships no running app; the behavior gate here is the A/B
-Location: `.ai/specs/` root, deliberately — the lifecycle moves a spec to `implemented/` when the
-        feature is **deployed**, and deploying here means pushing `main`. Local commits only, by
-        the human's instruction. The `git mv` belongs to whoever pushes.
+Shipped: 2026-08-30, `main` at 2549cde — pushed with 1.30.0 and 1.31.0 in one deploy.
+        Moved to `.ai/specs/implemented/` by the push, per the lifecycle.
 Weight: contract fix — this changes how three existing rules are *conditioned*, adds one gate
         section where the mirror already exists, and pays for itself by compressing duplication.
         No new sync block, no new tool, no new artifact.
