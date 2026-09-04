@@ -38,11 +38,17 @@ const path = require('path');
 const { spawnSync, execFileSync } = require('child_process');
 
 const DOC = path.join(__dirname, 'repo-done-checklist.md');
-const text = fs.readFileSync(DOC, 'utf8');
+// Line endings are normalized on read, and the markers below are written LF-only.
+// The doc ships CRLF in this repo, but any checkout with `core.autocrlf=input` — every WSL and
+// Linux clone — puts LF on disk, and five markers were written with a literal CRLF. The whole
+// F2 family then failed for a reason that has nothing to do with the checklist it grades.
+// Measured 2026-09-04 on a clean `main`: 6 failing, WSL. A gate that fails for an unrelated
+// reason gets argued with once and ignored after that.
+const text = fs.readFileSync(DOC, 'utf8').replace(/\r\n/g, '\n');
 
 // F1's source document — see the file-header note on cross-document extraction above.
 const GRAPHIFY_DOC = path.join(__dirname, 'graphify-setup.md');
-const graphifyText = fs.readFileSync(GRAPHIFY_DOC, 'utf8');
+const graphifyText = fs.readFileSync(GRAPHIFY_DOC, 'utf8').replace(/\r\n/g, '\n');
 
 let failures = 0;
 
@@ -163,7 +169,7 @@ const rmTree = (d) => fs.rmSync(d, { recursive: true, force: true });
 /** The core.hooksPath resolution + hook-presence fragment, exactly as it ships in the doc. */
 function extractHooksResolutionBlock() {
   const startMarker = 'HOOKS_DIR_RAW="$(git -C "$ROOT" config --get core.hooksPath 2>/dev/null)"';
-  const endMarker = '\r\nelse\r\n  echo "SKIP graphify';
+  const endMarker = '\nelse\n  echo "SKIP graphify';
   const startIdx = text.indexOf(startMarker);
   if (startIdx === -1) {
     throw new Error('could not find the core.hooksPath resolution fragment in repo-done-checklist.md');

@@ -506,5 +506,175 @@ test('evaluateFile returns the four distinct states by name', () => {
 // does NOT walk worktrees, even when a fallback claim exists' are the pair a walk-breaking mutation
 // must turn red — proof pasted into the delivery report the same way.
 
+
+// ---------------------------------------------------------------------------------------------
+// --verify: the declaration against the tree it describes.
+//
+// Every assertion below has a matching must-not-flag case built from the same fixture with one
+// thing changed. A verifier that reports a discrepancy on a truthful declaration is worse than
+// none — this repo has two documented checks that were disabled for crying wolf, and the doctrine
+// this mode implements says so in the same breath as it asks for the check.
+
+const lib = require('./worker-status.js');
+
+/** A repo with one commit on top of `base`, touching exactly `files`. Returns the sha. */
+function repoWithCommit(dir, files, { baseBranch = 'base-point' } = {}) {
+  const g = (...a) => spawnSync('git', a, { cwd: dir, encoding: 'utf8' });
+  g('init', '-q');
+  g('config', 'user.email', 't@example.com');
+  g('config', 'user.name', 't');
+  g('config', 'commit.gpgsign', 'false');
+  fs.writeFileSync(path.join(dir, 'seed.txt'), 'seed\n');
+  g('add', '.');
+  g('commit', '-q', '-m', 'seed');
+  g('branch', baseBranch);
+  for (const [name, body] of Object.entries(files)) {
+    fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true });
+    fs.writeFileSync(path.join(dir, name), body);
+  }
+  g('add', '-A');
+  g('commit', '-q', '-m', 'work');
+  return g('rev-parse', 'HEAD').stdout.trim();
+}
+
+function statusFile(dir, fields) {
+  const file = path.join(dir, 'status.md');
+  const lines = [
+    `worker: ${fields.worker || 'be-dev-1'}`,
+    `task: ${fields.task || 'a task'}`,
+    `base: ${fields.base}`,
+    `claimed: [${(fields.claimed || []).map((p) => `"${p}"`).join(', ')}]`,
+    `opened: ${fields.opened || '2026-09-04T10:00:00Z'}`,
+    `closed: ${fields.closed || '2026-09-04T11:00:00Z'}`,
+    `outcome: ${fields.outcome || 'done'}`,
+    `commit: ${fields.commit}`,
+    `touched: [${(fields.touched || []).map((p) => `"${p}"`).join(', ')}]`,
+  ];
+  fs.writeFileSync(file, `${lines.join('\n')}\n`);
+  return file;
+}
+
+test('--verify passes a truthful declaration and says so', () => {
+  const dir = tmpDir();
+  const sha = repoWithCommit(dir, { 'a.ts': 'export const a = 1;\n' });
+  const file = statusFile(dir, { base: 'base-point', commit: sha, touched: ['a.ts'] });
+  const r = lib.verifyAgainstTree(file, dir);
+  assert.strictEqual(r.ok, true, r.messages.join('\n'));
+  assert.strictEqual(r.findings.length, 0, JSON.stringify(r.findings));
+  rm(dir);
+});
+
+test('--verify flags a commit sha that does not exist — the shape check cannot', () => {
+  const dir = tmpDir();
+  repoWithCommit(dir, { 'a.ts': 'export const a = 1;\n' });
+  const file = statusFile(dir, { base: 'base-point', commit: '4f2a1c9', touched: ['a.ts'] });
+  const r = lib.verifyAgainstTree(file, dir);
+  assert.ok(r.findings.some((f) => f.kind === 'commit-missing'), JSON.stringify(r.findings));
+  rm(dir);
+});
+
+test('--verify flags touched in BOTH directions — declared-not-changed and changed-not-declared', () => {
+  const dir = tmpDir();
+  const sha = repoWithCommit(dir, { 'a.ts': 'export const a = 1;\n', 'c.ts': 'export const c = 3;\n' });
+  // The arm-1 shape from lead-verifies-status-against-worktree: declares a.ts and b.ts, changed a.ts and c.ts.
+  const file = statusFile(dir, { base: 'base-point', commit: sha, touched: ['a.ts', 'b.ts'] });
+  const r = lib.verifyAgainstTree(file, dir);
+  assert.ok(r.findings.some((f) => f.kind === 'declared-not-changed' && f.detail === 'b.ts'), JSON.stringify(r.findings));
+  assert.ok(r.findings.some((f) => f.kind === 'changed-not-declared' && f.detail === 'c.ts'), JSON.stringify(r.findings));
+  rm(dir);
+});
+
+test('--verify flags a DECLARED FILE THAT IS EMPTY — existence is not content', () => {
+  // The gap the doctrine does not name: a file can be created, committed, listed in the diff, and
+  // hold nothing. Every other check in this repo — including repo-done-checklist's `-e` — says OK.
+  const dir = tmpDir();
+  const sha = repoWithCommit(dir, { 'report.md': '\n\n   \n' });
+  const file = statusFile(dir, { base: 'base-point', commit: sha, touched: ['report.md'] });
+  const r = lib.verifyAgainstTree(file, dir);
+  assert.ok(r.findings.some((f) => f.kind === 'declared-empty' && f.detail === 'report.md'), JSON.stringify(r.findings));
+  rm(dir);
+});
+
+test('--verify does NOT flag a file that merely looks small — one character is content', () => {
+  const dir = tmpDir();
+  const sha = repoWithCommit(dir, { 'report.md': 'x' });
+  const file = statusFile(dir, { base: 'base-point', commit: sha, touched: ['report.md'] });
+  const r = lib.verifyAgainstTree(file, dir);
+  assert.ok(!r.findings.some((f) => f.kind === 'declared-empty'), JSON.stringify(r.findings));
+  rm(dir);
+});
+
+test('--verify flags a base that is not an ancestor of the commit', () => {
+  const dir = tmpDir();
+  const sha = repoWithCommit(dir, { 'a.ts': 'export const a = 1;\n' });
+  const g = (...a) => spawnSync('git', a, { cwd: dir, encoding: 'utf8' });
+  // An orphan branch shares no history with the commit, which is the stale-base shape.
+  g('checkout', '-q', '--orphan', 'elsewhere');
+  g('rm', '-rq', '--cached', '.');
+  fs.writeFileSync(path.join(dir, 'other.txt'), 'other\n');
+  g('add', 'other.txt');
+  g('commit', '-q', '-m', 'orphan');
+  g('checkout', '-q', 'master');
+  const file = statusFile(dir, { base: 'elsewhere', commit: sha, touched: ['a.ts'] });
+  const r = lib.verifyAgainstTree(file, dir);
+  assert.ok(r.findings.some((f) => f.kind === 'base-not-ancestor'), JSON.stringify(r.findings));
+  rm(dir);
+});
+
+test('--verify refuses to grade an unclosed declaration instead of passing it', () => {
+  const dir = tmpDir();
+  const sha = repoWithCommit(dir, { 'a.ts': 'export const a = 1;\n' });
+  const file = path.join(dir, 'open.md');
+  fs.writeFileSync(file, `worker: be-dev-1\ntask: t\nbase: base-point\nclaimed: ["a.ts"]\nopened: 2026-09-04T10:00:00Z\n`);
+  const r = lib.verifyAgainstTree(file, dir);
+  assert.strictEqual(r.ok, false);
+  assert.ok(r.findings.some((f) => f.kind === 'not-closed'), JSON.stringify(r.findings));
+  assert.ok(r.messages.join('\n').includes('only checkable once it is closed'));
+  rm(dir);
+  void sha;
+});
+
+test('--verify says "could not establish" rather than "no" when the range is unreadable', () => {
+  const dir = tmpDir();
+  const sha = repoWithCommit(dir, { 'a.ts': 'export const a = 1;\n' });
+  const file = statusFile(dir, { base: 'no-such-base', commit: sha, touched: ['a.ts'] });
+  const r = lib.verifyAgainstTree(file, dir);
+  assert.ok(r.findings.some((f) => f.kind === 'diff-unreadable'), JSON.stringify(r.findings));
+  // and it must NOT invent a touched mismatch from a diff it never read
+  assert.ok(!r.findings.some((f) => f.kind === 'changed-not-declared'), JSON.stringify(r.findings));
+  rm(dir);
+});
+
+test('--verify reports and never blocks — the message says so out loud', () => {
+  const dir = tmpDir();
+  repoWithCommit(dir, { 'a.ts': 'export const a = 1;\n' });
+  const file = statusFile(dir, { base: 'base-point', commit: 'deadbee', touched: ['a.ts'] });
+  const r = lib.verifyAgainstTree(file, dir);
+  assert.ok(/do NOT block integration/.test(r.messages.join('\n')), r.messages.join('\n'));
+  rm(dir);
+});
+
+test('--verify through the CLI exits 1 on a discrepancy and 0 on a match', () => {
+  const dir = tmpDir();
+  const sha = repoWithCommit(dir, { 'a.ts': 'export const a = 1;\n' });
+  const good = statusFile(dir, { base: 'base-point', commit: sha, touched: ['a.ts'] });
+  assert.strictEqual(run('--verify', good, '--worktree', dir).status, 0);
+
+  const badPath = path.join(dir, 'bad.md');
+  fs.copyFileSync(good, badPath);
+  fs.writeFileSync(badPath, fs.readFileSync(good, 'utf8').replace('"a.ts"', '"zzz.ts"'));
+  assert.strictEqual(run('--verify', badPath, '--worktree', dir).status, 1);
+  rm(dir);
+});
+
+test('--verify with a missing worktree says it cannot verify, not that the worker lied', () => {
+  const dir = tmpDir();
+  const sha = repoWithCommit(dir, { 'a.ts': 'x\n' });
+  const file = statusFile(dir, { base: 'base-point', commit: sha, touched: ['a.ts'] });
+  const r = lib.verifyAgainstTree(file, path.join(dir, 'no-such-worktree'));
+  assert.ok(r.findings.some((f) => f.kind === 'worktree-missing'), JSON.stringify(r.findings));
+  rm(dir);
+});
+
 console.log(failures === 0 ? '\nworker-status: all tests passed' : `\nworker-status: ${failures} failing`);
 process.exitCode = failures === 0 ? 0 : 1;
