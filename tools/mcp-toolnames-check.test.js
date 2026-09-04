@@ -364,6 +364,27 @@ async function runDiscoveryTests() {
     assert.strictEqual(result.ok, false);
     assert.ok(/timed out/i.test(result.reason), `reason should say it timed out, got: ${result.reason}`);
   });
+
+  await testAsync('queryServerTools leaves no open pipe behind — the hang that stopped the whole suite', async () => {
+    // Killing the child is not enough: its three stdio pipes stay open as libuv handles and hold
+    // the event loop, so this file printed "all tests passed" and then never exited. Because
+    // `npm test` chains with `&&`, that hang stopped every test after this one — and the run read
+    // as "still going", not as failed. Measured on a clean `main` (WSL) 2026-09-04: exit 124 under
+    // `timeout`, with `getActiveResourcesInfo()` reporting four `PipeWrap` and nothing else.
+    //
+    // Asserted on the resource table rather than on elapsed time: a timing assertion on a machine
+    // this slow is a flake generator, and the defect is not slowness — it is a handle that is
+    // never released.
+    const pipesBefore = process.getActiveResourcesInfo().filter((r) => r === 'PipeWrap').length;
+    const cmd = `${JSON.stringify(process.execPath)} -e "setInterval(()=>{}, 1000)"`;
+    await mod.queryServerTools(cmd, { timeoutMs: 500 });
+    await new Promise((r) => setTimeout(r, 200)); // let the destroy() land
+    const pipesAfter = process.getActiveResourcesInfo().filter((r) => r === 'PipeWrap').length;
+    assert.ok(
+      pipesAfter <= pipesBefore,
+      `a spawned server left ${pipesAfter - pipesBefore} pipe(s) open; the event loop cannot drain and the suite stops here`
+    );
+  });
 }
 
 // ================================================================== role-file parsing edge cases via CLI
