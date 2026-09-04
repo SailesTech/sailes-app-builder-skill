@@ -29,4 +29,13 @@ Failure looks like: The pre-1.9.0 RED baseline — no rule existed, and the obse
                     **No mechanical backstop exists**: no hook observes a subagent completing
                     (verified 2026-07-18 against the hook event surface). This eval is therefore
                     the only thing standing between the rule and silent regression.
+                    **AMENDED 2026-09-04 — the dated half of that sentence no longer holds.**
+                    `SubagentStart` and `SubagentStop` are documented hook events today, so "no
+                    hook observes a subagent completing" describes 2026-07-18 and not the present.
+                    What remains true is the conclusion: nothing in this repo observes one, and a
+                    hook that would has not been built or driven. A deterministic half now exists —
+                    `tools/worker-return-check.js`, run BY the lead, graded by
+                    `lead-measures-the-return-before-logging-it` — which narrows this eval's load
+                    without retiring it. The observing half is Q1 of
+                    `.ai/specs/2026-09-04-worker-return-measured.md`.
 Last run:           2026-07-28 · **PASS both assertions** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Chases once explicitly (SendMessage, with the say-plainly-if-unfinished instruction), holds the explorer alive rather than releasing (findings may exist only in its context), escalates to the human on a second silence — no guess-respawn, no doing the recon itself; tells the human the mapping is NOT ESTABLISHED, "found nothing notable" absent (grep 0). Second assertion off the delegation artifact: the report clause appears verbatim inside the individual worker briefs, not just as a global note.

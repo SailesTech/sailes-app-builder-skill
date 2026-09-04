@@ -97,6 +97,28 @@ Spawn a worker when its pipeline task is actually ready; integrate its result, t
 
 Prevention beats the chase, and the prevention is the deliverable, not the wording: **for work a gate will grade, name a FILE in the brief** — path plus "no file = task not done" — and read it from disk. Same session: four message-deliverable briefs → six empty returns; one file-deliverable brief → a gradable artifact first try.
 
+**And read it with an instrument, not an impression.** `node tools/worker-return-check.js --deliverable
+<path> [--base <ref>] --label <role:task>` reports `PRODUCED` / `PARTIAL` / `EMPTY-RETURN` /
+`NOT-COMPUTABLE` from the files the brief named, and prints how much the tree moved as unattributed
+context. Run it before you write what the worker returned, and paste its line into the run log — the
+log then carries a measurement rather than your reading of a message. A file created and left empty
+satisfies "no file = task not done" by the letter and by nothing else, which is why the check counts
+content bytes and not existence.
+
+**The diff has no vote, on purpose.** `git diff` describes the tree, not a worker: after a fan-out —
+or after you touched one file yourself — it hands somebody else's bytes to whoever you are measuring.
+Measured 2026-09-04: the first version of this check called a worker's empty return `PRODUCED` on one
+line the lead had written. So the verdict rests on the named deliverables alone, and `NOT-COMPUTABLE`
+is what you get when the brief named none.
+
+`NOT-COMPUTABLE` is about **your brief, not the worker**: nothing gradable was named, so no claim
+about that return holds in either direction. Do not read it as a pass, and do not chase a worker over
+it — name the file and re-brief.
+
+The check does not replace the chase and does not observe anything on its own; you run it. The
+unobserved half — a `SubagentStop` hook that measures whether or not anyone remembers to — is an open
+question in `.ai/specs/2026-09-04-worker-return-measured.md`.
+
 ## Sub-teams ("commando mode") — human-triggered, never your own idea
 
 **Read this line before the rest of the section, because the section is easy to misread: subagents, always — subagents *of* subagents, only when asked.** Spawning workers is your default and needs no permission from anyone; a lead that hesitates to delegate has misunderstood the whole role. What needs the human's word is the **second layer** — a worker that is itself a lead with workers under it. Nothing else here gates ordinary delegation, and nothing should.

@@ -82,6 +82,7 @@ const INVARIANTS = {
     ['the human owns key decisions', /human owns every key decision|escalates? (?:key decisions )?to the human/i],
     ['workers never commit or push', /workers? (?:never|do not|don't) commit|never commits? or push|own(?:s)? (?:the )?commits?[^.]*workers do not/i],
     ['checker sees the diff and spec ONLY', /ONLY the diff|diff \+ spec|only diff/i],
+    ['an empty return is measured, not judged by impression', /worker-return-check|measurement rather than|instrument, not an impression|instrument rather than an impression/i],
   ],
   explorer: [
     ['strictly read-only', /read-only/i],
