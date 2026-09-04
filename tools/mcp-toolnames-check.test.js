@@ -385,6 +385,42 @@ async function runDiscoveryTests() {
       `a spawned server left ${pipesAfter - pipesBefore} pipe(s) open; the event loop cannot drain and the suite stops here`
     );
   });
+
+  await testAsync('queryServerTools leaves no ORPHAN PROCESS behind — the grandchild `sh` hides', async () => {
+    // The cause under the hang. `shell: true` means the direct child is `sh -c "<command>"` and the
+    // server is its GRANDCHILD, so `child.kill()` signalled only the shell and the grandchild kept
+    // running — holding the pipes that held the event loop. Measured 2026-09-04: one orphan per
+    // call on WSL. Windows never showed it, because `taskkill /t` already walks the tree; the two
+    // branches of killSpawnedTree differ for exactly this reason.
+    //
+    // Closing the pipes alone would have removed the SYMPTOM and left a process leak, which is the
+    // worse failure: a hang is visible, a leaked process is not.
+    if (process.platform === 'win32') {
+      console.log('       SKIP on win32 — taskkill /t already walks the tree, and `ps -eo args` is not available');
+      return;
+    }
+    const marker = `sailes-mcp-orphan-probe-${process.pid}`;
+    const alive = () =>
+      Number(
+        require('child_process')
+          .execSync(`ps -eo args | grep -F ${marker} | grep -v grep | wc -l`, { encoding: 'utf8' })
+          .trim()
+      );
+    const before = alive();
+    const cmd = `${JSON.stringify(process.execPath)} -e "setInterval(()=>{},1000)" ${marker}`;
+    await mod.queryServerTools(cmd, { timeoutMs: 600 });
+    await new Promise((r) => setTimeout(r, 1200)); // let the group signal land
+    const after = alive();
+    try {
+      assert.strictEqual(after, before, `queryServerTools left ${after - before} process(es) running after it returned`);
+    } finally {
+      try {
+        require('child_process').execSync(`pkill -f ${marker} 2>/dev/null || true`);
+      } catch {
+        // best-effort cleanup; the assertion above already reported the truth
+      }
+    }
+  });
 }
 
 // ================================================================== role-file parsing edge cases via CLI

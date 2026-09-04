@@ -114,31 +114,46 @@ cały dowód tej zmiany.
 a każdy checkout z `core.autocrlf=input` — czyli każdy WSL i Linux — kładzie na dysku LF.
 Normalizacja przy odczycie, trzy linie.
 
-**(2) `mcp-toolnames-check.test.js` wypisywał „all tests passed" i wisiał.** `queryServerTools`
-zabijał spawnowany serwer MCP, ale nie zamykał jego trzech stdio pipe'ów; zostawały jako handle
-libuv i trzymały pętlę zdarzeń. Diagnoza, nie domysł: `process.getActiveResourcesInfo()` po
-zakończeniu asercji zwracał `["PipeWrap","PipeWrap","PipeWrap","PipeWrap"]` i nic więcej.
+**(2) `mcp-toolnames-check.test.js` wypisywał „all tests passed" i wisiał.** To było groźniejsze
+od czerwonego testu: `npm test` łączy testy przez `&&`, więc **jedno zawieszenie zatrzymywało cały
+suite** — każdy test po nim nigdy nie ruszał, a przebieg czytał się jak „jeszcze idzie", nie jak
+„padł". Ta sesja dwa razy wzięła `EXIT=124` timeouta za sukces, zanim to zauważyła.
 
-To drugie było groźniejsze od czerwonego testu. `npm test` łączy testy przez `&&`, więc **jedno
-zawieszenie zatrzymywało cały suite** — każdy test po nim nigdy nie ruszał, a przebieg czytał się
-jak „jeszcze idzie", nie jak „padł". Ta sesja dwa razy wzięła `EXIT=124` timeouta za sukces, zanim
-to zauważyła.
+Objaw: `process.getActiveResourcesInfo()` po zakończeniu asercji zwracał
+`["PipeWrap","PipeWrap","PipeWrap","PipeWrap"]` i nic więcej — cztery otwarte pipe'y trzymały pętlę
+zdarzeń.
 
-Naprawa: `closeChildPipes()` — trzy `destroy()`. Asercja mierzy tablicę zasobów, nie czas: na tej
-maszynie asercja czasowa byłaby generatorem flake'ów, a defektem nie jest wolność, tylko nieoddany
-handle.
+**Przyczyna leży piętro niżej i jest platformowa.** `spawn(..., { shell: true })` sprawia, że
+bezpośrednim dzieckiem jest `sh -c "<komenda>"`, a serwer MCP jest jego **wnukiem**. `child.kill()`
+sygnalizuje wyłącznie powłokę; wnuk zostaje żywy i trzyma pipe'y. Windowsowa gałąź
+`killSpawnedTree` robi `taskkill /t`, czyli chodzi po drzewie — **dlatego defekt nie objawia się na
+Windowsie i dlatego przeżył w repo niezauważony.**
+
+Pierwsza wersja tej naprawy zamykała pipe'y i była **plastrem**: zdejmowała objaw i zostawiała
+**jeden osierocony proces na każde wywołanie** (zmierzone). To gorsze niż zawieszenie — zawieszenie
+widać, wyciek procesów nie. Właściwa naprawa: `detached` poza Windowsem tworzy grupę procesów,
+a `killSpawnedTree` zabija **grupę**, nie proces. Zamykanie pipe'ów zostaje jako druga linia.
+
+Zabijamy wyłącznie grupę, którą sami utworzyliśmy — to jest ten przypadek „zidentyfikowane po tym,
+co sami uruchomiliśmy", którego wymaga reguła `AGENTS.md` o zabijaniu procesów, nigdy zamiatanie
+cudzych PID-ów.
 
 | | nienaprawiony `main` | po naprawie |
 |---|---|---|
+| osierocone procesy po jednym wywołaniu | **1** | **0** |
 | `node tools/mcp-toolnames-check.test.js` | **exit 124** (wisi) | **exit 0** |
-| nowa asercja na `PipeWrap` | **FAIL — 1 failing** | zielona |
+| dwie nowe asercje (pipe + osierocony proces) | **2 failing** | zielone |
 
-Dowód mutacyjny wykonany na osobnym worktree z `origin/main`: asercja skopiowana na nienaprawiony
-kod pada. Test wykrywa defekt, nie odzwierciedla naprawy.
+Dowód mutacyjny na osobnym worktree z `origin/main`: obie asercje skopiowane na nienaprawiony kod
+padają, **każda samodzielnie** — kolejność w pliku jest ustawiona tak, żeby żadna nie sprzątała po
+drugiej. Testy wykrywają defekt, nie odzwierciedlają naprawy. Asercja o pipe'ach mierzy tablicę
+zasobów, nie czas: na tej maszynie asercja czasowa byłaby generatorem flake'ów, a defektem nie jest
+wolność, tylko nieoddany handle. Asercja o procesach self-SKIP-uje na Windowsie, gdzie `taskkill /t`
+już to załatwia.
 
 ## Weryfikacja
 
-- **`npm test` — exit 0, cały łańcuch, 448 asercji, zero awarii.** Pierwszy przebieg w tej sesji,
+- **`npm test` — exit 0, cały łańcuch, 449 asercji, zero awarii.** Pierwszy przebieg w tej sesji,
   który w ogóle doszedł do końca; wcześniejsze kończyły się timeoutem na (2).
 - `node tools/worker-status.test.js` — **11 nowych asercji**, każda flagująca sparowana z przypadkiem
   „nie może oflagować prawdomównej deklaracji". Fixtures budują prawdziwe repo git z bazą i commitem.
