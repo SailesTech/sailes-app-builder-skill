@@ -277,10 +277,21 @@ function killSpawnedTree(child) {
     }
     return;
   }
+  // Everywhere else, kill the PROCESS GROUP, not the process. `shell: true` means the direct child
+  // is `sh -c "<command>"` and the server is its GRANDCHILD; `child.kill()` signals only the shell,
+  // and the grandchild is left running — measured 2026-09-04, one orphan per call. Windows never
+  // showed this because `taskkill /t` already walks the tree, which is why the two branches differ.
+  // The group exists because the spawn below is `detached` off Windows, so this signals exactly the
+  // group we created ourselves — the identified-by-what-we-spawned case AGENTS.md's process-kill
+  // rule asks for, never a sweep of PIDs belonging to anyone else.
   try {
-    child.kill();
+    process.kill(-child.pid, 'SIGKILL');
   } catch {
-    // already gone — fine
+    try {
+      child.kill('SIGKILL');
+    } catch {
+      // already gone — fine
+    }
   }
 }
 
@@ -300,7 +311,14 @@ function queryServerTools(commandLine, opts = {}) {
     };
 
     try {
-      child = spawn(commandLine, { shell: true, stdio: ['pipe', 'pipe', 'pipe'] });
+      // `detached` off Windows puts the shell and everything it starts in one process group, which
+      // is what makes killSpawnedTree able to reach the grandchild. On Windows it would open a new
+      // console window and `taskkill /t` already handles the tree, so it stays off there.
+      child = spawn(commandLine, {
+        shell: true,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        detached: process.platform !== 'win32',
+      });
     } catch (err) {
       resolve({ ok: false, reason: `failed to spawn server command "${commandLine}": ${err.message}` });
       return;
