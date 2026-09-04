@@ -248,8 +248,27 @@ function parseToolsListResult(msg) {
 // `child.kill()` alone does not reach it. `taskkill /t` walks the process tree from the PID we
 // ourselves just spawned, by the command line we ourselves just built: this is the identified-by-
 // command-line case AGENTS.md's process-kill rule asks for, not a blind sweep of unrelated PIDs.
+/**
+ * Closes the child's three stdio pipes. Killing the process is not enough: the pipes stay open as
+ * libuv handles and hold the event loop, so a test file that finished every assertion never exits.
+ * Measured 2026-09-04 on a clean `main` (WSL): `node tools/mcp-toolnames-check.test.js` printed
+ * "all tests passed" and then hung; `process.getActiveResourcesInfo()` reported four `PipeWrap`
+ * and nothing else. Because `npm test` chains with `&&`, that one hang stops the whole suite —
+ * every test after this one never runs, and the run reads as "still going" rather than as failed.
+ */
+function closeChildPipes(child) {
+  for (const stream of [child.stdin, child.stdout, child.stderr]) {
+    try {
+      stream && stream.destroy();
+    } catch {
+      // already closed — fine
+    }
+  }
+}
+
 function killSpawnedTree(child) {
   if (!child || !child.pid) return;
+  closeChildPipes(child);
   if (process.platform === 'win32') {
     try {
       require('child_process').spawnSync('taskkill', ['/pid', String(child.pid), '/t', '/f']);

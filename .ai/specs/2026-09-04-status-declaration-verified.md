@@ -18,8 +18,9 @@ Trzy rzeczy, wszystkie wąskie:
 3. **`repo-done-checklist.md` przestaje certyfikować puste pliki.** Testował `-e`; teraz odróżnia
    `MISS` (nie ma) od `EMPTY` (jest, nic nie trzyma) — bo naprawa jest inna, więc i słowo musi być.
 
-Plus jedna rzecz znaleziona po drodze: **`npm test` był czerwony na czystym `main` na tej maszynie**
-(6 failing) — nie z powodu kodu.
+Plus dwie rzeczy znalezione po drodze, obie o `npm test` na czystym `main`, obie tego samego
+kształtu — **bramka zawodzi z powodu niezwiązanego z tym, co ocenia**: 6 failing z powodu markerów
+CRLF, i **zawieszenie, które zatrzymywało cały suite**.
 
 ## Problem
 
@@ -103,12 +104,45 @@ na 1.32.0**. Trzy z czterech miały już w repo mocniejsze odpowiedniki, zbudowa
 a 1.32.0. Ten PR jest tym, co z tamtego zostało po porównaniu z aktualnym stanem: jedno sprawdzenie,
 którego naprawdę nie było, wpięte w narzędzie, które już istnieje.
 
+## Dwie awarie bramki, znalezione po drodze i naprawione
+
+Obie dotyczą `npm test` na **czystym `main`**, obie zmierzone przed jakąkolwiek zmianą w tym branchu.
+Naprawa obu wchodzi tutaj, bo bez nich zdanie „suite zielony" jest niesprawdzalne — a na nim stoi
+cały dowód tej zmiany.
+
+**(1) 6 failing w `repo-done-checklist.test.js`.** Pięć markerów napisano z literalnym `\r\n`,
+a każdy checkout z `core.autocrlf=input` — czyli każdy WSL i Linux — kładzie na dysku LF.
+Normalizacja przy odczycie, trzy linie.
+
+**(2) `mcp-toolnames-check.test.js` wypisywał „all tests passed" i wisiał.** `queryServerTools`
+zabijał spawnowany serwer MCP, ale nie zamykał jego trzech stdio pipe'ów; zostawały jako handle
+libuv i trzymały pętlę zdarzeń. Diagnoza, nie domysł: `process.getActiveResourcesInfo()` po
+zakończeniu asercji zwracał `["PipeWrap","PipeWrap","PipeWrap","PipeWrap"]` i nic więcej.
+
+To drugie było groźniejsze od czerwonego testu. `npm test` łączy testy przez `&&`, więc **jedno
+zawieszenie zatrzymywało cały suite** — każdy test po nim nigdy nie ruszał, a przebieg czytał się
+jak „jeszcze idzie", nie jak „padł". Ta sesja dwa razy wzięła `EXIT=124` timeouta za sukces, zanim
+to zauważyła.
+
+Naprawa: `closeChildPipes()` — trzy `destroy()`. Asercja mierzy tablicę zasobów, nie czas: na tej
+maszynie asercja czasowa byłaby generatorem flake'ów, a defektem nie jest wolność, tylko nieoddany
+handle.
+
+| | nienaprawiony `main` | po naprawie |
+|---|---|---|
+| `node tools/mcp-toolnames-check.test.js` | **exit 124** (wisi) | **exit 0** |
+| nowa asercja na `PipeWrap` | **FAIL — 1 failing** | zielona |
+
+Dowód mutacyjny wykonany na osobnym worktree z `origin/main`: asercja skopiowana na nienaprawiony
+kod pada. Test wykrywa defekt, nie odzwierciedla naprawy.
+
 ## Weryfikacja
 
+- **`npm test` — exit 0, cały łańcuch, 448 asercji, zero awarii.** Pierwszy przebieg w tej sesji,
+  który w ogóle doszedł do końca; wcześniejsze kończyły się timeoutem na (2).
 - `node tools/worker-status.test.js` — **11 nowych asercji**, każda flagująca sparowana z przypadkiem
-  „nie może oflagować prawdomównej deklaracji". Fixtures budują prawdziwe repo z bazą i commitem.
+  „nie może oflagować prawdomównej deklaracji". Fixtures budują prawdziwe repo git z bazą i commitem.
 - `node skills/sailes-bootstrap/repo-done-checklist.test.js` — zielony (był czerwony na `main`).
 - `node codex-agents/parity.test.js` — nowy invariant, więc edycja jednej strony wymusza drugą.
-- `npm test` — pełny suite.
 - Bez bumpa `VERSION`, bez nowej zależności, bez zmiany kontraktu istniejących trybów
   (`<file>` i `--sweep` nietknięte).
