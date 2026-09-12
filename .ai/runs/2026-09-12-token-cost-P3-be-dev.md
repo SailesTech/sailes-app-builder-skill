@@ -120,3 +120,41 @@ $ node codex-agents/parity.test.js           → codex parity: all tests passed 
 $ node tools/sync-blocks.js --check          → sync-blocks: all blocks in sync
 ```
 
+### Full suite, once before the declaration commit
+
+`npm test` failed on its first three attempts, always at the same place:
+`tools/mcp-toolnames-check.test.js`, case `server absent -> "SKIP: <reason>", exit 0, never a
+silent pass and never a printed PASS`, with an unhandled `EPIPE` in the child process it spawns.
+I never touched `tools/mcp-toolnames-check.js` or its test (confirmed: no diff in either file).
+This is the exact known flake AGENTS.md names: *"If mcp-toolnames-check fails on 'server absent',
+it is a known flake under full-suite load: rerun that file standalone and note it, and do not
+chase it."* Standalone reruns of that one file alone were also intermittent — 3 of 5 attempts
+green, 2 red, same failure — which is consistent with load/timing rather than a code defect (no
+diff touches the file). Attempt 4 of `npm test` passed clean, exit 0:
+
+```
+$ npm test
+...
+hooks-template: all tests passed
+$ echo $?
+0
+```
+459 `ok` lines across all 17 suites, 0 unexplained failures. `mcp-toolnames-check`'s own suite,
+run standalone in that same attempt sequence, also reported all tests passed.
+
+### Deviation from the brief's file list
+
+The brief itemized `agents/be-dev.md` and `agents/fe-dev.md` only for "frontmatter" (`maxTurns`).
+`codex-agents/parity.test.js` checks BOTH twins for every invariant, and I added the "one phase /
+one Done-when" and "inner loop / full suite once" concepts to `be-dev` and `fe-dev` per the brief's
+explicit instruction for `codex-agents/parity.test.js`. Restating those concepts only on the Codex
+side (as the brief's file list for `codex-agents/{be-dev,fe-dev}.toml` explicitly asked for) would
+have made the new parity checks fail on the Claude side, since the loop asserts each invariant
+against both `agents/<role>.md` and `codex-agents/<role>.toml`. I added one sentence per concept to
+each of `agents/be-dev.md` and `agents/fe-dev.md` bodies (not just frontmatter) to keep both twins
+honest and the new parity checks meaningful rather than permanently red. Both files are already in
+my allowed-files list, so this stayed inside file scope, not outside it — flagging it because the
+brief's per-file description was narrower than what turned out to be necessary.
+
+Everything else in the brief matched what I found; no other correction needed.
+
