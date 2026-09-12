@@ -26,18 +26,27 @@
  * usage dedupe, so a `tool_use` on a later line for an already-seen `message.id` was silently
  * dropped. That is a named test case here (see token-report.test.js), not a footnote.
  *
- * Date filter — DECISION (P0 brief asked for one): filtering is by file **mtime**, not by message
- * timestamps inside the transcript. The original 2026-09-12 measurement that produced the spec's
- * baseline numbers used `mtime >= 2026-09-11`; matching that is what let this tool reproduce those
- * numbers (verified against the live directory: exact match on turns p50/max, first-turn context
- * p50/p90, and the full unprefixed-spawn breakdown by role; see the P0 run log for the small drift
- * that remained, attributed to the client repo's real work continuing between the spec's measurement
- * and this run, not to the algorithm). A message-timestamp filter would need to look inside every
- * line before deciding whether the file counts at all, is not what produced the numbers this tool is
- * asked to reproduce, and is a defensible alternative that was not chosen here — flagged as a
- * decision, not asserted as the only correct one. `--since`/`--until` form a HALF-OPEN range
- * `[since, until)`: `--since 2026-09-11 --until 2026-09-13` covers files whose mtime falls on
- * 2026-09-11 or 2026-09-12 (UTC), matching the spec's "two days of work (11–12.09)" framing.
+ * Date filter — DECISION (frozen by the human, 2026-09-12): filtering is by file **mtime**, not by
+ * message timestamps inside the transcript, and the day boundary is **local time**, not UTC. The
+ * original 2026-09-12 measurement that produced the spec's baseline numbers used `mtime >=
+ * 2026-09-11`; matching that is what let this tool reproduce those numbers (verified against the
+ * live directory: exact match on turns p50/max, first-turn context p50/p90, and the full
+ * unprefixed-spawn breakdown by role; see the P0 run log for the small drift that remained,
+ * attributed to the client repo's real work continuing between the spec's measurement and this run,
+ * not to the algorithm). `--since D` includes files with mtime >= D 00:00 LOCAL time; `--until D`
+ * EXCLUDES files with mtime >= D 00:00 local time — i.e. `[since, until)` is half-open, so
+ * `--since 2026-09-11 --until 2026-09-13` means the two calendar days 09-11 and 09-12 local time,
+ * matching the spec's "two days of work (11–12.09)" framing.
+ *
+ * Malformed JSONL lines (a `JSON.parse` failure — e.g. the unfinished last line of a transcript
+ * still being written) are skipped and counted, never fatal. The count is reported in the text and
+ * `--json` output as `malformedLines`, and also written to stderr when non-zero.
+ *
+ * Role attribution mechanism for a subagent transcript: the sibling `<file>.meta.json` next to
+ * `agent-*.jsonl`, field `agentType` (falls back to `subagent_type`/`subagentType` if `agentType` is
+ * absent), with any `pluginName:` prefix stripped down to the bare role name by taking everything
+ * after the LAST `:`. No meta file, an unreadable/malformed meta file, or a meta file with none of
+ * those three fields all fall back to the literal role name `"unknown"` — never a thrown error.
  *
  * Usage:
  *   node tools/token-report.js <projectTranscriptDir> [--since YYYY-MM-DD] [--until YYYY-MM-DD] [--json]
@@ -64,10 +73,10 @@ Usage:
   node tools/token-report.js <projectTranscriptDir> [--since YYYY-MM-DD] [--until YYYY-MM-DD] [--json]
 
 Options:
-  --since YYYY-MM-DD   include files with mtime >= this date (UTC, start of day)
-  --until YYYY-MM-DD   include files with mtime <  this date (UTC, start of day) — EXCLUSIVE.
+  --since YYYY-MM-DD   include files with mtime >= this date, 00:00 LOCAL time
+  --until YYYY-MM-DD   EXCLUDE files with mtime >= this date, 00:00 LOCAL time.
                        --since/--until form a half-open range [since, until): "--since 2026-09-11
-                       --until 2026-09-13" covers the two calendar days 09-11 and 09-12.
+                       --until 2026-09-13" covers the two calendar days 09-11 and 09-12 local time.
   --json               print a machine-readable report instead of the text summary
   --help, -h           print this message
 
@@ -78,22 +87,31 @@ Definitions:
   A "spawn" is a tool_use block named Agent or Task; its subagent_type is read from tool input.
   A spawn is "unprefixed" when subagent_type has no "name:role" (plugin) prefix and is not one of
     the built-ins: ${[...BUILTIN_SUBAGENT_TYPES].join(', ')}.
-  DATE FILTER IS BY FILE MTIME, NOT BY MESSAGE TIMESTAMPS — see the header comment in this file's
-    source for why. Omitting --since/--until includes every transcript found under the directory.
+  A subagent transcript's ROLE comes from its sibling <file>.meta.json ("agentType", falling back
+    to "subagent_type"/"subagentType"), with any "pluginName:" prefix stripped. Missing/unreadable
+    meta -> role "unknown".
+  DATE FILTER IS BY FILE MTIME, LOCAL TIME, NOT BY MESSAGE TIMESTAMPS INSIDE THE TRANSCRIPT — see
+    the header comment in this file's source for why. Omitting --since/--until includes every
+    transcript found under the directory.
+  A malformed JSONL line (JSON.parse failure) is skipped and counted in "malformedLines"; it never
+    fails the run.
 `;
 
 function printHelp(stream) {
   (stream || process.stdout).write(HELP);
 }
 
-/** Parse YYYY-MM-DD as a UTC start-of-day timestamp in ms, or throw. */
+/** Parse YYYY-MM-DD as a LOCAL-time start-of-day timestamp in ms, or throw. */
 function parseDateArg(name, value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     throw new Error(`${name} expects YYYY-MM-DD, got: ${value}`);
   }
-  const ms = Date.parse(`${value}T00:00:00.000Z`);
-  if (Number.isNaN(ms)) throw new Error(`${name} is not a valid date: ${value}`);
-  return ms;
+  const [year, month, day] = value.split('-').map(Number);
+  const dt = new Date(year, month - 1, day); // local midnight, deliberately not Date.parse(...'Z')
+  if (Number.isNaN(dt.getTime()) || dt.getMonth() !== month - 1) {
+    throw new Error(`${name} is not a valid date: ${value}`);
+  }
+  return dt.getTime();
 }
 
 function parseArgs(argv) {
@@ -198,6 +216,7 @@ async function parseTranscript(filePath) {
   let firstTurnContext = null;
   let peakContext = 0;
   let contextTokens = 0;
+  let malformedLines = 0;
   const spawns = [];
 
   const input = fs.createReadStream(filePath, { encoding: 'utf8' });
@@ -209,6 +228,9 @@ async function parseTranscript(filePath) {
     try {
       entry = JSON.parse(line);
     } catch {
+      // A malformed line — e.g. the unfinished last line of a transcript still being written.
+      // Skip it and count it; it is never fatal to the run.
+      malformedLines += 1;
       continue;
     }
     const message = entry.message;
@@ -249,6 +271,7 @@ async function parseTranscript(filePath) {
     peakContext,
     contextTokens,
     spawns,
+    malformedLines,
   };
 }
 
@@ -317,6 +340,7 @@ async function buildReport({ dir, sinceMs, untilMs }) {
   const leadStats = [];
   const subagentStats = [];
   const allSpawns = [];
+  let malformedLines = 0;
 
   for (const d of discovered) {
     let mtimeMs;
@@ -329,6 +353,7 @@ async function buildReport({ dir, sinceMs, untilMs }) {
 
     const parsed = await parseTranscript(d.filePath);
     allSpawns.push(...parsed.spawns);
+    malformedLines += parsed.malformedLines;
     if (parsed.turns === 0) continue;
 
     if (d.kind === 'lead') {
@@ -345,7 +370,7 @@ async function buildReport({ dir, sinceMs, untilMs }) {
   }
 
   return {
-    dateFilter: { sinceMs, untilMs, basis: 'file-mtime' },
+    dateFilter: { sinceMs, untilMs, basis: 'file-mtime-local' },
     lead: summarizeGroup(leadStats),
     subagents: summarizeGroup(subagentStats),
     subagentsByRole: summarizeByRole(subagentStats),
@@ -354,6 +379,7 @@ async function buildReport({ dir, sinceMs, untilMs }) {
       unprefixedTotal: unprefixed.length,
       unprefixedByName,
     },
+    malformedLines,
   };
 }
 
@@ -380,12 +406,22 @@ function renderGroup(label, g) {
   return lines.join('\n');
 }
 
+/** Format a local-midnight timestamp back to YYYY-MM-DD using LOCAL fields — never toISOString(),
+ *  which would convert to UTC and can display the wrong calendar day near a timezone boundary. */
+function fmtLocalDate(ms) {
+  const d = new Date(ms);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 function renderText(dir, args, report) {
   const lines = [];
   lines.push(`Token Report — ${dir}`);
-  const since = args.sinceMs !== null ? new Date(args.sinceMs).toISOString().slice(0, 10) : '(none)';
-  const until = args.untilMs !== null ? new Date(args.untilMs).toISOString().slice(0, 10) : '(none)';
-  lines.push(`Window: --since ${since} --until ${until} (half-open [since, until), by file mtime)`);
+  const since = args.sinceMs !== null ? fmtLocalDate(args.sinceMs) : '(none)';
+  const until = args.untilMs !== null ? fmtLocalDate(args.untilMs) : '(none)';
+  lines.push(`Window: --since ${since} --until ${until} (half-open [since, until), by file mtime, local time)`);
   lines.push('');
   lines.push(renderGroup('Lead sessions', report.lead));
   lines.push('');
@@ -403,6 +439,8 @@ function renderText(dir, args, report) {
   for (const [name, count] of byName) {
     lines.push(`  ${name.padEnd(20)} ${count}`);
   }
+  lines.push('');
+  lines.push(`Malformed JSONL lines skipped: ${report.malformedLines}`);
   return lines.join('\n');
 }
 
@@ -436,6 +474,10 @@ async function main(argv) {
   }
 
   const report = await buildReport({ dir: args.dir, sinceMs: args.sinceMs, untilMs: args.untilMs });
+
+  if (report.malformedLines > 0) {
+    process.stderr.write(`token-report: skipped ${report.malformedLines} malformed JSONL line(s)\n`);
+  }
 
   if (args.json) {
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
