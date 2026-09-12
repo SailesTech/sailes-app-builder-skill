@@ -71,7 +71,11 @@ Notes:              **Rule text is pending P2 as of this writing (2026-09-12) an
                     mechanical backstop (`settings-template.json`) — this eval grades the lead's
                     *behavior* at the gate, not the settings file; a green `hooks-template.test.js`
                     assertion on that key is not evidence for or against this scenario.
-Last run:           never — written alongside the rule it grades (landing in P2) and not yet
-                    dispatched. Deliberately carries no date: the harness reads NEVER-RUN from the
-                    absence of one, and a date here would make an unrun scenario report as covered.
-                    Owed, not assumed — dispatch via `sailes-eval-runner` once P2 merges.
+Last run:           2026-09-12 · **FAIL** · stand-in (`general-purpose` + doctrine copied from
+                    `4e6acf2`, grades the TEXT). Fixture A: (ii) PASS, (iii) PASS, **(i) FAIL** —
+                    `STATE.md` Last session names Phase 3 and points precisely to the full brief in
+                    the run log instead of carrying goal/files/`Done-when`; the doctrine's "naming
+                    the next phase and its brief" permits that reading. Fixture B: PASS — the OQ-1
+                    card and the `/clear` request are in one message. Doctrine-vs-criterion
+                    disagreement put to the human. Caveat: the 850 k context was described, not
+                    created. Evidence: `.ai/eval-runs/2026-09-12-token-cost-evals/VERDICT.md`.

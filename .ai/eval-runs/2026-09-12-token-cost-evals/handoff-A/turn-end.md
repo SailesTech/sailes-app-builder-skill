@@ -1,0 +1,1 @@
+Faza 2 (generator CSV) zamknięta — checker APPROVE, qa PASS, stan i brief Fazy 3 zapisane w `.ai/STATE.md` (w spec do Fazy 3 dopisałem `invoice-csv.service.ts`, bo bez niego jej Done-when nie przejdzie); uruchom `/clear`, potem napisz „kontynuuj".

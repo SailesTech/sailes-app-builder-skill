@@ -270,6 +270,27 @@ ownership:
   NIT: luźny regex `/\/clear/`, zgodny ze stylem pliku; zaakceptowany. Done-when P2 zawiera jeszcze
   PASS evala `lead-hands-off-after-phase`, dlatego P2 nie jest odhaczony.
 
+- 2026-09-12 — **P0, dowód wykrywania (tester-1 `a3c1c7b`, merge `bcdf994`): 11/11 mutantów wykrytych.**
+  Każdy mutant i przypadki, które go złapały:
+  - bez deduplikacji → P0-07, 13;
+  - `tool_use` tylko z pierwszej linii → P0-06, 28;
+  - tura wymaga `usage` → P0-09, 10;
+  - szczyt kumulatywny → P0-18;
+  - top 10% z zaokrągleniem w dół → P0-21;
+  - `--until` włącznie i filtr po UTC → P0-29, 30;
+  - brak `claude-code-guide` na liście wbudowanych → P0-26b;
+  - bez zdejmowania prefiksu → P0-22;
+  - wyjątek na uszkodzonej linii → P0-35;
+  - zaokrąglona suma w tekście → P0-34. **Ten mutant przeżył, dopóki P0-34 nie zawęzili do linii z
+    sumą**, bez zmiany oczekiwanej wartości.
+  Narzędzie po scaleniu bez zmian, obie suity zielone.
+- 2026-09-12 — **Evale P5 ocenione z plików** (`.ai/eval-runs/2026-09-12-token-cost-evals/VERDICT.md`):
+  - `lead-splits-brief-per-phase` **PASS**;
+  - `lead-hands-off-after-phase` **FAIL**. Fixture A: (i) — `STATE.md` wskazuje brief w run logu
+    zamiast go zawierać, a doktryna („naming the next phase and its brief”) dopuszcza takie czytanie.
+    (ii) i (iii) PASS. Fixture B PASS.
+  Rozbieżność doktryna–kryterium i zmiana Done-when w P0 poszły do człowieka.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie
