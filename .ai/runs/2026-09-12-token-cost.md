@@ -154,6 +154,18 @@ ownership:
   się nie zamknęło. Filtr po mtime usuwa też z okna sesję wznowioną po północy. Porównanie musi
   czytać zapisany plik, nie liczyć okna od nowa.
 
+- 2026-09-12 — **P0: suita oceniana scalona** (tester-1 `e08f7ce`, merge `cc9a929`), 37 testów.
+  Przeciw scalonemu narzędziu: 26 czerwonych. **Klasyfikacja bez zapisu w repo:** wrapper w
+  scratchpadzie przemapował sam JSON narzędzia na kształt przypięty w suicie (`transcriptCount` →
+  `sessionCount`, `contextTokensTotal` → `totalContextTokens`, `peakContext` → `peak`, `subagents` →
+  `subagent`, `subagentsByRole` → `subagent.perRole`, `spawns.unprefixedByName` → `spawns`).
+  Wynik: 34 ok, 3 czerwone. Z 26 porażek 23 to wyłącznie nazwy, a **3 to prawdziwe defekty
+  narzędzia**:
+  - P0-09 i P0-10: wiadomość bez `usage` nie liczy się jako tura;
+  - P0-34: tekst pokazuje `0.0M` przy 15 000 tokenów.
+  Poprawki zlecone be-dev-1. Który plik zmienia nazwy (narzędzie czy odczyt w suicie), rozstrzyga
+  człowiek.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie
