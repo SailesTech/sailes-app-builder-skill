@@ -208,3 +208,57 @@ SILENT`, `no .env at all is SILENT`.
 > This table is structurally present per the template. Filled at the point noted per row: the suite
 > now exists (see below) so the harness-error check has been run; the actual red/green
 > mutation cycle is the lead's detection-proof step, after the implementation lands.
+
+## Suite written — `skills/sailes-bootstrap/hooks-template/session-start-memory.test.js`
+
+25 tests, one per frozen ID (P1a-01..P1a-25), run against base `87b6250` where `session-start.sh`
+line 6 is still `cat "$STATE" 2>/dev/null` — no extraction, no truncation, no size-check exists.
+`node skills/sailes-bootstrap/hooks-template/session-start-memory.test.js`:
+
+```
+  ok   P1a-01: small STATE.md, well under every threshold, is emitted in full
+  FAIL P1a-02: real 5-section fixture >=200KB, LF headings — section mode extracts 3, excludes 2
+       Verified facts leaked into stdout
+  FAIL P1a-03: same 5-section fixture, CRLF headings — identical extraction outcome
+       Verified facts leaked under CRLF
+  FAIL P1a-04: client-shape fixture (dated blocks, decoys, no exact heading) — head mode, truncated
+       stdout is 250268B, over the 9500B budget
+  FAIL P1a-05: STATE.md >20000B AND lessons.md >40000B together — both size-warnings fire
+       no size-warning names STATE.md and its byte count
+  ok   P1a-06 · P1a-07 · P1a-25 · P1a-08 · P1a-09 · P1a-10 · P1a-11 · P1a-12 · P1a-13 · P1a-14
+  FAIL P1a-15: unclipped total would be exactly 9500B — truncated to stay under budget
+       stdout is 9500B — an unclipped-9500B fixture must still be truncated below budget
+  ok   P1a-16 · P1a-17
+  FAIL P1a-18: STATE.md exactly 20001B — size-warning fires, names the size
+       no STATE.md size-warning at 20001B, one byte over the limit
+  ok   P1a-19
+  FAIL P1a-20: lessons.md exactly 40001B — size-warning fires, names the size
+       no lessons.md size-warning at 40001B, one byte over the limit
+  FAIL P1a-21: a single line longer than the whole budget — zero content lines, truncation notice only
+       stdout is 15036B, over budget
+  ok   P1a-22
+  FAIL P1a-23: a multibyte UTF-8 char sitting at the would-be cut point — cut never splits it
+       stdout is 13500B, over budget
+  FAIL P1a-24: drift warning + STATE.md >20000B together — drift, size-warning and sections all present, under budget
+       STATE.md size-warning missing alongside the drift warning
+
+session-start-memory: 10 failing
+```
+
+**All 10 reds are behavioral, confirmed against the base hook's three-line reality (`cat`, drift-check,
+`.env`-check — nothing else):**
+- P1a-02, P1a-03 — no section extraction exists, so excluded sections leak (`cat` shows everything).
+- P1a-04, P1a-15, P1a-21, P1a-23 — no truncation/byte-budget logic exists, so oversized output passes
+  through unclipped.
+- P1a-05, P1a-18, P1a-20, P1a-24 — no size-check exists, so no size-warning ever fires.
+
+None are stack traces, `TypeError`s, or assertions on the wrong code path — every failure message is
+one of this suite's own, naming the missing mechanism directly. The 15 greens are consistent with the
+old `cat`-only hook by coincidence (e.g. P1a-06/07/08/09/10/11/12/13/14/16/17/19/22/25 don't happen to
+exercise exclusion or a triggered threshold on their own fixture), not because any P1 logic is
+present — confirmed by grepping `session-start.sh` for `# ---` section markers: only the pre-existing
+drift-check and `.env`-check blocks exist, nothing for extraction, truncation, or size limits.
+`hooks-template.test.js` (untouched) still passes in full — no regression on the pre-existing suite.
+
+The lead's detection-proof (break each behavior's own code, red, revert, green) runs after the
+implementation lands; this run is the pre-implementation baseline it will be compared against.
