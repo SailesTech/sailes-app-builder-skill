@@ -195,6 +195,13 @@ ownership:
   mieści się w zakresie. Mutacje 1–3 i `npm test` są w jego raporcie; `mcp-toolnames-check`
   zawodził 3 razy na 4.
 
+- 2026-09-12 — P3 scalony (`273030a`): `validate-frontmatter` exit 0 (`maxTurns` na siedmiu rolach
+  zgodny z Q3), parity zielone, `sync-blocks --check` in sync. Checker P3 uruchomiony. Wysłany P2
+  (be-dev-7): blok `session-handoff`, bezpiecznik `autoCompactWindow` 400000 i test.
+- 2026-09-12 — P4 F4 (lider): asercja w `repo-done-checklist.test.js`, że lista `Agent()` w `deny`
+  to dokładnie dziesięć gołych nazw i żadna z prefiksem. Mutacje: dopisany prefiks → czerwony;
+  usunięte `Agent(qa)` → czerwony; szablon przywrócony bajt w bajt (`cmp`) → zielony.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie
