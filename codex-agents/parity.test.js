@@ -111,6 +111,11 @@ const INVARIANTS = {
     // Q3 (spec 2026-09-12-token-cost-of-running, P3) — "one task per worker" existed with no
     // definition of "task"; a brief bundling four phases as "one task" ran 431 turns / 135M tokens.
     ['a task is one phase with one Done-when', /phase with one .{0,3}Done-when/i],
+    // Q2/F4 (spec 2026-09-12-token-cost-of-running, P2, `session-handoff` block) — a closed phase
+    // ends the lead's own session instead of continuing on the same context. Codex has no
+    // `autoCompactWindow` fuse, but the handoff RULE applies on both runtimes: the block text makes
+    // no claim of the fuse existing on Codex, only that the lead hands off after the gate closes.
+    ['a closed phase ends the lead session; the human runs /clear before the next phase starts', /\/clear/],
   ],
   explorer: [
     ['strictly read-only', /read-only/i],

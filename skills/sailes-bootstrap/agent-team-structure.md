@@ -181,6 +181,29 @@ explorer → designer → BE contract finalized → fe-dev → tester → checke
 5. **Workers never commit to a SHARED branch and never push. Inside their own worktree they commit — and they should.** Integration, the shared branch and the PR are the lead's, after the gates pass. See "Isolation" below for why the wording changed and what it now protects.
 6. **Run log.** The lead records what was assigned, what each worker returned, and the gate verdicts — so a context reset can resume without re-deriving the plan. At session end (done or interrupted) the lead also updates `.ai/STATE.md` — **write before walking away**: verified facts with evidence, open failures, Last session pointer.
 
+<!-- BEGIN session-handoff -->
+**A closed phase ends the lead's turn — the next phase does not continue on the same context.**
+
+- The instant a phase's `Done-when` gate closes, the lead writes `.ai/STATE.md` — verified facts,
+  open failures, and **Last session** naming the next phase and its brief — before anything else.
+- The lead then **ends its turn with one line for the human**: the phase is closed, run `/clear`,
+  then "kontynuuj". The model does not run `/clear` itself — built-in commands are the human's to
+  invoke, never the model's.
+- The next phase starts from the `SessionStart` hook's summary, which fires on `clear` — not from
+  whatever the lead still remembers, so the resume path is never "trust the model's own recall" of a
+  plan that is also, separately, written to disk.
+- **Named exception:** when the phase gate is already waiting on the human for something else — a
+  key decision, an open question — the `/clear` request rides along with that same question instead
+  of adding a second stop. One thing for the human to answer, not two.
+
+Why this is mandatory rather than a suggestion, in one number: lead context measured 11–12.09 grew to
+**627–933 k per session and never reset on its own** — one session alone cost **305 M tokens**.
+Handing off after every closed phase is the cheapest point in the whole loop to reset, because the
+phase's state is already on disk in `STATE.md` before the turn ends, so nothing is lost by clearing.
+<!-- END session-handoff -->
+
+<!-- Generated from session-handoff.md by tools/sync-blocks.js — edit the source, not this copy. -->
+
 ## Isolation — every worker that writes gets a worktree
 
 **Mandatory, no exception, and the test is "does it write" rather than "is it on a list"** — so a

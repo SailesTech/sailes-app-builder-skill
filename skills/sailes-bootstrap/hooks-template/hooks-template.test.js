@@ -1027,6 +1027,21 @@ test('the Bash-membership check would have caught the pre-1.25.2 matcher — mus
   );
 });
 
+test('settings-template.json sets autoCompactWindow to the lead-context safety fuse (Q2/F4)', () => {
+  // Spec 2026-09-12-token-cost-of-running, P2: average lead call context measured 11-12.09 was
+  // ~420k with peaks of 627-933k, so 400000 cuts every measured lead session while leaving room
+  // above the worker p90 peak (262k). A regression here (wrong value, or the key silently dropped)
+  // is exactly the failure this fuse exists to prevent — a lead session that never resets.
+  const settings = readTemplateJson(SETTINGS_TEMPLATE);
+  assert.strictEqual(
+    settings.autoCompactWindow,
+    400000,
+    'settings-template.json autoCompactWindow must be 400000 — the lead-context safety fuse from ' +
+      'Q2/F4 (spec 2026-09-12-token-cost-of-running); a different value, or none, has no grounding ' +
+      'in the 11-12.09 measurement it is supposed to cut'
+  );
+});
+
 console.log(
   failures === 0 ? '\nhooks-template: all tests passed' : `\nhooks-template: ${failures} failing`
 );
