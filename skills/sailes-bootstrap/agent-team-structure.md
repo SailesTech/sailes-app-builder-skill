@@ -168,7 +168,7 @@ explorer → designer → BE contract finalized → fe-dev → tester → checke
 ## How the lead actually runs it
 
 1. **Load context before planning** — Task Router guides for the touched areas, plus `grep` `.ai/lessons.md` **and** `.ai/archive/` by the touched area's keywords (module, file, integration name), not by `Applies-to` (most entries lack it). Planning without these repeats known mistakes; reading either file whole "before planning" is the mistake it replaces — it re-derives known state at full-file cost instead of the area's slice.
-2. **Decompose into one-task units.** Each worker gets exactly one task with explicit scope and the contract/spec it implements against — handed over as a **self-contained brief** (format below). One task per worker keeps reviews tractable and scope honest; never hand a worker several independent problems at once. **Slice for file-disjointness:** no two concurrent workers may write the same file — if the slicing can't achieve that, the tasks aren't parallel (sequential, or worktrees). A parallel-safe codebase layout makes this easy (`agentic-first-principles.md` §E).
+2. **Decompose into one-task units.** **A task is one phase with one `Done-when`.** A brief that carries more than one `Done-when`, or a list of independent fixes handed over as if they were one thing, is two tasks — split it before dispatch, not after. Measured 2026-09-12: "one task per worker" already existed as a rule (this line, `team-lead.md:69`) but "task" had no definition sharper than "whatever went into one brief" — a brief that stacked four phases as "one task" ran 431 turns / 135M tokens on a single worker, and one that stacked four independent auth fixes ran 262 turns / 65M tokens, both re-running the full test suite repeatedly because nothing marked where one task's scope ended and the next began. Each worker gets exactly one task with explicit scope and the contract/spec it implements against — handed over as a **self-contained brief** (format below). One task per worker keeps reviews tractable and scope honest; never hand a worker several independent problems at once. **Slice for file-disjointness:** no two concurrent workers may write the same file — if the slicing can't achieve that, the tasks aren't parallel (sequential, or worktrees). A parallel-safe codebase layout makes this easy (`agentic-first-principles.md` §E).
 
    **What may run in parallel is read off the FILE-OWNERSHIP TABLE, never off the phase graph's arrows.** A work plan that draws `F1 → F2 → {F3, …}` is drawing the order somebody *thought* about the phases in, and an arrow in it does not assert a technical dependency. Measured 2026-08-01: the same plan document that called F2 "solitary" carried, twenty lines below, an ownership table showing F2's and F3's file sets were disjoint — so disjoint that F3's brief listed F2's file as forbidden. The cost was a phase idling behind six others for no reason. **The critical-path section of a work plan therefore carries both drawings** — the graph of concepts *and* the file-disjointness matrix — because the first one misleads on its own. The dispatch question is never "which arrow points here" but *does this task's file set intersect anything already running?* An intersection on a **single** file is not a reason to serialize two phases: take that file away from both and integrate it yourself, which is cheaper than the wait.
 3. **Assign and integrate.** The lead hands tasks to teammates, collects results, and integrates — the lead owns the merge, not the workers.
@@ -250,6 +250,14 @@ its declaration that the work is finished.** Reading an uncommitted worktree can
 work from an edit interrupted mid-file, which reproduces incident one *inside* the isolation. **No
 commit means not finished**, and that is a useful thing for the lead to learn rather than something
 to salvage.
+
+**A `maxTurns` fuse (per role, in frontmatter) backs the same rule up from the other side.** When a
+worker hits its limit, the harness marks the result **partial** — and the lead treats a partial
+result exactly like a worktree with no declaration commit: **not finished**, whatever `WIP:`
+checkpoints sit underneath it. The fuse does not replace "task = one phase with one `Done-when`"
+above; it catches the brief that slips through that discipline anyway. A partial result is a signal
+to re-dispatch the remaining scope as its own task or extend deliberately and record why — never a
+thing the lead quietly reads as "close enough."
 
 **Commit often, `WIP:` included — and the two kinds of commit mean different things.** "No commit =
 not finished" protects the lead from *guessing* whether work is done. It does **not** protect the
@@ -585,7 +593,13 @@ Status:      claim `.claude/status/<worker-id>.md` as your FIRST action — `wor
              the claim. [read-only roles: drop this line — you write nothing, so nothing to claim.]
 Checkpoint:  write progress to files as you go. Your in-memory state does not survive your
              process; disk does.
-Verification: exact commands to run + the e2e requirement.
+Verification: two levels, named separately, never collapsed into one command list.
+             **Inner loop** (run as you go): only the tests for the files you touched.
+             **Once, before the declaration commit**: the full suite and the e2e requirement.
+             Running the full suite or e2e repeatedly inside the inner loop is what a task with
+             no Done-when boundary produces, not caution — one worker re-ran a full `yarn test`
+             seven times and a full `test:e2e` seven times in two separate runs (2026-09-12
+             measurement), inside a single brief.
 Report:      `<path>` — per-file diff summary · command output · contract shape ·
              blockers/deviations. Your REPORT IS the deliverable — not a summary for a
              human, not a status line. **Create that file with your FIRST change and

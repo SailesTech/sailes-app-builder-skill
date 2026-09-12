@@ -3,6 +3,7 @@ name: tester
 description: Test author (Sonnet). Derives expected behavior from the spec BEFORE reading the implementation, freezes a case list with the human, then writes a suite that detects faults instead of mirroring the code. Runs after the code is written, before checker and qa. The one gate role that writes.
 model: claude-sonnet-5
 effort: high
+maxTurns: 220
 tools: Glob, Grep, Read, Write, Edit, Bash
 ---
 
