@@ -118,6 +118,7 @@ jest jeden klient i dwa dni.
 | F1 | Co hook podaje, gdy `STATE.md` nie ma pięciu sekcji | **Sekcje albo początek** — plik z pięcioma sekcjami → bieżące sekcje; bez nich → pierwsze znaki pliku do limitu (najnowszy blok jest na górze) + linia ze ścieżką. Odrzucone: zawsze początek z odwróconą kolejnością sekcji (zmiana konwencji we wszystkich repo), tylko sekcje z przepisaniem przez Upgrade (243 KB do przepisania, zanim hook cokolwiek da) |
 | F2 | Jak poprawka dociera do adoptowanego repo | **Łatka w Upgrade mode** — nazwany wyjątek od „never overwrite": podmiana tylko bloku emisji `STATE.md` w lokalnym hooku, reszta lokalnych zmian zostaje, człowiek zatwierdza diff. Świadomy koszt: zamrożona kopia hooka zostaje problemem przy następnej zmianie. Odrzucone: emisja w hooku pluginu (większy zakres; Codex nie uruchamia hooków pluginu) |
 | F3 | Jak sięgać do archiwum lekcji | **`grep` po słowach obszaru** (moduł, plik, integracja) — nie zależy od formatu wpisów. Odrzucone: wymuszenie `Applies-to` (przepisywanie wpisów + reguła formatu do pilnowania) |
+| F5 | Dokąd Upgrade mode przenosi wiedzę o repo z usuwanej lokalnej roli (D4) — framework nie ma szablonu briefu po stronie klienta | **Do `AGENTS.md` repo** — sekcje Key Commands / Conventions / Task Router / Stack, z których lider pisze każdy brief. Świadomy koszt: `AGENTS.md` ładuje się do każdego subagenta, więc rośnie koszt bazowy (zwykle o kilka KB). Odrzucone: nowy plik szablonu briefu (nowy artefakt w bootstrapie, większy zakres), bez przenoszenia (utrata wiedzy) |
 | F4 | Jak lider kończy sesję po fazie | **Lider prosi o `/clear`** — zapisuje `STATE.md` i kończy turę jedną linią dla człowieka. Świadomy koszt: jeden ruch człowieka na fazę. Odrzucone: świeży proces `claude -p` (sesja niewidoczna dla człowieka, osobne uprawnienia) |
 
 ## Open Questions — zamknięte 2026-09-12
@@ -253,7 +254,7 @@ Files: `skills/sailes-bootstrap/adopt-existing-repo.md` (Upgrade mode) · `setti
 
 - **Upgrade mode:** dla każdego `.claude/agents/<nazwa>.md`, którego `<nazwa>` jest rolą pluginu
   (`be-dev`, `fe-dev`, `explorer`, `checker`, `qa`, `tester`, `designer`, `researcher`, `docs-author`,
-  `team-lead`) — najpierw wiedza o repo z tego pliku trafia do szablonu briefu repo, potem plik jest
+  `team-lead`) — najpierw wiedza o repo z tego pliku trafia do `AGENTS.md` repo (F5), potem plik jest
   usuwany. To drugi nazwany wyjątek od „never overwrite" w kroku 2, obok łatki hooka z P1. Pliki o
   nazwach **spoza** listy ról (np. `be-checker` w `partner-portal-v3`) nie są usuwane automatycznie —
   Upgrade mode je wypisuje i pyta, bo nie cieniują niczego wprost.

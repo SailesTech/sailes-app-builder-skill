@@ -94,13 +94,11 @@ The framework improves between projects; without an upgrade path, improvements o
         is a globally-installed skill, not a file in this repo.)"*). Do **not** copy the generic role
         doctrine itself (the plugin already ships it) — only what is true of *this* repo and would
         otherwise be lost.
-        **TODO(human — flagged, not resolved by this pass):** the framework has no file client repos
-        are told to keep as *"the worker brief template."* The brief format worker-side
-        (`agent-team-structure.md`'s "Worker brief — the self-contained handover") is explicitly
-        global-only doctrine, filled in ad hoc per task by the lead from repo facts — those facts
-        live in `AGENTS.md`, which is the closest client-side location and where this step salvages
-        to, but it is not itself a brief template. If a dedicated per-repo brief-template artifact is
-        wanted, that is a new decision for the human, not one this exception invents.
+        **Why `AGENTS.md` and not a brief template** (human decision 2026-09-12): no client repo
+        carries a per-repo brief template — the worker brief format in `agent-team-structure.md` is
+        global doctrine the lead fills from repo facts, and those facts already live in `AGENTS.md`.
+        The accepted cost: `AGENTS.md` loads into every subagent, so salvage only what a worker would
+        otherwise get wrong, and keep it to the section it belongs in.
      2. **Then delete the file.**
      3. Show the human the salvage diff (what is about to land in `AGENTS.md`) and the deletion list
         together, before writing either — same as (a) and (b) above.
