@@ -202,6 +202,27 @@ ownership:
   to dokładnie dziesięć gołych nazw i żadna z prefiksem. Mutacje: dopisany prefiks → czerwony;
   usunięte `Agent(qa)` → czerwony; szablon przywrócony bajt w bajt (`cmp`) → zielony.
 
+- 2026-09-12 — **CHANGELOG 1.33.0:** szkic napisany, ale `release-hygiene` wymaga, żeby najnowszy
+  nagłówek był równy `VERSION` (1.32.0). Szkic odłożony do scratchpadu
+  (`CHANGELOG-1.33.0-draft.md`), kopia robocza przywrócona. Wpis wchodzi razem ze stemplami przy
+  wydaniu, po delcie dokumentacji, zgodnie z kolejnością w AGENTS.md §Release.
+- 2026-09-12 — scalone poprawki P0 (be-dev-1 `da0d3ce`, merge `b5b64d3`) i przejęcie nazw kluczy
+  przez suitę (tester-1 `1e6de72`, merge `87e2f97`). `token-report.test.js` zielony, zamrożona suita
+  **36/37**: P0-09 i P0-10 zielone. **P0-34 wciąż czerwony:** plan (`P0.md:180`) wymaga identycznych
+  metryk w tekście i JSON, a tekst zaokrąga (`15.0k`, `15k`, `100%` przy JSON `1`). Wada narzędzia
+  według zamrożonego oczekiwania, wraca do be-dev-1. Podpięcie suity do `npm test` i dowód
+  wykrywania P0 czekają na 37/37.
+
+- 2026-09-12 — **Checker P3: APPROVE.** Mutacje w worktree `/tmp`: usunięcie `maxTurns` z `be-dev.md`
+  → czerwony dokładnie jeden przypadek; usunięcie zdania „one phase” z `be-dev.toml` → czerwony
+  parity. Nowe koncepcje parity na bazie `273030a^1` → 5 czerwonych, frontmatter na bazie → 7
+  czerwonych, więc sprawdzenia nie są puste. Zdania w treści `be-dev.md`/`fe-dev.md`: to luka w
+  adnotacji plików specu, nie wyjście poza zakres.
+- 2026-09-12 — **Checker P4: APPROVE, bez uwag.** Polecenie checklisty na fixture'ach: puste bez
+  katalogu, pomija `be-dev.md.bak` i `be-dev-old.md`, działa ze spacjami. F3 czerwony z nazwanym
+  błędem bez polecenia i odporny na CRLF. `TODO(human)` o miejscu na odzyskaną wiedzę to realna luka,
+  a tymczasowy wybór `AGENTS.md` jest spójny z frameworkiem. Pytanie poszło do człowieka.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie
