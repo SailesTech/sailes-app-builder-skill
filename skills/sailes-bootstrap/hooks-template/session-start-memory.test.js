@@ -196,6 +196,10 @@ test('P1a-03: same 5-section fixture, CRLF headings — identical extraction out
     assert.ok(!r.stdout.includes('VERIFIED_FACTS_BODY_MARKER'), 'Verified facts leaked under CRLF');
     assert.ok(!r.stdout.includes('LESSONS_LEARNED_BODY_MARKER'), 'Lessons learned leaked under CRLF');
     assert.ok(byteLen(r.stdout) < 9500, `stdout is ${byteLen(r.stdout)}B, over the 9500B budget`);
+    assert.ok(
+      !r.stdout.includes('OPEN_FAILURES_BODY_MARKER\r'),
+      'a raw \\r leaked into the extracted body (added at step 5, same rationale as P1a-22)'
+    );
   } finally {
     rm(dir);
   }
@@ -248,6 +252,12 @@ test('P1a-05: STATE.md >20000B AND lessons.md >40000B together — both size-war
     assert.ok(
       sizeWarningPresent(r.stdout, 'lessons.md', lessonsSize),
       'no size-warning names lessons.md and its byte count'
+    );
+    assert.ok(
+      byteLen(r.stdout) < 9500,
+      `stdout is ${byteLen(r.stdout)}B — the universal budget invariant holds even when a large ` +
+        'STATE.md forces truncation alongside two size-warnings (added at step 5: caught a mutant ' +
+        '-- warnings-not-reserved-first -- that this case had not been checking for)'
     );
   } finally {
     rm(dir);
@@ -582,6 +592,11 @@ test('P1a-21: a single line longer than the whole budget — zero content lines,
     assert.ok(byteLen(r.stdout) < 9500, `stdout is ${byteLen(r.stdout)}B, over budget`);
     assert.ok(!r.stdout.includes('X'.repeat(50)), 'a fragment of the oversized line leaked into stdout (Q-2: expected zero content lines)');
     assert.ok(r.stdout.includes(TRUNCATION_MARKER), 'no truncation notice for a file that could not be shown at all');
+    assert.ok(
+      r.stdout.includes('STATE.md'),
+      'the truncation notice does not name the file path (added at step 5, checker finding: the ' +
+        'frozen plan requires "naming the path AND .ai/archive/" -- only the archive marker was checked)'
+    );
   } finally {
     rm(dir);
   }
@@ -600,6 +615,12 @@ test('P1a-22: mixed CRLF/LF on the two trigger headings in one file — both sti
     assert.strictEqual(r.status, 0);
     assert.ok(r.stdout.includes('OPEN_FAILURES_BODY_MARKER'), 'the CRLF-ended heading was not recognized');
     assert.ok(r.stdout.includes('LAST_SESSION_BODY_MARKER'), 'the LF-ended heading was not recognized');
+    assert.ok(
+      !r.stdout.includes('OPEN_FAILURES_BODY_MARKER\r'),
+      'a raw \\r leaked into the extracted body (added at step 5: the trailing [[:space:]]*$ anchor ' +
+        'tolerance alone can pass a heading with CR intact; only checking body content for a leaked ' +
+        'CR actually proves the dedicated normalization step ran)'
+    );
   } finally {
     rm(dir);
   }
@@ -608,12 +629,37 @@ test('P1a-22: mixed CRLF/LF on the two trigger headings in one file — both sti
 test('P1a-23: a multibyte UTF-8 char sitting at the would-be cut point — cut never splits it', () => {
   const { dir } = makeRepo();
   try {
-    const overhead = measureFixedOverhead(dir);
-    // Position a 2-byte UTF-8 char ('ą') straddling the boundary a naive byte-offset cut would use.
-    const target = 9500 - overhead;
-    const before = 'a'.repeat(Math.max(target - 2, 0));
-    const content = before + 'ą' + 'a'.repeat(4000); // plenty of trailing content to force a cut
-    writeState(dir, content);
+    // A single unbroken line can never exercise this: Q-2(a) means an all-in-one-line file that's
+    // over budget always yields ZERO content lines regardless of where a multibyte char sits inside
+    // it, so the character never reaches stdout either way. To actually exercise "the cut never
+    // splits a character", the fixture needs multiple COMPLETE lines, with a multibyte char placed
+    // exactly at the byte offset a naive byte-count (not line-boundary) cut would land on — i.e. at
+    // the start of the line head_cut breaks on. Both quantities below are measured against this
+    // build's own hook rather than assumed, so the calibration survives implementation wording
+    // changes (same rationale as measureFixedOverhead).
+    const tailBytes = measureFixedOverhead(dir); // warnings + Task Router, no truncation note yet
+
+    // Force a single-line overflow to read back the truncation NOTE's own byte length (it embeds
+    // this repo's real tmp path, so it cannot be hardcoded).
+    writeState(dir, 'z'.repeat(15000) + '\n');
+    const noteRun = runHook(SESSION_START, dir, '{}');
+    assert.ok(noteRun.stdout.includes(TRUNCATION_MARKER), 'note-length calibration fixture did not truncate');
+    const noteLineBytes = byteLen(noteRun.stdout) - tailBytes;
+    assert.ok(noteLineBytes > 0, 'calibrated note length is non-positive — calibration is broken');
+
+    const memBudget = 9499 - tailBytes; // MAX_BYTES - tail_bytes, mirroring the hook's own arithmetic
+    const cutLimit = memBudget - noteLineBytes;
+    assert.ok(cutLimit > 10, `calibrated cut_limit (${cutLimit}B) is too small to build this fixture`);
+
+    // Line 1: exactly `cutLimit - 1` bytes (content + its own newline), so after it head_cut's
+    // running total is `cutLimit - 1` -- one byte short of the limit.
+    const line1 = 'a'.repeat(cutLimit - 2);
+    // Line 2: starts with the 2-byte UTF-8 char immediately, so a hypothetical `head -c 1` hard-cut
+    // (the exact remaining budget at this point) would grab only its first byte.
+    const line2 = 'ą' + 'a'.repeat(200);
+    writeState(dir, line1 + '\n' + line2 + '\n');
+    assert.ok(fs.statSync(statePath(dir)).size < 20000, 'fixture must stay under the size-warning threshold to keep tailBytes valid');
+
     const r = runHook(SESSION_START, dir, '{}');
     assert.strictEqual(r.status, 0);
     assert.ok(byteLen(r.stdout) < 9500, `stdout is ${byteLen(r.stdout)}B, over budget`);
