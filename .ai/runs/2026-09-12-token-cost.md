@@ -128,6 +128,32 @@ ownership:
   `session-start-memory: all tests passed`. Podpięta do `npm test`. W toku: dowód wykrywania
   (tester-2, krok 5) i checker P1a.
 
+- 2026-09-12 — **P2, sprawdzenie na żywo `autoCompactWindow` w projektowym `.claude/settings.json`**
+  (Claude Code 2.1.266). Komenda: `claude -p "/context"` w repo tymczasowym, dwa przebiegi.
+  - Bez ustawienia: `**Tokens:** 13.1k / 1m (1%)`, `Free space 953.9k`, `Autocompact buffer 33k`.
+  - Z `{ "autoCompactWindow": 150000 }`: `**Tokens:** 13.1k / 150k (9%)`, `Free space 103.9k`,
+    `Autocompact buffer 33k`.
+  Wniosek: klucz w pliku projektu jest honorowany, bo okno zmienia się z 1 M na 150 k. Bezpiecznik
+  400 000 z P2 może więc iść do `settings-template.json` bez planu awaryjnego ze zmienną
+  środowiskową.
+
+- 2026-09-12 — **P0 scalone** (be-dev-1 `40acb1f`). Konflikt w `package.json` rozwiązany skryptem:
+  strona be-dev-1 to baza plus dopisany `token-report.test.js`, bez innych zmian. Wynik to 19
+  zestawów. Stos `git stash` jest pusty, mimo że worker użył `stash`.
+  **Odtworzenie liczb, dowód:** oryginalny instrument
+  (`/tmp/.../7fc947db…/scratchpad/tokens2.js`, since 2026-09-11T00:00Z, bez until) i
+  `token-report.js --since 2026-09-11 --until 2026-09-13` uruchomione kolejno o ~23:20:
+  lider **714M vs 714.0M**, subagenci **1372M vs 1372.4M**; tury 367/560, pierwsza tura 69k/89k,
+  szczyt 666k/933k, top 10% lidera 43% — identyczne. Odchyłka od liczb w specu (706 M / 1 297 M,
+  160 transkryptów, szczyt p50 627k) wynika z tego, że korpus wciąż rośnie: najnowszy mtime to
+  2026-09-12 23:16, a transkryptów subagentów jest 161. Narzędzie zgadza się z instrumentem ±0,03%.
+  Spawny: 178, z czego 135 bez prefiksu, rozkład jak w specu (jeden spawn więcej, wbudowany).
+  Poufność: grep baseline'u i fixture'ów po ścieżkach klienta, nazwach integracji i polach
+  `text`/`content` nic nie znajduje; `baseline.json` ma tylko agregaty (1 881 znaków).
+  **Konsekwencja dla porównania po wydaniu:** baseline z 23:15 dnia 12.09 obejmuje okno, które jeszcze
+  się nie zamknęło. Filtr po mtime usuwa też z okna sesję wznowioną po północy. Porównanie musi
+  czytać zapisany plik, nie liczyć okna od nowa.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie
