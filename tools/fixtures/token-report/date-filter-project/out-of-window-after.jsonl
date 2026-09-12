@@ -1,0 +1,1 @@
+{"type":"assistant","message":{"id":"msg_AFTER","model":"claude-synthetic","usage":{"input_tokens":888,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":10},"content":[{"type":"text","text":"synthetic out-of-window turn, on the until boundary"}]}}

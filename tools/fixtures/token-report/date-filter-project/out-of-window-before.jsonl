@@ -1,0 +1,1 @@
+{"type":"assistant","message":{"id":"msg_BEFORE","model":"claude-synthetic","usage":{"input_tokens":999,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":10},"content":[{"type":"text","text":"synthetic out-of-window turn, before the range"}]}}

@@ -1,0 +1,1 @@
+{"type":"assistant","message":{"id":"msg_S7","model":"claude-synthetic","usage":{"input_tokens":15,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":5},"content":[{"type":"text","text":"synthetic general-purpose worker output"}]}}

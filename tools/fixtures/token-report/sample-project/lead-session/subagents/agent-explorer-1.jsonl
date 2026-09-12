@@ -1,0 +1,3 @@
+{"type":"assistant","message":{"id":"msg_S3","model":"claude-synthetic","usage":{"input_tokens":20,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":5},"content":[{"type":"text","text":"synthetic explorer output"}]}}
+{"type":"assistant","message":{"id":"msg_S4","model":"claude-synthetic","usage":{"input_tokens":25,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":5},"content":[{"type":"text","text":"synthetic explorer output 2"}]}}
+{"type":"assistant","message":{"id":"msg_S5","model":"claude-synthetic","usage":{"input_tokens":30,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":5},"content":[{"type":"text","text":"synthetic explorer output 3"}]}}

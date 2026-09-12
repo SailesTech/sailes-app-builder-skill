@@ -1,0 +1,2 @@
+{"type":"assistant","message":{"id":"msg_S1","model":"claude-synthetic","usage":{"input_tokens":50,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":20},"content":[{"type":"text","text":"synthetic worker output"}]}}
+{"type":"assistant","message":{"id":"msg_S2","model":"claude-synthetic","usage":{"input_tokens":70,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":20},"content":[{"type":"text","text":"synthetic worker output 2"}]}}

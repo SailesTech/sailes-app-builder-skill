@@ -1,0 +1,108 @@
+{
+  "meta": {
+    "generatedAt": "2026-09-12",
+    "tool": "tools/token-report.js",
+    "command": "node tools/token-report.js ~/.claude/projects/-home-charlie-Work-partner-portal-v3 --since 2026-09-11 --until 2026-09-13 --json",
+    "note": "Aggregates only — no message content, tool input, or client-repo file paths. See README.md in this directory for the delta against the spec's own numbers."
+  },
+  "dateFilter": {
+    "sinceMs": 1789077600000,
+    "untilMs": 1789250400000,
+    "basis": "file-mtime-local"
+  },
+  "lead": {
+    "transcriptCount": 6,
+    "contextTokensTotal": 713955621,
+    "turns": {
+      "p50": 367,
+      "max": 560
+    },
+    "firstTurnContext": {
+      "p50": 69148,
+      "p90": 89088
+    },
+    "peakContext": {
+      "p50": 665869,
+      "max": 933213
+    },
+    "top10PercentShare": 0.42701810313221134
+  },
+  "subagents": {
+    "transcriptCount": 161,
+    "contextTokensTotal": 1363450952,
+    "turns": {
+      "p50": 41,
+      "max": 431
+    },
+    "firstTurnContext": {
+      "p50": 30940,
+      "p90": 33030
+    },
+    "peakContext": {
+      "p50": 135973,
+      "max": 542360
+    },
+    "top10PercentShare": 0.5469995931324122
+  },
+  "subagentsByRole": {
+    "explorer": {
+      "n": 55,
+      "turns": { "p50": 32, "p90": 62, "max": 79 },
+      "contextTokensTotal": 170149845
+    },
+    "qa": {
+      "n": 14,
+      "turns": { "p50": 105, "p90": 203, "max": 278 },
+      "contextTokensTotal": 199135751
+    },
+    "be-dev": {
+      "n": 52,
+      "turns": { "p50": 56, "p90": 143, "max": 431 },
+      "contextTokensTotal": 639035754
+    },
+    "fe-dev": {
+      "n": 6,
+      "turns": { "p50": 131, "p90": 216, "max": 216 },
+      "contextTokensTotal": 121405598
+    },
+    "general-purpose": {
+      "n": 7,
+      "turns": { "p50": 27, "p90": 86, "max": 86 },
+      "contextTokensTotal": 38095023
+    },
+    "designer": {
+      "n": 3,
+      "turns": { "p50": 71, "p90": 76, "max": 76 },
+      "contextTokensTotal": 15141771
+    },
+    "be-checker": {
+      "n": 15,
+      "turns": { "p50": 36, "p90": 72, "max": 98 },
+      "contextTokensTotal": 56404864
+    },
+    "tester": {
+      "n": 3,
+      "turns": { "p50": 91, "p90": 214, "max": 214 },
+      "contextTokensTotal": 52571059
+    },
+    "claude": {
+      "n": 6,
+      "turns": { "p50": 38, "p90": 131, "max": 131 },
+      "contextTokensTotal": 71511287
+    }
+  },
+  "spawns": {
+    "total": 178,
+    "unprefixedTotal": 135,
+    "unprefixedByName": {
+      "be-dev": 50,
+      "qa": 13,
+      "be-checker": 15,
+      "explorer": 45,
+      "designer": 3,
+      "fe-dev": 6,
+      "tester": 3
+    }
+  },
+  "malformedLines": 0
+}
