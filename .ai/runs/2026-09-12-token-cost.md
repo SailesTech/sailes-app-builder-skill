@@ -262,6 +262,14 @@ ownership:
   `cmp` identyczne), trzy ramiona: splits, handoff-A, handoff-B. Zastrzeżenia do fixture'ów i
   nośnik: `.ai/eval-runs/2026-09-12-token-cost-evals/README.md`.
 
+- 2026-09-12 — **Checker P2: APPROVE.**
+  - Na bazie `0385266` nowa koncepcja parity jest czerwona („a closed phase ends the lead session; the
+    human runs /clear…”), a po przywróceniu zielona.
+  - Blok nie twierdzi, że model wykonuje `/clear`, a kopia Codex nie wspomina o `autoCompactWindow`.
+  - Liczby w komentarzu są zgodne ze specem, a dziesięć wpisów `Agent()` zostało.
+  NIT: luźny regex `/\/clear/`, zgodny ze stylem pliku; zaakceptowany. Done-when P2 zawiera jeszcze
+  PASS evala `lead-hands-off-after-phase`, dlatego P2 nie jest odhaczony.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie
