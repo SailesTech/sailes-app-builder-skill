@@ -223,10 +223,29 @@ ownership:
   błędem bez polecenia i odporny na CRLF. `TODO(human)` o miejscu na odzyskaną wiedzę to realna luka,
   a tymczasowy wybór `AGENTS.md` jest spójny z frameworkiem. Pytanie poszło do człowieka.
 
+- 2026-09-12 — **F5 (człowiek):** wiedza z usuwanej lokalnej roli trafia do `AGENTS.md` repo. `TODO(human)`
+  w `adopt-existing-repo.md` zastąpione decyzją i jej kosztem, spec dostał F5 (`e3cab8e`).
+- 2026-09-12 — **P1a, dowód wykrywania (tester-2 `6b8a5c8`, tier B): 9/9 mutantów wykrytych.**
+  Każdy mutant i przypadki, które go złapały:
+  - dopasowanie fałszywego nagłówka → P1a-12;
+  - `Verified facts` w wyjściu → P1a-02, 03;
+  - budżet `<=` → P1a-15;
+  - ostrzeżenia bez rezerwy → P1a-15;
+  - `>=` przy progach → P1a-17, 19;
+  - **nierozpoznany CRLF → przeżył**, więc wzmocniono P1a-03 i P1a-22 (sprawdzają dosłowne `\r`) i
+    teraz jest wykrywany;
+  - cięcie w środku linii → P1a-21 (i sprzężone P1a-23);
+  - Q-2 zastąpione cięciem → P1a-21;
+  - wypełniacz `Last-commit` → P1a-25.
+  Uwaga checkera o P1a-21 (ścieżka w komunikacie) uwzględniona. Hook po mutacjach bajt w bajt, suita
+  25/25. **Luka w planie do decyzji człowieka:** żaden zamrożony przypadek nie łączy fałszywego
+  nagłówka z emoji (`## 🔴 Open failure — …`) z prawdziwym drugim nagłówkiem, więc mutant #1 łapie tylko
+  inny fałszywy nagłówek (P1a-12).
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie
-- [ ] P3 — worker: zadanie = faza, `maxTurns`
+- [x] P3 — worker: zadanie = faza, `maxTurns` (merge `273030a`; checker APPROVE; tester n/a — decyzja człowieka)
 - [ ] P2 — przekazanie sesji + bezpiecznik
-- [ ] P4 — stare role
+- [x] P4 — stare role (merge `d4fa89f` + `dcb4b72` + `3fafddd` + `e3cab8e`; sprawdzenie na żywo; checker APPROVE; tester n/a)
 - [ ] P5 — evale, wydanie
