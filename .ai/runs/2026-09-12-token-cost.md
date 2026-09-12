@@ -178,6 +178,23 @@ ownership:
   klienta, więc wiedzę z usuwanych ról proponuje przenosić do sekcji `AGENTS.md` repo. Pytanie idzie
   do człowieka na najbliższym przystanku.
 
+- 2026-09-12 — **Checker P1a: NITS.**
+  - (1) P1a-21 nie sprawdza ścieżki w komunikacie o ucięciu, a plan tego wymaga. Implementacja
+    spełnia wymóg (checker odtworzył). Poprawka poszła do testera-2.
+  - (2) `session-start.sh:230-247`: `cut_limit` przycięty tylko do 0. Gdyby `note_bytes` przekroczyło
+    `mem_budget`, notka mogłaby przebić 9 500 B. Nieosiągalne w praktyce (ścieżka repo blisko
+    `PATH_MAX` plus kilka ostrzeżeń). **Zaakceptowane jako NIT**, bez zmiany.
+  - (3) `hooks-template.test.js` ma około 10 testów implementera, które dublują zamrożoną suitę.
+    **Zaakceptowane**: usunięcie wymagałoby ścieżki DEAD ze skreśleniem przez człowieka, a dwa zielone
+    zestawy nie szkodzą.
+  Checker zrobił też dowód Done-when (f): powrót do `cat "$STATE"` → 7 czerwonych (P1a-02, 03, 04, 15,
+  21, 23, 24), po przywróceniu 25 zielonych. Hook: `sh -n` OK, brak bash-izmów, `mktemp -d` z
+  `trap`, 260 KB w 0,31 s, stdout 9 455 B, ścieżka ze spacjami OK.
+- 2026-09-12 — P3 skończony (be-dev-4 `9336fa5`), scalany. Wyjście poza zakres: zdanie w treści
+  `be-dev.md` i `fe-dev.md`, bo parity sprawdza oba bliźniaki. Pliki były na liście be-dev-4, więc to
+  mieści się w zakresie. Mutacje 1–3 i `npm test` są w jego raporcie; `mcp-toolnames-check`
+  zawodził 3 razy na 4.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie
