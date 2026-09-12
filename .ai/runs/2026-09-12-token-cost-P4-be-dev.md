@@ -131,4 +131,41 @@ entry) is "the role does not exist," not "deny this spawn."
 
 ## npm test
 
-(run below, before the declaration commit)
+`node skills/sailes-bootstrap/repo-done-checklist.test.js` (inner loop): all green, incl. new F3
+cases (see above).
+
+`npm test` (once before the declaration commit): **exit 0.** First run hit the documented
+`mcp-toolnames-check` "server absent" flake (`FAIL server absent -> "SKIP: <reason>", exit 0` with
+an `EPIPE` in the child process it spawns) — per the brief, reran that file standalone:
+`node tools/mcp-toolnames-check.test.js` → `mcp-toolnames-check: all tests passed`. A second full
+`npm test` run afterward also passed `mcp-toolnames-check` cleanly and returned overall exit 0, all
+seventeen suites `all tests passed`. Not chased further, per instructions. Verified none of my
+files touch `settings-template.json` (`git diff --stat f1fe9e2 HEAD -- skills/sailes-bootstrap/settings-template.json` → empty), which is explicitly out of scope for P4-be-dev-5.
+
+## What in the brief turned out wrong / needed judgment
+
+- **No client-side "brief template" file exists** to point the salvage step at (see the search
+  section at top). Salvaged repo knowledge instead to the client's own `AGENTS.md` (Key Commands /
+  Conventions / Task Router / Stack), with an explicit `TODO(human)` sentence in
+  `adopt-existing-repo.md` flagging that this is the closest available location, not a confirmed
+  canonical one. **This is the one item the lead should take to the human**, per the brief's own
+  instruction for this case.
+- Everything else in the brief matched what was on disk: the (a)/(b) exception pattern in
+  `adopt-existing-repo.md` was there to imitate; `extractScanPattern`/`extractHooksResolutionBlock`
+  were there to imitate for the checklist test; `enable-codex-agents.sh` +
+  `codex-agents/README.md` gave a clean, unambiguous "n/a" answer for both Codex questions (no
+  project-scoped agent directory, no per-role deny primitive) — no invented mechanism was needed.
+
+## Verification honored
+
+- Contract: none touched (this phase is docs/checklist/test only — no shared TS types / Zod /
+  OpenAPI surface).
+- Reference pattern imitated: `adopt-existing-repo.md`'s existing (a)/(b) named exceptions for the
+  new (c); `repo-done-checklist.test.js`'s `extractScanPattern`/`extractHooksResolutionBlock` for
+  the new `extractRoleShadowScan`.
+- `shAvailable()` reused, not reimplemented.
+- Line endings: all four touched files were LF on disk before my edits (confirmed via the CRLF
+  mutation test on `repo-done-checklist.md`, which round-tripped to the original bytes via `cmp`);
+  every edit used Edit/Write, no prose through a shell argument.
+
+No blockers. Declaration commit follows this entry.
