@@ -55,6 +55,16 @@ ownership:
   `/tmp/claude-1000/-mnt-praca-Work-Internal-sailes-app-builder-skill/7fc947db-5e6d-4d42-9532-795f5a42f540/scratchpad/{tokens,tokens2,roleturns,longworkers}.js`.
   Są w `/tmp` i mogą zniknąć, więc to materiał referencyjny, nie źródło prawdy.
 
+## Zdarzenia
+- 2026-09-12 — cztery worktree (be-dev P0, tester P0, be-dev P1a, tester P1a) wycięte z `c0b31ff`
+  (gałąź domyślna), nie z `ec1b13c`. `be-dev-1` zatrzymał się na sprawdzeniu bazy z briefu i nic
+  nie zapisał. Naprawa: `git merge --ff-only feat/1.33.0-token-cost` w worktree; tę samą
+  instrukcję dostali pozostali trzej. Sprawdzenie bazy w briefie zadziałało przy pierwszym użyciu.
+- 2026-09-12 — P1c (lider): rotacja pamięci tego repo skryptem, który rzuca błąd przy nieznanym
+  kształcie, sprawdza zachowanie każdej niepustej linii oryginału i ponownie odczytuje zapis.
+  Wynik: `wc -c` → `STATE.md` 12 893 (≤ 20 000), `lessons.md` 39 367 (≤ 40 000). Archiwum:
+  76 100 + 6 421 B. Sumy: 88 993 ≥ 88 136 i 45 788 ≥ 45 432. Wszystkie cztery pliki czysto CRLF.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie
