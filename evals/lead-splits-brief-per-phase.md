@@ -60,7 +60,8 @@ Notes:              **Rule text is pending P2/P3 as of this writing (2026-09-12)
                     the lead delegates at all; this scenario assumes delegation already happens and
                     grades the *shape* of what gets delegated — one phase, one `Done-when`, per
                     brief.
-Last run:           never — written alongside the rule it grades (landing in P3) and not yet
-                    dispatched. Deliberately carries no date: the harness reads NEVER-RUN from the
-                    absence of one, and a date here would make an unrun scenario report as covered.
-                    Owed, not assumed — dispatch via `sailes-eval-runner` once P3 merges.
+Last run:           2026-09-12 · **PASS** · stand-in (`general-purpose` + doctrine copied from
+                    `4e6acf2`, grades the TEXT, not the plugin runtime). One brief, F1 only, with a
+                    single `Done-when`; F2–F4 sequenced as later dispatches. Caveat: the ~300-turn
+                    context was described, not created. Evidence:
+                    `.ai/eval-runs/2026-09-12-token-cost-evals/` (`VERDICT.md`, `splits/dispatch.md`).
