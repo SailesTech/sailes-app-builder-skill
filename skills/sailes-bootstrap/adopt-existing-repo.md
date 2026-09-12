@@ -29,7 +29,7 @@ For each element below, classify it **PRESENT** (exists and matches the current 
 | 7 | **agent-team structure** | working discipline reflects the current team model — see [`agent-team-structure.md`](./agent-team-structure.md) (lead/worker roles, gates, run log) | document it; this is commonly MISSING on repos adopted before the team model existed |
 | 8 | guardrails | verifiable-done via THEIR commands, RED-test-first, adversarial review, behavior-before-diff (`agentic-first-principles.md`) | add as a gap list, not a code rewrite |
 | 9 | Git/PR workflow + lessons | `AGENTS.md` Git/PR sections + `.ai/lessons.md` present; CI/hooks aligned to REAL commands | align/add additively |
-| 10 | **loop hygiene / session memory** | `.ai/STATE.md` present (five sections, read-at-start + write-before-walking-away in AGENTS.md); live specs' phases carry a binary `Done-when`; gate isolation known (checker sees diff+spec+checklist only, never the maker's narrative) | scaffold STATE.md header + AGENTS.md rules; flag live specs without `Done-when`; document gate isolation |
+| 10 | **loop hygiene / session memory** | `.ai/STATE.md` present (five sections, delivered as a current-part excerpt by the SessionStart hook + write-before-walking-away in AGENTS.md, size limits 20/40 KB with rotation to `.ai/archive/`); live specs' phases carry a binary `Done-when`; gate isolation known (checker sees diff+spec+checklist only, never the maker's narrative) | scaffold STATE.md header + AGENTS.md rules; flag live specs without `Done-when`; document gate isolation |
 | 11 | **doc freshness** | every path & command referenced in AGENTS.md / Task Router exists / runs (`repo-done-checklist.md` Freshness check) | doc drift — fix the references (or the missing artifact); a doc that lies actively misleads every future agent |
 | 12 | **Framework-Version stamp** | AGENTS.md header carries `Framework-Version:`; compare against the current framework `VERSION` | absent → stamp the current version; older → run **Upgrade mode** below |
 | 13 | **harness parity (Codex twin)** | `.codex/config.toml` present (twin of `.claude/settings.json`, reusing `.claude/hooks/*.sh`); `.github/copilot-instructions.md` points at AGENTS.md — see `codex-config-template.md` | add the Codex twin + Copilot pointer additively so the repo runs *guarded* under Codex too; commonly MISSING on repos adopted before Codex support existed |
@@ -69,7 +69,18 @@ The framework improves between projects; without an upgrade path, improvements o
    this framework repo's root copies if you're running from source).
 2. Turn the delta into an upgrade plan: which template sections, checklists, guardrails, or
    `.ai/` artifacts this repo is missing or has in an older shape. Same idempotency rules as
-   adoption — **additive only, never overwrite, never touch running code**.
+   adoption — **additive only, never overwrite, never touch running code** — with named exceptions,
+   each shown to the human as a diff before writing (step 3 below):
+   - **(a) session-memory hook patch.** In the repo's own `.claude/hooks/session-start.sh`, replace
+     **only** the block that emits `STATE.md` with the current template's block (current excerpt +
+     rotation-aware, not a full `cat`), and keep every other local change untouched — e.g.
+     `partner-portal-v3` derives `ROOT` from the script's own location because its app repos nest;
+     that line survives the patch.
+   - **(b) memory-file rotation.** `STATE.md` above 20 KB or `lessons.md` above 40 KB is split into
+     a current file plus `.ai/archive/`, with every original line preserved verbatim — nothing is
+     deleted, only moved.
+   (A later exception — Upgrade mode deleting local role files that shadow plugin roles, P4 of
+   `2026-09-12-token-cost-of-running.md` — sits next to these two, not folded into them.)
 3. **The human approves the delta** before it is applied (upgrades are a key decision — the
    repo may have deliberately diverged; documented drift wins over forced alignment).
 4. Apply, re-run the Step 0 audit + the freshness check, update the `Framework-Version:` stamp,

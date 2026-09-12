@@ -21,7 +21,7 @@ description: Use AFTER a spec is approved and BEFORE writing implementation code
 
 ### Phase 1 — Load context
 1. Read the target spec **fully** (`.ai/specs/...`, status `approved`).
-2. Read `.ai/lessons.md` for known pitfalls in this repo.
+2. `grep` `.ai/lessons.md` **and** `.ai/archive/` by the spec's touched areas (module, file, integration name) for known pitfalls — not by `Applies-to`, which most entries lack, and never the whole file.
 3. Use the **Task Router** in `AGENTS.md` to find every guide/module the spec touches — read all matching ones.
 4. Map the existing code the spec affects: entities, API routes, events, exports, jobs. For a large scope, dispatch read-only `Explore`/`explorer` subagents (one area each) — keep main context clean.
 

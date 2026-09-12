@@ -14,8 +14,10 @@
 //                        `.env.example` (keys, committed) and `.env` (local values, gitignored)
 //                        are the agent's; `.env.production*`/`.env.staging*` and key material are
 //                        not, and by `sailes-hosting` doctrine belong in the platform, not a file.
-// "hooks.SessionStart" — inject STATE.md so "read at session start" is enforced, not remembered;
-//                        warn when the local `.env` carries production markers.
+// "hooks.SessionStart" — deliver the current excerpt of STATE.md (Open failures / General rules /
+//                        Last session, or the file head under the size limit when those sections
+//                        are absent) so it's read without a full-file cost; warn when the local
+//                        `.env` carries production markers.
 // "hooks.PreToolUse"   — block edits to protected paths (applied migrations, implemented specs,
 //                        lockfiles) AND protected COMMANDS. The matcher must include `Bash`:
 //                        until 1.25.1 it read `Edit|Write`, so the guard's entire command surface
