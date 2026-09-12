@@ -710,6 +710,43 @@ test('P1a-24: drift warning + STATE.md >20000B together — drift, size-warning 
   }
 });
 
+test('P1a-26: client-shaped emoji decoy PAIRED with a real Last session heading — still head mode', () => {
+  // Added by human decision, 2026-09-12 -- the plan-level gap step 5's mutant #1 surfaced: no frozen
+  // fixture paired the literal client-shaped emoji decoy with a REAL exact second heading, so no
+  // case could prove the decoy alone does not flip the mode. P1a-04/P1a-11 (which do carry this
+  // decoy) lack a real "## Last session" anywhere, so the mode-selection `&&` gate can never even be
+  // reached by them regardless of how the decoy is matched -- this fixture closes exactly that hole.
+  const { dir } = makeRepo();
+  try {
+    const content =
+      '## 🔴 Open failure — niewypchnięta praca\n' +
+      'Praca nieukończona: refaktoryzacja modułu płatności, brak testów końcowych.\n\n' +
+      '## Last session\n' +
+      'Ostatnia sesja: naprawiono błąd logowania i zaktualizowano dokumentację.\n';
+    writeState(dir, content);
+    const r = runHook(SESSION_START, dir, '{}');
+    assert.strictEqual(r.status, 0);
+    assert.ok(
+      r.stdout.startsWith('## 🔴 Open failure — niewypchnięta praca'),
+      'stdout does not begin at the true start of the file -- section mode fired on the decoy'
+    );
+    assert.ok(
+      !r.stdout.startsWith('## Last session') && !r.stdout.startsWith('Last-commit'),
+      'stdout begins with the Last session section (or a section-mode Last-commit line) instead of the file start'
+    );
+    assert.ok(
+      r.stdout.includes('Praca nieukończona'),
+      'the decoy heading\'s own body is missing -- stdout must not consist only of the Last session section'
+    );
+    assert.ok(
+      r.stdout.includes('Ostatnia sesja'),
+      'the Last session body is missing entirely (head mode should still include it, the file is small)'
+    );
+  } finally {
+    rm(dir);
+  }
+});
+
 console.log(
   failures === 0 ? '\nsession-start-memory: all tests passed' : `\nsession-start-memory: ${failures} failing`
 );

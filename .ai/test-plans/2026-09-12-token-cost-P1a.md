@@ -9,8 +9,9 @@ Status: **FROZEN 2026-09-12 (human)**
 Frozen: 2026-09-12 by human, answers relayed by lead. See "Resolved" below each open question.
 
 > `DRAFT` means no test may be written yet. The human moves it to `FROZEN`. **This plan is now
-> frozen — the case list below (P1a-01..25) is what the suite implements. No ID's expectation may
-> be edited to reach green; a red frozen test is a defect to report, not to fix here.**
+> frozen — the case list below (P1a-01..26) is what the suite implements. No ID's expectation may
+> be edited to reach green; a red frozen test is a defect to report, not to fix here.** P1a-26 was
+> added later, 2026-09-12, by human decision (see its row) — append-only, not a renumbering.
 
 **Tier and why it's raised.** None of the standard triggers fire (no money, auth, tenancy,
 idempotency, or irreversible outbound write — this hook is a read-only local-filesystem summarizer).
@@ -177,6 +178,7 @@ itself says "KB" throughout.
 | P1a-22 | `STATE.md` with `## Open failures\r\n` (CRLF) and `## Last session\n` (LF) mixed in the same file | Section mode triggers on both regardless of which line ending each one uses; extraction unaffected by the mismatch | unit |
 | P1a-23 | A multibyte UTF-8 character (e.g. `ą` or an emoji) placed exactly at the byte offset where a naive truncation would cut | Cut moves to before the character (or after it, whole), never through it; stdout contains no lone continuation byte and stays under budget | unit |
 | P1a-24 | Stale `Last-commit:` (drift warning fires) **and** `STATE.md` > 20 000 B, five-section shape, together | stdout contains the drift WARNING, the size-warning, and the extracted sections, all three, and the combined stdout is still < 9 500 B (extraction is what shrinks, not the warnings) | unit |
+| P1a-26 | **Added by human decision, 2026-09-12** — the plan-level gap step 5 surfaced under mutant #1 (see Detection proof): no frozen ID paired the literal client-shaped emoji decoy `## 🔴 Open failure — niewypchnięta praca` with a REAL exact `## Last session` heading in the same file. `STATE.md` whose only "Open failures"-shaped heading is that decoy (with Polish UTF-8 body text, as in P1a-04), plus a real, exact `## Last session` heading with its own body text. | The exact trigger pair is absent (the decoy is not `## Open failures`) → head mode: output starts from the beginning of the file. Section-mode extraction must NOT happen — in particular, stdout must not begin with, or consist only of, the Last session section's content. | unit |
 
 ### Regression carryover — must stay green, unmodified assertions (not new IDs)
 
@@ -220,8 +222,10 @@ at the end).
   both lack a real `## Last session` heading anywhere, so the `&&` gate stays false regardless of how
   loose the `Open failures` side is. This is not a suite defect to fix by adding a heading to those
   fixtures (that would turn them into a different, already-covered case); it is a **plan-level gap**:
-  no frozen ID pairs the literal emoji decoy with a real second heading. Flagging for the human/lead
-  rather than silently adding a 26th case outside the frozen list.
+  no frozen ID pairs the literal emoji decoy with a real second heading. Flagged for the human/lead
+  rather than silently adding a case outside the frozen list. **Resolved 2026-09-12: the human
+  approved this gap as P1a-26** (row above). Re-plant/red/revert/green proof for it recorded
+  separately below, after the suite is written.
 - **#4 (warnings not reserved).** Only P1a-15 catches it. I initially expected P1a-05 and P1a-24 to
   also react and added a universal-budget assertion to P1a-05 (kept — it is a real, always-true
   invariant per Q-1's resolution), but confirmed by direct debug run that P1a-05's fixture is a
@@ -260,6 +264,26 @@ at the end).
 though the frozen plan requires "naming the path AND `.ai/archive/`" (P1a-04 already checked the path
 half). Added `assert.ok(r.stdout.includes('STATE.md'), ...)` to P1a-21 — strengthening toward the
 already-frozen expectation, not a new one.
+
+### P1a-26 detection proof (human-approved case closing the mutant #1 gap)
+
+Re-planted the **same** mutant #1 (`^## Open failures[[:space:]]*$` → `^## .*Open failure`) after
+P1a-26 was written — no new mutant needed, since this case exists specifically to close the coverage
+hole that mutant already found.
+
+```
+  FAIL P1a-12: decorated trigger heading ("## Open failures (resolved …)") — not exact, head mode
+  FAIL P1a-26: client-shaped emoji decoy PAIRED with a real Last session heading — still head mode
+       stdout does not begin at the true start of the file -- section mode fired on the decoy
+session-start-memory: 2 failing
+```
+
+P1a-26 reddens on-topic (the exact assertion naming the defect: section mode fired on the decoy).
+Reverted; `git diff -- skills/sailes-bootstrap/hooks-template/session-start.sh` empty; full suite
+rerun: **26/26 green**. The mutant #1 finding above is now closed — every fixture that carries the
+literal emoji decoy either lacks a real second heading (P1a-04, P1a-11, structurally can't observe
+mode-selection bugs) or, as of P1a-26, pairs it with one and proves the decoy alone does not flip the
+mode.
 
 ## Suite written — `skills/sailes-bootstrap/hooks-template/session-start-memory.test.js`
 
