@@ -100,13 +100,15 @@ The live plugin does **not** run from this working directory. It runs from a clo
    the human answers (`skills/sailes-bootstrap/spec-writing-template.md`).
 
 ## Verification
-- `npm test` — seventeen suites: hook tests (`hooks/*.test.js`), the six **governance tools**
+- `npm test` — twenty suites: hook tests (`hooks/*.test.js`), the six **governance tools**
   (`tools/{sync-blocks,ownership-check,worker-status,mcp-toolnames-check,business-logic-check,
   deployed-surface-check}.test.js` — `business-logic-check` also asserts byte-parity between the
   framework checker and its client-repo copy, because sync-blocks cannot carry JS: its markers are
   HTML comments; `deployed-surface-check` also asserts it stays QUIET on this repo's own twenty-one
-  implemented specs, because a check that fires on prose is a check somebody disables), the client-repo
-  hook templates (`hooks-template/*.test.js`, incl. `brief-closure`), the Codex TOML validator and
+  implemented specs, because a check that fires on prose is a check somebody disables), the token
+  instrument and its frozen suite (`tools/token-report{,.frozen}.test.js`), the client-repo
+  hook templates (`hooks-template/*.test.js`, incl. `brief-closure` and the frozen
+  `session-start-memory` suite), the Codex TOML validator and
   the role parity check, the role frontmatter validator, the eval provenance reporter, spec-status
   evidence, the repo-done checklist, and release hygiene (five stamps + CHANGELOG heading). No
   framework, no deps, and **nothing external**: every step is deterministic. Verify a claim like
