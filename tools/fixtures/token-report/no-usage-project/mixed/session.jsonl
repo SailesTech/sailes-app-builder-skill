@@ -1,0 +1,2 @@
+{"type":"assistant","message":{"id":"msg_WITH_USAGE","model":"claude-synthetic","usage":{"input_tokens":5000,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":1},"content":[{"type":"text","text":"synthetic turn with usage"}]}}
+{"type":"assistant","message":{"id":"msg_NO_USAGE","model":"claude-synthetic","content":[{"type":"text","text":"synthetic turn with no usage field at all"}]}}

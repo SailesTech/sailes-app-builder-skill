@@ -1,0 +1,2 @@
+{"type":"assistant","message":{"id":"msg_X1","model":"claude-synthetic","content":[{"type":"text","text":"synthetic turn one, no usage"}]}}
+{"type":"assistant","message":{"id":"msg_X2","model":"claude-synthetic","content":[{"type":"text","text":"synthetic turn two, no usage"}]}}
