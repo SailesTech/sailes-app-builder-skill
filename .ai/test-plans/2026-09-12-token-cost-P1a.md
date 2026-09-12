@@ -5,10 +5,12 @@ Files under test: `skills/sailes-bootstrap/hooks-template/session-start.sh` (new
 not yet written at base `ec1b13c`) · `skills/sailes-bootstrap/hooks-template/hooks-template.test.js`
 (existing suite, must not regress).
 Risk tier: **B** (raised from C — reason below)
-Status: DRAFT
-Frozen: — (pending human)
+Status: **FROZEN 2026-09-12 (human)**
+Frozen: 2026-09-12 by human, answers relayed by lead. See "Resolved" below each open question.
 
-> `DRAFT` means no test may be written yet. The human moves it to `FROZEN`.
+> `DRAFT` means no test may be written yet. The human moves it to `FROZEN`. **This plan is now
+> frozen — the case list below (P1a-01..25) is what the suite implements. No ID's expectation may
+> be edited to reach green; a red frozen test is a defect to report, not to fix here.**
 
 **Tier and why it's raised.** None of the standard triggers fire (no money, auth, tenancy,
 idempotency, or irreversible outbound write — this hook is a read-only local-filesystem summarizer).
@@ -48,6 +50,12 @@ after (risking the *total* exceeding budget)? Drives the exact expected byte cou
 My assumption for the case list below: warnings are fixed-size and reserved first, extraction fills
 the remainder — please confirm before freeze.
 
+**Resolved (human, 2026-09-12):** the drift warning, the `.env` warning, the two size warnings, the
+truncation line and the Task Router line are always emitted **intact** and are reserved **first**;
+memory content (section or head extraction) fills whatever remains. The invariant that must hold in
+every case is simply: the whole stdout is < 9 500 B. My original assumption stands — P1a-15/16/24 as
+written are correct and need no rewrite.
+
 ❓ **Q-2 — single line longer than the whole budget (P1a-21).** Head mode "cuts at a line boundary"
 per the brief; the byte budget ("stays < 9 500", "never splits UTF-8") is stated as inviolable. These
 conflict when the very first line alone exceeds 9 500 B. Three readings: (a) emit zero content lines
@@ -56,17 +64,27 @@ only in this one pathological case, (c) something else not stated. I've written 
 the invariant that's unambiguous (stdout stays under budget, no split UTF-8 byte) and left the
 content-shape assertion UNVERIFIED pending this answer.
 
+**Resolved (human, 2026-09-12) — decision (a).** A single line longer than the budget produces
+**zero content lines** plus the truncation notice. P1a-21 is now fully specified below: no bytes of
+that line (or any content) appear in stdout, the truncation notice is present, and the invariant
+(stdout < 9 500 B, no split UTF-8 byte) still holds.
+
 ❓ **Q-3 — `Last-commit:` absent in a section-mode file.** The contract says section mode "emits
 Last-commit line + those sections" as if unconditional, but `Last-commit:` could be missing even when
 both trigger headings are present (a repo that adopted the 5-section shape before the drift-check
 convention existed). Omit the line silently (matching the existing drift-check's "field absent →
 silence" precedent), or emit some placeholder? Needed for P1a-07's negative variant.
 
+**Resolved (human, 2026-09-12):** absent → silent, no placeholder. Added as its own case, P1a-25
+(below), since P1a-07 only covers the present-and-non-stale side.
+
 ❓ **Q-4 — literal text vs. substring for the notice lines.** Must the truncation line and the two
 size-warning lines match a frozen literal string, or is "contains the path + `.ai/archive/`" /
 "contains the byte count" (regex/substring, the existing suite's own style — `/WARNING/`,
 `/PRODUCTION markers/`) sufficient? I've written every case below as substring/regex, which leaves
 wording free for the implementer; say so explicitly if literal text should be frozen instead.
+
+**Resolved (human, 2026-09-12):** substring/regex assertions, as written. No case needs rewording.
 
 ❓ **Q-5 — does the hook WRITE to `.ai/archive/`, or only NAME it?** Q1/F3's retrieval model is
 `grep` on demand against an archive that some other process (Upgrade mode, a human) populates. P1's
@@ -75,15 +93,24 @@ read-only and only prints a pointer line naming the archive path — it does not
 content to disk. If that's wrong, P1a-04 needs an added filesystem assertion (the excess content
 actually lands at the named path), not just a stdout check.
 
+**Resolved (human, 2026-09-12):** the hook is read-only and only names `.ai/archive/`. My assumption
+stands — P1a-04 stays a stdout-only check, no filesystem assertion added.
+
 ❓ **Q-6 — `>` vs `≥` at the three named boundaries.** I've read "STATE.md ≤ 20 KB" / "lessons.md ≤
 40 KB" / "stays < 9 500" as: exactly-at-the-limit is the last **silent** value, one byte over is the
 first **warned/truncated** value. That reading drives every paired boundary case below (P1a-15/16,
 17/18, 19/20). Please confirm — the alternative (warn *at* the limit, not just past it) flips four
 expected outcomes.
 
+**Resolved (human, 2026-09-12):** strict boundaries, confirmed exactly as assumed. Total stdout:
+9 500 B is over budget, 9 499 B fits. `STATE.md`: silent at 20 000 B, warns at 20 001 B. `lessons.md`:
+silent at 40 000 B, warns at 40 001 B. P1a-15/16/17/18/19/20 need no rewrite.
+
 ❓ **Q-7 — 1000-based or 1024-based "KB".** The task brief gives exact decimal figures (9500, 20000,
 40000) which I've taken as literal byte counts, not `9500*1.024` etc. Flagging since the spec prose
 itself says "KB" throughout.
+
+**Resolved (human, 2026-09-12):** decimal bytes. Confirmed as assumed — no case needs rewriting.
 
 ## NOT testing (deliberately)
 
@@ -126,7 +153,8 @@ itself says "KB" throughout.
 | ID | Trigger | Expected outcome | Level |
 |---|---|---|---|
 | P1a-06 | Both trigger headings present, `## General rules` **absent** | Section mode still triggers: Last-commit line + Open failures + Last session present; no crash, no phantom "General rules" text required | unit |
-| P1a-07 | Section mode triggers, `Last-commit:` field present and **non-stale** (matches HEAD) | stdout still carries the section-mode Last-commit info line, independent of the (silent) staleness-warning mechanism, which stays silent since not stale | unit — **depends on Q-3 for the negative variant, not this one** |
+| P1a-07 | Section mode triggers, `Last-commit:` field present and **non-stale** (matches HEAD) | stdout still carries the section-mode Last-commit info line, independent of the (silent) staleness-warning mechanism, which stays silent since not stale | unit |
+| P1a-25 | Section mode triggers (both required headings present), `STATE.md` has **no** `Last-commit:` field at all | No Last-commit line appears anywhere in stdout — silent, no placeholder (Q-3, resolved); no crash, section extraction proceeds normally | unit |
 
 ### Edges and failures
 
@@ -145,7 +173,7 @@ itself says "KB" throughout.
 | P1a-18 | `STATE.md` exactly 20 001 B | Size-warning line appears, names the size | unit |
 | P1a-19 | `lessons.md` exactly 40 000 B | No size-warning line | unit |
 | P1a-20 | `lessons.md` exactly 40 001 B | Size-warning line appears, names the size | unit |
-| P1a-21 | A single line inside `STATE.md`, in head mode, longer than the entire 9 500 B budget by itself | Unambiguous part only: total stdout stays under budget and contains no split/invalid UTF-8 byte sequence. Content-shape part UNVERIFIED pending Q-2. | unit |
+| P1a-21 | A single line inside `STATE.md`, in head mode (no exact trigger headings present), longer than the entire 9 500 B budget by itself | Q-2 resolved (a): **zero content lines** from `STATE.md` appear in stdout; the truncation notice (naming the path and `.ai/archive/`) is present; total stdout < 9 500 B; no split/invalid UTF-8 byte sequence | unit |
 | P1a-22 | `STATE.md` with `## Open failures\r\n` (CRLF) and `## Last session\n` (LF) mixed in the same file | Section mode triggers on both regardless of which line ending each one uses; extraction unaffected by the mismatch | unit |
 | P1a-23 | A multibyte UTF-8 character (e.g. `ą` or an emoji) placed exactly at the byte offset where a naive truncation would cut | Cut moves to before the character (or after it, whole), never through it; stdout contains no lone continuation byte and stays under budget | unit |
 | P1a-24 | Stale `Last-commit:` (drift warning fires) **and** `STATE.md` > 20 000 B, five-section shape, together | stdout contains the drift WARNING, the size-warning, and the extracted sections, all three, and the combined stdout is still < 9 500 B (extraction is what shrinks, not the warnings) | unit |
@@ -174,8 +202,9 @@ SILENT`, `no .env at all is SILENT`.
 | P1a-11 / P1a-12 | Loosen heading match to a substring/prefix test instead of exact-line match | pending | pending | pending |
 | P1a-15–P1a-20 | Off-by-one the comparison operator at each boundary (`>` ↔ `>=`) | pending | pending | pending |
 | P1a-23 | Replace the UTF-8-safe cut with a raw byte-offset `cut -c`/`head -c` truncation | pending | pending | pending |
+| P1a-21 | Skip the whole-line-exceeds-budget check and emit the line anyway (or hard-cut mid-line instead of dropping it) | pending | pending | pending |
+| P1a-25 | Emit a placeholder (e.g. `Last-commit: unknown`) instead of staying silent when the field is absent | pending | pending | pending |
 
-> This table is structurally present per the template but intentionally unfilled — the suite does
-> not exist yet in this assignment (Step 1 only). It records the mutation each case is *designed* to
-> catch, for the human to review before freeze; the red/green columns are completed when the suite is
-> written and run (next assignment).
+> This table is structurally present per the template. Filled at the point noted per row: the suite
+> now exists (see below) so the harness-error check has been run; the actual red/green
+> mutation cycle is the lead's detection-proof step, after the implementation lands.
