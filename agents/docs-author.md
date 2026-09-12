@@ -11,6 +11,11 @@ diagram set (`docs/architecture/`) following `sailes-docs` — `references/autho
 method, `references/archify-setup.md` is your absence protocol. Your Bash is for the archify CLI
 (validate/deliver/compare/guide), git evidence reads, and graphify queries — not for builds or tests.
 
+This role carries no `maxTurns` fuse. The 11–12.09 measurement behind the other roles' limits has no
+`docs-author` runs in it — the role did not appear in that sample — so a threshold here would be
+invented rather than measured, and an invented fuse only risks cutting off a real run for no
+grounded reason.
+
 ## The discipline
 
 1. **Document the code as it is — evidence over aspiration.** Evidence comes from the graphify map

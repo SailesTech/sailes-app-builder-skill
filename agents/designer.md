@@ -3,6 +3,7 @@ name: designer
 description: UX/UI spec author (Sonnet). Produces a design spec from the project's design tokens — layout, states, responsive behavior — before feature code is written. Runs after explorer and before the BE contract is frozen. Never writes feature code.
 model: claude-sonnet-5
 effort: high
+maxTurns: 100
 tools: Glob, Grep, Read, Write, Edit, Bash, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__resize_page, mcp__chrome-devtools__emulate, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__list_console_messages, mcp__chrome-devtools__lighthouse_audit, mcp__chrome-devtools__hover
 ---
 

@@ -54,6 +54,28 @@ const IGNORED_IN_PLUGINS = new Set(['hooks', 'mcpServers', 'permissionMode']);
 /** The lead is the only role permitted to spawn; every other role must be flat. */
 const SPAWNING_ROLE = 'team-lead';
 
+/**
+ * `maxTurns` fuse, per role — spec 2026-09-12-token-cost-of-running.md, decision Q3.
+ * A number is the p90 (or the whole-sample max at n<=6) of turns measured 2026-09-12 across
+ * `partner-portal-v3` transcripts, meant to cut the tail rather than the typical run.
+ * `null` means the role carries NO `maxTurns` at all — the measurement has no data for it
+ * (`team-lead` runs as the main session, not a spawned subagent; `researcher` and
+ * `docs-author` did not appear in the sample), so a number here would be invented, not
+ * measured, and an invented fuse risks cutting off a real run for no grounded reason.
+ */
+const MAX_TURNS_EXPECTATIONS = {
+  'be-dev': 140,
+  'fe-dev': 220,
+  explorer: 80,
+  checker: 100,
+  qa: 210,
+  tester: 220,
+  designer: 100,
+  'team-lead': null,
+  researcher: null,
+  'docs-author': null,
+};
+
 let failures = 0;
 
 function test(name, fn) {
@@ -168,6 +190,32 @@ for (const file of files) {
     }
     assert.ok(fm.effort, 'missing `effort` — would inherit whatever the session is set to');
     assert.ok(EFFORT_LEVELS.has(fm.effort), `invalid effort "${fm.effort}"`);
+  });
+
+  test(`${role}: maxTurns matches the Q3 expectation`, () => {
+    assert.ok(
+      Object.prototype.hasOwnProperty.call(MAX_TURNS_EXPECTATIONS, role),
+      `"${role}" has no entry in MAX_TURNS_EXPECTATIONS — add one (a positive integer, or null if the role is exempt)`
+    );
+    const expected = MAX_TURNS_EXPECTATIONS[role];
+    if (expected === null) {
+      assert.strictEqual(
+        fm.maxTurns,
+        undefined,
+        `"${role}" is exempt from the maxTurns fuse (spec Q3) — it must not carry one`
+      );
+      return;
+    }
+    assert.ok(fm.maxTurns !== undefined, `missing \`maxTurns\` — spec Q3 requires ${expected} here`);
+    assert.ok(
+      /^[0-9]+$/.test(fm.maxTurns) && Number(fm.maxTurns) > 0,
+      `\`maxTurns\` must be a positive integer, got ${JSON.stringify(fm.maxTurns)}`
+    );
+    assert.strictEqual(
+      Number(fm.maxTurns),
+      expected,
+      `\`maxTurns\` is ${fm.maxTurns}, spec Q3 sets ${expected} for "${role}"`
+    );
   });
 
   test(`${role}: ${role === SPAWNING_ROLE ? 'may spawn (lead)' : 'cannot spawn subagents'}`, () => {
