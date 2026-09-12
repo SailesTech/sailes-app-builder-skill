@@ -117,6 +117,26 @@ function sumPerRole(perRole) {
   return Object.values(perRole || {}).reduce((acc, r) => acc + (r.contextTokensTotal || 0), 0);
 }
 
+/**
+ * Finds the "context tokens total" line within one named section (e.g. "Lead sessions:") of the
+ * default text output. Strengthened 2026-09-12 during the tier-B detection proof: the original
+ * P0-34 checked `text.includes(String(total))` against the WHOLE output, which a mutant reverting
+ * the "context tokens total" line to humanized-only ("15.0k") still passed — because this fixture's
+ * lead total (15000) happens to equal its firstTurnContext/peakContext values, and *those* lines
+ * still carry the raw number. Scoping the check to the specific labeled line closes that gap
+ * without changing any expected value (still the same json.*.contextTokensTotal on both sides).
+ */
+function contextTotalLine(text, sectionHeader) {
+  const idx = text.indexOf(sectionHeader);
+  assert.ok(idx !== -1, `expected a "${sectionHeader}" section in:\n${text}`);
+  const rest = text.slice(idx);
+  const end = rest.indexOf('\n\n');
+  const section = end === -1 ? rest : rest.slice(0, end);
+  const line = section.split('\n').find((l) => l.includes('context tokens total'));
+  assert.ok(line, `expected a "context tokens total" line in the "${sectionHeader}" section:\n${section}`);
+  return line;
+}
+
 // =================================================================================================
 // P0-01 .. P0-36 — one test per frozen ID.
 // =================================================================================================
@@ -565,8 +585,10 @@ test('P0-34 — default text output and --json output agree on the headline tota
     const { status: jsonStatus, json } = runJson(dir);
     assert.strictEqual(textStatus, 0);
     assert.strictEqual(jsonStatus, 0);
-    assert.ok(text.includes(String(json.lead.contextTokensTotal)), `default text output must surface the same lead total (${json.lead.contextTokensTotal}) as --json:\n${text}`);
-    assert.ok(text.includes(String(json.subagents.contextTokensTotal)), `default text output must surface the same subagent total (${json.subagents.contextTokensTotal}) as --json:\n${text}`);
+    const leadLine = contextTotalLine(text, 'Lead sessions:');
+    const subagentLine = contextTotalLine(text, 'Subagent transcripts:');
+    assert.ok(leadLine.includes(String(json.lead.contextTokensTotal)), `the "context tokens total" line under Lead sessions must carry the exact --json value (${json.lead.contextTokensTotal}), not just a humanized form:\n${leadLine}`);
+    assert.ok(subagentLine.includes(String(json.subagents.contextTokensTotal)), `the "context tokens total" line under Subagent transcripts must carry the exact --json value (${json.subagents.contextTokensTotal}), not just a humanized form:\n${subagentLine}`);
   } finally {
     rm(dir);
   }

@@ -216,9 +216,52 @@ contract. No mock, no pair, nothing to trade away here.
 
 ## Detection proof (filled at step 5, after the suite exists)
 
-Not yet applicable. The plan is `FROZEN` and the suite (`tools/token-report.frozen.test.js`) is
-written from it, but `tools/token-report.js` does not exist on this branch yet — per the lead's
-instruction, the suite is expected to run red for that reason (module/file not found), not for a
-logic mismatch, until the lead integrates an implementation into this base. Tier B's per-ID mutation
-proof (break exactly that behavior, show that ID's test go red, revert, confirm the whole suite green
-again) happens after that integration, in the tester's Step 5 report — not here.
+Run 2026-09-12, against the fixed implementation merged at `feat/1.33.0-token-cost` (`5272da4`,
+frozen suite wired into `npm test` at `6d3c3bd`). Method per mechanism, exactly as tier B requires:
+plant the mutant in `tools/token-report.js` only, run `node tools/token-report.frozen.test.js`,
+record which frozen IDs went red, revert (`git checkout -- tools/token-report.js`), confirm
+`sha256sum` matches the pre-mutation baseline (`93c31930…f847d`) before the next mutant. All eleven
+mutants below were reverted; the file is byte-identical to baseline at the end of this table.
+
+| # | Mutant (mechanism) | Mutation applied | Frozen IDs that went red | Reverted, suite green | Verdict |
+|---|---|---|---|---|---|
+| 1 | Usage dedup by `message.id` removed | `if (!seenUsageIds.has(message.id))` → `if (true)` | **P0-07, P0-13** | ✅ | detects |
+| 2 | `tool_use` collected only from the deduped first line (10-vs-177 bug) | moved the `tool_use` collection loop inside the usage-dedupe `if` block | **P0-06, P0-28** | ✅ | detects |
+| 3 | A turn counted only when `usage` exists (P0-09 regression) | `if (!seenUsageIds.has(message.id))` → `if (!seenUsageIds.has(message.id) && message.usage)` | **P0-09, P0-10** | ✅ | detects |
+| 4 | Peak = cumulative instead of max | `peakContext = Math.max(peakContext, ctx)` → `peakContext += ctx` | **P0-18** | ✅ | detects |
+| 5 | Top 10% floor instead of ceil / no minimum 1 | `Math.max(1, Math.ceil(n * 0.1))` → `Math.floor(n * 0.1)` | **P0-21** | ✅ | detects |
+| 6 | `--until` inclusive instead of exclusive | `mtimeMs >= untilMs` → `mtimeMs > untilMs` | **P0-29, P0-30** | ✅ | detects |
+| 7 | `--since`/`--until` by UTC instead of local midnight | `new Date(year, month-1, day)` → `new Date(Date.UTC(year, month-1, day))` | **P0-29, P0-30** | ✅ | detects |
+| 8 | Built-in exclusion missing one name | dropped `'claude-code-guide'` from `BUILTIN_SUBAGENT_TYPES` | **P0-26b** | ✅ | detects |
+| 9 | `plugin:` prefix not stripped for role bucketing | `roleFromAgentType` returns `agentType` unstripped | **P0-22** | ✅ | detects |
+| 10 | Malformed line throws instead of skip-and-count | `catch { malformedLines += 1; continue; }` → `catch (e) { throw e; }` | **P0-35** | ✅ | detects |
+| 11 | Text output humanizing a total again (P0-34 regression) | `context tokens total` line reverted to `fmtTotal(...)` only, dropping the exact-value prefix | **P0-34** (only after strengthening below) | ✅ | detects, after fix |
+
+**Finding on mutant 11 — a mutant no test killed, per the rule in the brief.** The frozen P0-34 test
+originally asserted `text.includes(String(json.lead.contextTokensTotal))` against the **whole** text
+blob. Mutant 11 still passed that assertion: the `lead-subagent-totals` fixture's lead total (15000)
+happens to equal its `firstTurnContext`/`peakContext` values (one assistant call, so all three
+metrics coincide), and *those* lines still print the raw number via `dualCount`, even with the
+"context tokens total" line reverted to humanized-only ("15.0k"). Per the brief's instruction —
+"strengthen the test for its frozen ID without changing any expected value, or report a plan-level
+gap instead of inventing a new case" — P0-34 was strengthened, not replaced: a `contextTotalLine()`
+helper now scopes the substring check to the specific "context tokens total" line inside each
+section ("Lead sessions:" / "Subagent transcripts:"), instead of the whole output. **No expected
+value changed** — both assertions still compare against the same `json.lead.contextTokensTotal` /
+`json.subagents.contextTokensTotal`, and no fixture was touched. Re-verified: mutant 11 now turns
+P0-34 red (confirmed above); the full suite is green with the mutant reverted. No `DEAD` case and no
+plan-level gap resulted — the fix was containable inside P0-34's own test body.
+
+No survivors: all eleven planted mutants, one per requested mechanism, were killed by at least one
+frozen ID, and every kill matched the mechanism intentionally targeted (no case caught a mutant by
+accident from an unrelated assertion, except the now-fixed P0-34 coincidence above, which is
+recorded rather than hidden). `tools/token-report.js` confirmed byte-identical
+(`sha256sum 93c31930a2f1737a42f23b6bf9b6d44f34fac7eb362987b92ee3aa212b2f847d`) to the pre-mutation
+merge throughout; `node tools/token-report.frozen.test.js` and `node tools/token-report.test.js` both
+green at the end of this run.
+
+**Unrelated finding, out of scope for this suite:** `tools/mcp-toolnames-check.test.js`'s "server
+absent -> SKIP" case is flaky independent of anything here — an unhandled async `EPIPE` when writing
+to an already-exited MCP-server subprocess's stdin, reproduced 1 of 3 `npm test` runs and 1 of 2
+standalone runs during this session, with `tools/token-report.js` untouched throughout each. Reported
+to the lead; not fixed here (not a file this suite owns).
