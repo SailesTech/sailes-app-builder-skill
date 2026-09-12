@@ -82,6 +82,27 @@ ownership:
   `skills/sailes-bootstrap/hooks-template/session-start-memory.test.js`. `package.json` przy
   scalaniu integruje lider.
 
+- 2026-09-12 — scalone P1a (`41a00cc`, be-dev-2 `ae1b2ad`) i P1b (`40eb0ce`, be-dev-3 `af4786b`);
+  pliki rozłączne, bez konfliktów. Dotknięte pliki są po scaleniu LF na dysku, bo git zapisuje
+  znormalizowane bloby (`* text=auto`). To nie wada, bloby nie zmieniły końców.
+  **Twierdzenie be-dev-2 o istniejącej porażce się nie potwierdziło:** na bazie `8f01c41`
+  `npm test` → exit 0, łącznie z `repo-done-checklist`. Zapewne środowisko worktree; sprawdzane
+  po scaleniu. be-dev-3 wskazał `AGENTS.md:210`. Ocena lidera: zdanie „read by the next session”
+  nie przeczy nowej regule, bez zmian. Checker P1b uruchomiony. Checker P1a czeka na suitę testera-2.
+
+- 2026-09-12 — **Po scaleniu `repo-done-checklist` F2–F2e czerwone, przyczyna ustalona:**
+  `repo-done-checklist.test.js:166` miał znacznik końca na sztywno `'\r\nelse\r\n  echo "SKIP graphify'`.
+  Scalenie zapisało dokument jako LF (git przechowuje LF), więc znacznik przestał pasować. To ten
+  sam mechanizm, przez który worktree be-dev-2 był czerwony, czyli be-dev-2 miał rację, że to było
+  wcześniej; na bazie czerwieni nie było widać tylko dlatego, że kopia robocza miała CRLF.
+  Każde świeże wyewidencjonowanie (inna maszyna, cache pluginu) było czerwone. Poprawka: regex
+  `\r?\n`. Dowód: F2–F2e zielone na dokumencie LF (crlf=0) i na tymczasowej kopii CRLF (crlf=236);
+  dokument przywrócony bajt w bajt (`cmp`). Jedyne takie miejsce w testach według grepa po `\r\n`.
+- 2026-09-12 — `mcp-toolnames-check` padł raz w pełnym `npm test` („server absent -> SKIP”); trzy
+  samodzielne uruchomienia zielone. To samo zgłaszali be-dev-2 i be-dev-3 (EPIPE przy
+  współbieżności). Niestabilny, niezwiązany z tym specem. Do backlogu przy zamknięciu, bo bramka,
+  która pada bez powodu, zostaje zignorowana.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie

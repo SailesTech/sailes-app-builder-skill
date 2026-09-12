@@ -163,12 +163,16 @@ const rmTree = (d) => fs.rmSync(d, { recursive: true, force: true });
 /** The core.hooksPath resolution + hook-presence fragment, exactly as it ships in the doc. */
 function extractHooksResolutionBlock() {
   const startMarker = 'HOOKS_DIR_RAW="$(git -C "$ROOT" config --get core.hooksPath 2>/dev/null)"';
-  const endMarker = '\r\nelse\r\n  echo "SKIP graphify';
+  // `\r?\n`, not `\r\n`: git stores LF (`* text=auto`), so a fresh checkout or a merge writes this
+  // doc as LF. A CRLF-only marker passed on one long-lived working copy and failed everywhere else.
+  const endMarker = /\r?\nelse\r?\n  echo "SKIP graphify/g;
   const startIdx = text.indexOf(startMarker);
   if (startIdx === -1) {
     throw new Error('could not find the core.hooksPath resolution fragment in repo-done-checklist.md');
   }
-  const endIdx = text.indexOf(endMarker, startIdx);
+  endMarker.lastIndex = startIdx;
+  const endMatch = endMarker.exec(text);
+  const endIdx = endMatch ? endMatch.index : -1;
   if (endIdx === -1) {
     throw new Error(
       "could not find the end of the core.hooksPath resolution fragment (the doc's " +
