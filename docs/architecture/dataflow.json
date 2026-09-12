@@ -27,7 +27,7 @@
     { "id": "eval-verdicts", "type": "backend", "label": "Eval Verdicts", "sublabel": "fresh subagent PASS / FAIL", "stage": 3, "row": 4, "tag": "model behavior" },
     { "id": "marketplace-autoupdate", "type": "cloud", "label": "Marketplace", "sublabel": "plugin, autoUpdate: true", "stage": 4, "row": 0, "tag": "~/.claude/plugins" },
     { "id": "machine-sessions", "type": "frontend", "label": "All Machines", "sublabel": "every machine running the plugin", "stage": 4, "row": 2, "tag": "runtime" },
-    { "id": "memory-files", "type": "database", "label": "Session Memory", "sublabel": "STATE.md, lessons.md, backlog.md", "stage": 4, "row": 4, "tag": ".ai/ memory" }
+    { "id": "memory-files", "type": "database", "label": "Session Memory", "sublabel": "STATE.md, lessons.md, backlog.md, archive/", "stage": 4, "row": 4, "tag": "budgeted <9.5KB (1.33.0)", "width": 165 }
   ],
   "flows": [
     { "id": "brief-intake", "from": "human-brief", "to": "ai-briefs", "label": "problem + job", "classification": "intake", "variant": "emphasis", "labelAt": [130, 300] },
@@ -69,6 +69,8 @@
       "title": "The Memory Loop",
       "items": [
         ".ai/ is memory, not scratch: STATE.md, lessons.md and backlog.md are read by the next session (AGENTS.md §Hard safety rules)",
+        "SessionStart no longer cats the whole file: it emits current sections or the head under a 9,500-byte shared budget, plus size warnings when STATE.md > 20KB or lessons.md > 40KB (1.33.0)",
+        "Oversized entries rotate verbatim into .ai/archive/, kept out of the budgeted emission and grepped on demand rather than deleted (1.33.0)",
         "The next session reads that memory before writing its own brief, closing the loop back into .ai/briefs",
         "Five version stamps (VERSION, package.json, plugin.json, marketplace.json, AGENTS.md Framework-Version) gate every release together"
       ]

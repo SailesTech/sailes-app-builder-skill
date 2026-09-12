@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "validate",
+  "stage": "render",
+  "type": "dataflow",
+  "input": "/home/charlie/Work/Internal/sailes-app-builder-skill/.claude/worktrees/agent-a6e8821d4f6147dba/docs/architecture/dataflow.json",
+  "error": "Data-flow layout validation failed:\n- Sublabel \"draft → approved (human gate)\" needs ~105px at the 6px legible minimum, but node \"ai-specs\" provides 104px — shorten the sublabel or increase node.width.\n- Sublabel \"hooks + TOML + frontmatter + release hygiene\" needs ~159px at the 6px legible minimum, but node \"npm-test-validators\" provides 104px — shorten the sublabel or increase node.width.\n- Sublabel \"be-dev / fe-dev implement, each in own worktree\" needs ~170px at the 6px legible minimum, but node \"implementation-branch\" provides 104px — shorten the sublabel or increase node.width.\n- Sublabel \"evals/ protected-behavior files\" needs ~112px at the 6px legible minimum, but node \"evals-scenarios\" provides 104px — shorten the sublabel or increase node.width.\n- Sublabel \"CHANGELOG + five version stamps\" needs ~112px at the 6px legible minimum, but node \"changelog-stamps\" provides 104px — shorten the sublabel or increase node.width.\n- Sublabel \"every machine running the plugin\" needs ~116px at the 6px legible minimum, but node \"machine-sessions\" provides 104px — shorten the sublabel or increase node.width.\n- [clean-flow/endpoint-side-direction] dataflow flows[6] id \"tests-to-release\" \"npm-test-validators\" -> \"changelog-stamps\" final segment 2 [665.5, 356] -> [745, 356] does not honor toSide \"top\" — it must run vertical downward from above; keep automatic routing, or choose fromSide/toSide and via points whose first and final segments cross node borders perpendicularly.",
+  "diagnostics": [
+    {
+      "code": "clean-flow/endpoint-side-direction",
+      "severity": "error",
+      "message": "[clean-flow/endpoint-side-direction] dataflow flows[6] id \"tests-to-release\" \"npm-test-validators\" -> \"changelog-stamps\" final segment 2 [665.5, 356] -> [745, 356] does not honor toSide \"top\" — it must run vertical downward from above; keep automatic routing, or choose fromSide/toSide and via points whose first and final segments cross node borders perpendicularly.",
+      "subject": {
+        "diagramType": "dataflow",
+        "collection": "flows",
+        "index": 6,
+        "id": "tests-to-release",
+        "from": "npm-test-validators",
+        "to": "changelog-stamps"
+      },
+      "evidence": {
+        "endpoint": "target",
+        "authoredField": "toSide",
+        "sideOrigin": "authored",
+        "side": "top",
+        "segmentIndex": 2,
+        "from": [
+          665.5,
+          356
+        ],
+        "to": [
+          745,
+          356
+        ],
+        "expectedAxis": "vertical",
+        "expectedDirection": "downward from above"
+      },
+      "supportedFixes": [
+        "keep automatic routing, or choose fromSide/toSide and via points whose first and final segments cross node borders perpendicularly"
+      ]
+    },
+    {
+      "code": "layout/constraint",
+      "severity": "error",
+      "message": "Sublabel \"draft → approved (human gate)\" needs ~105px at the 6px legible minimum, but node \"ai-specs\" provides 104px — shorten the sublabel or increase node.width.",
+      "subject": {
+        "diagramType": "dataflow"
+      },
+      "evidence": {},
+      "supportedFixes": []
+    },
+    {
+      "code": "layout/constraint",
+      "severity": "error",
+      "message": "Sublabel \"hooks + TOML + frontmatter + release hygiene\" needs ~159px at the 6px legible minimum, but node \"npm-test-validators\" provides 104px — shorten the sublabel or increase node.width.",
+      "subject": {
+        "diagramType": "dataflow"
+      },
+      "evidence": {},
+      "supportedFixes": []
+    },
+    {
+      "code": "layout/constraint",
+      "severity": "error",
+      "message": "Sublabel \"be-dev / fe-dev implement, each in own worktree\" needs ~170px at the 6px legible minimum, but node \"implementation-branch\" provides 104px — shorten the sublabel or increase node.width.",
+      "subject": {
+        "diagramType": "dataflow"
+      },
+      "evidence": {},
+      "supportedFixes": []
+    },
+    {
+      "code": "layout/constraint",
+      "severity": "error",
+      "message": "Sublabel \"evals/ protected-behavior files\" needs ~112px at the 6px legible minimum, but node \"evals-scenarios\" provides 104px — shorten the sublabel or increase node.width.",
+      "subject": {
+        "diagramType": "dataflow"
+      },
+      "evidence": {},
+      "supportedFixes": []
+    },
+    {
+      "code": "layout/constraint",
+      "severity": "error",
+      "message": "Sublabel \"CHANGELOG + five version stamps\" needs ~112px at the 6px legible minimum, but node \"changelog-stamps\" provides 104px — shorten the sublabel or increase node.width.",
+      "subject": {
+        "diagramType": "dataflow"
+      },
+      "evidence": {},
+      "supportedFixes": []
+    },
+    {
+      "code": "layout/constraint",
+      "severity": "error",
+      "message": "Sublabel \"every machine running the plugin\" needs ~116px at the 6px legible minimum, but node \"machine-sessions\" provides 104px — shorten the sublabel or increase node.width.",
+      "subject": {
+        "diagramType": "dataflow"
+      },
+      "evidence": {},
+      "supportedFixes": []
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "compare",
+  "type": "architecture",
+  "stage": "input",
+  "error": "Base snapshot failed validation: Architecture layout validation failed:\n- Sublabel \"tools/*.js — sync-blocks, ownership-check, worker-status, mcp-toolnames-check, business-logic-check, deployed-surface-check\" needs ~443px at the 6px legible minimum, but component \"tools\" provides 132px — shorten the sublabel or widen size.\n- Boundary label \"Framework repo — sailes-app-builder-skill (this repo)\" extends outside the viewBox — move wrapped components away from the canvas edge, shorten the label, or increase the viewBox.\n- Boundary \"Framework repo — sailes-app-builder-skill (this repo)\" extends outside the viewBox — its members sit too close to the canvas edge; add margin or enlarge meta.viewBox.",
+  "diagnostics": [
+    {
+      "code": "layout/constraint",
+      "severity": "error",
+      "message": "Base snapshot failed validation: Architecture layout validation failed:\n- Sublabel \"tools/*.js — sync-blocks, ownership-check, worker-status, mcp-toolnames-check, business-logic-check, deployed-surface-check\" needs ~443px at the 6px legible minimum, but component \"tools\" provides 132px — shorten the sublabel or widen size.\n- Boundary label \"Framework repo — sailes-app-builder-skill (this repo)\" extends outside the viewBox — move wrapped components away from the canvas edge, shorten the label, or increase the viewBox.\n- Boundary \"Framework repo — sailes-app-builder-skill (this repo)\" extends outside the viewBox — its members sit too close to the canvas edge; add margin or enlarge meta.viewBox.",
+      "subject": {
+        "side": "base"
+      },
+      "evidence": {},
+      "supportedFixes": []
+    }
+  ]
+}
