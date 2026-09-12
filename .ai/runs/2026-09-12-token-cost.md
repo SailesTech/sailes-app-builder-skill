@@ -242,6 +242,26 @@ ownership:
   nagłówka z emoji (`## 🔴 Open failure — …`) z prawdziwym drugim nagłówkiem, więc mutant #1 łapie tylko
   inny fałszywy nagłówek (P1a-12).
 
+- 2026-09-12 — **P2 scalony** (be-dev-7 `347a90e`, merge `4e6acf2`): `sync-blocks --check` in sync,
+  blok `session-handoff` w trzech konsumentach, parity i `validate-toml` zielone, test bezpiecznika
+  400000 i F4 zielone. Checker P2 uruchomiony na diffie gałęzi. Worker nie mógł powtórzyć
+  sprawdzenia `/context`, bo klasyfikator zablokował zagnieżdżone `claude -p`, i zgłosił to wprost;
+  sprawdzenie lidera jest wyżej.
+- 2026-09-12 — **P1a-26 scalony** (tester-2 `91a48c4`, merge `0033a07`): mutant #1 czerwieni P1a-12
+  i P1a-26, hook bez zmian, suita 26/26.
+- 2026-09-12 — **Checker P0: NITS.**
+  - (1) Dosłowny Done-when „odtwarza 706 M / 1 297 M ±1%” jest niewykonalny na rosnącym korpusie.
+    Checker zmierzył 717,3M / 1398,4M przy tym samym oknie. Poprawność dowodzi porównanie z
+    oryginalnym instrumentem w tej samej chwili (±0,03%). **Zmiana Done-when idzie do człowieka.**
+  - (2) Nieczytelny plik (`EACCES`) przerywa cały run. Q7 rozstrzygnęło tylko uszkodzone linie.
+    **Zaakceptowane jako NIT**, wiersz w backlogu.
+  - (3) Zapasowe klucze `subagent_type`/`subagentType` przy roli. **Zaakceptowane**, nieszkodliwe.
+  Pokrycie: 37 ID z nazwami; zmiana nazw w suicie ruszyła tylko ścieżki (37 `test()` przed i po).
+  Poufność czysta. Strumieniowe czytanie, 2 000 plików w 0,15 s.
+- 2026-09-12 — **Evale P5 wysłane** (stand-in `general-purpose`, doktryna skopiowana z `4e6acf2`,
+  `cmp` identyczne), trzy ramiona: splits, handoff-A, handoff-B. Zastrzeżenia do fixture'ów i
+  nośnik: `.ai/eval-runs/2026-09-12-token-cost-evals/README.md`.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie
