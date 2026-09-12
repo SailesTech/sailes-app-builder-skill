@@ -120,6 +120,14 @@ ownership:
   Wpisy `deny` do `settings-template.json` dodaje lider, bo P2 zmienia ten sam plik. Część P4
   niezależną od sprawdzenia (Upgrade mode, checklista z testem, bliźniak Codex) prowadzi be-dev-5.
 
+- 2026-09-12 — P4: wpisy `deny` w `settings-template.json` (`dcb4b72`). Sprawdzone skryptem: plik
+  parsuje się po usunięciu komentarzy `//`, jest 10 gołych `Agent()` i żaden z prefiksem.
+  Asercja w teście dojdzie po scaleniu P4, bo `repo-done-checklist.test.js` należy teraz do be-dev-5.
+- 2026-09-12 — scalona suita oceniana P1a z zamrożonym planem (tester-2 `d4f3dbf`, merge `54661c4`),
+  25 ID. Na starym hooku: 15 zielonych, 10 czerwonych, wszystkie behawioralne. Na scalonym hooku P1a:
+  `session-start-memory: all tests passed`. Podpięta do `npm test`. W toku: dowód wykrywania
+  (tester-2, krok 5) i checker P1a.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie
