@@ -66,13 +66,25 @@ Last-commit: 2549cde
   lessons.md 45 → 39 KB, the rest verbatim in `.ai/archive/`. **Worktrees are cut from the default
   branch, not from the lead's current branch** — the first P0 worker stopped on its base check;
   the fix is `git merge --ff-only <lead-branch>` inside the worktree.
-  **Progress on the branch (tip `62dae0b`):** P1a hook + P1b doctrine merged, `npm test` exit 0.
-  Both case lists frozen by the human (P0: 36, P1a: 24), with decisions recorded in the spec and
-  the run log. The merge exposed a pre-existing CRLF-only marker in `repo-done-checklist.test.js`,
-  red on every fresh checkout, now fixed (`62dae0b`). **In flight:** P0 be-dev (token-report),
-  tester-1 and tester-2 (graded suites), checker on P1b, be-dev on P3. **Owed to the human at the
-  next stop:** the P1 gate verdicts, and whether P3/P2/P4 get a `tester` case list or `n/a` with a
-  reason (their deterministic parts are validator/parity tests with mutation proofs).
+  **Progress on the branch (tip `27aac83`), detail in `.ai/runs/2026-09-12-token-cost.md`:**
+  - **P1** merged. P1b: checker APPROVE. P1a: checker NITS, accepted. Detection proof: 9/9 mutants
+    killed, after tester-2 strengthened the CRLF case.
+  - **P3** merged, checker APPROVE. **P4** merged, checker APPROVE: live check that bare
+    `Agent(be-dev)` denies only the local copy; F4 test; salvage goes to `AGENTS.md` (human F5).
+  - **P0** merged: the tool reproduces the original instrument exactly on the same corpus (714M /
+    1372M). Frozen suite 37/37 after 3 genuine tool defects were fixed (turns without `usage`;
+    humanized text). Wired into `npm test`, which is now twenty suites.
+  - P5 eval scenarios are written but not run.
+  - The P2 `autoCompactWindow` live check passed: `/context` went from 1m to 150k.
+
+  Human decisions this session: F1–F5; mtime filter; malformed lines skipped; the suite adopts the
+  tool's key names; `tester: n/a` for P2–P4; P1a-26 added. The CHANGELOG 1.33.0 draft sits in the
+  session scratchpad (`CHANGELOG-1.33.0-draft.md`), because `release-hygiene` forbids a heading ahead
+  of `VERSION`. If the scratchpad is gone, rewrite it from the run log.
+
+  **In flight:** P2 (be-dev-7), P0 detection proof (tester-1), checker P0, P1a-26 (tester-2).
+  **Remaining after P2:** checker P2 → run both evals via `sailes-eval-runner` → `docs-author`
+  delta → CHANGELOG + five stamps → full `npm test` → human approval to push `main`.
 - 2026-08-30, third release of the session: **1.32.0 — SHIPPED.** 1.30.0, 1.31.0
   and 1.32.0 went to `main` in one push (`2549cde`); the plugin auto-updates on every machine at
   its next session start, and all three specs moved to `.ai/specs/implemented/`. The human asked "kiedy i jakie testy … żeby usprawniać implementację i przyspieszyć
