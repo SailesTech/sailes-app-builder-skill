@@ -525,6 +525,31 @@ if (!SH_AVAILABLE) {
   });
 }
 
+// =================================================================================================
+// F4 — the spawn block that goes with the F3 scan (spec 2026-09-12-token-cost-of-running, P4).
+// `Agent(<role>)` for a BARE role name blocks a stale local `.claude/agents/<role>.md`; verified live
+// 2026-09-12 that it does not match `sailes-app-builder:<role>`. A prefixed entry here would disable
+// the whole team in every generated repo, so its absence is asserted, not assumed.
+// No `sh` needed — plain JSON — so this runs outside the SH_AVAILABLE guard.
+// =================================================================================================
+
+test('F4: settings-template.json denies the ten bare role names and no prefixed plugin role', () => {
+  const settingsPath = path.join(__dirname, 'settings-template.json');
+  const raw = fs.readFileSync(settingsPath, 'utf8');
+  const json = JSON.parse(raw.split(/\r?\n/).filter((l) => !/^\s*\/\//.test(l)).join('\n'));
+  const agentDenies = json.permissions.deny.filter((d) => d.startsWith('Agent('));
+  const roles = ['be-dev', 'fe-dev', 'explorer', 'checker', 'qa', 'tester', 'designer', 'researcher', 'docs-author', 'team-lead'];
+  assert.deepStrictEqual(
+    agentDenies.slice().sort(),
+    roles.map((r) => `Agent(${r})`).sort(),
+    'the Agent() deny list must be exactly the ten bare plugin role names'
+  );
+  assert.ok(
+    !agentDenies.some((d) => d.includes(':')),
+    'a prefixed Agent(sailes-app-builder:<role>) deny would block the plugin role itself'
+  );
+});
+
 console.log(
   failures === 0
     ? '\nrepo-done-checklist: all tests passed'
