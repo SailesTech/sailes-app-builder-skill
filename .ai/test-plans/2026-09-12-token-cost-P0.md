@@ -9,35 +9,65 @@ attribution, none of which is a pure read or pure formatting. That rules out Tie
 this assignment argues for raising above B; if the human judges the P5 header number ("dowód
 oszczędności") money-adjacent enough to raise to A, that is their call to make at freeze time, not
 mine to assume.)
-Status: **DRAFT**
-Frozen: — (awaiting human)
+Status: **FROZEN 2026-09-12 (human)**
+Frozen: 2026-09-12 by the human, answering Q1–Q7 below. Amended same day to fold the answers into the
+case table; no ID was renumbered, no expectation was weakened — only filled in.
 
-> `DRAFT` means no test may be written yet. This assignment stops here — Step 1 of `sailes-test`
-> only. Implementation files (`tools/token-report.js`, `tools/token-report.test.js`) were confirmed
+> Implementation files (`tools/token-report.js`, `tools/token-report.test.js`) were confirmed
 > **absent** from the worktree before this list was derived (`ls tools/` on base `ec1b13c`, fast-
 > forwarded to `87b6250` per the lead's correction — that commit only rotates this repo's own
 > `.ai/STATE.md` / `.ai/lessons.md` memory files, untouched by anything below). Nothing under `tools/`
-> was open while deriving this list.
+> was open while deriving this list. The one exception, taken under explicit lead instruction for Q1
+> only: the **on-disk transcript format** at `~/.claude/projects/-home-charlie-Work-partner-portal-v3`
+> was inspected for **file names, sibling meta files and JSON key names only** — no message content,
+> no implementer code. See Q1's resolution below for exactly what that inspection found.
 
 ## I could not derive this from the spec — please decide
 
-> These block writing several cases precisely. Marked inline on the behavior table as **[Qn]**.
+> These blocked writing several cases precisely. Marked inline on the behavior table as **[Qn]**
+> while open; **all seven are now resolved** — each entry below keeps the original question (audit
+> trail) and appends the human's answer.
 
 ❓ **Q1 — how is a subagent transcript file attributed to a role?** The contract gives the path shape
 (`<session>/subagents/agent-*.jsonl`) but the glob carries no role in the filename, and the spec's
 "per-role distribution" and "unprefixed non-built-in spawns by name" both need one. Candidates: (a)
 match each `agent-*.jsonl` back to the `Task` tool_use block in the parent `<session>.jsonl` that
 spawned it (by tool_use id / result correlation) and read `subagent_type` from there; (b) read a role
-marker embedded in the subagent transcript's own first line. Affects **P0-22, P0-23, P0-27**: without
+marker embedded in the subagent transcript's own first line. Affects **P0-22, P0-23**: without
 an answer I can specify the *properties* (role buckets sum to the subagent total; an unattributable
 transcript goes to an explicit `unknown` bucket, never silently dropped) but not the exact fixture
 shape that exercises the real mechanism.
+
+→ **Resolved 2026-09-12 (human):** derive the mechanism from the on-disk format itself, file names /
+sibling meta files / key names only, no message content, no implementer code. Inspected
+`~/.claude/projects/-home-charlie-Work-partner-portal-v3` under that constraint and found: every
+`<session>/subagents/agent-<id>.jsonl` has a sibling `<session>/subagents/agent-<id>.meta.json`
+(176 of 176 on this machine, 1:1). That file's keys are `agentType`, `description`, `model`,
+`requestNonInteractive`, `requestShape`, `spawnDepth`, `spawnedWithWorktree`, `toolUseId`,
+`worktreeBranch`, `worktreePath` — no message content among them. `agentType` carries exactly the
+value needed: observed values include prefixed (`sailes-app-builder:explorer`,
+`sailes-app-builder:be-dev`, `sailes-app-builder:tester`, `sailes-app-builder:qa`,
+`sailes-app-builder:checker`), unprefixed-non-built-in (`be-dev`, `explorer`, `be-checker`, `qa`,
+`fe-dev`, `tester`, `designer`), and built-in (`general-purpose`, `claude`). **Mechanism for the
+suite:** role = the sibling `.meta.json`'s `agentType`, with the `sailes-app-builder:` prefix
+stripped before bucketing (so a role's turns land in one bucket regardless of prefix — a corollary of
+this answer, not separately asked; flagged here rather than silently assumed). Missing/unparsable
+`.meta.json` → `unknown` bucket, per the human's explicit fallback instruction. Note: this reuses the
+**same** on-disk fact for the spawn-tally cases (P0-24–28), which independently already used
+`agentType`-shaped values scanned from `Task` `tool_use` blocks — the two metrics read from
+different places (parent transcript vs. sibling meta file) but the field's vocabulary is now
+confirmed consistent between them.
 
 ❓ **Q2 — the "built-in" exclusion list for "unprefixed non-built-in spawns."** The spec cites
 `sub-agents.md` docs for `Explore` and `Plan`, and the harness fact sheet also names `general-purpose`
 as a plugin-independent type elsewhere in this repo's conventions. Is the exact exclusion set exactly
 `{general-purpose, Explore, Plan}`, case-sensitive, or is there a fourth I'm not aware of? Affects
 **P0-26**.
+
+→ **Resolved 2026-09-12 (human, from the implementer's brief):** the exclusion set is exactly
+`general-purpose`, `Explore`, `Plan`, `claude`, `statusline-setup`, `claude-code-guide` — six names,
+case-sensitive. (The on-disk inspection for Q1 independently observed `general-purpose` and `claude`
+among real `agentType` values, consistent with this list.)
 
 ❓ **Q3 — `--since` / `--until` semantics.** The measurement's corpus selection used file **mtime**
 ("mtime ≥ 2026-09-11"), and the Done-when example (`--since 2026-09-11 --until 2026-09-13`) matches
@@ -46,20 +76,35 @@ timestamp embedded in the transcript content (first/last message timestamp)? Als
 inclusive and `--until` exclusive (my assumption, matching a `[since, until)` window), or are both
 inclusive? Affects **P0-29, P0-30**.
 
+→ **Resolved 2026-09-12 (human decision):** file mtime. `--since D` includes mtime ≥ `D 00:00` local;
+`--until D` excludes mtime ≥ `D 00:00` local — a half-open `[since 00:00, until 00:00)` window in
+local time, confirming my working assumption on both filtering basis and boundary direction.
+
 ❓ **Q4 — "peak" definition.** Is peak-per-session the maximum single assistant-call context-token
 value anywhere in the transcript (my assumption — matches "kontekst… nigdy się nie resetuje", i.e. a
 ceiling reached), or a cumulative/running sum across calls? These usually coincide when context only
 grows, but a session containing a compaction event would tell them apart. Affects **P0-18**.
 
+→ **Resolved 2026-09-12 (human):** peak = the maximum context of a single call. Confirms the working
+assumption.
+
 ❓ **Q5 — "turns" unit.** Is one turn one deduped assistant message (my assumption — consistent with
 the measured p50 of 367 for a 6-session lead sample, which only makes sense per-response, not per
 human-exchange), or one full human-then-assistant round trip? Affects **P0-13**.
+
+→ **Resolved 2026-09-12 (human):** turn = one distinct assistant `message.id`. Confirms the working
+assumption.
 
 ❓ **Q6 — top-10% rounding rule with non-multiple-of-10 sample sizes.** The real lead bucket has 6
 sessions; "top 10%" of 6 cannot be a whole number under a naive `n * 0.1`. Ceiling (→ 1), rounding, or
 "at least 1 if n ≥ 1"? The real measurement's own 43%/52% figures depend on whichever rule was used
 (6 lead, 160 subagent sessions) — Done-when's "reproduces 706M/1297M ±1%" line is silent on whether
 that ±1% also covers the percentage figures, or only the two totals. Affects **P0-19, P0-20, P0-21**.
+
+→ **Resolved 2026-09-12 (human):** `top 10% = ceil(n × 0.1)` transcripts, minimum 1. Derived check
+against the spec's own published numbers: 6 lead sessions → `ceil(0.6) = 1` session →
+305 M / 706 M = 43% — matches the spec's table exactly, so this rule is now testable with concrete
+expected values rather than a property-only assertion.
 
 ❓ **Q7 — malformed-line handling: skip-and-warn, or hard-fail?** Neither behavior is stated. A silent
 skip risks under-counting without anyone noticing (the exact failure shape this whole tool exists to
@@ -68,6 +113,14 @@ say, a Claude Code version bump — blocking the whole baseline run. I default t
 line, continue, and say so on stderr" as the reading consistent with this repo's stated preference
 (`session-start never blocks`) elsewhere, but this tool is a measurement instrument, not a session
 gate, so that precedent may not transfer. Affects **P0-35**.
+
+→ **Resolved 2026-09-12 (human decision):** skip the malformed line and count it. The count is
+reported on stderr, in the human-readable report, and as a `--json` field. Exit code is unaffected
+(stays 0 on this trigger alone). **Naming note (tester's call, not spec-mandated):** the human's
+answer names three surfaces but not a JSON key. The suite below asserts a top-level `--json` field
+named `malformedLines` (integer). This is the suite *fixing* that part of the contract, in the
+absence of a named key — if the implementation exposes the same count under a different key, that is
+a legitimate red test and a naming disagreement to raise, not something to silently reinterpret away.
 
 ## NOT testing (deliberately)
 
@@ -116,13 +169,13 @@ contract. No mock, no pair, nothing to trade away here.
 | P0-15 | Multiple lead sessions, multiple subagents nested under different sessions | Lead total = sum over all `<session>.jsonl` files; subagent total = sum over **all** `agent-*.jsonl` under any `subagents/` dir, regardless of which session owns them | unit |
 | P0-16 | A session with 3 assistant calls of context tokens 10k, 40k, 25k in that chronological order | First-turn context reported for that session = 10k (the first call, not the max/last/average) | unit |
 | P0-17 | Fixture of 3 lead sessions with known first-turn values 10k / 20k / 30k | Aggregate first-turn p50 across sessions = 20k, proving the percentile method, not just single-session extraction | unit |
-| P0-18 [Q4] | A session with calls of 5k, 50k, 30k context tokens in that order | Peak reported for that session = 50k (max single call, not cumulative, not last) | unit |
-| P0-19 | Fixture of 10 sessions with known, distinct totals | Reported top-10% share equals the hand-computed percentage from the top-ranked session's total ÷ grand total, exactly | unit |
-| P0-22 [Q1] | Subagent transcripts attributable to distinct roles by the resolved mechanism | Report groups turn counts per role; one role's turns never appear in another role's bucket | unit |
+| P0-18 | A session with calls of 5k, 50k, 30k context tokens in that order | Peak reported for that session = 50k — the maximum single call (Q4), not cumulative, not last | unit |
+| P0-19 | Fixture of 10 sessions with known, distinct totals | Top 10% = `ceil(10 × 0.1) = 1` session (Q6). Reported share equals that top session's total ÷ grand total, exactly | unit |
+| P0-22 | Two subagent transcripts with sibling `.meta.json` carrying `agentType: "be-dev"` and `agentType: "sailes-app-builder:qa"` respectively (Q1 mechanism) | Report groups turn counts per role, bucketed by `agentType` with any `sailes-app-builder:` prefix stripped (`be-dev`, `qa`); one role's turns never appear in another role's bucket | unit |
 | P0-24 | A `Task` tool_use with `subagent_type: "be-dev"` (no prefix) in a lead transcript | Counted once under name `"be-dev"` in the unprefixed non-built-in spawn tally | unit |
 | P0-25 | A `Task` tool_use with `subagent_type: "sailes-app-builder:be-dev"` (prefixed) | **Not** counted in the unprefixed tally (excluded specifically for carrying the prefix) | unit |
-| P0-27 [Q1] | "be-dev" spawned 3 times, "explorer" spawned 2 times, across different sessions | Tally reports per-name counts (`be-dev: 3, explorer: 2`), matching the real measurement's own per-name breakdown shape | unit |
-| P0-29 [Q3] | Fixture of 3 sessions dated (by mtime) 09-10, 09-11, 09-13; run with `--since 2026-09-11 --until 2026-09-13` | Only the 09-11 session is included in the report | unit |
+| P0-27 | "be-dev" spawned 3 times, "explorer" spawned 2 times, across different sessions | Tally reports per-name counts (`be-dev: 3, explorer: 2`), matching the real measurement's own per-name breakdown shape | unit |
+| P0-29 | Fixture of 3 sessions dated (by mtime, local midnight) 09-10, 09-11, 09-13; run with `--since 2026-09-11 --until 2026-09-13` | Only the 09-11 session is included — Q3's `[since 00:00, until 00:00)` window excludes both 09-10 and 09-13 | unit |
 | P0-33 | Synthetic fixture whose assistant text contains a marker string (`SECRET-MARKER-TEXT`) standing in for real prose | Neither default text output nor `--json` output contains that string anywhere — aggregates only | unit |
 | P0-34 | Same fixture run once with default output, once with `--json` | Every numeric metric (lead total, subagent total, turns, peaks, top-10% shares) is identical between the two formats | unit |
 
@@ -142,16 +195,17 @@ contract. No mock, no pair, nothing to trade away here.
 | P0-10 | A transcript whose every assistant line lacks `usage` | Session contributes 0 to totals; excluded from / zero-valued in peak and percentile aggregates without producing `NaN`/`Infinity` | unit |
 | P0-11 | An assistant message with an empty `tool_use` array (or no `tool_use` key at all) | No crash; contributes 0 to spawn tally; its `usage` still counts normally toward context tokens | unit |
 | P0-12 | A usage object with only `input` present (no `cache_creation`/`cache_read` keys at all) | Context tokens = `input` alone; missing cache fields treated as 0, not an error | unit |
-| P0-13 [Q5] | A session with 5 assistant lines where 2 share one `message.id` (the P0-06 shape) | Turns for that session = 4, not 5 — turn-counting respects the same dedup as token totals | unit |
-| P0-20 [Q6] | Fixture of 10 sessions where ranks 1 and 2 (at the top-10% boundary) have **identical** totals | The tool's tie-break is deterministic — re-running against the same fixture produces the same share every time, never flipping between two different valid answers | unit |
-| P0-21 [Q6] | Fixture of exactly 6 lead sessions (matching the real corpus's own lead-session count) | Top-10%-of-6 never rounds down to 0 sessions/0% — the real baseline had 6 lead sessions and reported a nonzero 43% share | unit |
-| P0-23 [Q1] | A subagent transcript whose role cannot be resolved by the chosen mechanism (missing/malformed marker) | Placed in an explicit `unknown` bucket, not silently dropped — sum of all per-role buckets + `unknown` == the overall subagent total from P0-14/15 | unit |
-| P0-26 [Q2] | A `Task` tool_use with `subagent_type: "general-purpose"` (documented Claude Code built-in, carries no prefix) | **Not** counted in the unprefixed non-built-in tally, despite carrying no prefix, because it is built-in | unit |
+| P0-13 | A session with 5 assistant lines where 2 share one `message.id` (the P0-06 shape) | Turns for that session = 4, not 5 (Q5: turn = one distinct `message.id`) — turn-counting respects the same dedup as token totals | unit |
+| P0-20 | Fixture of 10 sessions where ranks 1 and 2 (at the top-10% boundary, `ceil(10×0.1)=1`) have **identical** totals | Reported share = that (shared) top value ÷ grand total; re-running against the same fixture reproduces the identical number every time (tied totals make the value order-independent by construction — this proves determinism, not a hidden ambiguity, now that Q6 fixes the count) | unit |
+| P0-21 | Fixture of exactly 6 lead sessions, reusing the spec's own published totals (one session = 305 M of a 706 M grand total — public numbers already in the spec prose, not client content) | `ceil(6×0.1)=1` (Q6, minimum-1 rule) → reported top-10% share = 305/706 ≈ 43%, matching the spec's own table exactly | unit |
+| P0-23 | A subagent transcript with **no** sibling `.meta.json` file (or one that fails to parse) | Placed in an explicit `unknown` bucket per the Q1 fallback, not silently dropped — sum of all per-role buckets + `unknown` == the overall subagent total from P0-14/15 | unit |
+| P0-26 | A `Task` tool_use with `subagent_type: "general-purpose"` (built-in per Q2's six-name list, carries no prefix) | **Not** counted in the unprefixed non-built-in tally, despite carrying no prefix, because it is on the Q2 exclusion list | unit |
+| P0-26b | A `Task` tool_use with `subagent_type` set to each of the other five Q2 built-ins in turn (`Explore`, `Plan`, `claude`, `statusline-setup`, `claude-code-guide`) | None of the six counted in the unprefixed non-built-in tally — full enumeration of the frozen exclusion list, not just its most-cited member | unit |
 | P0-28 | A `Task` `tool_use` block appears on a line whose `message.id` duplicates an already-seen usage line (the P0-06 shape, restated as a spawn-tally assertion) | The spawn is still counted — this is the named historical regression, proven from the spawn side rather than the token side | unit |
-| P0-30 [Q3] | One session's mtime exactly equals `--since`; another session's mtime exactly equals `--until` | The `--since` session is **included** (inclusive lower bound); the `--until` session is **excluded** (exclusive upper bound) — the two boundaries are asymmetric, guarding an off-by-one that would treat them the same | unit |
+| P0-30 | One session's mtime exactly equals `--since D` at `D 00:00` local; another session's mtime exactly equals `--until D` at `D 00:00` local | Per Q3: the `--since` session is **included** (`≥` boundary); the `--until` session is **excluded** (`≥` boundary excludes on the until side) — the two boundaries use the same comparator in opposite directions, guarding an off-by-one that would treat them the same | unit |
 | P0-31 | No `--since`/`--until` given at all | All sessions in the directory included regardless of mtime | unit |
 | P0-32 | `--since` given alone, no `--until` | Open-ended upper bound — everything from that date forward is included | unit |
-| P0-35 [Q7] | One line in an otherwise-valid transcript file is malformed JSON (truncated / not parseable) | No crash; all other valid lines in that file still counted; malformed line's fate (silent skip vs stderr warning) pinned to whichever the human picks for Q7 | unit |
+| P0-35 | One line in an otherwise-valid transcript file is malformed JSON (truncated / not parseable) | Per Q7: no crash, exit code 0; all other valid lines in that file still counted; stderr contains a message naming the malformed-line count; `--json` output carries a top-level `malformedLines: 1` field (tester-named field, see Q7 resolution) | unit |
 | P0-36 | A `.jsonl` file present but 0 bytes (fully empty, no lines at all) | Treated as "no data for this session" — same non-crashing outcome as P0-10, distinct trigger (total absence of lines vs. presence of usage-less lines) | unit |
 
 > No **promoted** row yet — this is Step 1 (behavior derivation), written with the implementation
@@ -162,6 +216,9 @@ contract. No mock, no pair, nothing to trade away here.
 
 ## Detection proof (filled at step 5, after the suite exists)
 
-Not yet applicable — this plan is `DRAFT`. Once frozen and the suite is written (Step 3), Tier B
-requires, per ID: break exactly that behavior in a scratch copy, show that ID's test go red, revert,
-confirm the whole suite is green again. That table lands in the tester's Step 5 report, not here.
+Not yet applicable. The plan is `FROZEN` and the suite (`tools/token-report.frozen.test.js`) is
+written from it, but `tools/token-report.js` does not exist on this branch yet — per the lead's
+instruction, the suite is expected to run red for that reason (module/file not found), not for a
+logic mismatch, until the lead integrates an implementation into this base. Tier B's per-ID mutation
+proof (break exactly that behavior, show that ID's test go red, revert, confirm the whole suite green
+again) happens after that integration, in the tester's Step 5 report — not here.
