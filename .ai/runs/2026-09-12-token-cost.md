@@ -103,6 +103,23 @@ ownership:
   współbieżności). Niestabilny, niezwiązany z tym specem. Do backlogu przy zamknięciu, bo bramka,
   która pada bez powodu, zostaje zignorowana.
 
+- 2026-09-12 — **Checker P1b: APPROVE** z jedną uwagą: nagłówek `.ai/STATE.md` wciąż mówi „Read at
+  session start”, więc go przeredagowałem. Checker odtworzył też niestabilny `mcp-toolnames-check` na
+  bazie sprzed P1b (`41a00cc`), co potwierdza, że błąd był wcześniej. Sprawdzenia: grep z Done-when
+  pokazuje wyłącznie nowe zdania z zaprzeczeniem, `sync-blocks --check` in sync, parity i frontmatter
+  zielone.
+- 2026-09-12 — **P4, sprawdzenie na żywo (Claude Code 2.1.266).** Komenda: `claude -p` w repo
+  tymczasowym z `.claude/agents/be-dev.md`, `--output-format stream-json`; wynik odczytany z bloków
+  `tool_result`, nie z opisu modelu.
+  - (A) kontrola, bez `deny`: `be-dev` → `is_error=false`, „OK”; `sailes-app-builder:be-dev` →
+    `is_error=false`, „OK”. Goła nazwa się rozwiązuje, więc odmowa w (B) nie wynika z braku agenta.
+  - (B) `.claude/settings.json` = `{"permissions":{"deny":["Agent(be-dev)"]}}`: `be-dev` →
+    `is_error=true`, „Agent type 'be-dev' has been denied by permission rule 'Agent(be-dev)' from
+    projectSettings.”; `sailes-app-builder:be-dev` → `is_error=false`, „OK”.
+  Wniosek: reguła gołej nazwy nie dopasowuje roli z prefiksem pluginu. Blokada zostaje w zakresie.
+  Wpisy `deny` do `settings-template.json` dodaje lider, bo P2 zmienia ten sam plik. Część P4
+  niezależną od sprawdzenia (Upgrade mode, checklista z testem, bliźniak Codex) prowadzi be-dev-5.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie

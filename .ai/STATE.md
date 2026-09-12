@@ -2,7 +2,8 @@
 
 Last-commit: 2549cde
 
-> Read at session start; write before walking away. Facts enter **Verified facts** only with
+> Read at session start — it stays under 20 KB, so that is cheap; history lives verbatim in
+> `.ai/archive/` and is grepped by area, never read whole. Write before walking away. Facts enter **Verified facts** only with
 > evidence; hypotheses stay in **Open failures**.
 >
 > The `Last-commit:` line above is the convention 1.25.0 introduced for client repos, and this repo

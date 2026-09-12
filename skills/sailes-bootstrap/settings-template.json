@@ -14,6 +14,12 @@
 //                        `.env.example` (keys, committed) and `.env` (local values, gitignored)
 //                        are the agent's; `.env.production*`/`.env.staging*` and key material are
 //                        not, and by `sailes-hosting` doctrine belong in the platform, not a file.
+//                        `Agent(<role>)` for the ten plugin role names blocks spawning a LOCAL
+//                        `.claude/agents/<role>.md`, which shadows the plugin role and goes stale:
+//                        measured on one client, 135 of 177 spawns went to such copies. The bare-name
+//                        rule does not match `sailes-app-builder:<role>` — the plugin role stays
+//                        allowed (verified live 2026-09-12, Claude Code 2.1.266). Never add the
+//                        prefixed form here: that would disable the team.
 // "hooks.SessionStart" — deliver the current excerpt of STATE.md (Open failures / General rules /
 //                        Last session, or the file head under the size limit when those sections
 //                        are absent) so it's read without a full-file cost; warn when the local
@@ -70,7 +76,17 @@
       "Edit(./.ai/specs/implemented/**)",
       "Bash(git push --force:*)",
       "Bash(git push -f:*)",
-      "Bash(pnpm db:migrate:prod:*)"
+      "Bash(pnpm db:migrate:prod:*)",
+      "Agent(be-dev)",
+      "Agent(fe-dev)",
+      "Agent(explorer)",
+      "Agent(checker)",
+      "Agent(qa)",
+      "Agent(tester)",
+      "Agent(designer)",
+      "Agent(researcher)",
+      "Agent(docs-author)",
+      "Agent(team-lead)"
     ]
   },
   "hooks": {
