@@ -78,8 +78,10 @@ repo/
                           #     backstop for "workers never push / never commit to a shared branch"
                           #     and the Hard Safety Rules. The LOCAL .env is NOT denied: env is
                           #     tiered by risk, not by filename (see guard-protected-paths.sh)
-                          #   "hooks" — SessionStart injects .ai/STATE.md + Task Router pointer into
-                          #     context ("read at session start" stops being a memory test);
+                          #   "hooks" — SessionStart injects the current excerpt of .ai/STATE.md
+                          #     (current sections, or the file head under the size limit; never
+                          #     the whole file) + Task Router pointer into context — nobody reads
+                          #     STATE.md or lessons.md whole "before any task";
                           #     PreToolUse blocks edits to protected paths (applied migrations,
                           #     .ai/specs/implemented/, lockfiles unless the task says so)
                           #   (hooks reference scripts under .claude/hooks/ below)

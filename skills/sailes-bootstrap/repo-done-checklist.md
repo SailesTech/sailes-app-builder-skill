@@ -22,7 +22,7 @@ Every item MUST exist on disk. The manifest decides *optional packages*, never t
 | `.gitignore` | Before the first commit. |
 | **git initialized + first commit** | A repo with 0 commits is not a working repo. |
 | **design artifact** (`design-system/MASTER.md` OR `.ai/specs/ui-spec.md`) | The design phase ran (see `sailes-design`). Missing = the "no frontend project" failure. |
-| `.claude/settings.json` (+ hooks) | Harness guardrails: verify-commands allowlist, protected-path denies, SessionStart STATE.md injection. Structural discipline beats agent goodwill. |
+| `.claude/settings.json` (+ hooks) | Harness guardrails: verify-commands allowlist, protected-path denies, SessionStart STATE.md excerpt injection (current sections only, never the whole file). Structural discipline beats agent goodwill. |
 | `.codex/config.toml` (Codex twin) | Same guardrails for Codex CLI (sandbox/approval + `[hooks]` reusing `.claude/hooks/*.sh`). A Sailes app must run *guarded*, not just *readable*, under Codex. See `codex-config-template.md`. |
 | `.github/copilot-instructions.md` | One-line pointer to `AGENTS.md` — third harness reads the same source of truth. |
 | `graphify-out/graph.json` (committed) + `.claudeignore` covering `graphify-out/` | The code map every agent queries before grepping (Step 4.9). `.claudeignore` guard: without it each rebuild invalidates the Claude Code prompt cache. If the binary was unavailable, an explicit SKIP recorded in `.ai/STATE.md` replaces this row — silence is the failure. |
