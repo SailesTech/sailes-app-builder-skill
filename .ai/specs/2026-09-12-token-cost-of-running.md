@@ -142,6 +142,10 @@ Files: `tools/token-report.js` · `tools/token-report.test.js` · `tools/fixture
   per rola, spawny po nazwie bez prefiksu. **Deduplikacja usage po `message.id`, ale `tool_use` z każdej
   linii** — pierwsza wersja pomiaru z 2026-09-12 zaniżyła spawny 10 vs 177 właśnie na tym; to jest
   nazwany przypadek testowy, nie przypis.
+- **Definicje (człowiek + pomiar, 2026-09-12):** okno dat po mtime pliku (`--since` włącznie, `--until`
+  wyłącznie, północ lokalna) — ta sama definicja co baseline; uszkodzona linia JSONL pomijana i liczona
+  (stderr + raport), nigdy nie przerywa; top 10% = ceil(n·0,1), min. 1; szczyt = maks. pojedynczego
+  wywołania; tura = unikalny `message.id`.
 - **Fixture'y syntetyczne.** Transkrypty klienta zawierają jego kod i dane, a to repo idzie na GitHub —
   żaden wycinek transkryptu nie trafia do repo.
 - Baseline z 11–12.09 zapisany w `.ai/eval-runs/2026-09-12-token-baseline/` **tylko jako agregaty**

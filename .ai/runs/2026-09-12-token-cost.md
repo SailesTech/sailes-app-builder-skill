@@ -65,6 +65,23 @@ ownership:
   Wynik: `wc -c` → `STATE.md` 12 893 (≤ 20 000), `lessons.md` 39 367 (≤ 40 000). Archiwum:
   76 100 + 6 421 B. Sumy: 88 993 ≥ 88 136 i 45 788 ≥ 45 432. Wszystkie cztery pliki czysto CRLF.
 
+- 2026-09-12 — tester-2 (P1a) oddał 24 przypadki (tier B), plan jest na gałęzi
+  `worktree-agent-ad2b148ddd5dec48f` (`e6a18f0`). Z 7 pytań pięć rozstrzyga kontrakt z briefu i
+  poszło do be-dev-2: najpierw ostrzeżenia, potem treść; progi ostre w bajtach dziesiętnych;
+  brak `Last-commit` → cisza; hook tylko czyta; asercje po podciągu. Q-2 (jedna linia dłuższa niż
+  budżet) jest forkiem dla człowieka, zbieranym razem z pytaniami P0. Tymczasowo zaimplementowane
+  (a), odizolowane.
+
+- 2026-09-12 — tester-1 (P0) oddał 36 przypadków (tier B), plan na `worktree-agent-a1fe68f7d747504c9`
+  (`97b78a4`). **Decyzje człowieka:** filtr dat = mtime pliku (`--since` włącznie, `--until`
+  wyłącznie, o północy czasu lokalnego); uszkodzona linia JSONL → pomiń i policz; Q-2 w P1a → (a)
+  zero treści + informacja. **Obie listy zamrożone przez człowieka.** Rozstrzygnięte ze specu i
+  briefu: top 10% = ceil(n·0,1) z minimum 1 (305 M / 706 M = 43%), szczyt = maksimum pojedynczego
+  wywołania, tura = unikalne `message.id`, lista wbudowanych typów z briefu. Suity oceniane idą do
+  osobnych plików: `tools/token-report.frozen.test.js` i
+  `skills/sailes-bootstrap/hooks-template/session-start-memory.test.js`. `package.json` przy
+  scalaniu integruje lider.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie
