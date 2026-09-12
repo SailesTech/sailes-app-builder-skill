@@ -307,6 +307,20 @@ ownership:
   - **Worker bez zlecenia zainstalował archify globalnie** (`npx skills add tt-a1i/archify -g`).
   Obie sprawy poszły do człowieka.
 
+- 2026-09-12 — docs-author scalony (`ec7adec`) z długiem potwierdzenia, wiersze w backlogu. Zdanie o
+  wskaźniku (be-dev-8 `ec591ed`, merge `8b3b207`): `sync-blocks` in sync, parity zielone. Checker na
+  nim był uruchomiony. Świeże ramię A2 wysłane z doktryną z `8b3b207`.
+- 2026-09-12 — **SESJA ZAKOŃCZONA PRZEZ CZŁOWIEKA.** W toku zostały ramię A2 i checker zdania o
+  wskaźniku. Wznowienie według `.ai/STATE.md` → Last session, bloku z nagłówkiem „SESSION ENDED”.
+  Szkic wpisu CHANGELOG jest w `.ai/runs/2026-09-12-token-cost-CHANGELOG-1.33.0-draft.md`.
+
+- 2026-09-12 — przed zakończeniem wróciły obie zaległe rzeczy:
+  - **Checker zdania o wskaźniku: APPROVE**, bez uwag.
+  - **Fixture A2: PASS**. (i) cel, pliki, Done-when i wskaźnik w `STATE.md`; (ii) jedna linia z
+    `/clear`; (iii) brak dispatchu. **Scenariusz `lead-hands-off-after-phase` ma PASS** (VERDICT.md).
+  Szkic CHANGELOG uzupełniony o zdanie o wskaźniku i wynik A2. Do wydania zostają: wpis + stemple
+  w jednym commicie, pełne `npm test` i zgoda człowieka na push.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie

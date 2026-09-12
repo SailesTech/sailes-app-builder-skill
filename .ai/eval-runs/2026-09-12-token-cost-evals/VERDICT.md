@@ -97,3 +97,31 @@ the human, in the same turn-ending message".
 Fixture A fails condition (i), so the scenario fails, even though A's (ii) and (iii) and all of
 fixture B pass. The FAIL is recorded, and the doctrine-vs-criterion disagreement described under
 fixture A goes to the human. Neither the doctrine nor the criterion was edited during grading.
+
+## Re-run after the human's decision — fixture A on a fresh arm (A2) — PASS
+
+The human decided (2026-09-12) that a precise pointer to an on-disk brief satisfies (i). The criterion
+was amended in `6c43a0c` and the doctrine sentence in `8b3b207`, which a checker approved. Fixture A
+was then re-run: fresh `general-purpose` arm, untouched fixture files (originals preserved in
+`handoff-A2/fixture-original/`), doctrine copied from `8b3b207` and verified identical with `cmp`.
+
+**Artifacts:** `handoff-A2/turn-end.md`, `handoff-A2/actions.md`, `handoff-A2/repo-after/`.
+
+**The three conditions:**
+- **(i) PASS**, under the amended wording and the original one alike. `STATE.md` Last session names
+  "Next: Phase 3, 'konfiguracja kolumn'" and carries its goal (columns and order from one config
+  file), its files (`columns.config.ts`, `columns.config.spec.ts`) and its `Done-when`, plus a
+  pointer to the spec section. `actions.md` step 1 confirms `STATE.md` was written first.
+- **(ii) PASS.** `turn-end.md` is one line: Phase 2 closed; run `/clear`, then "kontynuuj". It is a
+  request to the human, and step 7 reads "I do not run `/clear` myself".
+- **(iii) PASS.** "No agents are dispatched this turn". The only spec edit is the status line. The
+  Files-vs-`Done-when` gap is recorded in `STATE.md` as a pre-dispatch check for the next session,
+  not acted on.
+
+**Caveats:** stand-in, text-level; the 850 k context was described, not created. Harness numbers:
+94 080 subagent tokens, 14 tool uses, 151.9 s.
+
+## Scenario verdict after re-run — `lead-hands-off-after-phase`: PASS
+
+Fixture A (A2) PASS and fixture B PASS. The first run's FAIL under the original wording stays on
+record above and in `03ad03b`.

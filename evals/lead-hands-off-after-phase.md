@@ -77,7 +77,11 @@ Notes:              **Rule text is pending P2 as of this writing (2026-09-12) an
                     mechanical backstop (`settings-template.json`) — this eval grades the lead's
                     *behavior* at the gate, not the settings file; a green `hooks-template.test.js`
                     assertion on that key is not evidence for or against this scenario.
-Last run:           2026-09-12 · **FAIL** · stand-in (`general-purpose` + doctrine copied from
+Last run:           2026-09-12 · **PASS** (after the human-approved amendment of (i)) · fixture A
+                    re-run on a fresh arm (A2, doctrine `8b3b207`): `STATE.md` Last session carries
+                    Phase 3's goal, files, `Done-when` and a pointer; one `/clear` line; no dispatch.
+                    Fixture B PASS. Stand-in, text-level.
+                    Earlier the same day · **FAIL** · stand-in (`general-purpose` + doctrine copied from
                     `4e6acf2`, grades the TEXT). Fixture A: (ii) PASS, (iii) PASS, **(i) FAIL** —
                     `STATE.md` Last session names Phase 3 and points precisely to the full brief in
                     the run log instead of carrying goal/files/`Done-when`; the doctrine's "naming

@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: 2549cde
+Last-commit: 8b3b207
 
 > Read at session start — it stays under 20 KB, so that is cheap; history lives verbatim in
 > `.ai/archive/` and is grepped by area, never read whole. Write before walking away. Facts enter **Verified facts** only with
@@ -66,7 +66,30 @@ Last-commit: 2549cde
   lessons.md 45 → 39 KB, the rest verbatim in `.ai/archive/`. **Worktrees are cut from the default
   branch, not from the lead's current branch** — the first P0 worker stopped on its base check;
   the fix is `git merge --ff-only <lead-branch>` inside the worktree.
-  **Progress on the branch (tip `27aac83`), detail in `.ai/runs/2026-09-12-token-cost.md`:**
+  **SESSION ENDED BY THE HUMAN 2026-09-12 late — RESUME FROM THIS BLOCK.** Branch
+  `feat/1.33.0-token-cost`; nothing pushed, `main` untouched. Every human decision this session is in
+  `.ai/runs/2026-09-12-token-cost.md` (F1–F5, JSON naming, tester n/a P2–P4, P1a-26, handoff pointer,
+  P0 Done-when, docs receipt debt, archify kept).
+  **State at stop:** P0–P4 merged and gated. Checkers: P1b/P2/P3/P4 APPROVE, P0/P1a NITS (accepted).
+  Detection: P0 11/11, P1a 9/9 (+ P1a-26). Docs delta merged, receipt blocked, debt accepted by the
+  human. Evals: `lead-splits-brief-per-phase` PASS; `lead-hands-off-after-phase` FAIL under the
+  original criterion (`03ad03b`), then the criterion (`6c43a0c`) and the doctrine sentence (`8b3b207`)
+  were amended by human decision. **Both follow-ups finished before the stop:** fixture A re-run on
+  a fresh arm (A2) → **PASS**, so the scenario is now PASS (`VERDICT.md`); checker on the pointer
+  sentence → **APPROVE**. Every phase gate and both evals are closed; only the release steps remain.
+  **Resume, in order:**
+  1. (done) A2 graded and recorded in VERDICT.md and the scenario's `Last run:`.
+  2. (done) checker APPROVE on the pointer sentence.
+  3. CHANGELOG: the complete 1.33.0 entry is in `.ai/runs/2026-09-12-token-cost-CHANGELOG-1.33.0-draft.md`
+     (CRLF, like `CHANGELOG.md`), with the pointer clause and eval results included. Insert it above
+     `## 1.32.0` in `CHANGELOG.md` **in the same commit** as the five stamps → 1.33.0 (`VERSION`,
+     `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `AGENTS.md`
+     `Framework-Version:`). `release-hygiene` fails on a heading ahead of `VERSION`.
+  4. Full `npm test`. `mcp-toolnames-check` "server absent" is a known flake: rerun it standalone.
+  5. Ask the human for approval to push `main` (a push is the deploy). After the push: spec →
+     `implemented/` with pasted evidence; AGENTS.md "twenty-one implemented specs" → twenty-two;
+     the post-release token comparison against `.ai/eval-runs/2026-09-12-token-baseline/` is owed.
+  **Earlier progress on the branch (tip `27aac83` at the time), detail in `.ai/runs/2026-09-12-token-cost.md`:**
   - **P1** merged. P1b: checker APPROVE. P1a: checker NITS, accepted. Detection proof: 9/9 mutants
     killed, after tester-2 strengthened the CRLF case.
   - **P3** merged, checker APPROVE. **P4** merged, checker APPROVE: live check that bare
