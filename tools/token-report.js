@@ -406,14 +406,30 @@ function fmtPct(x) {
   return `${Math.round(x * 100)}%`;
 }
 
+/**
+ * P0-34 (frozen plan, `.ai/test-plans/2026-09-12-token-cost-P0.md:180`): "every numeric metric
+ * ... is identical between the two formats." A humanized string ("15.0k", "43%") is NOT identical
+ * to the number `--json` holds — it is derived from it, lossily. These `dual*` helpers print the
+ * exact value exactly as `String(jsonValue)` would render it (so `text.includes(String(json...))`
+ * holds for every metric, not just totals), with the humanized form kept alongside in parentheses
+ * for a human reading the terminal, never in place of the raw number.
+ */
+function dualCount(n, humanize) {
+  return `${n} (${humanize(n)})`;
+}
+
+function dualPct(x) {
+  return `${x} (${fmtPct(x)})`;
+}
+
 function renderGroup(label, g) {
   const lines = [];
   lines.push(`${label}: ${g.transcriptCount}`);
-  lines.push(`  context tokens total          ${fmtTotal(g.contextTokensTotal)}`);
+  lines.push(`  context tokens total          ${dualCount(g.contextTokensTotal, fmtTotal)}`);
   lines.push(`  turns            p50 ${g.turns.p50}  max ${g.turns.max}`);
-  lines.push(`  first-turn ctx   p50 ${fmtK(g.firstTurnContext.p50)}  p90 ${fmtK(g.firstTurnContext.p90)}`);
-  lines.push(`  peak ctx         p50 ${fmtK(g.peakContext.p50)}  max ${fmtK(g.peakContext.max)}`);
-  lines.push(`  top 10% of transcripts carry   ${fmtPct(g.top10PercentShare)}`);
+  lines.push(`  first-turn ctx   p50 ${dualCount(g.firstTurnContext.p50, fmtK)}  p90 ${dualCount(g.firstTurnContext.p90, fmtK)}`);
+  lines.push(`  peak ctx         p50 ${dualCount(g.peakContext.p50, fmtK)}  max ${dualCount(g.peakContext.max, fmtK)}`);
+  lines.push(`  top 10% of transcripts carry   ${dualPct(g.top10PercentShare)}`);
   return lines.join('\n');
 }
 

@@ -524,3 +524,73 @@ confirmed pre-existing on the base commit via `git stash` before any of my edits
 instruction not to use `git stash` again, no further isolation attempt was made this round; the
 standalone rerun is the check the coordinator asked for.
 
+
+## Follow-up 2: P0-34 still red — text output must carry the EXACT number, not a humanized one
+
+Merged `feat/1.33.0-token-cost` again (`git merge --no-edit`, fast-forward `da0d3ce..87e2f97`) to
+pick up the tester's accessor rename (frozen suite now reads `json.lead.contextTokensTotal` /
+`json.subagents.contextTokensTotal` — my own key names, naming disagreement resolved in my favor).
+Confirmed before fixing: `node tools/token-report.frozen.test.js` → 36/37, only P0-34 red.
+
+**Root cause:** `.ai/test-plans/2026-09-12-token-cost-P0.md:180` requires "every numeric metric
+... is identical between the two formats" — my previous fix (`fmtTotal`) made small totals visible
+but still HUMANIZED them (`"15.0k"`), and `15.0k` is derived from `15000`, not identical to it.
+`text.includes(String(json.lead.contextTokensTotal))` = `text.includes("15000")` still failed.
+
+**Fix:** added `dualCount(n, humanizeFn)` = `` `${n} (${humanizeFn(n)})` `` and `dualPct(x)` =
+`` `${x} (${fmtPct(x)})` ``, used for every headline numeric field in `renderGroup` (both lead and
+subagents): `contextTokensTotal`, `firstTurnContext.{p50,p90}`, `peakContext.{p50,max}`,
+`top10PercentShare`. `turns.{p50,max}` were already raw integers, unchanged. The humanized form
+stays in parentheses for a human reading the terminal; the exact `--json` value now always appears
+verbatim first, e.g. `context tokens total  713955621 (714.0M)` and
+`top 10% of transcripts carry   0.42701810313221134 (43%)`. Did not touch the per-role breakdown
+table (not named in the coordinator's fix list and not covered by the P0-34 test's assertions on
+the top-level `lead`/`subagents` groups).
+
+Did not edit `tools/token-report.frozen.test.js` or its fixtures.
+
+### Verification
+
+```
+$ node tools/token-report.frozen.test.js
+[... 36 prior tests unchanged ...]
+  ok   P0-34 — default text output and --json output agree on the headline totals
+  ok   P0-35 — a malformed JSON line is skipped and counted, other lines still processed, exit code unaffected
+  ok   P0-36 — a 0-byte .jsonl file is treated as no data for that session, not a crash
+
+token-report.frozen: all tests passed
+```
+**37/37.**
+
+```
+$ node tools/token-report.test.js
+[... all prior tests green ...]
+  ok   P0-34: fmtTotal keeps a sub-1M total visible instead of rounding it to "0.0M"
+  ok   P0-34 (frozen plan): text output carries the EXACT --json number for every headline metric, not just the total
+  [...]
+token-report: all tests passed
+```
+Updated my own P0-34 regex to the new `<raw> (<humanized>)` shape (the old regex expected the
+humanized string immediately after whitespace, which no longer matches with the raw number now
+prefixed) and added a second case that checks EVERY headline metric — total, first-turn p50/p90,
+peak p50/max, top10% share — for both lead and subagents, matching the frozen plan's broader
+"every numeric metric" requirement rather than only the two totals the frozen test itself asserts.
+
+### Real run
+
+```
+$ node tools/token-report.js ~/.claude/projects/-home-charlie-Work-partner-portal-v3 --since 2026-09-11 --until 2026-09-13
+Lead sessions: 6
+  context tokens total          713955621 (714.0M)
+  turns            p50 367  max 562
+  first-turn ctx   p50 69148 (69k)  p90 89088 (89k)
+  peak ctx         p50 665869 (666k)  max 933213 (933k)
+  top 10% of transcripts carry   0.42701810313221134 (43%)
+```
+Lead total 714.0M — unchanged, exact match to prior runs. (Subagent total continued its
+already-documented corpus-growth drift: 1394.7M this run, up from 1384.0M the previous round and
+1362.4M at the original P0 baseline — same live client repo, more real work landed since. Not
+regenerating `.ai/eval-runs/2026-09-12-token-baseline/`, per instruction.)
+
+No `npm test` run this round, per instruction (other agents on the machine; the lead runs the gate).
+
