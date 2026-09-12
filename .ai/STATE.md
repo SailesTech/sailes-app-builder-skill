@@ -192,7 +192,17 @@ Last-commit: 2549cde
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-08-30, third release of the session (**resume here**): **1.32.0 — SHIPPED.** 1.30.0, 1.31.0
+- 2026-09-12 (**resume here**): pre-implement of `.ai/specs/2026-09-12-token-cost-of-running.md`
+  → READY-WITH-FIXES, report `.ai/audits/2026-09-12-pre-implement-token-cost.md`. The human decided
+  four forks (F1 hook emits sections-or-head, F2 Upgrade-mode patch of the local hook, F3 archive
+  grep by area keyword, F4 lead asks the human for `/clear`); the spec was rewritten with them and
+  now starts at **P0 (token-report tool + aggregate baseline)**. **Deadline:** the 11–12.09
+  partner-portal transcripts age out around 2026-10-11 under the default `cleanupPeriodDays`.
+  Two findings that correct the spec's earlier claims: the client `STATE.md` is dated blocks, not
+  five sections; and bare `Agent(be-dev)` vs `sailes-app-builder:be-dev` matching is **not
+  documented** (P4 rests only on its live check). Nothing committed; the spec, the report and this
+  entry are uncommitted on `main`. Next: `sailes-implement` from P0, on the human's go.
+- 2026-08-30, third release of the session: **1.32.0 — SHIPPED.** 1.30.0, 1.31.0
   and 1.32.0 went to `main` in one push (`2549cde`); the plugin auto-updates on every machine at
   its next session start, and all three specs moved to `.ai/specs/implemented/`. The human asked "kiedy i jakie testy … żeby usprawniać implementację i przyspieszyć
   proces". Two forks were put to them; they chose **keep the frozen case list after implementation**
