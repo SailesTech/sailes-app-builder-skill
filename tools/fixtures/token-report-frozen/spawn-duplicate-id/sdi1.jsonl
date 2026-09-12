@@ -1,0 +1,2 @@
+{"type":"assistant","message":{"id":"dupq1","type":"message","role":"assistant","content":[{"type":"text","text":"assistant text placeholder"}],"usage":{"input_tokens":100,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":1}},"uuid":"uuid_95","timestamp":"2026-09-11T12:00:00.000Z"}
+{"type":"assistant","message":{"id":"dupq1","type":"message","role":"assistant","content":[{"type":"tool_use","id":"toolu_96","name":"Task","input":{"subagent_type":"qa","description":"synthetic spawn"}}]},"uuid":"uuid_97","timestamp":"2026-09-11T12:00:00.000Z"}

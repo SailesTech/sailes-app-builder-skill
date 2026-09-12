@@ -1,0 +1,1 @@
+{"type":"assistant","message":{"id":"t10t-2","type":"message","role":"assistant","content":[{"type":"text","text":"assistant text placeholder"}],"usage":{"input_tokens":700,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":1}},"uuid":"uuid_51","timestamp":"2026-09-11T12:00:00.000Z"}
