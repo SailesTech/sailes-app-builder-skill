@@ -41,4 +41,78 @@ then delete the file, then show the human the salvage diff + deletion list toget
 — matching (a)/(b)'s "diff before writing" pattern. Named non-role files (e.g. `be-checker.md`) are
 explicitly NOT auto-deleted — listed and asked instead.
 
-(entries for items 2–4 appended below as each lands)
+### 2. `skills/sailes-bootstrap/repo-done-checklist.md`
+Before: `## Case A / Case C (existing repo)` had only prose bullets, no role-shadow check.
+After: added a bullet + fenced `bash` block, matching the doc's other pasteable-command style
+(no `$ROOT`, assumes cwd = repo root — matching the Freshness-check block's convention, since this
+section's existing bullets are otherwise prose-only, not the top verification block's `$ROOT` style):
+
+```bash
+for f in .claude/agents/*.md; do
+  [ -e "$f" ] || continue
+  case "$(basename "$f" .md)" in
+    be-dev|fe-dev|explorer|checker|qa|tester|designer|researcher|docs-author|team-lead)
+      basename "$f" ;;
+  esac
+done
+```
+Pass criterion stated inline: empty output = clean. Points back at `adopt-existing-repo.md`
+Upgrade mode exception (c) as the fix for anything this finds.
+
+### 3. `skills/sailes-bootstrap/repo-done-checklist.test.js`
+Before: F1 (graphify-setup.md sed portability) and F2 (core.hooksPath resolution) extractors only.
+After: added **F3** — `extractRoleShadowScan()` pulls the loop above as a literal substring (start
+marker `for f in .claude/agents/*.md; do`, end at the following `done`), same pattern as
+`extractNormalizeBlock`/`extractHooksResolutionBlock`. Four cases against real `sh` + real fixture
+dirs: (a) `be-dev.md` → `be-dev.md`; (b) only `be-checker.md` → no output; (c) no `.claude/agents`
+dir → no output, no stderr; (d) all ten role files → all ten named. Reuses the file's existing
+`shAvailable()` skip.
+
+## Mutation proofs (pasted)
+
+**(1) delete the command from the doc:**
+```
+  FAIL F3b: only be-checker.md present (not a plugin role name) -> no output
+       could not find the role-shadow scan loop in repo-done-checklist.md
+  FAIL F3c: no .claude/agents dir at all -> no output, no error text
+       could not find the role-shadow scan loop in repo-done-checklist.md
+  FAIL F3d: all ten role files present -> all ten named
+
+repo-done-checklist: 5 failing
+```
+Named error (`F3a` also failed on the same message, truncated above by `tail`). Restore →
+`repo-done-checklist: all tests passed`.
+
+**(2) `tester` → `testr` in the doc's case arms:**
+```
+    'checker.md',
+    'designer.md',
+    'docs-author.md',
+...
+    'team-lead.md',
+-   'tester.md'
+  ]
+
+repo-done-checklist: 2 failing
+```
+(F3: case-arms-contain-all-ten-names test also failed, since `tester` literal is gone from the
+block — 2 failing total.) Restore → `repo-done-checklist: all tests passed`.
+
+**(3) CRLF conversion (whole file, in place, byte-identical restore verified by `cmp`):**
+```
+skills/sailes-bootstrap/repo-done-checklist.md: ... UTF-8 text, with very long lines (548)
+skills/sailes-bootstrap/repo-done-checklist.md: ... UTF-8 text, with very long lines (548), with CRLF line terminators
+  ok   F3: the doc still contains the role-shadow scan loop, all ten names in its case arms
+  ok   F3a: .claude/agents/be-dev.md present -> names be-dev.md
+  ok   F3b: only be-checker.md present (not a plugin role name) -> no output
+  ok   F3c: no .claude/agents dir at all -> no output, no error text
+  ok   F3d: all ten role files present -> all ten named
+
+repo-done-checklist: all tests passed
+```
+Restore: `cmp /tmp/rdc-orig-forcmp.md skills/sailes-bootstrap/repo-done-checklist.md` → `IDENTICAL`
+(no output from `cmp`, exit 0), then suite green again. The extraction is LF/CRLF-agnostic because
+`runRoleShadowScan()` does `.replace(/\r\n/g, '\n')` on the extracted block before handing it to
+`sh -c`, same discipline as F1/F2's existing `runHooksResolution`.
+
+(entry for item 4 appended below once it lands)
