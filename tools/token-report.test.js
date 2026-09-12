@@ -252,7 +252,24 @@ async function run() {
     const r = runTool(NO_USAGE_MIXED);
     assert.strictEqual(r.status, 0);
     assert.ok(!/context tokens total\s+0\.0M/.test(r.stdout), `a 5000-token total must not print as 0.0M:\n${r.stdout}`);
-    assert.ok(/context tokens total\s+5\.0k/.test(r.stdout), `expected the sub-1M total rendered in k, got:\n${r.stdout}`);
+    assert.ok(/context tokens total\s+5000 \(5\.0k\)/.test(r.stdout), `expected the raw value with a k-scaled hint alongside it, got:\n${r.stdout}`);
+  });
+
+  await test('P0-34 (frozen plan): text output carries the EXACT --json number for every headline metric, not just the total', () => {
+    const textRun = runTool(SAMPLE_PROJECT);
+    const jsonRun = runTool(SAMPLE_PROJECT, '--json');
+    assert.strictEqual(textRun.status, 0);
+    assert.strictEqual(jsonRun.status, 0);
+    const json = JSON.parse(jsonRun.stdout);
+    const text = textRun.stdout;
+    for (const group of ['lead', 'subagents']) {
+      assert.ok(text.includes(String(json[group].contextTokensTotal)), `${group}.contextTokensTotal missing verbatim from text output`);
+      assert.ok(text.includes(String(json[group].firstTurnContext.p50)), `${group}.firstTurnContext.p50 missing verbatim`);
+      assert.ok(text.includes(String(json[group].firstTurnContext.p90)), `${group}.firstTurnContext.p90 missing verbatim`);
+      assert.ok(text.includes(String(json[group].peakContext.p50)), `${group}.peakContext.p50 missing verbatim`);
+      assert.ok(text.includes(String(json[group].peakContext.max)), `${group}.peakContext.max missing verbatim`);
+      assert.ok(text.includes(String(json[group].top10PercentShare)), `${group}.top10PercentShare missing verbatim (must be the raw fraction, not just "43%")`);
+    }
   });
 
   // ---------------------------------------------------------------- CLI end-to-end
