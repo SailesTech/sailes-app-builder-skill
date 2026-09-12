@@ -108,6 +108,9 @@ const INVARIANTS = {
     // just a missing guard. This invariant is expected to fail on the Codex side until the twin is
     // fixed; do not weaken the regex to force green — the red result IS the finding.
     ["verifies the worker's worktree base is current before it starts", /worktree.s base is current before the worker starts/i],
+    // Q3 (spec 2026-09-12-token-cost-of-running, P3) — "one task per worker" existed with no
+    // definition of "task"; a brief bundling four phases as "one task" ran 431 turns / 135M tokens.
+    ['a task is one phase with one Done-when', /phase with one .{0,3}Done-when/i],
   ],
   explorer: [
     ['strictly read-only', /read-only/i],
@@ -141,12 +144,21 @@ const INVARIANTS = {
     ['implements the approved scope only', /approved|exactly the/i],
     // See designer's note above — same retroactive gap, same fix, per writing role.
     ['claims `.claude/status/be-dev-<n>.md` before the first edit', /\.claude\/status\/be-dev/i],
+    // Q3 — same rule as team-lead's above, stated in the worker's own voice: a worker that notices
+    // its brief bundles more than one Done-when says so rather than quietly doing both.
+    ['a task is one phase with one Done-when', /phase with one .{0,3}Done-when/i],
+    // Q3(b) — the inner loop runs only affected-file tests; the full suite/e2e runs once, before
+    // the declaration commit. Measured 2026-09-12: a full `yarn test` re-run 7x and a full
+    // `test:e2e` re-run 7x inside single briefs, because nothing said the loop should stay narrow.
+    ['inner loop = affected tests; full suite/e2e run once before the declaration commit', /inner loop[\s\S]{0,150}(full suite|e2e)[\s\S]{0,60}once/i],
   ],
   'fe-dev': [
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
     ['commits inside its own worktree', /own worktree/i],
     ['works against the frozen contract', /frozen|contract/i],
     ['claims `.claude/status/fe-dev-<n>.md` before the first edit', /\.claude\/status\/fe-dev/i],
+    ['a task is one phase with one Done-when', /phase with one .{0,3}Done-when/i],
+    ['inner loop = affected tests; full suite/e2e run once before the declaration commit', /inner loop[\s\S]{0,150}(full suite|e2e)[\s\S]{0,60}once/i],
   ],
   tester: [
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
