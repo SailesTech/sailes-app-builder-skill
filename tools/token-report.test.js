@@ -35,6 +35,8 @@ const FIXTURES = path.join(ROOT, 'tools', 'fixtures', 'token-report');
 const SAMPLE_PROJECT = path.join(FIXTURES, 'sample-project');
 const DATE_FILTER_PROJECT = path.join(FIXTURES, 'date-filter-project');
 const MALFORMED_PROJECT = path.join(FIXTURES, 'malformed-project');
+const NO_USAGE_MIXED = path.join(FIXTURES, 'no-usage-project', 'mixed');
+const NO_USAGE_ALL_NONE = path.join(FIXTURES, 'no-usage-project', 'all-none');
 
 const {
   parseArgs,
@@ -220,6 +222,37 @@ async function run() {
     const textRun = runTool(MALFORMED_PROJECT);
     assert.strictEqual(textRun.status, 0);
     assert.ok(/Malformed JSONL lines skipped: 1/.test(textRun.stdout));
+  });
+
+  // ---------------------------------------------------------------- P0-09 / P0-10 (frozen suite defects)
+
+  await test('P0-09: an assistant message with no usage field still counts as a turn, contributing 0 tokens', async () => {
+    const report = await buildReport({ dir: NO_USAGE_MIXED, sinceMs: null, untilMs: null });
+    assert.strictEqual(report.lead.transcriptCount, 1);
+    assert.deepStrictEqual(report.lead.turns, { p50: 2, max: 2 }, 'both message.id values count as turns, not just the one with usage');
+    assert.strictEqual(report.lead.contextTokensTotal, 5000, 'the no-usage turn contributes 0, the other contributes 5000');
+  });
+
+  await test('P0-10: a transcript where every assistant line lacks usage gives zero totals, correct turn count, no NaN/Infinity', async () => {
+    const report = await buildReport({ dir: NO_USAGE_ALL_NONE, sinceMs: null, untilMs: null });
+    assert.strictEqual(report.lead.transcriptCount, 1);
+    assert.deepStrictEqual(report.lead.turns, { p50: 2, max: 2 });
+    assert.strictEqual(report.lead.contextTokensTotal, 0);
+    assert.deepStrictEqual(report.lead.peakContext, { p50: 0, max: 0 });
+    assert.ok(Number.isFinite(report.lead.contextTokensTotal) && Number.isFinite(report.lead.peakContext.max));
+
+    const textRun = runTool(NO_USAGE_ALL_NONE);
+    assert.strictEqual(textRun.status, 0);
+    assert.ok(!/NaN|Infinity/.test(textRun.stdout), `default output leaked NaN/Infinity: ${textRun.stdout}`);
+  });
+
+  // ---------------------------------------------------------------- P0-34 (frozen suite defect)
+
+  await test('P0-34: fmtTotal keeps a sub-1M total visible instead of rounding it to "0.0M"', () => {
+    const r = runTool(NO_USAGE_MIXED);
+    assert.strictEqual(r.status, 0);
+    assert.ok(!/context tokens total\s+0\.0M/.test(r.stdout), `a 5000-token total must not print as 0.0M:\n${r.stdout}`);
+    assert.ok(/context tokens total\s+5\.0k/.test(r.stdout), `expected the sub-1M total rendered in k, got:\n${r.stdout}`);
   });
 
   // ---------------------------------------------------------------- CLI end-to-end

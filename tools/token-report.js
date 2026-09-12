@@ -236,17 +236,20 @@ async function parseTranscript(filePath) {
     const message = entry.message;
     if (!message || entry.type !== 'assistant') continue;
 
-    if (message.usage && !seenUsageIds.has(message.id)) {
+    // A turn is a distinct assistant message.id — full stop. It counts even when `usage` is
+    // missing entirely (P0-09/P0-10: an assistant line can lack `usage`, e.g. a partial/streamed
+    // write) and contributes 0 context tokens in that case, never NaN. Usage is still deduped by
+    // message.id: several lines can repeat the SAME message.id/usage (split message), and that
+    // must count once, not once per line.
+    if (!seenUsageIds.has(message.id)) {
       seenUsageIds.add(message.id);
-      const u = message.usage;
+      turns += 1;
+      const u = message.usage || {};
       const ctx = (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0)
         + (u.cache_read_input_tokens || 0);
-      if (ctx > 0) {
-        turns += 1;
-        if (firstTurnContext === null) firstTurnContext = ctx;
-        peakContext = Math.max(peakContext, ctx);
-        contextTokens += ctx;
-      }
+      if (firstTurnContext === null) firstTurnContext = ctx;
+      peakContext = Math.max(peakContext, ctx);
+      contextTokens += ctx;
     }
 
     // Collect tool_use from every line unconditionally — NOT nested inside the usage-dedupe
@@ -387,8 +390,16 @@ function fmtK(n) {
   return `${Math.round(n / 1000)}k`;
 }
 
-function fmtM(n) {
-  return `${(n / 1e6).toFixed(1)}M`;
+/**
+ * Format a headline TOTAL (never a percentile or single-call peak — those stay in fmtK/fmtPct).
+ * P0-34: the old unconditional `(n/1e6).toFixed(1) + 'M'` printed 15 000 tokens as "0.0M" — a real
+ * total that rounds away to a string indistinguishable from zero. Below 1e6 tokens the raw count
+ * (or a 1-decimal "k") stays visible; only totals that actually reach a million get the M suffix.
+ */
+function fmtTotal(n) {
+  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+  if (n >= 1e3) return `${(n / 1e3).toFixed(1)}k`;
+  return `${n}`;
 }
 
 function fmtPct(x) {
@@ -398,7 +409,7 @@ function fmtPct(x) {
 function renderGroup(label, g) {
   const lines = [];
   lines.push(`${label}: ${g.transcriptCount}`);
-  lines.push(`  context tokens total          ${fmtM(g.contextTokensTotal)}`);
+  lines.push(`  context tokens total          ${fmtTotal(g.contextTokensTotal)}`);
   lines.push(`  turns            p50 ${g.turns.p50}  max ${g.turns.max}`);
   lines.push(`  first-turn ctx   p50 ${fmtK(g.firstTurnContext.p50)}  p90 ${fmtK(g.firstTurnContext.p90)}`);
   lines.push(`  peak ctx         p50 ${fmtK(g.peakContext.p50)}  max ${fmtK(g.peakContext.max)}`);
@@ -431,7 +442,7 @@ function renderText(dir, args, report) {
   lines.push('  role                 n   turns p50/p90/max   tokens');
   const roles = Object.entries(report.subagentsByRole).sort((a, b) => b[1].contextTokensTotal - a[1].contextTokensTotal);
   for (const [role, r] of roles) {
-    lines.push(`  ${role.padEnd(20)} ${String(r.n).padStart(2)}   ${r.turns.p50}/${r.turns.p90}/${r.turns.max}`.padEnd(48) + fmtM(r.contextTokensTotal));
+    lines.push(`  ${role.padEnd(20)} ${String(r.n).padStart(2)}   ${r.turns.p50}/${r.turns.p90}/${r.turns.max}`.padEnd(48) + fmtTotal(r.contextTokensTotal));
   }
   lines.push('');
   lines.push(`Spawns: ${report.spawns.total} total, ${report.spawns.unprefixedTotal} unprefixed (no plugin-name prefix, not built-in)`);

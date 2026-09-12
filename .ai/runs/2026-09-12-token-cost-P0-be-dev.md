@@ -401,3 +401,126 @@ grepped for `partner-portal` / `/home/charlie` — no hits; all fixtures are syn
   test in sequence before printing the summary. Caught by re-reading my own tool's output ordering,
   not by an external report.
 
+
+## Follow-up: P0-09 / P0-10 / P0-34 (frozen suite defects, coordinator-assigned)
+
+Merged `feat/1.33.0-token-cost` (`git merge --no-edit`, fast-forward `40acb1f..cc9a929`) to pick up
+`tools/token-report.frozen.test.js` and `tools/fixtures/token-report-frozen/`. Did not touch either
+— both stay owned by the tester. Did not rename any JSON keys (per instruction; the naming
+disagreement between my shape and the frozen suite's pinned shape — `contextTokensTotal` vs
+`totalContextTokens`, `peakContext` vs `peak`, per-role nesting under `perRole`, spawns as a flat
+map instead of `{total, unprefixedTotal, unprefixedByName}` — goes to the human).
+
+### Fixes
+
+1. **P0-09/P0-10 — turn counting was gated on `usage` existing.** `parseTranscript`'s dedupe-by-
+   `message.id` block only ran `if (message.usage && !seenUsageIds.has(message.id))`, so an
+   assistant line with no `usage` field at all was invisible to turn counting — never deduped,
+   never counted, contributing nothing. Changed the guard to `if (!seenUsageIds.has(message.id))`
+   and `const u = message.usage || {}`: a turn is now every distinct `message.id`, full stop; a
+   missing `usage` contributes exactly 0 context tokens instead of being skipped. `tool_use`
+   collection was already unconditional (separate loop, not nested) and needed no change.
+2. **P0-34 — `fmtM` unconditionally divided by 1e6**, so any total under ~50 000 tokens rounded to
+   `"0.0M"` in default text output, indistinguishable from an actual zero. Added `fmtTotal(n)`:
+   raw count below 1 000, one-decimal `k` from 1 000 up to 1e6, one-decimal `M` at/above 1e6 — used
+   only for the two headline TOTAL fields (`context tokens total`, per-role token column); `fmtK`
+   (percentiles/peaks) and `fmtPct` are untouched.
+
+### Verification against the frozen fixtures directly (bypassing the key-name mismatch)
+
+Ran `buildReport()` by hand against the frozen suite's own fixtures, reading my own field names,
+to confirm the BEHAVIOR the frozen tests check for is now correct, independent of naming:
+
+```
+P0-09 (no-usage-field): {"transcriptCount":1,"contextTokensTotal":5000,"turns":{"p50":2,"max":2}, ...}
+P0-10 (all-no-usage):   {"transcriptCount":1,"contextTokensTotal":0,"turns":{"p50":2,"max":2},
+                          "peakContext":{"p50":0,"max":0}, ...}
+```
+Both match the frozen test's literal expected numbers (`totalContextTokens: 5000`/`turns.max: 2` and
+`totalContextTokens: 0`/`turns.max: 2`/`peak.max: 0`) — only the key names differ.
+
+```
+$ node tools/token-report.js tools/fixtures/token-report-frozen/lead-subagent-totals
+Lead sessions: 1
+  context tokens total          15.0k
+  ...
+Subagent transcripts: 1
+  context tokens total          5.0k
+  ...
+```
+15 000 and 5 000 tokens no longer print as `0.0M`.
+
+`node tools/token-report.frozen.test.js` still reports **26 failing**, unchanged from before this
+fix — expected, since P0-09/P0-10/P0-34's assertions read `json.lead.totalContextTokens` /
+`json.lead.peak.max`, which are `undefined` on my shape regardless of the underlying value, and
+P0-34 does a literal `text.includes(String(json.lead.totalContextTokens))` which becomes
+`text.includes("undefined")`. All three stay red at the frozen-suite level until the naming
+question is resolved; the behavior underneath is proven correct above. No `Promotion candidate:`
+line — these were caught by the frozen suite, not an inner-loop check of mine.
+
+### My own suite
+
+Added three cases to `tools/token-report.test.js` against new synthetic fixtures
+(`tools/fixtures/token-report/no-usage-project/{mixed,all-none}/session.jsonl`, my own naming
+convention, not the frozen ones): a mixed usage/no-usage transcript (P0-09 shape), an all-no-usage
+transcript with a NaN/Infinity leak check on default text output (P0-10 shape), and a `fmtTotal`
+visibility check that a 5000-token total renders as `5.0k`, never `0.0M` (P0-34 shape).
+
+```
+$ node tools/token-report.test.js
+[... all prior tests unchanged and green ...]
+  ok   P0-09: an assistant message with no usage field still counts as a turn, contributing 0 tokens
+  ok   P0-10: a transcript where every assistant line lacks usage gives zero totals, correct turn count, no NaN/Infinity
+  ok   P0-34: fmtTotal keeps a sub-1M total visible instead of rounding it to "0.0M"
+  ok   CLI --json on the sample fixture matches buildReport
+  ok   CLI text mode prints a human-readable report with the role table and spawn breakdown
+  ok   CLI --help documents the mtime-local-time decision
+  ok   CLI rejects a missing directory
+
+token-report: all tests passed
+```
+
+### Real run (post-fix)
+
+```
+$ node tools/token-report.js ~/.claude/projects/-home-charlie-Work-partner-portal-v3 --since 2026-09-11 --until 2026-09-13
+Lead sessions: 6
+  context tokens total          714.0M
+  turns            p50 367  max 562
+  ...
+Subagent transcripts: 161
+  context tokens total          1384.0M
+  turns            p50 41  max 431
+  ...
+Spawns: 178 total, 135 unprefixed (no plugin-name prefix, not built-in)
+  be-dev 50, explorer 45, be-checker 15, qa 13, fe-dev 6, designer 3, tester 3
+```
+Lead: 714.0M, exact match to the coordinator's figure. Subagents: 1384.0M vs the coordinator's
+reference 1372.4M (+0.85%, and vs my own P0 baseline of 1362.4M, +1.6%) — consistent with the same
+"corpus growth" pattern already documented above (client repo's real work continuing), not a
+regression: turn counts, spawn totals and the role breakdown are stable/consistent with earlier
+runs. Lead turns max moved 560 -> 562 (two more turns in one long-running lead session since the
+last run), which is exactly the kind of drift the coordinator flagged as expected ("± corpus
+growth"). Did NOT regenerate `.ai/eval-runs/2026-09-12-token-baseline/` per instruction.
+
+### `npm test`
+
+`npm test` exit 1, same pre-existing environmental flake as documented earlier in this report:
+`tools/mcp-toolnames-check.js` threw an unhandled `EPIPE` writing to a spawned MCP server
+subprocess. Reran that file standalone:
+
+```
+$ node tools/mcp-toolnames-check.test.js
+[...]
+  ok   --help -> exit 0, usage message, no server contacted
+  ok   queryServerTools resolves { ok: false, reason } for a command that cannot start, fast
+  ok   queryServerTools times out with a named reason when nothing ever responds
+
+mcp-toolnames-check: all tests passed
+```
+Exit 0, standalone. Not `tools/token-report.*` — outside my claimed scope, matches the flake already
+documented above (repro'd 3 different ways across 7 runs in the earlier section of this report, and
+confirmed pre-existing on the base commit via `git stash` before any of my edits). Per this round's
+instruction not to use `git stash` again, no further isolation attempt was made this round; the
+standalone rerun is the check the coordinator asked for.
+
