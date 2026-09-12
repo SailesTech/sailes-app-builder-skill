@@ -192,22 +192,74 @@ SILENT`, `no .env at all is SILENT`.
 
 ---
 
-## Detection proof (filled at step 5, after the suite exists)
+## Detection proof — tier B, step 5 (run against implementation `54661c4`/`87b6250` base)
 
-| ID | Mutation applied | Test went red | Reverted, suite green | Verdict |
+All nine mutants below were planted **one at a time in `session-start.sh` only**, run, reverted, and
+`git diff -- skills/sailes-bootstrap/hooks-template/session-start.sh` confirmed empty before the
+next. Final state: diff empty, `session-start-memory.test.js` 25/25 green,
+`hooks-template.test.js` untouched and green (re-verified after every revert cycle, not just once
+at the end).
+
+| # | Mutant (lead's list) | Concrete change | IDs that went red | Verdict |
 |---|---|---|---|---|
-| P1a-02, P1a-04 | Done-when (f), spec-mandated: restore `cat "$STATE"` in place of the extraction logic | pending | pending | pending |
-| P1a-06 | Remove the "General rules optional" branch (require all three headings) | pending | pending | pending |
-| P1a-08 / P1a-09 | Change the AND to an OR in mode selection (either heading alone triggers section mode) | pending | pending | pending |
-| P1a-11 / P1a-12 | Loosen heading match to a substring/prefix test instead of exact-line match | pending | pending | pending |
-| P1a-15–P1a-20 | Off-by-one the comparison operator at each boundary (`>` ↔ `>=`) | pending | pending | pending |
-| P1a-23 | Replace the UTF-8-safe cut with a raw byte-offset `cut -c`/`head -c` truncation | pending | pending | pending |
-| P1a-21 | Skip the whole-line-exceeds-budget check and emit the line anyway (or hard-cut mid-line instead of dropping it) | pending | pending | pending |
-| P1a-25 | Emit a placeholder (e.g. `Last-commit: unknown`) instead of staying silent when the field is absent | pending | pending | pending |
+| 1 | Section detection matches a decoy (`## 🔴 Open failure — …`) | Line 206 `Open failures` gate loosened to `^## .*Open failure` | **P1a-12** only | detects — see finding below |
+| 2 | `## Verified facts` emitted | Added a capture rule for `## Verified facts` to the awk block | **P1a-02, P1a-03** | detects |
+| 3 | Budget off by one (`<= 9500`) | `MAX_BYTES=$BUDGET_TOTAL` instead of `$((BUDGET_TOTAL - 1))` | **P1a-15** | detects |
+| 4 | Warnings not reserved, total exceeds budget | `mem_budget=$MAX_BYTES` (no `- tail_bytes`) | **P1a-15** | detects — see finding below |
+| 5 | Size-warning threshold `>=` instead of `>` | `-gt 20000` → `-ge 20000` (also spot-checked lessons.md's `-gt 40000` → `-ge`) | **P1a-17** (STATE.md variant), **P1a-19** (lessons.md variant, spot-check) | detects |
+| 6 | CRLF heading not recognised | `tr -d '\r' < "$STATE" > "$NORM"` → `cat "$STATE" > "$NORM"` | **none**, until strengthened — see finding below; after strengthening: **P1a-03, P1a-22** | detects (after fix) |
+| 7 | Head mode splits mid-line (generic, any overflow line) | `head_cut` hard-cuts to `_hc_remaining` bytes instead of `break`-ing, on every overflow line | **P1a-21** (clean), **P1a-23** (coupled — see note) | detects |
+| 8 | Q-2(a) replaced by a mid-line cut (narrow: only the very first line) | Same hard-cut, gated to `[ "$_hc_total" -eq 0 ]` only | **P1a-21** (clean), **P1a-23** (coupled — see note) | detects |
+| 9 | `Last-commit` placeholder emitted when absent | `[ -z "$lastcommit_line" ] && lastcommit_line="Last-commit: unknown"` | **P1a-25** | detects |
 
-> This table is structurally present per the template. Filled at the point noted per row: the suite
-> now exists (see below) so the harness-error check has been run; the actual red/green
-> mutation cycle is the lead's detection-proof step, after the implementation lands.
+**Findings — mutants that were not cleanly caught, and what changed as a result:**
+
+- **#1 (decoy detection).** Only P1a-12 catches it, and by a different decoy than the one named
+  (a decorated exact-prefix heading, not the emoji one). P1a-04 and P1a-11 — the fixtures that
+  actually carry `## 🔴 Open failure — …` — structurally **cannot** observe this mutant on their own:
+  both lack a real `## Last session` heading anywhere, so the `&&` gate stays false regardless of how
+  loose the `Open failures` side is. This is not a suite defect to fix by adding a heading to those
+  fixtures (that would turn them into a different, already-covered case); it is a **plan-level gap**:
+  no frozen ID pairs the literal emoji decoy with a real second heading. Flagging for the human/lead
+  rather than silently adding a 26th case outside the frozen list.
+- **#4 (warnings not reserved).** Only P1a-15 catches it. I initially expected P1a-05 and P1a-24 to
+  also react and added a universal-budget assertion to P1a-05 (kept — it is a real, always-true
+  invariant per Q-1's resolution), but confirmed by direct debug run that P1a-05's fixture is a
+  single unbroken line: `head_cut` always emits zero content lines regardless of correct or buggy
+  `mem_budget` arithmetic, so the output is byte-identical either way. P1a-24 doesn't reach the
+  truncation branch at all (its excluded Lessons-learned filler absorbs the size, its included
+  sections are tiny). Both are legitimate non-catches, not defects — the credit for #4 belongs to
+  P1a-15 alone, which uses a calibrated fixture that actually crosses the truncation-branch decision.
+- **#6 (CRLF heading not recognised) — a real surviving mutant, now fixed.** Disabling the dedicated
+  CR-normalization step (`tr -d '\r'`) was killed by **no test at all**. Root cause, confirmed with a
+  bare `grep` probe: the heading anchor's own `[[:space:]]*$` tolerance already absorbs a trailing
+  `\r` independently of the normalization step (POSIX `[:space:]` includes CR), and my body-marker
+  substring checks (`.includes('OPEN_FAILURES_BODY_MARKER')`) don't notice a `\r` trailing the
+  marker. **Strengthened P1a-03 and P1a-22** to additionally assert the extracted body does NOT
+  contain `'OPEN_FAILURES_BODY_MARKER\r'` — the implementation's own comment states section-mode
+  output is built from the CR-stripped copy, so a clean (no-`\r`) body is the correct, provable
+  observable. Re-ran the mutant after strengthening: both IDs now redden. This is the one true
+  `strengthen, don't fabricate` case step 5 exists to find.
+- **#7 / #8 (mid-line splits) — P1a-23 rebuilt; its catch of these two is coupled, not independent.**
+  Before this step, P1a-23 used a single unbroken line to place a multibyte character "at the cut
+  point" — but Q-2(a) means a single-line-over-budget file always yields **zero** content lines
+  regardless of where the character sits, so the fixture could never actually route a byte through a
+  mid-line cut. Rebuilt it with a calibrated two-line fixture (line 1 sized to leave exactly the
+  measured `cut_limit - 1` bytes of headroom, line 2 opening with the multibyte character) so a real
+  mid-line hard-cut would slice its first byte. This now correctly reddens under #7 and #8 — but by
+  inspecting the actual failure messages, its OWN calibration sub-step (a single first-line-overflow
+  probe, structurally identical to P1a-21's fixture) trips first under both mutants, before the
+  intended "no U+FFFD replacement character" assertion is even reached. So P1a-23's reaction to #7/#8
+  is real (the test goes genuinely red, not a harness error) but **not independent signal** — P1a-21
+  is the clean, on-topic catcher for both; P1a-23's is collateral from shared calibration machinery.
+  Recorded here rather than claimed as two separate proofs.
+- **#2, #3, #5, #9** were each killed cleanly, by exactly the ID the plan named for them, on the
+  first attempt, with the failure message naming the mutated behavior directly.
+
+**Checker finding folded in (same commit):** P1a-21 asserted `.ai/archive/` but never the file path,
+though the frozen plan requires "naming the path AND `.ai/archive/`" (P1a-04 already checked the path
+half). Added `assert.ok(r.stdout.includes('STATE.md'), ...)` to P1a-21 — strengthening toward the
+already-frozen expectation, not a new one.
 
 ## Suite written — `skills/sailes-bootstrap/hooks-template/session-start-memory.test.js`
 
