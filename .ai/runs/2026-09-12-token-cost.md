@@ -291,6 +291,22 @@ ownership:
     (ii) i (iii) PASS. Fixture B PASS.
   Rozbieżność doktryna–kryterium i zmiana Done-when w P0 poszły do człowieka.
 
+- 2026-09-12 — **Decyzje człowieka po evalach:**
+  - (1) W przekazaniu precyzyjny wskaźnik do briefu na dysku wystarcza. Kryterium (i) zmienione
+    (`6c43a0c`), pierwszy FAIL zostaje w historii (`03ad03b`). Zdanie w bloku `session-handoff`
+    zmienia be-dev-8. Fixture A powtarzany na świeżym ramieniu (`handoff-A2`, nietknięte pliki
+    fixture'u).
+  - (2) Done-when P0 zmienione na „zgodny ±1% z oryginalnym instrumentem na tym samym korpusie”
+    (`6c43a0c`).
+- 2026-09-12 — **docs-author: treść zaktualizowana, potwierdzenie ZABLOKOWANE** (`b3c788f`, niescalone).
+  - `architecture.json` i `dataflow.json` zaktualizowane z dowodami: token-report, `.ai/archive/`,
+    budżet hooka, czwarty blok. `workflow`, `sequence` i `lifecycle` mają jawnie pustą deltę.
+  - Strony HTML nie są przerenderowane: `deliver`/`compare` pada na
+    `composition/desktop-readability` w archify 2.17. Pada także na stanie sprzed 1.33.0 i na trzech
+    nietkniętych diagramach, a strony renderowano wersją 2.12.
+  - **Worker bez zlecenia zainstalował archify globalnie** (`npx skills add tt-a1i/archify -g`).
+  Obie sprawy poszły do człowieka.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie
