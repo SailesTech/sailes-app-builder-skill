@@ -422,6 +422,109 @@ if (SH_AVAILABLE) {
   });
 }
 
+// =================================================================================================
+// F3 — role-shadow scan ("Case A / Case C (existing repo)" section, D4 / P4 of
+// 2026-09-12-token-cost-of-running.md): a local `.claude/agents/<name>.md` shadows a plugin role of
+// the same name by bare-name spawn resolution. Extracted the same way as F1/F2 above — a literal
+// substring of the doc's own shell, run for real against real fixture directories with a real `sh`,
+// never re-typed as a JS re-implementation of the case switch.
+// =================================================================================================
+
+const ROLE_NAMES = [
+  'be-dev', 'fe-dev', 'explorer', 'checker', 'qa',
+  'tester', 'designer', 'researcher', 'docs-author', 'team-lead',
+];
+
+/** The `.claude/agents/*.md` role-shadow scan, exactly as it ships in the doc. */
+function extractRoleShadowScan() {
+  const startMarker = 'for f in .claude/agents/*.md; do';
+  const start = text.indexOf(startMarker);
+  if (start === -1) {
+    throw new Error('could not find the role-shadow scan loop in repo-done-checklist.md');
+  }
+  const done = text.indexOf('done', start);
+  if (done === -1) {
+    throw new Error('the role-shadow scan loop has no closing `done` in repo-done-checklist.md');
+  }
+  return text.slice(start, done + 4);
+}
+
+/** A throwaway dir, optionally with `.claude/agents/<name>.md` stubs for the given basenames. */
+function makeAgentsFixture(names) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sailes-f3-'));
+  if (names.length) {
+    const agentsDir = path.join(dir, '.claude', 'agents');
+    fs.mkdirSync(agentsDir, { recursive: true });
+    for (const n of names) fs.writeFileSync(path.join(agentsDir, `${n}.md`), '# stub\n');
+  }
+  return dir;
+}
+
+/** Run the extracted fragment for real, cwd set to the fixture (the doc assumes cwd = repo root). */
+function runRoleShadowScan(dir) {
+  const block = extractRoleShadowScan().replace(/\r\n/g, '\n');
+  const r = spawnSync('sh', ['-c', block], { cwd: dir, encoding: 'utf8' });
+  if (r.error) throw r.error;
+  return { stdout: r.stdout, stderr: r.stderr };
+}
+
+if (!SH_AVAILABLE) {
+  console.log('  SKIP F3 role-shadow scan tests: no POSIX `sh` on this machine (Git Bash provides one)');
+} else {
+  test('F3: the doc still contains the role-shadow scan loop, all ten names in its case arms', () => {
+    const block = extractRoleShadowScan();
+    assert.ok(/basename "\$f" \.md/.test(block), 'basename-without-extension lookup missing');
+    for (const n of ROLE_NAMES) {
+      assert.ok(block.includes(n), `role name "${n}" missing from the scan's case arms`);
+    }
+  });
+
+  test('F3a: .claude/agents/be-dev.md present -> names be-dev.md', () => {
+    const dir = makeAgentsFixture(['be-dev']);
+    try {
+      const { stdout, stderr } = runRoleShadowScan(dir);
+      assert.strictEqual(stdout.trim(), 'be-dev.md');
+      assert.strictEqual(stderr, '');
+    } finally {
+      rmTree(dir);
+    }
+  });
+
+  test('F3b: only be-checker.md present (not a plugin role name) -> no output', () => {
+    const dir = makeAgentsFixture(['be-checker']);
+    try {
+      const { stdout, stderr } = runRoleShadowScan(dir);
+      assert.strictEqual(stdout, '');
+      assert.strictEqual(stderr, '');
+    } finally {
+      rmTree(dir);
+    }
+  });
+
+  test('F3c: no .claude/agents dir at all -> no output, no error text', () => {
+    const dir = makeAgentsFixture([]);
+    try {
+      const { stdout, stderr } = runRoleShadowScan(dir);
+      assert.strictEqual(stdout, '');
+      assert.strictEqual(stderr, '');
+    } finally {
+      rmTree(dir);
+    }
+  });
+
+  test('F3d: all ten role files present -> all ten named', () => {
+    const dir = makeAgentsFixture(ROLE_NAMES);
+    try {
+      const { stdout, stderr } = runRoleShadowScan(dir);
+      const lines = stdout.trim().split('\n').filter(Boolean).sort();
+      assert.deepStrictEqual(lines, ROLE_NAMES.map((n) => `${n}.md`).sort());
+      assert.strictEqual(stderr, '');
+    } finally {
+      rmTree(dir);
+    }
+  });
+}
+
 console.log(
   failures === 0
     ? '\nrepo-done-checklist: all tests passed'

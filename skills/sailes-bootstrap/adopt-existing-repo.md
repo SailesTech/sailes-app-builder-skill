@@ -79,8 +79,34 @@ The framework improves between projects; without an upgrade path, improvements o
    - **(b) memory-file rotation.** `STATE.md` above 20 KB or `lessons.md` above 40 KB is split into
      a current file plus `.ai/archive/`, with every original line preserved verbatim — nothing is
      deleted, only moved.
-   (A later exception — Upgrade mode deleting local role files that shadow plugin roles, P4 of
-   `2026-09-12-token-cost-of-running.md` — sits next to these two, not folded into them.)
+   - **(c) role-shadow removal.** A local `.claude/agents/<name>.md` whose `<name>` is *exactly* one
+     of the ten plugin role names — `be-dev`, `fe-dev`, `explorer`, `checker`, `qa`, `tester`,
+     `designer`, `researcher`, `docs-author`, `team-lead` — shadows the plugin role of the same name:
+     a bare-name spawn (`Task(subagent_type: "be-dev")`) resolves to the local file first, not the
+     plugin's `sailes-app-builder:be-dev`. Measured on one client: 135 of 177 spawns went to a stale
+     local copy carrying a `SUPERSEDED` banner from three days earlier. For each such file:
+     1. **Salvage first.** Read the file and pull out the *repo-specific* knowledge — real commands,
+        real paths, project conventions the file learned that the generic plugin role doctrine has no
+        way to know — and move it into the repo's own **`AGENTS.md`** (Key Commands / Conventions /
+        Task Router / Stack, whichever section the fact belongs to; that file is what a lead actually
+        reads from when writing any worker's brief, per `agents-md-template.md`'s Agent Teams section:
+        *"load the global `sailes-bootstrap` skill — its `agent-team-structure.md` is the canon. (It
+        is a globally-installed skill, not a file in this repo.)"*). Do **not** copy the generic role
+        doctrine itself (the plugin already ships it) — only what is true of *this* repo and would
+        otherwise be lost.
+        **TODO(human — flagged, not resolved by this pass):** the framework has no file client repos
+        are told to keep as *"the worker brief template."* The brief format worker-side
+        (`agent-team-structure.md`'s "Worker brief — the self-contained handover") is explicitly
+        global-only doctrine, filled in ad hoc per task by the lead from repo facts — those facts
+        live in `AGENTS.md`, which is the closest client-side location and where this step salvages
+        to, but it is not itself a brief template. If a dedicated per-repo brief-template artifact is
+        wanted, that is a new decision for the human, not one this exception invents.
+     2. **Then delete the file.**
+     3. Show the human the salvage diff (what is about to land in `AGENTS.md`) and the deletion list
+        together, before writing either — same as (a) and (b) above.
+     A local file whose name is **not** one of the ten role names (e.g. `be-checker.md`) does not
+     shadow anything by bare-name resolution and is **not** auto-deleted: Upgrade mode lists it and
+     asks the human what to do with it.
 3. **The human approves the delta** before it is applied (upgrades are a key decision — the
    repo may have deliberately diverged; documented drift wins over forced alignment).
 4. Apply, re-run the Step 0 audit + the freshness check, update the `Framework-Version:` stamp,

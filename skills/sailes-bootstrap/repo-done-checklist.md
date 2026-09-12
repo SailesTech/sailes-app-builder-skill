@@ -232,5 +232,19 @@ The list differs — you are *validating* or *adding additively*, not generating
 - the existing test/build still green (you changed docs+config only)
 - a design artifact for any UI work in scope (see `sailes-design`)
 - The repo's current conventions are documented as they exist now; minor drift from the newest global process is acceptable if it is described in the docs/ADR instead of being treated as a mismatch.
+- no local `.claude/agents/<name>.md` shadows a plugin role by bare-name resolution — the ten role
+  basenames are `be-dev`, `fe-dev`, `explorer`, `checker`, `qa`, `tester`, `designer`, `researcher`,
+  `docs-author`, `team-lead`. `adopt-existing-repo.md` Upgrade mode's role-shadow removal (exception
+  (c)) is what clears these once found. **Empty output = clean:**
+
+  ```bash
+  for f in .claude/agents/*.md; do
+    [ -e "$f" ] || continue
+    case "$(basename "$f" .md)" in
+      be-dev|fe-dev|explorer|checker|qa|tester|designer|researcher|docs-author|team-lead)
+        basename "$f" ;;
+    esac
+  done
+  ```
 
 Never force the baseline monorepo onto a populated repo. Verify the *additive* artifacts exist and that nothing running was modified.
