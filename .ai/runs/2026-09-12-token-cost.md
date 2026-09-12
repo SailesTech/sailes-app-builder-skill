@@ -166,6 +166,18 @@ ownership:
   Poprawki zlecone be-dev-1. Który plik zmienia nazwy (narzędzie czy odczyt w suicie), rozstrzyga
   człowiek.
 
+- 2026-09-12 — **Decyzje człowieka:**
+  - (1) Rozjazd nazw JSON w P0 → **suita przejmuje nazwy narzędzia**. Tester-1 zmienia tylko ścieżki
+    odczytu, żadnej oczekiwanej wartości. Oczekiwane czerwone po zmianie: dokładnie P0-09, P0-10 i
+    P0-34, do czasu poprawek be-dev-1.
+  - (2) **`tester: n/a` dla P2, P3 i P4.** Powód: deterministyczne części to walidatory (frontmatter,
+    parity, checklista, szablon ustawień) z dowodem mutacyjnym w Done-when, a zachowanie modelu
+    sprawdzają evale P5. Checker zostaje na każdej fazie.
+- 2026-09-12 — scalone P4 (be-dev-5 `84f404e`) i scenariusze evali P5 (be-dev-6 `3a5cf04`).
+  P4 zostawił `TODO(human)` w `adopt-existing-repo.md`: framework nie ma szablonu briefu po stronie
+  klienta, więc wiedzę z usuwanych ról proponuje przenosić do sekcji `AGENTS.md` repo. Pytanie idzie
+  do człowieka na najbliższym przystanku.
+
 ## Postęp
 - [ ] P0 — narzędzie + baseline
 - [ ] P1 — pamięć na starcie
