@@ -154,8 +154,10 @@ Files: `tools/token-report.js` · `tools/token-report.test.js` · `tools/fixture
 
 Done-when: `node tools/token-report.test.js` → 0 failures, w tym przypadek podzielonej wiadomości
 (jeden `message.id`, `tool_use` w drugiej linii) i przypadek powtórzonego usage; `node tools/token-report.js
-~/.claude/projects/-home-charlie-Work-partner-portal-v3 --since 2026-09-11 --until 2026-09-13` → odtwarza
-706 M / 1 297 M ±1%, wynik zapisany jako baseline; `grep` baseline'u nie znajduje treści wiadomości.
+~/.claude/projects/-home-charlie-Work-partner-portal-v3 --since 2026-09-11 --until 2026-09-13` → zgodny ±1%
+z oryginalnym instrumentem uruchomionym na tym samym korpusie w tej samej chwili, wynik zapisany jako baseline
+(*kryterium zmienione 2026-09-12, decyzja człowieka po checkerze P0: korpus wciąż rośnie, więc pierwotne
+„odtwarza 706 M / 1 297 M" było nieodtwarzalne; dowód 714M vs 714.0M, 1372M vs 1372.4M w run logu*); `grep` baseline'u nie znajduje treści wiadomości.
 
 ### P1 — pamięć na starcie sesji (Q1, F1, F2, F3)
 

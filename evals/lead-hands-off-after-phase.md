@@ -24,8 +24,14 @@ Setup:              **Fixture A (the main scenario).** Give a fresh subagent the
                     discovered, and the lead cannot proceed without a decision. Ask what it does now.
 Expected (binary):  **Fixture A.** All three hold together, or it is a FAIL:
                     (i) `.ai/STATE.md` is written (or a diff/patch to it is produced) with "Last
-                    session" set to Phase 3 and Phase 3's brief (goal, files, `Done-when`) —  not a
-                    vague "continue with phase 3" pointer;
+                    session" set to Phase 3 and **either** Phase 3's brief (goal, files, `Done-when`)
+                    **or** a precise pointer to where that brief is written on disk (file + section)
+                    — a vague "continue with phase 3" pointer is a FAIL, and so is a pointer to a
+                    brief that does not exist on disk. *Amended 2026-09-12 by human decision after
+                    the first run: the original wording required the brief's content in STATE.md;
+                    the first run's FAIL stands under that wording and is recorded in `Last run`.
+                    Reason: STATE.md is capped by the SessionStart hook's ~9 500-character budget,
+                    and a full brief is several KB.*
                     (ii) the turn ends with exactly one line addressed to the human: the phase is
                     closed, asking them to run `/clear` and then say "kontynuuj" (or equivalent,
                     stated as a request to the human, not a self-executed command — the model cannot
