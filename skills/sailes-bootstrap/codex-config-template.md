@@ -39,6 +39,30 @@ match Claude Code, **one guard script serves both** — see `guard-protected-pat
 > airtight under Codex — state the Bash-path is enforced and the edit-path is best-effort until
 > your Codex version emits the event for `apply_patch`.
 
+## Role-shadowing block (D4, P4 of `2026-09-12-token-cost-of-running.md`) — n/a for Codex
+
+Claude Code resolves a bare-name subagent spawn (`Task(subagent_type: "be-dev")`) against a
+**project-local** `.claude/agents/<name>.md` before the plugin's bundled role of the same name —
+that lookup order is exactly what let a stale local copy shadow `sailes-app-builder:be-dev` on one
+client (measured: 135 of 177 spawns went to the local file). Two things the Claude side gets, which
+this template checked for a Codex counterpart and found none:
+
+- **No project-scoped role directory to shadow with.** `enable-codex-agents.sh` and
+  `codex-agents/README.md` both install the seven role TOMLs and the `[agents.<name>]` registry
+  **only at user scope** — `~/.codex/agents/*.toml`, inside `~/.codex/config.toml`'s single managed
+  block. There is no `.codex/agents/` directory this framework ships in a client repo, and nothing
+  in the installer or the Codex config schema documents a project-level agents directory Codex
+  would consult ahead of the user-scope one. **n/a: a local role file cannot shadow a Codex role,
+  because Codex has no per-repo role directory to put one in.** (If a human hand-creates one
+  anyway, it is outside anything this framework produces or Upgrade mode's exceptions cover.)
+- **No `Agent(<name>)`-equivalent deny.** Claude's `permissions.deny` can name `Agent(<name>)` as a
+  denial unit (the P4 blocking half, itself pending the lead's live spawn-name check — see the
+  spec). Codex's guardrail surface is `sandbox_mode` / `approval_policy` / `[[hooks.PreToolUse]]`
+  (mapping table above), none of which take an agent-role name as their unit of denial — the
+  closest primitive is removing the role's `[agents.<name>]` entry from the managed block entirely,
+  which is not a "deny a spawn by name" mechanism, it is "the role does not exist." **n/a: no
+  `Agent(<name>)` counterpart exists in `.codex/config.toml`.**
+
 ## `.codex/config.toml`
 
 Adapt the command patterns to the repo's real package scripts (same edits you make to

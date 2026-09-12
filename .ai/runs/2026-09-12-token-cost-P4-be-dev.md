@@ -115,4 +115,20 @@ Restore: `cmp /tmp/rdc-orig-forcmp.md skills/sailes-bootstrap/repo-done-checklis
 `runRoleShadowScan()` does `.replace(/\r\n/g, '\n')` on the extracted block before handing it to
 `sh -c`, same discipline as F1/F2's existing `runHooksResolution`.
 
-(entry for item 4 appended below once it lands)
+### 4. `skills/sailes-bootstrap/codex-config-template.md`
+Before: mapping table (Claude guardrail → Codex counterpart) + `apply_patch` PreToolUse caveat;
+nothing about role-shadowing at all.
+After: new section "Role-shadowing block (D4, P4…) — n/a for Codex", inserted after the
+`apply_patch` caveat and before the `.codex/config.toml` listing. Checked `enable-codex-agents.sh`
+and `codex-agents/README.md` per the brief: Codex custom agents install **only at user scope**
+(`~/.codex/agents/*.toml` + one managed block in `~/.codex/config.toml`) — no `.codex/agents/`
+project directory exists in anything this framework ships, so there is no local file that could
+shadow a Codex role the way `.claude/agents/<name>.md` shadows a plugin role. Wrote an explicit
+**n/a** with that reason, and a second explicit **n/a** for the `Agent(<name>)` deny counterpart —
+Codex's guardrail surface (`sandbox_mode`/`approval_policy`/`[[hooks.PreToolUse]]`) has no
+role-name-scoped denial primitive; the closest analogue (dropping the role's `[agents.<name>]`
+entry) is "the role does not exist," not "deny this spawn."
+
+## npm test
+
+(run below, before the declaration commit)
