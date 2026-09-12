@@ -154,12 +154,23 @@ echo "--- Task Router: see AGENTS.md ---" >> "$TAIL_FILE"
 # emit just the live sections. A file without them (the shape shipped before this convention, or a
 # client's own dated-block convention) has no reliable "current" marker, so the newest content is
 # whatever is physically first, because these files are newest-block-on-top by convention.
+# The contract is strict: total stdout must stay UNDER 9500 bytes (9500 itself is over budget,
+# 9499 fits). `MAX_BYTES` is the actual ceiling used below; `BUDGET_TOTAL` stays as the named,
+# documented threshold and `MAX_BYTES = BUDGET_TOTAL - 1` is the arithmetic form of "< BUDGET_TOTAL".
 BUDGET_TOTAL=9500
+MAX_BYTES=$((BUDGET_TOTAL - 1))
 
 # `head_cut FILE LIMIT` prints as many whole lines from FILE, in order, as fit within LIMIT bytes.
 # It stops BEFORE the line that would cross the limit, so the result is always <= LIMIT bytes, never
 # a partial line. It only ever reads as many lines as fit in LIMIT (a few hundred at most for this
 # budget), so a multi-hundred-KB fixture is not fully scanned — the loop exits at the cut point.
+#
+# Q-2, decided by the human 2026-09-12: when a single line alone (e.g. one huge unbroken paragraph
+# in head mode) exceeds the ENTIRE remaining budget, emit zero content lines plus the truncation
+# notice — option (a), not a hard byte-boundary cut of that one line. This loop's own logic already
+# implements exactly that: the very first line fails the `total + len > limit` test and the loop
+# breaks before printing anything, so a partial line is never emitted. Switching to option (b)
+# (hard-cut that one line at a UTF-8-safe byte boundary) means changing only this function.
 head_cut() {
   _hc_file="$1"
   _hc_limit="$2"
@@ -180,7 +191,7 @@ MEM_FILE="$HOOKTMP/mem.txt"
 
 if [ -f "$STATE" ]; then
   tail_bytes="$(wc -c < "$TAIL_FILE" | tr -d '[:space:]')"
-  mem_budget=$((BUDGET_TOTAL - tail_bytes))
+  mem_budget=$((MAX_BYTES - tail_bytes))
   [ "$mem_budget" -lt 0 ] && mem_budget=0
 
   NOTE="--- Session memory truncated to fit the session-start budget. Full file: $STATE — older verified facts and lessons live in $ROOT/.ai/archive/ ---"

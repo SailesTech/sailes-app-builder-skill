@@ -107,6 +107,263 @@ test('session-start emits STATE.md and the Task Router pointer', () => {
   }
 });
 
+// ---------------------------------------------------------------- bounded session memory (F1, Q1)
+//
+// Spec 2026-09-12-token-cost-of-running, decisions Q1 + F1: `session-start.sh` no longer `cat`s the
+// whole STATE.md. A file with the exact section headings `## Open failures` / `## Last session`
+// (`## General rules` optional) gets a SECTION-MODE summary of just those three; anything else gets
+// HEAD-MODE — the beginning of the file, since these files are newest-block-on-top by convention.
+// The whole hook's stdout — including the pre-existing Last-commit/`.env` warnings and the Task
+// Router line — must stay under 9500 bytes.
+
+/**
+ * A ~200 KB fixture shaped like the real client file the spec measured: dated `#` blocks, newest on
+ * top, decoy headings that must NOT trip section mode — `## Open failure` (singular, emoji, extra
+ * prose) and `## Verified facts — wydanie (...)` (trailing text after the heading) are both
+ * near-misses of the real anchors, and a level-1 `# 🚀 WDROŻENIE ...` block. Polish diacritics
+ * throughout, since UTF-8 multibyte content is exactly what makes byte-vs-character budgeting
+ * matter.
+ */
+function buildClientShapedStateMd() {
+  const NEWEST_FIRST_LINE = '# 2026-09-12 — sesja najnowsza (marker: NAJNOWSZY-BLOK-XYZ)';
+  let content =
+    NEWEST_FIRST_LINE +
+    '\n## 🔴 Open failure — niewypchnięta praca\n' +
+    'NAJNOWSZY-BLOK-XYZ: treść po polsku, ą ć ę ł ń ó ś ź ż, blok najnowszy.\n\n' +
+    '# 🚀 WDROŻENIE 2026-09-12 — coś tam wdrożone\n' +
+    '## Verified facts — wydanie (2026-09-12)\n' +
+    'Fakt o wdrożeniu, ąćęłńóśźż.\n\n';
+  let i = 0;
+  while (Buffer.byteLength(content, 'utf8') < 210000) {
+    content +=
+      `# 2026-0${1 + (i % 8)}-0${1 + (i % 9)} — sesja starsza ${i}\n` +
+      `## Verified facts — wydanie (starsza ${i})\n` +
+      `Stary fakt archiwalny po polsku, ąćęłńóśźż, wpis numer ${i}. `.repeat(3) +
+      '\n\n';
+    i++;
+  }
+  return { content, NEWEST_FIRST_LINE };
+}
+
+/**
+ * A five-heading fixture in the shape F1 actually recognizes: `## Verified facts` and
+ * `## Lessons learned` are padded to bulk (so the FILE is >=200 KB) but are never captured; the
+ * three live sections carry small, uniquely-markered bodies so a test can assert their presence
+ * without asserting exact byte counts.
+ */
+function buildFiveSectionStateMd({ crlf = false } = {}) {
+  const filler = 'Archiwalny wpis po polsku, ąćęłńóśźż, do rotacji. '.repeat(3000);
+  const lines = [
+    'Last-commit: abc1234',
+    '',
+    '## Verified facts',
+    filler,
+    '',
+    '## Open failures',
+    '- OPEN-FAILURE-MARKER: coś nie działa, do zrobienia.',
+    '',
+    '## General rules',
+    '- GENERAL-RULE-MARKER: testy najpierw, potem kod.',
+    '',
+    '## Last session',
+    '- LAST-SESSION-MARKER: zamknięto fazę P1a.',
+    '',
+    '## Lessons learned',
+    filler,
+    '',
+  ];
+  let body = lines.join('\n');
+  if (crlf) body = body.replace(/\n/g, '\r\n');
+  return body;
+}
+
+test('session-start (F1): client-shaped fixture — decoys never trip section mode', () => {
+  const { dir } = makeRepo();
+  try {
+    const { content, NEWEST_FIRST_LINE } = buildClientShapedStateMd();
+    const statePath = path.join(dir, '.ai', 'STATE.md');
+    fs.writeFileSync(statePath, content, 'utf8');
+    assert.ok(Buffer.byteLength(content, 'utf8') >= 200000, 'fixture setup: file is not >= 200 KB');
+
+    const r = runHook(SESSION_START, dir, '{}');
+    const outBytes = Buffer.byteLength(r.stdout, 'utf8');
+    assert.ok(outBytes < 9500, `stdout is ${outBytes} bytes, not under the 9500-byte budget`);
+    assert.ok(
+      r.stdout.startsWith(NEWEST_FIRST_LINE),
+      'stdout does not start with the newest block — head mode did not read from the top of the file'
+    );
+    assert.ok(
+      r.stdout.includes(statePath),
+      'the truncation line does not name the full STATE.md path'
+    );
+    assert.ok(
+      r.stdout.includes('.ai/archive/'),
+      'the truncation line does not point at .ai/archive/'
+    );
+    assert.strictEqual(r.status, 0, 'a huge STATE.md must never block a session');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('session-start (F1): five-section fixture — only the three live sections are emitted', () => {
+  const { dir } = makeRepo();
+  try {
+    const body = buildFiveSectionStateMd();
+    fs.writeFileSync(path.join(dir, '.ai', 'STATE.md'), body, 'utf8');
+    assert.ok(Buffer.byteLength(body, 'utf8') >= 200000, 'fixture setup: file is not >= 200 KB');
+
+    const r = runHook(SESSION_START, dir, '{}');
+    assert.ok(r.stdout.includes('OPEN-FAILURE-MARKER'), 'Open failures content is missing');
+    assert.ok(r.stdout.includes('GENERAL-RULE-MARKER'), 'General rules content is missing');
+    assert.ok(r.stdout.includes('LAST-SESSION-MARKER'), 'Last session content is missing');
+    assert.ok(
+      !r.stdout.includes('Archiwalny wpis po polsku'),
+      'Verified facts / Lessons learned content leaked into stdout — the whole file was emitted, not just the sections'
+    );
+    assert.ok(
+      Buffer.byteLength(r.stdout, 'utf8') < 9500,
+      'even the live-sections-only output must respect the shared budget'
+    );
+    assert.strictEqual(r.status, 0);
+  } finally {
+    rm(dir);
+  }
+});
+
+test('session-start (F1): same five-section fixture with CRLF — same result', () => {
+  const { dir } = makeRepo();
+  try {
+    const body = buildFiveSectionStateMd({ crlf: true });
+    fs.writeFileSync(path.join(dir, '.ai', 'STATE.md'), body, 'utf8');
+    assert.ok(/\r\n/.test(body), 'fixture setup: not actually CRLF');
+
+    const r = runHook(SESSION_START, dir, '{}');
+    assert.ok(r.stdout.includes('OPEN-FAILURE-MARKER'), 'Open failures content is missing (CRLF)');
+    assert.ok(r.stdout.includes('GENERAL-RULE-MARKER'), 'General rules content is missing (CRLF)');
+    assert.ok(r.stdout.includes('LAST-SESSION-MARKER'), 'Last session content is missing (CRLF)');
+    assert.ok(
+      !r.stdout.includes('Archiwalny wpis po polsku'),
+      'Verified facts / Lessons learned content leaked into stdout on a CRLF file'
+    );
+    assert.strictEqual(r.status, 0);
+  } finally {
+    rm(dir);
+  }
+});
+
+test('session-start (Q1): STATE.md and lessons.md over their limits both warn, with the actual size', () => {
+  const { dir } = makeRepo();
+  try {
+    fs.writeFileSync(path.join(dir, '.ai', 'STATE.md'), 'x'.repeat(20001));
+    fs.writeFileSync(path.join(dir, '.ai', 'lessons.md'), 'y'.repeat(40001));
+    const r = runHook(SESSION_START, dir, '{}');
+    assert.ok(
+      /STATE\.md is 20001 bytes, over the 20000-byte limit/.test(r.stdout),
+      'no size warning (or wrong size) for an over-limit STATE.md'
+    );
+    assert.ok(
+      /lessons\.md is 40001 bytes, over the 40000-byte limit/.test(r.stdout),
+      'no size warning (or wrong size) for an over-limit lessons.md'
+    );
+    assert.strictEqual(r.status, 0, 'a size warning must never block a session');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('session-start (Q1): STATE.md and lessons.md exactly AT their limits are silent', () => {
+  const { dir } = makeRepo();
+  try {
+    fs.writeFileSync(path.join(dir, '.ai', 'STATE.md'), 'x'.repeat(20000));
+    fs.writeFileSync(path.join(dir, '.ai', 'lessons.md'), 'y'.repeat(40000));
+    const r = runHook(SESSION_START, dir, '{}');
+    assert.ok(
+      !/over the 20000-byte limit/.test(r.stdout),
+      'a STATE.md exactly at the limit was flagged — the boundary is > 20000, not >= 20000'
+    );
+    assert.ok(
+      !/over the 40000-byte limit/.test(r.stdout),
+      'a lessons.md exactly at the limit was flagged — the boundary is > 40000, not >= 40000'
+    );
+  } finally {
+    rm(dir);
+  }
+});
+
+test('session-start (Q1): missing lessons.md emits no size warning', () => {
+  const { dir } = makeRepo();
+  try {
+    fs.writeFileSync(path.join(dir, '.ai', 'STATE.md'), '# State\nsmall\n');
+    const r = runHook(SESSION_START, dir, '{}');
+    assert.ok(!/lessons\.md/.test(r.stdout), 'warned about a lessons.md that does not exist');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('session-start: missing STATE.md emits no memory content but the Task Router pointer still shows, exit 0', () => {
+  const { dir } = makeRepo();
+  try {
+    const r = runHook(SESSION_START, dir, '{}');
+    assert.ok(r.stdout.includes('Task Router'), 'the Task Router pointer is missing with no STATE.md');
+    assert.ok(
+      !/Session memory truncated/.test(r.stdout),
+      'a truncation note appeared with no STATE.md to truncate'
+    );
+    assert.strictEqual(r.status, 0, 'a missing STATE.md must never block a session');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('session-start (Q1): section mode with no Last-commit field emits no placeholder — field absent is silent', () => {
+  const { dir } = makeRepo();
+  try {
+    const body = [
+      '## Open failures',
+      '- OPEN-FAILURE-MARKER: brak pola Last-commit w tym pliku.',
+      '',
+      '## Last session',
+      '- LAST-SESSION-MARKER: sesja zamknięta.',
+      '',
+    ].join('\n');
+    fs.writeFileSync(path.join(dir, '.ai', 'STATE.md'), body, 'utf8');
+    const r = runHook(SESSION_START, dir, '{}');
+    assert.ok(r.stdout.includes('OPEN-FAILURE-MARKER'));
+    assert.ok(r.stdout.includes('LAST-SESSION-MARKER'));
+    assert.ok(!/Last-commit:/.test(r.stdout), 'a Last-commit placeholder appeared with no field in the file');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('session-start (Q-2, head mode): a single line longer than the whole budget yields zero content lines, not a partial line', () => {
+  // Q-2, decided by the human 2026-09-12 as option (a): when even the FIRST line cannot fit in the
+  // remaining budget, `head_cut` emits nothing rather than hard-cutting mid-line. The truncation
+  // note still names the file and the archive.
+  const { dir } = makeRepo();
+  try {
+    const hugeLine = 'SINGLE-LINE-MARKER-' + 'a'.repeat(15000);
+    const statePath = path.join(dir, '.ai', 'STATE.md');
+    fs.writeFileSync(statePath, hugeLine, 'utf8');
+    const r = runHook(SESSION_START, dir, '{}');
+    assert.ok(
+      !r.stdout.includes('SINGLE-LINE-MARKER'),
+      'a partial line of the oversized single line leaked into stdout — expected zero content lines'
+    );
+    assert.ok(r.stdout.includes(statePath), 'the truncation note does not name the file');
+    assert.ok(r.stdout.includes('.ai/archive/'), 'the truncation note does not point at the archive');
+    assert.ok(
+      Buffer.byteLength(r.stdout, 'utf8') < 9500,
+      'the single-oversized-line case still must respect the shared budget'
+    );
+    assert.strictEqual(r.status, 0);
+  } finally {
+    rm(dir);
+  }
+});
+
 
 test('ONE commit behind because STATE.md was just committed is SILENT', () => {
   // The case the first version of this check got wrong, found 2026-07-31 an hour after release by
