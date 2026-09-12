@@ -186,6 +186,8 @@ explorer → designer → BE contract finalized → fe-dev → tester → checke
 
 - The instant a phase's `Done-when` gate closes, the lead writes `.ai/STATE.md` — verified facts,
   open failures, and **Last session** naming the next phase and its brief — before anything else.
+  Either the brief itself (goal, files, `Done-when`) or a precise pointer to where it is written on
+  disk (file plus section) satisfies this; a vague "continue with phase N" does not.
 - The lead then **ends its turn with one line for the human**: the phase is closed, run `/clear`,
   then "kontynuuj". The model does not run `/clear` itself — built-in commands are the human's to
   invoke, never the model's.
