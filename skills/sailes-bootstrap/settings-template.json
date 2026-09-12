@@ -30,6 +30,12 @@
 //                        (`reset --hard`, shell redirects into protected files) never executed in
 //                        a Claude repo while the script's own comments claimed it did. The Codex
 //                        twin had the `Bash` matcher all along — the two configs disagreed.
+// "autoCompactWindow"  — the lead-context safety fuse (Q2/F4, spec 2026-09-12-token-cost-of-running).
+//                        Average lead call context measured ≈ 420 k on 11–12.09, with peaks of
+//                        627–933 k; 400 k cuts every measured lead session and still leaves room
+//                        above the worker p90 peak (262 k). Accepted cost: this key is "Scope: Any
+//                        file", so it also compacts the owner's own interactive work in the client
+//                        repo, not just the lead's coordination sessions.
 //
 // Hook commands below are illustrative shell one-liners; move non-trivial logic into
 // .claude/hooks/*.sh and call the script here. See Claude Code docs for the hook JSON contract
@@ -41,6 +47,7 @@
 // The permissions.allow/deny model below maps to Codex sandbox_mode + approval_policy + a Bash
 // PreToolUse guard. A repo is "Codex-ready" only when BOTH configs exist and point at the scripts.
 {
+  "autoCompactWindow": 400000,
   "permissions": {
     "allow": [
       "Bash(pnpm test:*)",

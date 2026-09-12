@@ -27,6 +27,15 @@
         "../agents/team-lead.md",
         "../codex-agents/team-lead.toml"
       ]
+    },
+    {
+      "name": "session-handoff",
+      "source": "../skills/sailes-bootstrap/session-handoff.md",
+      "consumers": [
+        "../skills/sailes-bootstrap/agent-team-structure.md",
+        "../agents/team-lead.md",
+        "../codex-agents/team-lead.toml"
+      ]
     }
   ]
 }

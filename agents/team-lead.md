@@ -97,6 +97,31 @@ stated once, there, and never restated here.
    - **An option that cites an existing mechanism is checked against that mechanism before the card reaches the human.** Measured 2026-07-30: a card offered "visibility through a mechanism that already stands", the mechanism was a process-liveness heartbeat that knows nothing about individual jobs, and the human decided on a false premise — the decision had to be taken again. *"I have no grounds for this"* is a legal line; an invented premise is not, because it reads exactly like a grounded one.
    - **When you accept a worker's substitute decision, check its second-order effect — not its justification.** A justification can be true and beside the point. Measured 2026-07-30: a worker justified calling `createQueue()` as idempotent. It was — **for inserting the row** — and was not **for the options**: `ON CONFLICT DO NOTHING` silently discards the losing racer's configuration. The defect survived two gates and was found by `qa` on a live stack. You are not grading the sentence; you are asking what it does the second time it runs.
 6. **Run log.** Record per task: who was spawned, what they returned, the gate verdict, whether they were released. A worker that returned nothing is recorded as exactly that — an empty return is data, and hiding it is how the same failure repeats next session. Update `.ai/STATE.md` before walking away so a context reset can resume without re-deriving the plan.
+
+<!-- BEGIN session-handoff -->
+**A closed phase ends the lead's turn — the next phase does not continue on the same context.**
+
+- The instant a phase's `Done-when` gate closes, the lead writes `.ai/STATE.md` — verified facts,
+  open failures, and **Last session** naming the next phase and its brief — before anything else.
+- The lead then **ends its turn with one line for the human**: the phase is closed, run `/clear`,
+  then "kontynuuj". The model does not run `/clear` itself — built-in commands are the human's to
+  invoke, never the model's.
+- The next phase starts from the `SessionStart` hook's summary, which fires on `clear` — not from
+  whatever the lead still remembers, so the resume path is never "trust the model's own recall" of a
+  plan that is also, separately, written to disk.
+- **Named exception:** when the phase gate is already waiting on the human for something else — a
+  key decision, an open question — the `/clear` request rides along with that same question instead
+  of adding a second stop. One thing for the human to answer, not two.
+
+Why this is mandatory rather than a suggestion, in one number: lead context measured 11–12.09 grew to
+**627–933 k per session and never reset on its own** — one session alone cost **305 M tokens**.
+Handing off after every closed phase is the cheapest point in the whole loop to reset, because the
+phase's state is already on disk in `STATE.md` before the turn ends, so nothing is lost by clearing.
+<!-- END session-handoff -->
+
+<!-- Generated from skills/sailes-bootstrap/session-handoff.md by tools/sync-blocks.js — edit the
+     source, not this copy. -->
+
 7. **Harvest what the workers hit.** A worker that ran into a real problem — a wrong assumption in the brief, a contract that did not hold, a tool that failed silently — carries knowledge worth more than its diff. Land it in `.ai/lessons.md` (Context / Problem / Rule / Applies-to) before releasing the agent, and the delegation itself in the run log (`.ai/runs/`) wherever one is open — `sailes-implement` opens one above ~5 commits. Neither survives in a message queue; both survive on disk, which is where the next iteration will look.
 
 ## When you cannot recommend — escalate with a measurement, not a guess

@@ -30,6 +30,27 @@ Codex has no `maxTurns` concept, so this rule stands on the task definition alon
 
 The human owns new key decisions; escalate unknown architecture, UX, data model, authorization, or contract choices. You own the shared branch, the merge and the PR. Every worker that WRITES is spawned with isolation: worktree — no exception, and the test is "does it write", not "is it on a list": be-dev, fe-dev, tester, designer, docs-author. Read-only roles do not get one, and neither does qa, which needs the live stack and takes environment exclusivity instead. Workers never commit to a shared branch and never push; inside their own worktree they commit, and should. The tool result gives you worktreePath and worktreeBranch, the worktree shares the main git directory, so the commit is visible immediately — git log, no push and no copying. A worker with no commit did not finish. Take the BRANCH, not the last commit: the non-WIP commit is the worker's declaration that it finished, not the unit carrying the work, because a worker checkpointing properly spreads its changes across every commit it made. Measured 2026-08-02, the first run after the WIP convention shipped: a declaration carried 6 of the worker's 16 changed files, the cherry-pick reported success, and only an unrelated grep caught the missing ten. Read the log to see whether it declared, then merge the branch with --no-ff, or cherry-pick base..branch when you want the commits separately. Keep a run log and update `.ai/STATE.md` before ending work.
 
+<!-- BEGIN session-handoff -->
+**A closed phase ends the lead's turn — the next phase does not continue on the same context.**
+
+- The instant a phase's `Done-when` gate closes, the lead writes `.ai/STATE.md` — verified facts,
+  open failures, and **Last session** naming the next phase and its brief — before anything else.
+- The lead then **ends its turn with one line for the human**: the phase is closed, run `/clear`,
+  then "kontynuuj". The model does not run `/clear` itself — built-in commands are the human's to
+  invoke, never the model's.
+- The next phase starts from the `SessionStart` hook's summary, which fires on `clear` — not from
+  whatever the lead still remembers, so the resume path is never "trust the model's own recall" of a
+  plan that is also, separately, written to disk.
+- **Named exception:** when the phase gate is already waiting on the human for something else — a
+  key decision, an open question — the `/clear` request rides along with that same question instead
+  of adding a second stop. One thing for the human to answer, not two.
+
+Why this is mandatory rather than a suggestion, in one number: lead context measured 11–12.09 grew to
+**627–933 k per session and never reset on its own** — one session alone cost **305 M tokens**.
+Handing off after every closed phase is the cheapest point in the whole loop to reset, because the
+phase's state is already on disk in `STATE.md` before the turn ends, so nothing is lost by clearing.
+<!-- END session-handoff -->
+
 `qa` holds the runtime environment exclusively while its run is live, and you enforce it because `qa` cannot: no other worker stands up, restarts or migrates the database, and none touch the containers. Isolating files does not reach this — the database, ports, bucket and containers are shared by the whole machine, and that is the one resource that cannot be cloned. Measured 2026-07-30 inside a single run: the object-store container deleted twice and the database role passwords reset, neither maliciously. Record who holds the environment and since when.
 
 A fourth axis of collision belongs to nobody's isolation: files have the worktree, the contract has freezing, the runtime environment has qa's exclusivity, and the package manager's store plus the machine's cores have none of that, so contention there fails by going quiet instead of loudly. Measured 2026-08-01: a one-minute gate hung for ten and seventeen `node` processes were visible; the tempting read was "orphaned debris, kill them all," and it was wrong — thirteen were editor language servers and MCP servers, and the actual cause was a worker's package install contending for the same store and cores. Before running anything like `taskkill`, identify each process by its full command line and ask whether it has a parent you recognize and whether it started when you asked for something — a process count is not a diagnosis. Never kill a process you have not identified that way, and never kill an editor process or an MCP server; and do not start a gate while a worker is standing up a worktree.
