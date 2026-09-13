@@ -220,9 +220,73 @@ repo's own already-committed specs.
 
 ## Detection proof (filled at step 5, after the suite exists)
 
-| ID | Mutation applied | Test went red | Reverted, suite green | Verdict |
-|---|---|---|---|---|
-| — | (not run yet — this is the DRAFT case list, Step 1 only) | — | — | — |
+Run 2026-09-13 against the real implementation merged at `feat/1.34.0-quality-gates` (merge commit
+`08fc91b`, worktree HEAD `2cbbf34` after `git merge --ff-only` on top of the frozen suite's own `WIP`
+commit `d6e908b`). Method per mechanism, exactly as tier B requires: plant the mutant in
+`tools/contract-probe-check.js` only, run `node tools/contract-probe-check.frozen.test.js`, record
+which frozen IDs went red, revert (`git checkout -- tools/contract-probe-check.js`), confirm
+`sha256sum` matches the pre-mutation baseline (`79d125c7cf491807a7d7539dc604dbd24a33d05d92fd188baae6aed8d8927356`)
+before the next mutant. All thirty mutants below were reverted; the file is byte-identical to the
+merged baseline at the end of this table, and `npm test` (including `tools/contract-probe-check.test.js`,
+the implementer's own suite) is green throughout — this frozen suite is not yet wired into
+`package.json`'s chain (the lead's job, not this round's).
 
-> Tier B requires, per behavior ID: break exactly that behavior's mechanism, show that ID's test go
-> red, revert, confirm the full suite green again. Filled after the suite exists and is frozen.
+| # | Mutant (mechanism) | Mutation applied | Frozen IDs that went red | Reverted, suite green | Verdict |
+|---|---|---|---|---|---|
+| M1 | `CUTOFF` boundary widened by one day | `dateStr < CUTOFF` → `dateStr <= CUTOFF` | **CP14** | ✅ | detects |
+| M2 | Date-before-cutoff exclusion disabled entirely | `if (dateStr < CUTOFF)` → `if (false && dateStr < CUTOFF)` | **CP12, CP15, CP16, CP17** | ✅ | detects |
+| M3 | Calendar-validity check disabled | `isValidCalendarDate` body → `return true;` | **CP39** | ✅ | detects |
+| M4 | Undated-basename guard removed (crashes on destructure of `null`) | deleted the `if (!m) {...}` early return before `const [, yStr, mStr, dStr] = m;` | **CP13** | ✅ | detects |
+| M5 | Phase-heading regex widened to include level 1 | `#{2,4}` → `#{1,4}` in `PHASE_HEADING` | **CP33** | ✅ | detects |
+| M6 | Phase-heading regex widened to include level 5 | `#{2,4}` → `#{2,5}` in `PHASE_HEADING` | **CP34** | ✅ | detects |
+| M7 | "Faza" dropped from the heading vocabulary | `(?:Phase\|Faza\|P\d+)` → `(?:Phase\|P\d+)` | **CP08** | ✅ | detects |
+| M8 | En dash dropped from the accepted `n/a` separators | `[—–:-]` → `[—:-]` in the waiver regex | **CP09** | ✅ | detects |
+| M9 | Bold-outside label form (`**Contract-probe**:`) broken | middle `\*{0,2}` in `FIELD_LABEL` → `\*{0,1}` | **CP07** | ✅ | detects |
+| M10 | Field-value collection no longer stops at the next field's label | `collectFieldValue` loop: dropped `NEXT_FIELD_LABEL.test(lines[j]) \|\|`, kept only `ANY_HEADING` | **CP32** | ✅ | detects |
+| M11 | 20-char reason threshold narrowed by one | `reason.length < 20` → `< 19` | **CP21** | ✅ | detects |
+| M12 | 20-char reason threshold widened by one | `reason.length < 20` → `< 21` | **CP11, CP22** | ✅ | detects |
+| M13 | "stack" forbidden-word check removed | deleted `if (/\bstack\b/i.test(reason)) return true;` | **CP23** | ✅ | detects |
+| M14 | "not running" forbidden-phrase check removed | deleted that line from `namesBrokenEnvironment` | **CP25** | ✅ | detects |
+| M15 | "nie wstał" forbidden-phrase check removed | deleted that line | **CP26** | ✅ | detects |
+| M16 | "ENV" forbidden-token check removed | deleted `if (/\bENV\b/.test(reason)) return true;` | **CP27** | ✅ | detects |
+| M17 | "ENV" check made case-insensitive (should stay case-sensitive) | `/\bENV\b/` → `/\bENV\b/i` | **CP28** | ✅ | detects |
+| M18 | `n/a` separator made optional (should be mandatory, Q1) | added `?` after the separator character class | **CP40** | ✅ | detects |
+| M19 | Unreadable-file exit-2 precedence removed | deleted `if (unreadable) return 2;` | **CP38, CP41** | ✅ | detects |
+| M20 | No-args exit code changed | `return 2;` (no-files branch) → `return 1;` | **CP37** | ✅ | detects |
+| M21 | *(not run — M1/M2 already isolate the cutoff-comparator mechanism at both boundary directions; a blanket comparator inversion was judged redundant rather than a distinct mechanism)* | — | — | — | n/a |
+| M22 | Calendar-invalid reason wording swapped to the wrong template | that branch's message → `` `not graded — dated before ${CUTOFF}` `` | **CP39** | ✅ | detects (independent of M3 — confirms CP13 stays green, i.e. not piggy-backing) |
+| M23 | Every failure message collapsed to a generic `"invalid"` (both push sites) | see below — **found CP19 DEAD on the first attempt, then fixed** | **CP19** | ✅ | detects, after fix (see finding below) |
+| M24 | Word boundaries removed from the "stack" regex | `/\bstack\b/i` → `/stack/i` | **CP24** | ✅ | detects |
+| M25 | Fence-acceptance regex broken (requires 4 backticks) | `` /^\s*```/m `` → `` /^\s*````/m `` | **CP01, CP03, CP06, CP10** | ✅ | detects |
+| M26 | `n/a`-waiver happy path forced to always reject | final `return { ok: true };` in the waiver branch → `return { ok: false, ... };` | **CP02, CP03, CP04, CP05, CP07, CP09, CP11, CP14, CP22, CP24, CP28, CP33, CP34, CP36** | ✅ | detects |
+| M27 | "Missing field entirely" check disabled | `if (fieldLines.length === 0)` → `if (false && fieldLines.length === 0)` | **CP08, CP18, CP19, CP35, CP36** | ✅ | detects |
+| M28 | "No fence, no `n/a`" catch-all flipped to accept | final `return {ok:false, code:'no-block', ...}` → `return {ok:true}` | **CP29, CP30, CP32, CP40** | ✅ | detects |
+| M29 | Only the first `Contract-probe:` field in a phase gets checked | `for (const i of fieldLines)` → `for (const i of fieldLines.slice(0, 1))` | **CP31** | ✅ | detects |
+| M30 | Reason-length check disabled entirely | `if (reason.length < 20)` → `if (false && reason.length < 20)` | **CP19, CP20, CP21, CP31** | ✅ | detects |
+
+**Finding on M23 — a case that survived its own mutant on the first attempt, fixed per the
+strengthen-not-weaken rule.** CP19's original comparison stripped the basename and both phase names
+from each stderr line before comparing, but left the `(line N)` parenthetical untouched. The
+"missing field" branch never carries that suffix while the "field present but invalid" branch always
+does, so collapsing BOTH push sites to the identical generic string `"invalid"` still left the two
+stripped strings different — for a purely structural reason (one has `(line N)`, the other doesn't),
+having nothing to do with which rule actually fired. CP19 stayed green against a defect it exists
+specifically to catch: **DEAD on first attempt.** Per the brief's instruction and the precedent this
+repo already set (`token-report`'s P0-34/mutant-11 fix) — "strengthen the test for its own frozen ID
+without changing any expected value" — `strip()` was extended to also remove the `(line \d+)`
+fragment before comparing. **No expected value changed**: the assertion is still `rule1 !== rule2`.
+Re-verified: M23 now turns CP19 red (confirmed above); the full suite is green with the mutant
+reverted. No `DEAD` case and no plan-level gap resulted from this — the fix was containable inside
+CP19's own test body, the same shape as the token-report precedent.
+
+**No survivors and no remaining `DEAD` case:** every one of the 41 frozen IDs (CP01–CP41) was killed
+by at least one of the thirty mutants above, each kill matching the mechanism intentionally targeted.
+`tools/contract-probe-check.js` confirmed byte-identical
+(`sha256sum 79d125c7cf491807a7d7539dc604dbd24a33d05d92fd188baae6aed8d8927356`) to the merged baseline
+throughout; `node tools/contract-probe-check.frozen.test.js`, `node tools/contract-probe-check.test.js`
+and `npm test` are all green at the end of this run.
+
+**Tier B is a proxy, not mutation testing, and this is stated as one**: the thirty mutants above were
+chosen by this suite's author, one per named contract mechanism, not swept exhaustively (no Stryker —
+that instrument is reserved for tier A). The frozen list picked the mutants' targets; the value is that
+no fault here was cherry-picked to match a test that already caught it by coincidence.

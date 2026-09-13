@@ -83,6 +83,18 @@ function run(args) {
   return spawnSync(process.execPath, [BIN, ...args], { encoding: 'utf8' });
 }
 
+/** STRENGTHENED during Step 5 (detection proof), not weakened — no expected value changed. Every
+ *  "graded and passing" case originally asserted only `status === 0`, but exit 0 is ALSO what a
+ *  "not graded" exemption produces, so an inverted or off-by-one grading condition (e.g. `<` -> `<=`
+ *  on the CUTOFF comparison) would silently survive every happy-path case that used it. The
+ *  contract reserves the phrase "not graded" for the two exemption message templates only, so its
+ *  absence is a safe, contract-grounded way to assert "this really was graded", without reading any
+ *  implementation-specific passing-message wording. Used by CP01-CP11, CP14, CP22, CP24, CP28. */
+function assertGradedPass(r, context) {
+  assert.strictEqual(r.status, 0, `expected exit 0 (graded and passing)${context}:\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+  assert.ok(!/not graded/i.test(r.stdout), `expected a GRADED pass, not a "not graded" exemption${context}:\nstdout: ${r.stdout}`);
+}
+
 function newTmpDir(tag) {
   return fs.mkdtempSync(path.join(os.tmpdir(), `contract-probe-frozen-${tag}-`));
 }
@@ -149,7 +161,7 @@ test('CP01 — single phase, dated far in the future, one fenced Contract-probe 
     ].join('\n');
     const file = writeSpec(dir, `${FAR_FUTURE}-cp01-happy.md`, content);
     const r = run([file]);
-    assert.strictEqual(r.status, 0, `expected exit 0:\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assertGradedPass(r, '');
   } finally { rm(dir); }
 });
 
@@ -163,7 +175,7 @@ test('CP02 — n/a with a clear, qualifying reason -> exit 0', () => {
     ].join('\n');
     const file = writeSpec(dir, `${FAR_FUTURE}-cp02-happy.md`, content);
     const r = run([file]);
-    assert.strictEqual(r.status, 0, `expected exit 0:\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assertGradedPass(r, ' (CP02)');
   } finally { rm(dir); }
 });
 
@@ -177,7 +189,7 @@ test('CP03 — a phase with two Contract-probe fields, both valid -> exit 0', ()
     ].join('\n');
     const file = writeSpec(dir, `${FAR_FUTURE}-cp03-two-fields.md`, content);
     const r = run([file]);
-    assert.strictEqual(r.status, 0, `expected exit 0:\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assertGradedPass(r, ' (CP03)');
   } finally { rm(dir); }
 });
 
@@ -191,7 +203,7 @@ test('CP04 — two files on the CLI, both graded and passing -> exit 0', () => {
     const f1 = writeSpec(dir, `${FAR_FUTURE}-cp04-a.md`, mk(1));
     const f2 = writeSpec(dir, `${FAR_FUTURE}-cp04-b.md`, mk(2));
     const r = run([f1, f2]);
-    assert.strictEqual(r.status, 0, `expected exit 0:\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assertGradedPass(r, ' (CP04)');
   } finally { rm(dir); }
 });
 
@@ -204,7 +216,7 @@ test('CP05 — no phase headings at all: whole spec is one unit, one valid field
     ].join('\n');
     const file = writeSpec(dir, `${FAR_FUTURE}-cp05-no-headings.md`, content);
     const r = run([file]);
-    assert.strictEqual(r.status, 0, `expected exit 0:\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assertGradedPass(r, ' (CP05)');
   } finally { rm(dir); }
 });
 
@@ -220,7 +232,7 @@ test('CP06 — CRLF line endings throughout, otherwise identical to CP01 -> exit
     ].join('\n').replace(/\n/g, '\r\n');
     const file = writeSpec(dir, `${FAR_FUTURE}-cp06-crlf.md`, content);
     const r = run([file]);
-    assert.strictEqual(r.status, 0, `expected exit 0 (CRLF must parse the same as LF):\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assertGradedPass(r, ' (CP06)');
   } finally { rm(dir); }
 });
 
@@ -237,7 +249,7 @@ test('CP07 — field-label tolerance: plain / bold-inside / bold-outside / dash-
     ].join('\n');
     const file = writeSpec(dir, `${FAR_FUTURE}-cp07-label-forms.md`, content);
     const r = run([file]);
-    assert.strictEqual(r.status, 0, `expected exit 0 (all 5 label forms recognized):\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assertGradedPass(r, ' (CP07)');
   } finally { rm(dir); }
 });
 
@@ -281,7 +293,7 @@ test('CP09 — n/a separator tolerance: em dash, en dash, hyphen, colon -> exit 
   try {
     const file = writeSpec(dir, `${FAR_FUTURE}-cp09-separators.md`, content);
     const r = run([file]);
-    assert.strictEqual(r.status, 0, `expected exit 0 (all 4 separators accepted):\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assertGradedPass(r, ' (CP09)');
   } finally { rm(dir); }
 });
 
@@ -297,7 +309,7 @@ test('CP10 — fence opens after a blank line and explanatory prose, before the 
     ].join('\n');
     const file = writeSpec(dir, `${FAR_FUTURE}-cp10-prose-before-fence.md`, content);
     const r = run([file]);
-    assert.strictEqual(r.status, 0, `expected exit 0 (prose before the fence must not disqualify it):\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assertGradedPass(r, ' (CP10)');
   } finally { rm(dir); }
 });
 
@@ -309,7 +321,7 @@ test('CP11 — n/a reason in backticks, trimmed length exactly 20 -> exit 0 (bou
     ].join('\n');
     const file = writeSpec(dir, `${FAR_FUTURE}-cp11-backtick-20.md`, content);
     const r = run([file]);
-    assert.strictEqual(r.status, 0, `expected exit 0 (backticks/whitespace trimmed before the length check):\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assertGradedPass(r, ' (CP11)');
   } finally { rm(dir); }
 });
 
@@ -347,7 +359,7 @@ test('CP14 — basename dated exactly == CUTOFF, one valid field -> exit 0, grad
     const content = ['## Phase 1', '', 'Contract-probe: n/a — reason at the cutoff boundary itself, clearly long enough here, #14', ''].join('\n');
     const file = writeSpec(dir, `${cutoff}-cp14-at-cutoff.md`, content);
     const r = run([file]);
-    assert.strictEqual(r.status, 0, `a spec dated exactly at CUTOFF must be graded AND pass here:\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assertGradedPass(r, ' (CP14)');
   } finally { rm(dir); }
 });
 
@@ -415,7 +427,14 @@ test('CP19 — two phases, each failing a DIFFERENT rule -> exit 1, two distinct
     const lines1 = r.stderr.split(/\r?\n/).filter((l) => l.includes('Phase 1'));
     const lines2 = r.stderr.split(/\r?\n/).filter((l) => l.includes('Phase 2'));
     assert.ok(lines1.length > 0 && lines2.length > 0, `expected at least one stderr line for each phase:\n${r.stderr}`);
-    const strip = (l) => l.split(basename).join('').split('Phase 1').join('').split('Phase 2').join('').trim();
+    // STRENGTHENED during Step 5 (detection proof), not weakened — no expected value changed. The
+    // original strip() removed the basename and phase name but left "(line N)" untouched, so a
+    // mutant that collapses BOTH rule messages to the same generic text ("invalid") still survived:
+    // the missing-field branch never carries a "(line N)" suffix while the field-validity branch
+    // always does, so the two stripped strings still differed for a purely structural reason having
+    // nothing to do with which RULE fired. Stripping the line-number parenthetical too closes that
+    // gap without touching the assertion's verdict (rule1 !== rule2 is still required).
+    const strip = (l) => l.split(basename).join('').split('Phase 1').join('').split('Phase 2').join('').replace(/\s*\(line \d+\)\s*/g, ' ').trim();
     const rule1 = strip(lines1[0]);
     const rule2 = strip(lines2[0]);
     assert.notStrictEqual(rule1, rule2, `the two failures must name DIFFERENT rules (missing field vs. n/a-no-reason), not the same text with a different phase name:\n  Phase 1: ${lines1[0]}\n  Phase 2: ${lines2[0]}`);
@@ -450,7 +469,7 @@ test('CP22 — n/a reason exactly 20 characters, no backticks -> exit 0 (boundar
     const content = ['## Phase 1', '', `Contract-probe: n/a — ${REASON_20}`, ''].join('\n');
     const file = writeSpec(dir, `${FAR_FUTURE}-cp22-20chars.md`, content);
     const r = run([file]);
-    assert.strictEqual(r.status, 0, `20 characters must be accepted:\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assertGradedPass(r, ' (CP22)');
   } finally { rm(dir); }
 });
 
@@ -470,7 +489,7 @@ test('CP24 — n/a reason containing "stack" only inside another word (callstack
     const content = ['## Phase 1', '', 'Contract-probe: n/a — this route has no callstack instrumentation wired up yet, ticket #12', ''].join('\n');
     const file = writeSpec(dir, `${FAR_FUTURE}-cp24-callstack.md`, content);
     const r = run([file]);
-    assert.strictEqual(r.status, 0, `"callstack" must not false-positive on the \\bstack\\b rule:\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assertGradedPass(r, ' (CP24)');
   } finally { rm(dir); }
 });
 
@@ -510,7 +529,7 @@ test('CP28 — n/a reason containing lowercase "env" and the word "environment",
     const content = ['## Phase 1', '', 'Contract-probe: n/a — the environment config for this env needs a manual seed step, ticket #9', ''].join('\n');
     const file = writeSpec(dir, `${FAR_FUTURE}-cp28-lowercase-env.md`, content);
     const r = run([file]);
-    assert.strictEqual(r.status, 0, `"environment"/"env" (lowercase) must not trip the case-sensitive \\bENV\\b rule:\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assertGradedPass(r, ' (CP28)');
   } finally { rm(dir); }
 });
 
