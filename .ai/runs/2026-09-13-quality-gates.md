@@ -80,6 +80,15 @@ ownership:
   Uwaga informacyjna `checker`: granicą wartości pola jest każda linia `<Word>-<word>:`, więc np.
   `Request-Id:` między etykietą a blokiem kodu ucina zbieranie wartości. To własność kontraktu
   zamrożonego przez lidera, nie błąd `be-dev`. Idzie do okna przy zamknięciu P1.
+- 2026-09-13: ponowne sprawdzenie `6bd158f` przez `checker` → **APPROVE** z jednym NIT: słowo „provisional” zostało
+  w dwóch nazwach w `contract-probe-check.test.js`. Poprawione skryptem, który rzuca błąd przy braku wzorca,
+  i sprawdzone grepem: 0 trafień, test zielony. Commit `a9b8c74`.
+- 2026-09-13: `tester` wrócił z zamrożonym zestawem, commit `5ce0843`. Plan ma status FROZEN, jest 41 testów na 41 ID
+  i 30 mutantów. Każde ID zabił co najmniej jeden mutant, żaden nie przeżył, `DEAD` brak. Tester wzmocnił dwie
+  asercje po przeczytaniu implementacji: `assertGradedPass` i `strip()` w CP19. Oczekiwane wartości się
+  nie zmieniły. Lider sprawdził: diff gałęzi dotyka tylko planu i zestawu testów, więc zmergowałem.
+  Zestaw przechodzi w głównym repo. Podpięty do `package.json` (22 zestawy), `AGENTS.md` mówi dwadzieścia dwa.
+  Poprawność pokrycia i wzmocnień ocenia `checker` (zlecone).
 
 ## Decyzje człowieka przy bramce P1 (2026-09-13)
 - Cutoff: dzień merge'a na `main`, ustawiany w P6 (wpisane do P6 w specu). Odrzucone: stałe 2026-09-14.

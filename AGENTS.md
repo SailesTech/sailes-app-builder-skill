@@ -100,9 +100,10 @@ The live plugin does **not** run from this working directory. It runs from a clo
    the human answers (`skills/sailes-bootstrap/spec-writing-template.md`).
 
 ## Verification
-- `npm test` — twenty-one suites: hook tests (`hooks/*.test.js`), the seven **governance tools**
+- `npm test` — twenty-two suites: hook tests (`hooks/*.test.js`), the seven **governance tools**
   (`tools/{sync-blocks,ownership-check,worker-status,mcp-toolnames-check,business-logic-check,
-  deployed-surface-check,contract-probe-check}.test.js` — `business-logic-check` also asserts byte-parity between the
+  deployed-surface-check,contract-probe-check}.test.js`, the last one with its frozen suite
+  `contract-probe-check.frozen.test.js` — `business-logic-check` also asserts byte-parity between the
   framework checker and its client-repo copy, because sync-blocks cannot carry JS: its markers are
   HTML comments; `deployed-surface-check` also asserts it stays QUIET on this repo's own twenty-two
   implemented specs, because a check that fires on prose is a check somebody disables), the token
