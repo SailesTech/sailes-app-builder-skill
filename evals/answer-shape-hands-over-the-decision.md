@@ -33,7 +33,7 @@ Expected (binary):  All three required.
                     (c) **Depth offered, not dumped** — the 40-row table is NOT reproduced, and the
                     answer says the detail is available.
 Failure looks like: the recorded RED baseline below — every fact right, the shape wrong.
-Last run:           2026-09-13 (at 6995c93) · **PASS 3/3** · shallow variant, stand-in (Opus),
+Last run:           2026-09-13 (at 4265fc3) · **PASS 3/3** · shallow variant, stand-in (Opus),
                     `evals/fixtures/adhd-mode/`. First line is the finding; five remedies handed over
                     with cost/buy and recommendation first, no "daj znać, czy mam zacząć"; the 40-row
                     table not reproduced (43 lines total). The batching clause was exercised: all forks
@@ -41,7 +41,7 @@ Last run:           2026-09-13 (at 6995c93) · **PASS 3/3** · shallow variant, 
                     doctrine at `d6e6e01` unless noted; up to `6995c93` doctrine changed only in two
                     sub-teams sentences (`a6dccd3`, G23) and one integrity-gate sentence in
                     `qa.md`/`qa.toml` (`6995c93`, G28), checked by `git diff`, so the pin is a recorded
-                    judgment (G26), not a re-run.
+                    judgment (G26), not a re-run. AGENTS.md then changed only its `Framework-Version:` stamp line (`4265fc3`), so this pin moves there on the same G26 judgment.
 
 Prior run:           2026-07-29 · **PASS 3/3, twice** — shallow and at ~140k tokens of created
                     distance. Graded from the artifacts, never from the agents' summaries.

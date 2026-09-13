@@ -83,6 +83,10 @@ Last-commit: 6995c93
        and save the report under `.ai/eval-runs/`. That is the missing P6 `Done-when` item.
     2. On the merge day: set `CUTOFF` in `tools/contract-probe-check.js` to that date, re-run `npm test`, get the
        human's push approval, merge to `main` (the deploy), `git mv` the spec to `implemented/` with its evidence line.
+       Setting `CUTOFF` makes `lead-probes-the-contract-before-dispatch` STALE (it lists the tool in `Files:`). The
+       release commit already did the same to `answer-shape…` and `migrate…` through the `AGENTS.md` stamp; those two
+       were re-pinned to `4265fc3` on the G26 judgment. Handle the CUTOFF change the same way or re-run that eval.
+       Decide which before merging.
     3. If `main` moves before then, re-run `eval-status` against the files it touched before merging.
   - **Lead-side leftovers (scratchpad, not in the repo):** the `p6-evals/` fixture tree and the scripts
     `apply-last-run.js` and `last-run-notes.json`. The archify fixture-builder output is only in the scratchpad; the
