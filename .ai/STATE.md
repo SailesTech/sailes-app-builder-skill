@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: a41e864
+Last-commit: 999e819
 
 > Read at session start — it stays under 20 KB, so that is cheap; history lives verbatim in
 > `.ai/archive/` and is grepped by area, never read whole. Write before walking away. Facts enter **Verified facts** only with
@@ -52,7 +52,33 @@ Last-commit: a41e864
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-09-13 (**resume here**): **1.33.0 — SHIPPED.** `main` fast-forwarded `c0b31ff` → `5ab8149`
+- 2026-09-13 late (**resume here**): **1.34.0 P1 — CLOSED** on branch `feat/1.34.0-quality-gates` at
+  `999e819`. Nothing pushed; `main` untouched (F5: merge only after the 1.33.x token comparison).
+  Progress and every event are in the run log `.ai/runs/2026-09-13-quality-gates.md`; the evidence
+  is in the spec's `Status:` line.
+  - **Shipped in P1:** `tools/contract-probe-check.js` with its test (27) and frozen suite (41 IDs, 30
+    mutants, 0 survivors). `npm test` → exit 0, **22 suites**, and `AGENTS.md` says twenty-two. Doctrine is
+    in `sailes-spec`, the spec template and `sailes-pre-implement` Phase 1b, where both tools are now
+    called through `${CLAUDE_PLUGIN_ROOT}`. Eval `lead-probes-the-contract-before-dispatch` is NEVER-RUN
+    and runs in P6. checker: APPROVE after one CHANGES-REQUIRED; qa: n/a.
+  - **Human decisions 2026-09-13:**
+    - `CUTOFF` = the day of the merge to `main`, set in P6. The code holds a placeholder `2026-09-14`,
+      and the spec's P6 carries this item.
+    - Specs without a date in the name are not graded, and the tool says so on stdout. This is durable.
+    - Plan frozen at tier B, with a mandatory separator after `n/a`, an invalid calendar date counted as
+      no date, and exit 2 winning over any other result.
+    - The field value's boundary stays generic (`<Word>-<word>:`).
+    - Handoff after P1.
+  - **Next: P2** (per-phase gate from the phase's own files, full suite + e2e once before push by `qa`)
+    in a fresh session: `sailes-implement` from P2. Before any dispatch, remember that worktrees are cut
+    from `main`, so a brief orders `git merge --ff-only feat/1.34.0-quality-gates`.
+  - **Worth remembering:** checker graded coverage **by ID** and missed that CP17 dropped its row's
+    qualifier ("pre-CUTOFF"); the lead caught it while reading a NIT on the same line. This is a lesson
+    candidate. It was not written into `lessons.md`, which is at 39.4 of 40 KB and needs rotating first.
+  - Line endings: worktrees check out LF (Linux); the main tree's CRLF is a leftover. git stores LF,
+    so content does not differ. A brief claiming "file X is CRLF" should check the worker's tree, not
+    the main one.
+- 2026-09-13: **1.33.0 — SHIPPED.** `main` fast-forwarded `c0b31ff` → `5ab8149`
   (the human chose ff over squash). `origin/main` was verified with all five stamps at 1.33.0 and
   `## 1.33.0` as the top CHANGELOG heading. `npm test` → exit 0, 20 suites, 0 `not ok`. The spec moved
   to `.ai/specs/implemented/` with pasted evidence; AGENTS.md now says twenty-two implemented specs.

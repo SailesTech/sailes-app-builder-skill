@@ -1,6 +1,6 @@
 # Spec: bramy jakości z raportu partner-portal — pomiar przed kodem, wysiłek proporcjonalny
 
-Status: in-progress — P1 od 2026-09-13 (run log `.ai/runs/2026-09-13-quality-gates.md`). Approved 2026-09-13 przez właściciela. Pre-implement: READY-WITH-FIXES (`.ai/audits/2026-09-13-pre-implement-quality-gates.md`); decyzje F1–F5 i poprawki wpisane, spec przepisany. Następny krok: `sailes-implement`, od P1. Merge na `main` dopiero po pomiarze 1.33.x (F5)
+Status: in-progress — **P1 zamknięte 2026-09-13** (`999e819`; evidence: `npm test` → exit 0, 22 zestawy, 0 `not ok` · `contract-probe-check.test.js` 27/27 · `.frozen.test.js` 41/41, 30 mutantów, 0 przeżyło · checker: APPROVE (po CHANGES-REQUIRED → `6bd158f`) · qa: n/a — brak działającej aplikacji). Następna: P2. Run log `.ai/runs/2026-09-13-quality-gates.md`. Approved 2026-09-13 przez właściciela. Pre-implement: READY-WITH-FIXES (`.ai/audits/2026-09-13-pre-implement-quality-gates.md`); decyzje F1–F5 i poprawki wpisane, spec przepisany. Następny krok: `sailes-implement`, od P1. Merge na `main` dopiero po pomiarze 1.33.x (F5)
 Framework-Version target: 1.34.0
 Weight: contract fix × 5 powierzchni — szablon specu + pre-implement, doktryna lidera i brief,
         definicje ról (+ bliźniaki Codex), jedno nowe narzędzie w `tools/`. Nie rusza modelu danych

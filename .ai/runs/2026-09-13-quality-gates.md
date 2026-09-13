@@ -96,6 +96,31 @@ ownership:
   a według swojego wiersza ma brać tylko te sprzed CUTOFF. Pierwszy nowy spec po cutoffie bez pola
   wywaliłby `npm test` z mylnym powodem. Wróciło do `tester` jako poprawka zgodna z wierszem,
   z dowodem w obu kierunkach.
+- 2026-09-13: `tester` poprawił CP17 (`ba8f286`). Zbiór jest teraz filtrowany po dacie < CUTOFF z require; specy bez daty
+  i z nieprawidłową datą są wyłączone, bo należą do CP13/CP39. Dowód: (a) plik z datą = CUTOFF bez pola
+  → poprawiony CP17 zielony, stary czerwony; (b) M2 nadal zabija CP12/15/16/17. Zmergowane `999e819`.
+  Lider sprawdził: diff dotyka tylko planu i zestawu testów; sha `contract-probe-check.js` = `79d125c7…`
+  (to samo co w tabeli mutantów); `npm test` exit 0, 0 `not ok`; oba zestawy zielone;
+  `CLAUDE_PLUGIN_ROOT` przy obu narzędziach (`sailes-pre-implement/SKILL.md:70,90`).
+- **P1 ZAMKNIĘTE 2026-09-13.** Done-when spełnione wszystkie:
+  - test narzędzia z fixture'ami w obu kierunkach;
+  - asercja ciszy;
+  - grep `CLAUDE_PLUGIN_ROOT`;
+  - `npm test` = 22 = `AGENTS.md`.
+
+  Werdykty: checker APPROVE, qa n/a. Pracownicy zwolnieni (be-dev, tester i checker zakończyli pracę).
+  Eval `lead-probes-the-contract-before-dispatch` jest NEVER-RUN i ruszy w P6.
+
+## Decyzje człowieka przy zamknięciu P1 (2026-09-13)
+- Granica wartości `Contract-probe:` zostaje ogólna (`<Word>-<word>:`). Odrzucone: tylko znane etykiety,
+  bo daje ciche fałszywe PASS.
+- Po P1 handoff: `STATE.md`, `/clear`, a P2 w nowej sesji. Odrzucone: P2 w tej sesji.
+
+## Do zapamiętania (kandydat na lesson, `lessons.md` ma 39,4 KB z 40 KB i wymaga rotacji)
+- `checker` sprawdzał pokrycie **po ID** i je potwierdził, a CP17 miał test, który zgubił zawężenie
+  z wiersza („sprzed CUTOFF”). Samo ID nie mówi, czy test ma zakres wiersza. Znalazł to lider, czytając
+  NIT o tej samej linii. Reguła do rozważenia: przy sprawdzaniu pokrycia porównać zawężenia wiersza
+  („tylko”, „sprzed”, „gdy”) z filtrem testu, a nie tylko obecność ID.
 
 ## Decyzje człowieka przy bramce P1 (2026-09-13)
 - Cutoff: dzień merge'a na `main`, ustawiany w P6 (wpisane do P6 w specu). Odrzucone: stałe 2026-09-14.
