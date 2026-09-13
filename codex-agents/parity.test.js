@@ -170,6 +170,9 @@ const INVARIANTS = {
     // See be-dev's P2.6 note above — same replacement, same reason.
     ['verification is lint/build/tests of the changed module; never the full suite on a phase', /(lint|build)[\s\S]{0,150}(module|full suite)/i],
     ['full suite/e2e run once, before push, by qa', /full suite[\s\S]{0,80}(before push|by .?qa.?)/i],
+    // P3.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — middle lane: build from
+    // the existing design artifact or the designer spec F1 called in, never with neither.
+    ['middle lane: design artifact or designer spec, never neither', /design artifact[\s\S]{0,150}designer.{0,10}spec[\s\S]{0,100}never with neither/i],
   ],
   tester: [
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
@@ -178,6 +181,9 @@ const INVARIANTS = {
     ['never weakens a frozen assertion', /weaken/i],
     ['reports a code defect rather than fixing it', /report/i],
     ['claims `.claude/status/tester-<n>.md` before the first edit', /\.claude\/status\/tester/i],
+    // P3.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — middle lane: no human
+    // freeze STOP, the plan goes straight from DRAFT to DERIVED and tester writes immediately.
+    ['middle lane: DERIVED plan, no human freeze STOP', /DRAFT straight to .?DERIVED/i],
   ],
   checker: [
     ['never sees the maker narrative', /narrative|maker/i],
@@ -194,6 +200,9 @@ const INVARIANTS = {
     // P2.3 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — checker runs the
     // phase's own Done-when commands and never the full suite; that scope is `qa`'s alone (P2.4).
     ['runs the phase Done-when commands; never the full suite', /Done-when[\s\S]{0,200}full suite|full suite[\s\S]{0,200}Done-when/i],
+    // P3.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — ID coverage applies to
+    // a DERIVED plan (middle lane) exactly as it does to a FROZEN one, not only to FROZEN.
+    ['ID coverage applies to a DERIVED plan, not only FROZEN', /DERIVED[\s\S]{0,250}non-struck behavior ID/i],
   ],
   qa: [
     ['never fakes a pass', /fake|ENV-DEFECT/i],
@@ -205,6 +214,9 @@ const INVARIANTS = {
     // P2.4 (spec 2026-09-13-quality-gates-from-the-partner-portal-report, R1) — qa alone runs the
     // full suite + e2e, exactly once, before push, on the integrated branch.
     ['runs full suite + e2e once, before push, on the integrated branch', /full suite[\s\S]{0,100}(before push|once)/i],
+    // P3.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — middle lane: live run,
+    // no screenshots.
+    ['middle lane: live run with pasted output, no screenshots', /middle lane[\s\S]{0,150}screenshots[\s\S]{0,150}paste/i],
   ],
   'docs-author': [
     ['documents the code as it is — evidence over aspiration', /as it is|evidence over aspiration/i],
