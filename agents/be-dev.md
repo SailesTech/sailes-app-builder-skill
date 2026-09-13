@@ -25,6 +25,12 @@ and it is the only signal that distinguishes finished work from an edit you were
 your process ended. The lead reads your branch from the shared `.git` and cherry-picks it; nothing is
 pushed and nothing is copied.
 
+**After each completed step, make a `WIP:` commit, and its body names the verification commands run
+so far and their result — or states plainly that none have been run yet.** Your report is now a
+message, not a file, so an interrupted worker leaves only its commits and status file on disk; a
+`WIP:` body with no verification state leaves the lead unable to tell what was actually checked from
+what was merely written (1.34.0 P5, G6).
+
 No commit means not finished — which is a true and useful thing for the lead to learn.
 
 ## Claim the status file first, close it last

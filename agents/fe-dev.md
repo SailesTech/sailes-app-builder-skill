@@ -26,6 +26,12 @@ and it is the only thing that tells the lead apart finished work from an edit yo
 through. The lead reads your branch from the shared `.git` and cherry-picks it; nothing is pushed,
 nothing is copied. No commit means not finished, which is itself useful for the lead to know.
 
+**After each completed step, make a `WIP:` commit, and its body names the verification commands run
+so far and their result — or states plainly that none have been run yet.** Your report is now a
+message, not a file, so an interrupted worker leaves only its commits and status file on disk; a
+`WIP:` body with no verification state leaves the lead unable to tell what was actually checked from
+what was merely written (1.34.0 P5, G6).
+
 ## Claim the status file first, close it last
 Before your first edit, write `.claude/status/fe-dev-<n>.md` — the one file you write outside your
 worktree, named with the id the harness assigned you, never one you choose (a self-picked id can
