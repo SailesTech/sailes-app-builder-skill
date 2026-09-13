@@ -72,3 +72,111 @@ Written incrementally from the first edit; final section (files changed, Done-wh
 
   After all four restores, `git status --short` on the worktree showed no diff against the P3.6
   commit — the scratch edits left no trace.
+- **P3.7 done** — `evals/lead-picks-the-lane-from-the-tier.md` written in the format of
+  `evals/lead-probes-the-contract-before-dispatch.md` (Skill under test / Files / Setup / Expected
+  (binary) / PASS / FAIL / Failure looks like / `Last run: never run (it is run in P6).` — same
+  wording as the P1 eval, which `evals/harness/eval-status.js` reads as NEVER-RUN because `Last run:`
+  carries no parseable date). Three phases in one Setup, as specified: tier A permissions (PASS at
+  `full`), tier C reformat of a screen WITH an existing artifact (PASS at `middle`, no `designer`),
+  tier C new screen WITH NO artifact (PASS at `middle`, WITH `designer` per F1). FAIL conditions:
+  tier A downgraded to `middle`, or the new screen shipped with no `designer` and no artifact.
+
+## Files changed
+
+- `skills/sailes-spec/SKILL.md` — `Lane:` line added to the Phasing step + Review checklist (P3.1).
+- `skills/sailes-bootstrap/spec-writing-template.md` — same, mirrored (P3.1).
+- `skills/sailes-bootstrap/gate-scaling.md` — source block extended with the full/middle lane
+  description + F1 (P3.2, edited ONLY inside `<!-- BEGIN/END gate-scaling -->`).
+- `skills/sailes-bootstrap/agent-team-structure.md` — stamped gate-scaling copy (sync-blocks) +
+  four hand-edited pointer sentences: "Order of work" bullet, `tester`/`qa` roster rows, the
+  Gate-isolation vision-verify bullet (P3.2).
+- `agents/team-lead.md` — stamped gate-scaling copy + "Pipeline you run" pointer sentence (P3.2).
+- `codex-agents/team-lead.toml` — stamped gate-scaling copy + pipeline-paragraph pointer sentence
+  (P3.2).
+- `skills/sailes-bootstrap/agents-md-template.md` — "- Order:" line pointer sentence (P3.2).
+- `skills/sailes-test/test-plan-template.md` — `Status: DRAFT | DERIVED | FROZEN` + note (P3.3).
+- `skills/sailes-test/SKILL.md` — protocol table row 2, Step 2 middle-lane no-STOP, Step 4
+  DERIVED no-weakening / lead run-log clause (P3.3).
+- `agents/tester.md` — Step 2 middle-lane clause (P3.3).
+- `codex-agents/tester.toml` — same clause (P3.3).
+- `agents/checker.md` — ID-coverage bullet extended to `DERIVED` (P3.3).
+- `codex-agents/checker.toml` — new paragraph carrying the same ID-coverage rule — this concept had
+  no `.toml` twin at all before this phase (P3.3).
+- `agents/qa.md` — description, screenshots bullet, vision-verify bullet, Output verdict, all
+  conditioned on `full`/`middle` (P3.4).
+- `codex-agents/qa.toml` — description + the screenshots/vision-verify sentence conditioned the same
+  way; the integrity-probe bullet (browser-inspect §1) and exclusivity left untouched, per brief
+  (P3.4).
+- `skills/sailes-implement/SKILL.md` — step 4 vision-verify, step 6 STATUS.md screenshot, the
+  "Test → Review → Behavior gate" tester bullet, and the Quick Reference "Test (per phase)" row all
+  name the lane / `DERIVED` (P3.4).
+- `agents/fe-dev.md` — description + the `designer`-spec bullet state the middle-lane
+  artifact-or-designer-spec rule (P3.5).
+- `codex-agents/fe-dev.toml` — same rule (P3.5).
+- `codex-agents/parity.test.js` — four new `INVARIANTS` entries, `// P3.6 (spec …)` comment style
+  (P3.6).
+- `evals/lead-picks-the-lane-from-the-tier.md` — new eval file (P3.7).
+- `.ai/runs/2026-09-13-quality-gates-P3-be-dev-report.md` — this report.
+
+## Done-when — commands run, output pasted
+
+```
+$ node tools/sync-blocks.js --check
+sync-blocks: all blocks in sync
+
+$ node codex-agents/parity.test.js
+[... 10 roles, both sides ...]
+codex parity: all tests passed (10 roles, both sides)
+
+$ node agents/validate-frontmatter.test.js
+[... all roles ...]
+agents/: 10 role definitions valid
+
+$ grep -n 'DERIVED' skills/sailes-test/test-plan-template.md skills/sailes-test/SKILL.md agents/tester.md agents/checker.md
+skills/sailes-test/test-plan-template.md:6:Status: DRAFT | DERIVED | FROZEN
+skills/sailes-test/test-plan-template.md:10:> `DERIVED` — middle lane: tests may be written; no human freeze. ...
+skills/sailes-test/test-plan-template.md:11:> `DERIVED` and writes the suite immediately; ...
+skills/sailes-test/SKILL.md:36:| 2 | Human approves ... (skipped in the `middle` lane — see Step 2) | ...
+skills/sailes-test/SKILL.md:72:time; tier B/C means `tester` moves the plan straight from `DRAFT` to `DERIVED` ...
+skills/sailes-test/SKILL.md:74:`DERIVED` plan binds Step 4's no-weakening rule exactly as written, ...
+skills/sailes-test/SKILL.md:116:**The same rule binds a `DERIVED` plan, with the lead standing in for the human.** ...
+skills/sailes-test/SKILL.md:118:log. `tester` never edits a `DERIVED` ID's expectation on its own authority; ...
+agents/checker.md:17:- **When `tester` has frozen a test plan, or `Status: DERIVED` in the `middle` lane** ...
+agents/tester.md:23:   to `DERIVED` yourself and start writing — ...
+(a hit in each of the four files — confirmed)
+
+$ ls evals/lead-picks-the-lane-from-the-tier.md
+evals/lead-picks-the-lane-from-the-tier.md   (present)
+
+$ npm test
+exit 0 — all suites reported "all tests passed" / equivalent (frontmatter, parity, sync-blocks,
+ownership-check, worker-status, mcp-toolnames-check, business-logic-check, deployed-surface-check,
+contract-probe-check + .frozen, token-report + .frozen, hook tests, hooks-template tests, TOML
+validator, role parity, role frontmatter, eval provenance, spec-status evidence, repo-done
+checklist, release hygiene). No `not ok` lines; grep for `not ok` returned nothing.
+```
+
+## Ambiguities in the spec — listed, not resolved
+
+1. **`agents/qa.md` integrity-probe bullet vs the new lane split.** The brief explicitly says: "Do
+   NOT change the integrity-probe bullet (browser-inspect §1) or exclusivity — the spec does not
+   list them; if leaving the probe bullet unchanged reads as a contradiction, report it as an
+   ambiguity, do not resolve it." I left it unchanged. It now sits directly below a screenshots
+   bullet that is conditioned on `full`, while the probe bullet itself says "On a UI repo the
+   instrument is required, not optional" with no lane condition — so a `middle`-lane UI phase
+   reads as: no screenshots/vision-verify, but the physical-integrity probe (which needs the
+   chrome-devtools MCP and drives the browser) still runs unconditionally. Whether that is the
+   intended shape of `middle` for UI phases, or an oversight the spec's decision table (Q5b: "w
+   torze środkowym `qa` robi żywy przebieg bez screenów") did not anticipate, is for the lead/human
+   to decide.
+2. **`codex-agents/checker.toml` had no ID-coverage concept at all before this phase**, unlike
+   `agents/checker.md:17` which has carried it since before this spec. The P3 table lists
+   `agents/checker.md (:16) + .toml` as forced by P3.3, which I read as "add the concept to both,
+   extending the .md's existing coverage to DERIVED and giving the .toml its first version of the
+   rule" rather than "only extend an existing .toml sentence". Flagging the read in case the lead
+   intended the .toml gap to be raised as its own finding instead of silently backfilled here.
+
+## Blockers
+
+None. All P3 steps completed; no substitute decisions were needed (the spec's decision table
+answered every fork this phase touched).
