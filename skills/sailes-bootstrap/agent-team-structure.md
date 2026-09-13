@@ -791,8 +791,10 @@ What holds when the mode is open:
     reports the termination — and at depth two a sub-lead must release its own workers *and* be
     released, so a half-completed shutdown leaves a live sub-tree. Reconstruct the live set from the
     run log before each release round, never from memory.
-  The prevention for the mode-independent half is unchanged and already shipped: every brief names a
-  FILE deliverable, and "released" is recorded only for a termination actually observed — a returned
+  The prevention for the mode-independent half is unchanged and already shipped: every brief names its
+  deliverable — a report FILE written from the first change for a gate role (`checker`, `qa`,
+  `tester`), and for an implementer the fixed-field message plus its commit and its `.claude/status/`
+  declaration — and "released" is recorded only for a termination actually observed — a returned
   result on the fallback path, a confirmed shutdown on the live one.
 
 **Enabling it is a machine-level act the human performs**, not something the framework turns on:
