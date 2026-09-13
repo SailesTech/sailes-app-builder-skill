@@ -1,0 +1,159 @@
+diff --git i/.ai/runs/2026-09-13-quality-gates-P4-be-dev-report.md w/.ai/runs/2026-09-13-quality-gates-P4-be-dev-report.md
+index 0ed9b45..be6fba2 100644
+--- i/.ai/runs/2026-09-13-quality-gates-P4-be-dev-report.md
++++ w/.ai/runs/2026-09-13-quality-gates-P4-be-dev-report.md
+@@ -1,137 +1,23 @@
+-# P4 report — be-dev — quality-gates 1.34.0
++# P4 be-dev report — pre-existing red established by name against the base
+ 
+-Base: fast-forwarded to `738be366f5607984824f48782422e07ff74a15` (verified HEAD after
+-`git merge --ff-only feat/1.34.0-quality-gates`). Status file claimed at
+-`.claude/status/be-dev-P4-quality-gates.md` (outside worktree, in the shared checkout).
++Task: `.ai/specs/2026-09-13-quality-gates-from-the-partner-portal-report.md`, P4 (P4.1–P4.4),
++decisions Q7/R5/F3 plus human decisions D-P4a/D-P4b from the brief.
+ 
+-Scope: P4 — "zastana czerwień ustalana na bazie" (spec §P4, decisions Q7, R5, F3, plus binding
+-2026-09-13 refinements D-P4a, D-P4b from the brief).
++Base merge: `git merge --ff-only 738be36` → fast-forward, HEAD = `738be366f5607984824f48782422e07ff74a1575`. Confirmed.
+ 
+-## Work log (appended as I go)
++Status file: `.claude/status/be-dev-P5ab-A5.md` (outside worktree) claimed before first edit.
+ 
+-- Read spec P4 section + D-P4a/D-P4b from brief. Starting P4.1 (SKILL.md pre-push gate +
+-  release-checklist.md).
+-- P4.1 done: `skills/sailes-implement/SKILL.md` — Pre-push gate paragraph gained the red-by-name
+-  pointer to `agents/qa.md`; Pre-flight step 3's run-log description gained a `Known-red:` section
+-  with the exact entry form. `skills/sailes-bootstrap/release-checklist.md` §0 gained four checklist
+-  lines (base run, sorted names, `comm -23`, `Known-red:` recording).
+-- P4.2 done: `agents/qa.md` + `codex-agents/qa.toml` — added the four-step procedure to the
+-  pre-push bullet (sort+paste branch red names; `git fetch` + same names at
+-  `git merge-base HEAD origin/<base>` in a temporary detached worktree outside the repo, `worktree
+-  remove` always; paste `comm -23`; base-red names to `Known-red:`).
+-- P4.3 done: `agents/checker.md` + `codex-agents/checker.toml` — added the same procedure next to
+-  the `Done-when` bullet, base = the commit the worker was cut from (NOT `qa`'s merge-base — stated
+-  explicitly as a contrast, since D-P4a requires checker's inputs not widen). Added the named
+-  read-only exception in the "On read-only, honestly" paragraph (`.md`) and next to "Remain
+-  read-only" (`.toml`): the temporary detached worktree is the one write, touching only `.git`
+-  worktree metadata.
+-- Interim `Done-when` greps (merge-base ×4, comm -23 ×2) verified green. WIP commit `284d80e`.
+-- P4.4 parity done: added one INVARIANTS entry each to `qa` and `checker` in
+-  `codex-agents/parity.test.js`: `/never by count[\s\S]{0,600}comm -23/i` — matches both `.md` and
+-  `.toml` twins for both roles (verified: text distance between the two phrases is well under 600
+-  chars in all four files). `node codex-agents/parity.test.js` → exit 0, 10 roles.
+-- Mutation-proved on scratch copies **outside the repo** (copied `agents/` + `codex-agents/` to
+-  `/tmp/.../scratchpad/p4-parity-mutation`, never touched repo files, no `git checkout` used):
+-  - Untouched scratch copy → `node codex-agents/parity.test.js` → exit 0, all pass.
+-  - Stripped `"never by count."` from the scratch copy's `agents/qa.md` only → exactly one FAIL:
+-    `qa: "pre-existing red compared by name against the base, never by count" survives in BOTH
+-    twins` / `missing from agents/qa.md`. Exit 1.
+-  - Fresh untouched scratch copy → exit 0 again.
+-  - Stripped the same phrase from the scratch copy's `codex-agents/checker.toml` only → exactly one
+-    FAIL: `checker: "pre-existing red compared by name against the base, never by count" survives in
+-    BOTH twins` / `missing from codex-agents/checker.toml — the twin is behind`. Exit 1.
+-  - Scratch dir removed after. WIP commit `cc1016f`.
+-- P4.4 eval written: `evals/gate-compares-red-by-name-not-count.md`, following the format of
+-  `evals/lead-picks-the-lane-from-the-tier.md` / `evals/lead-probes-the-contract-before-dispatch.md`
+-  (Skill under test / Files / Setup / Expected / PASS / FAIL / Failure looks like / `Last run: never
+-  run (it is run in P6)`). Fixture per the brief: branch red = {A, B, D} (C was fixed on the
+-  branch), previous-run red = {A, B, C} — count 3 == 3, but `comm -23` on names yields `{D}`. PASS
+-  requires the base actually run before `D` is reported; FAIL is either a count comparison or
+-  writing `D` into `Known-red:` without a base run.
+-- `node tools/sync-blocks.js --check` → in sync; no synced block needed a manual edit for P4.
++This file is appended to as work proceeds, per file changed.
+ 
+-## Verification — `Done-when` (paste, run at the end)
++## Files changed (running list)
+ 
+-```
+-$ grep -nE 'merge-base' agents/qa.md codex-agents/qa.toml agents/checker.md codex-agents/checker.toml
+-agents/checker.md:17:...not `qa`'s pre-push `git merge-base HEAD origin/<base>`...
+-agents/qa.md:14:...at `git merge-base HEAD origin/<base>`...
+-codex-agents/checker.toml:13:...not `qa`'s pre-push `git merge-base HEAD origin/<base>`...
+-codex-agents/qa.toml:9:...at `git merge-base HEAD origin/<base>`...
+-→ 4 hits, one per file.
+-
+-$ grep -n 'comm -23' agents/qa.md agents/checker.md
+-agents/checker.md:17:...paste `comm -23 <red-on-branch> <red-on-base>`...
+-agents/qa.md:14:...paste `comm -23 <red-on-branch> <red-on-base>`...
+-→ hit in both.
+-
+-$ node codex-agents/parity.test.js
+-...
+-codex parity: all tests passed (10 roles, both sides)
+-→ exit 0, includes "pre-existing red compared by name against the base, never by count" for
+-  both qa and checker.
+-
+-$ node tools/sync-blocks.js --check
+-sync-blocks: all blocks in sync
+-
+-$ npm test
+-(22 suites, all "... : all tests passed", 0 "not ok"/"FAIL" lines)
+-EXIT=0
+-```
+-
+-## Files changed
+-
+-- `skills/sailes-implement/SKILL.md` — Pre-push gate pointer + `Known-red:` in the run-log
+-  description.
+-- `skills/sailes-bootstrap/release-checklist.md` — §0 checklist lines for the base run.
+-- `agents/qa.md`, `codex-agents/qa.toml` — pre-push red-by-name procedure.
+-- `agents/checker.md`, `codex-agents/checker.toml` — phase-gate red-by-name procedure + named
+-  read-only exception.
+-- `codex-agents/parity.test.js` — one new INVARIANTS entry each for `qa` and `checker`.
+-- `evals/gate-compares-red-by-name-not-count.md` — new P4.4 eval, NEVER-RUN.
+-
+-## Contract shape honored
+-
+-No typed contract in this phase (doctrine text only, per spec `Contract-probe: n/a`). The frozen
+-artifact honored is the spec's own P4 section text (procedure steps 1–4 of P4.2, applied unmodified
+-to P4.3 per F3) plus the two binding human decisions D-P4a/D-P4b from the brief, which refine and
+-in one place (checker's base) *override* the plain spec text — spec P4.2/P4.3 does not by itself
+-distinguish checker's base from qa's; D-P4a is the artifact that supplies that distinction, and I
+-followed it over the more permissive literal reading of P4.3 ("Ta sama procedura...").
+-
+-## Ambiguities found (not decided — flagging per brief)
+-
+-1. **P4.4 fixture count-collision arithmetic.** The spec text (P4.4) says "3 testy czerwone na
+-   bazie + 1 nowy czerwony między nimi, a liczba czerwonych taka sama jak w poprzednim przebiegu,
+-   bo jeden z bazowych naprawiono" — i.e. of the 3 base-red tests, exactly one was *fixed on the
+-   branch*, and one *new* one appeared, holding the branch total at 3 (2 carried-over base-red + 1
+-   new = 3, matching the previous run's 3). I built the eval fixture to this reading exactly
+-   (base red = {A,B,C}, branch red = {A,B,D}, C fixed, D new). This is the only reading I found
+-   consistent with "liczba czerwonych taka sama", but the spec doesn't spell out the arithmetic in
+-   as much detail as I did in the eval file — if the lead intended a different concrete mapping
+-   (e.g. a different total base-red count), that's a wording call on my part, not the spec's.
+-2. **Where exactly `checker`'s "phase's integration base" commit comes from operationally.** The
+-   brief states it is "the commit the worker was cut from (the brief's `ff-only` base)... the left
+-   side of the diff range the lead hands `checker`". I wrote this into `checker.md`/`.toml` as
+-   prose ("the commit the worker was cut from... the left side of the diff range the lead handed
+-   you") but did not add any new mechanism for the lead to *compute or hand over* that SHA — no
+-   existing `checker` brief field for it was named in the P4 file list, and adding one felt like a
+-   scope decision (a new brief field) outside P4's listed files. If the lead wants a named field for
+-   this (e.g. `Diff-base:` in the checker brief), that's a decision for the lead, not something I
+-   added unasked.
+-3. **Terminology drift between spec text and D-P4a/D-P4b.** The raw spec P4.2/P4.3 says nothing
+-   about a temporary detached worktree — that mechanism and the checker/qa base split are both from
+-   the brief's binding 2026-09-13 decisions, which "refine" but in the checker-base case actually
+-   *contradict* a literal reading of "Ta sama procedura" (same procedure) in P4.3, since qa's
+-   procedure uses `origin/<base>` merge-base and checker's explicitly must not. I followed the
+-   brief (binding, later, more specific) over the plain spec sentence; flagging so the lead can
+-   confirm the spec's own P4.3 text should eventually be corrected to match D-P4a rather than left
+-   to read differently from the doctrine it produced.
+-
+-No blockers. All `Done-when` commands ran successfully; no ENV-DEFECT or substitute decisions were
+-needed beyond the wording judgment calls listed above.
+-
+-Promotion candidate: none — this phase is doctrine-text-only with no runtime code; the mutation
+-proofs above are the detection evidence for the new parity concept, but per the brief's own
+-instruction ("tester folds it into the frozen list... you never ID it") this is a parity concept,
+-not an inner-loop check, so it isn't reported under that label.
++### P4.1 — `skills/sailes-implement/SKILL.md` + `skills/sailes-bootstrap/release-checklist.md`
++- `skills/sailes-implement/SKILL.md` Pre-flight step 3: added `Known-red:` section requirement to
++  the run-log bullet, entry form `<file/test name> · <cause> · validity: this push`, expires at push.
++- `skills/sailes-implement/SKILL.md` "Pre-push gate" paragraph: added the red-by-name procedure,
++  pointing to `agents/qa.md` for the exact steps (paste branch red names, run same names on
++  merge-base in a temporary detached worktree, paste `comm -23`).
++- `skills/sailes-bootstrap/release-checklist.md` §0: added 4 checklist lines (sorted red names on
++  branch; same names at merge-base via temp detached worktree; `comm -23` pasted, non-empty =
++  CHANGES-REQUIRED; base-red names recorded in `Known-red:` by name with cause, never a count).
++- Commit: `f287854` WIP(1.34.0-P4).

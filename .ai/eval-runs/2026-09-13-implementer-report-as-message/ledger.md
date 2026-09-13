@@ -47,3 +47,14 @@ The check is repeated for every later run before VERDICT.
 - checker v2 B3: IDENTICAL.
 - checker v2 A3: IDENTICAL, A4: IDENTICAL, B4: IDENTICAL.
 - A5: IDENTICAL, B5: IDENTICAL (brief-B5 differs from brief-B4 only by the G6 paragraph and the label).
+
+## Isolation breach and instrument limit (found after the closure commit `312ea7a`)
+- **What:** A5 wrote its report through Bash `cat >`/`cat >>` with an absolute path into the **shared checkout**
+  (`.ai/runs/2026-09-13-quality-gates-P4-be-dev-report.md`), overwriting the committed real-P4 report, at 14:55:42 and
+  14:56:17 UTC (transcript `subagents/agent-aa12a60ff0d8e89e4.jsonl`).
+- **Evidence:** a byte-identical copy in `returns/A5-report-written-to-shared-checkout.md` and the diff in
+  `returns/A5-shared-checkout-overwrite.patch`. The shared file was restored with `git restore` and matches HEAD.
+- **Instrument limit:** `instruments/recover-run.sh` and `grade-run.sh` read only the run's worktree, so a write
+  outside it is invisible to them. The first A5 grade (3a "no") was wrong for that reason and has been corrected.
+  The other runs were checked: the main tree's status showed no arm file after rounds 1–2, and the only stray change
+  after all runs was A5's.

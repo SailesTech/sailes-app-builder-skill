@@ -66,7 +66,9 @@ Last-commit: 8a941b6
     - Empty returns: A 0/3, B 0/3. Unrecoverable interrupted runs: A 2/2, B 2/2, so the release condition does not
       block.
     - Every interrupted run in both arms lacked the verification state on disk.
-    - B5, carrying G6, did not apply it; A5 did not write the report file its clause required.
+    - B5, carrying G6, did not apply it. A5 wrote its report, but through Bash into the **shared checkout**,
+      overwriting the committed P4 report there. That file was restored from HEAD; the copy and patch are in
+      `returns/`. This is an isolation breach, recorded as its own backlog row.
     - Checker verdicts varied widely across runs of the same diff and shared one blind spot (the G8 contradiction).
   - **Human decisions at P5 closure (G10–G13):**
     - G6 stays, and a backlog row "mechanism instead of sentence" was added;

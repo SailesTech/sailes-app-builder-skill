@@ -89,7 +89,7 @@ frozen 3b criteria. A5 ran the pre-P5 doctrine as a control; B5 ran the P5 doctr
 |---|---|---|
 | Stop | STOP-NOW 14:56:47 → `TaskStop` 14:56:52, n=3 | STOP-NOW 14:58:43 → `TaskStop` 14:58:48, n=3 |
 | Commits at stop | 1 WIP (P4.1), **empty body** | **0** |
-| 3a report text present | **no** — the report file was claimed in status and never written | no |
+| 3a report text present | **yes, but outside its worktree** — written via Bash `cat >` into the shared checkout, overwriting the committed P4 report (corrected; see `returns/A5-recoverability.md`) | no |
 | 3b recoverable | **no — 2/3** (verification state missing) | **no — 2/3** (verification state missing) |
 | G6 followed | n/a (rule not in this arm) | **no** — P4.2 finished (qa.md + qa.toml) and P4.3 begun with no `WIP:` commit |
 
@@ -99,8 +99,14 @@ block.
 **What the pair shows:**
 - **G6 did not land in its only live test.** The G6 sentence was in B5's role text, and B5 still crossed a step
   boundary without committing.
-- **The file clause failed in the control arm too.** A5, told to write the report "from your first change", had no
-  report on disk after one commit and a second file edit. The clause was followed in A1–A4, so 4 of 5 A runs complied.
+- **The file clause was followed in the control arm, but the file went to the wrong tree.** An earlier version of
+  this addendum said A5 wrote no report. That was wrong: the lead's recovery instrument reads only the worktree.
+  - **Where:** A5 wrote its report from its first change, through Bash `cat >` with an absolute path into the
+    **shared checkout**. It overwrote the committed real-P4 report at the same relative path. That is an isolation
+    breach, found only because the file showed as modified in the main tree after the closure commit.
+  - **Mechanism:** the same absolute-path pattern A5 had just used, correctly, for its status file.
+  - **Recovery:** the report still named no verification command, so 3b stays 2/3.
+  - **Across all interrupted runs:** 3a is A 2/2 (A4 in the worktree, A5 in the shared checkout), B 0/2.
 
 Neither doctrine, as text, reliably leaves a verification state on disk at an interruption. Both observations are
 single runs and establish no rates.

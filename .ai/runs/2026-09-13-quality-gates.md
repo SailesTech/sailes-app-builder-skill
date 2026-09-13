@@ -676,3 +676,17 @@ Wszystko wpisane do specu jako G3 i G4.
 - **P5 ZAMKNIĘTE 2026-09-13.** `Done-when` spełniony na `8a941b6`; dowody w `Status:` specu. checker: APPROVE (P5.1–P5.2),
   APPROVE (G8), NITS (G6/G7) · tester: n/a · qa: n/a (brak działającej aplikacji). Wszyscy workerzy i checkerzy
   zakończeni, zwolnieni.
+- 2026-09-13, po commicie zamykającym `312ea7a`: **korekta oceny A5 i naruszenie izolacji.**
+  - **Jak wyszło:** `git status` głównego drzewa pokazał zmieniony `.ai/runs/2026-09-13-quality-gates-P4-be-dev-report.md`,
+    którego lider nie edytował. Commit dodawał pliki po nazwie, więc zmiana do niego nie weszła.
+  - **Kto:** zawartość (23 linie, „Status file: `.claude/status/be-dev-P5ab-A5.md`”) i mtime 14:56:17 UTC wskazują na A5.
+    Transkrypt A5 to potwierdza. Cwd był worktree, a trzy zapisy szły przez **Bash** z bezwzględną ścieżką do głównego
+    drzewa: `cat >` status (poprawnie), `cat >` raport i `cat >>` P4.1. Narzędzie `Write` nie było użyte, więc
+    udokumentowana asymetria jest prawdziwa, tylko zadziałała w złą stronę.
+  - **Dowody:** kopia bajt w bajt i patch nadpisania w `returns/`. Plik w głównym drzewie przywrócony `git restore`
+    (137 linii, zgodny z HEAD).
+  - **Korekta:** A5 3a „nie” → „tak, ale poza worktree”; 3b bez zmian, **2/3**, bo raport nie wymienia komendy
+    weryfikacji, a linia o bazie liczy się tak samo jak u A4. Poprawione: `A5-recoverability.md`, dopisek VERDICT,
+    `STATE.md`, wiersz G10 w backlogu. Nowy wiersz backlogu opisuje naruszenie izolacji. Warunek wydania bez zmian.
+  - **Przyczyna błędnej pierwszej oceny:** `recover-run.sh` czyta tylko worktree, więc zapisu poza nim nie widzi. To
+    ograniczenie narzędzia, dopisane do ledgera.
