@@ -89,6 +89,13 @@ ownership:
   nie zmieniły. Lider sprawdził: diff gałęzi dotyka tylko planu i zestawu testów, więc zmergowałem.
   Zestaw przechodzi w głównym repo. Podpięty do `package.json` (22 zestawy), `AGENTS.md` mówi dwadzieścia dwa.
   Poprawność pokrycia i wzmocnień ocenia `checker` (zlecone).
+- 2026-09-13: werdykt `checker` dla zestawu zamrożonego: **APPROVE**. Każde z 41 ID ma test, a oba wzmocnienia są
+  addytywne, bez zmiany oczekiwanych wartości. Trzy mutanty (M1, M16, M19) odtworzył niezależnie
+  i wynik zgodził się z tabelą. NIT: przestarzały literał `2026-09-14+` w komunikacie CP17.
+  **Checker tego nie wyłapał, znalazł lider przy NIT:** CP17 bierze WSZYSTKIE żywe specy z `.ai/specs/`,
+  a według swojego wiersza ma brać tylko te sprzed CUTOFF. Pierwszy nowy spec po cutoffie bez pola
+  wywaliłby `npm test` z mylnym powodem. Wróciło do `tester` jako poprawka zgodna z wierszem,
+  z dowodem w obu kierunkach.
 
 ## Decyzje człowieka przy bramce P1 (2026-09-13)
 - Cutoff: dzień merge'a na `main`, ustawiany w P6 (wpisane do P6 w specu). Odrzucone: stałe 2026-09-14.
