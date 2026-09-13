@@ -117,7 +117,7 @@ Length is not thoroughness — complete and unreadable delivered nothing. Rule 3
 
 ## Key Commands
 - `pnpm install` · `pnpm dev` · `pnpm build`
-- `pnpm test` (unit, fast inner loop — scoped to the module you're touching per task) · `pnpm test:e2e` (Playwright — full suite + this run once, before push, on the integrated branch)
+- `pnpm test` (unit, fast inner loop — per task, scoped to the module you touched) · `pnpm test:e2e` (Playwright — together with the unscoped `pnpm test`, run once before push, on the integrated branch)
 - `pnpm lint` · `pnpm typecheck`
 - `pnpm db:generate` / `db:migrate` / `db:push` (Drizzle; push for prototyping)
 - `graphify update .` — refresh the code map after edits (post-commit hook does this automatically; run manually before querying mid-task)

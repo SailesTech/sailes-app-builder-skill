@@ -618,7 +618,8 @@ Status:      claim `.claude/status/<worker-id>.md` as your FIRST action — `wor
              the claim. [read-only roles: drop this line — you write nothing, so nothing to claim.]
 Checkpoint:  write progress to files as you go. Your in-memory state does not survive your
              process; disk does.
-Verification: two levels, named separately, never collapsed into one command list.
+Verification: two levels are yours, named separately, never collapsed into one command
+             list; the third, pre-push run belongs to `qa`.
              **Inner loop** (run as you go): only the tests for the files you touched.
              **Phase gate**: the phase's own named, targeted `Done-when` commands — never
              the full suite, never e2e, on a phase. Running the full suite or e2e inside
