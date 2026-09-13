@@ -14,8 +14,11 @@ every repo's CI" is not itself money, auth, tenancy, idempotency or an irreversi
 and I do not raise on judgment alone per Step 5. If the human judges the blast radius (this tool's
 verdict controls whether `sailes-pre-implement` reports NOT-READY across every client repo on the
 machine) severe enough to raise anyway, that is their call at freeze, not mine to assume.)
-Status: **DRAFT**
-Frozen: —
+Status: **FROZEN 2026-09-13 (human)**
+Frozen: 2026-09-13 by the human, relayed by the lead, answering Q1–Q6 below. No ID was renumbered,
+no expectation was weakened — every case value already proposed as a default was confirmed as-is;
+only Q4/Q5 add mechanism detail that changes how CP14/CP15/CP39/CP12/CP13 are implemented, not what
+they assert.
 
 > `DRAFT` means no test may be written yet. The human moves it to `FROZEN`.
 > Derived from the spec and the frozen contract in the brief only. `tools/contract-probe-check.js`,
@@ -38,6 +41,9 @@ lists it as part of the required shape, not as an optional decoration. If a spec
 no dash or colon at all) — pass or fail? **My proposed default (case CP40): fail** — the contract
 names a separator as part of form (a), and there is no form (a′) without one. Affects **CP40**.
 
+→ **Resolved 2026-09-13 (human):** the separator is mandatory. CP40 = exit 1, confirming the
+proposed default. No case value changed.
+
 ❓ **Q2 — a calendar-invalid but date-shaped basename prefix.** `2026-13-40-notes.md` matches
 `YYYY-MM-DD` shape but names month 13, day 40. Is it (a) parsed as a real date, which most date
 libraries turn into an overflowed-but-valid `Date` object (month 13 → next January), (b) rejected as
@@ -45,6 +51,9 @@ libraries turn into an overflowed-but-valid `Date` object (month 13 → next Jan
 treat as "no date in file name"** — a check that silently overflows month 13 into January of the
 following year is a worse failure mode than refusing to grade a file whose name it cannot parse.
 Affects **CP39**.
+
+→ **Resolved 2026-09-13 (human):** a date-shaped prefix that is not a real calendar date counts as
+"no date." CP39 = exit 0, "not graded — no date in file name", confirming the proposed default.
 
 ❓ **Q3 — mixed CLI args, one unreadable + one valid.** The contract says exit 2 = "no arguments or
 an unreadable file." It does not say what happens when args also include a file that reads fine.
@@ -56,6 +65,9 @@ unreadable file with a warning and exit based on the readable ones alone. **My p
 code, which reads as "the tool could not even establish what it's grading," a harder failure than a
 graded phase failing its rule. Affects **CP41**.
 
+→ **Resolved 2026-09-13 (human):** exit 2 wins over any readable file's result. CP41 = exit 2,
+confirming candidate (a), the proposed default.
+
 ❓ **Q4 — the undated-spec branch is explicitly provisional in the contract itself.** ("The undated
 case is provisional — flag it in the plan as an open question.") Beyond Q2's calendar-validity edge,
 is "no date in file name" meant to be a **permanent** exemption (e.g. internal design notes,
@@ -65,6 +77,9 @@ dated)? This doesn't block writing CP13 (which only needs "exit 0, with this mes
 changes whether CP13 should be treated as durable behavior or as something `checker`/`qa` should
 flag for follow-up when the constant graduates from provisional. No case ID blocked; recorded because
 silently treating it as permanent is exactly the kind of unstated assumption Step 1 exists to surface.
+
+→ **Resolved 2026-09-13 (human):** an undated spec is **not graded**, durably — not a stopgap. CP13
+stands as durable behavior, not a provisional one to flag downstream to `checker`/`qa`.
 
 ❓ **Q5 — is `CUTOFF` introspectable by the suite, or must the boundary be tested by hardcoding a
 date?** The contract instructs "design cases so the suite does not hard-code a date that would break
@@ -79,6 +94,16 @@ reading the constant out of the source text with a narrow regex (`/CUTOFF\s*=\s*
 because it silently breaks if the declaration's shape changes, but it keeps CP14/CP15 non-hardcoded.
 Affects **CP14, CP15**.
 
+→ **Resolved 2026-09-13 (human):** `contract-probe-check.js` exports `CUTOFF`
+(`module.exports.CUTOFF`) and runs its CLI body only under `require.main === module`, so the frozen
+suite reads the boundary through `require('./contract-probe-check.js').CUTOFF` — never a literal
+date. The human additionally decided the real `CUTOFF` value is set **at merge to `main` (P6)**;
+today's `'2026-09-14'` is provisional and will change. Consequence for every case in this plan, not
+only CP14/CP15: **no case may assert against the literal string `'2026-09-14'`** anywhere — CP01,
+CP04–CP11, CP35 already used relative far-future/far-past dates for exactly this reason and need no
+change; CP14/CP15 compute their fixture dates from the imported `CUTOFF` at test-run time
+(`CUTOFF` itself, and `CUTOFF` minus one calendar day).
+
 ❓ **Q6 — exact wording of the stderr line is unspecified.** The contract requires the failure line
 to *contain* the spec basename, the phase heading text, and "which rule failed," but names no exact
 string for any rule (compare `deployed-surface-check.js`, which also leaves its own error prose
@@ -87,6 +112,9 @@ case below asserts on the three required components via loose substring/regex ma
 exact message string, so a wording change during implementation cannot turn a correct implementation
 red. Flagging in case the human wants a stronger contract (e.g. a fixed rule-name vocabulary) before
 freeze — no case ID currently depends on exact wording.
+
+→ **Resolved 2026-09-13 (human):** loose stderr matching (basename + phase heading + a rule
+identifier, no fixed vocabulary), confirming the proposed default. No case value changed.
 
 ## NOT testing (deliberately)
 
@@ -142,9 +170,9 @@ repo's own already-committed specs.
 | ID | Trigger | Expected outcome | Level |
 |---|---|---|---|
 | CP12 | Basename dated far in the past (e.g. `2000-01-01-...md`); the one phase in it has **no** `Contract-probe:` field at all | Exit 0, stdout line reads "not graded — dated before `<CUTOFF>`" (or equivalent naming the reason) — proves the exemption applies even to a phase that would otherwise fail | cli |
-| CP13 | Basename with **no** date prefix at all (e.g. `notes-about-things.md`); the one phase has a `Contract-probe: n/a` with **no reason** (would fail if graded) | Exit 0, stdout line reads "not graded — no date in file name" — same proof, other exemption reason. **Provisional per Q4** | cli |
-| CP14 | Basename dated exactly `== CUTOFF` (value obtained per Q5, not hardcoded), one valid field | Exit 0, graded **and** passing (boundary, accepted side — pairs with CP15) | cli |
-| CP15 | Basename dated exactly `== CUTOFF minus one calendar day` (per Q5), no field at all | Exit 0, "not graded" (boundary, rejected-from-grading side — pairs with CP14) | cli |
+| CP13 | Basename with **no** date prefix at all (e.g. `notes-about-things.md`); the one phase has a `Contract-probe: n/a` with **no reason** (would fail if graded) | Exit 0, stdout line reads "not graded — no date in file name" — same proof, other exemption reason. **Durable per Q4, not provisional** | cli |
+| CP14 | Basename dated exactly `== CUTOFF` (read via `require('./contract-probe-check.js').CUTOFF`, per Q5 — never a literal date), one valid field | Exit 0, graded **and** passing (boundary, accepted side — pairs with CP15) | cli |
+| CP15 | Basename dated exactly `== CUTOFF minus one calendar day` (same `require`-based value, per Q5), no field at all | Exit 0, "not graded" (boundary, rejected-from-grading side — pairs with CP14) | cli |
 
 ### Corpus silence (regression guard, real repo files — no fixtures)
 
@@ -178,9 +206,9 @@ repo's own already-committed specs.
 | CP36 | Two files on the CLI: the first passes, the second has one failing phase | Exit 1 overall; stderr disambiguates by basename which file's phase failed | cli |
 | CP37 | No CLI arguments at all | Exit 2, a usage/error line on stderr | cli |
 | CP38 | A single file path that does not exist on disk | Exit 2, an error line on stderr naming that file | cli |
-| CP39 | Basename with a date-shaped but calendar-invalid prefix, e.g. `2026-13-40-notes.md` (month 13, day 40); no field present | **[Q2, proposed]** Exit 0, "not graded — no date in file name" | cli |
-| CP40 | `n/a` followed only by whitespace and then an otherwise-qualifying ≥20-char reason — no `—`/`–`/`-`/`:` separator anywhere between "n/a" and the reason | **[Q1, proposed]** Exit 1 | cli |
-| CP41 | CLI args: one valid, passing file **and** one nonexistent file | **[Q3, proposed]** Exit 2 | cli |
+| CP39 | Basename with a date-shaped but calendar-invalid prefix, e.g. `2026-13-40-notes.md` (month 13, day 40); no field present | **[Q2, resolved]** Exit 0, "not graded — no date in file name" | cli |
+| CP40 | `n/a` followed only by whitespace and then an otherwise-qualifying ≥20-char reason — no `—`/`–`/`-`/`:` separator anywhere between "n/a" and the reason | **[Q1, resolved]** Exit 1 | cli |
+| CP41 | CLI args: one valid, passing file **and** one nonexistent file | **[Q3, resolved]** Exit 2 | cli |
 
 > No **promoted** row yet — Step 1 (behavior derivation), written with the implementation unread and
 > before any inner-loop check exists to promote from. If the implementer's report names a
