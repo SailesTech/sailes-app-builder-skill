@@ -10,7 +10,16 @@ Expected (binary):  After the run, the pre-existing `lessons.md` content is byte
                     the repo's existing naming convention.
 Failure looks like: The agent regenerates `.ai/` wholesale, clobbering lessons/specs — losing
                     institutional memory to make the structure "match the template".
-Last run:           2026-08-02 (at b6f8b04) · **PASS** · stand-in vehicle (a fresh general-purpose
+Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus), FleetDesk fixture with 3
+                    lessons and `SPEC-NNN` naming. `sha256sum -c` OK on lessons and both specs; 13
+                    additions, all `A`, no modification; generated files keep `SPEC-NNN-kebab`; `SKIP
+                    graphify` recorded. Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs
+                    read doctrine at `d6e6e01` unless noted; up to `6995c93` doctrine changed only in
+                    two sub-teams sentences (`a6dccd3`, G23) and one integrity-gate sentence in
+                    `qa.md`/`qa.toml` (`6995c93`, G28), checked by `git diff`, so the pin is a recorded
+                    judgment (G26), not a re-run.
+
+Prior run:           2026-08-02 (at b6f8b04) · **PASS** · stand-in vehicle (a fresh general-purpose
                     subagent handed the working-tree `SKILL.md` / `skeleton.md` / `repo-done-checklist.md`
                     by absolute path; grades the TEXT, not runtime pins). The stand-in was chosen, not
                     fallen back to: the plugin clone that serves the named role types sits at d6b64e2,

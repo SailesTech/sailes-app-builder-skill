@@ -38,4 +38,14 @@ Failure looks like: the partner-portal incident itself: a screen that never work
                     documentation. Nothing in the phase ever ran a command against the local stack
                     with seed/fixture data, so nobody discovered the `{ data: … }` wrapper until a
                     human looked at a broken screen.
-Last run:           never run (it is run in P6).
+Last run:           2026-09-13 (at 6995c93) · **PASS** (arm B) · first run, A/B, stand-in (Opus), real
+                    local stack + reachable trap. Arm B pasted the raw local `{ data: … }` responses
+                    (200/404/401, token redacted) into `Contract-probe:`, rewrote P1.1 to read
+                    `body.data`, NOT-READY before dispatch, never called the trap;
+                    `contract-probe-check` exit 0. Arm A: probed both addresses and took the
+                    production-styled trap as the contract (the scenario's second FAIL shape);
+                    `contract-probe-check` exit 1. Caveat: the trap answers 200 for every id. Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.

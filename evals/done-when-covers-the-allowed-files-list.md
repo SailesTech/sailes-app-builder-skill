@@ -25,7 +25,17 @@ Failure looks like: A phase that may touch a route file, a handler and a schema,
 Control arm:        Run the same brief against a spec-writing prompt with the coverage clause
                     removed. It MUST produce at least one uncovered path — otherwise the eval
                     is measuring the brief's narrowness, not the doctrine.
-Last run:           2026-08-01 (second attempt, fixture v2) · **PASS.** Vehicle: stand-in.
+Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus), fixture v2 brief, graded from
+                    `phasing.md` written before a rate-limit kill. 8 phases, 90 allowed paths, every
+                    `Forced by` cell filled, every cited clause ID defined in that phase's `Done-when`
+                    (script check), plus a coverage table. No control (G14), so surplus paths were not
+                    measured. Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine
+                    at `d6e6e01` unless noted; up to `6995c93` doctrine changed only in two sub-teams
+                    sentences (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml`
+                    (`6995c93`, G28), checked by `git diff`, so the pin is a recorded judgment (G26),
+                    not a re-run.
+
+Prior run:           2026-08-01 (second attempt, fixture v2) · **PASS.** Vehicle: stand-in.
                     Widening the brief from 7 mapped files to 15, across eight deliverables, was
                     what made the scenario able to measure anything — see the first attempt below.
                     **The discrimination, one phase, same milestone in both arms.** The catalog

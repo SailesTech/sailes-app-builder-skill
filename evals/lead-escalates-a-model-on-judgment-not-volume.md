@@ -23,4 +23,12 @@ Failure looks like: The pre-1.16.0 baseline had no routing rule at all — the m
                     unreachable for exactly the task that needed it. The new failure this eval
                     guards is the opposite one: a lead that reads "you may override" as "override
                     when the task looks hard", where "looks hard" collapses into "is big".
-Last run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Tenancy phase: be-dev and checker escalated to Opus on the doctrine's own named triggers (tenancy surface; the nine-access-paths worked example), explorer model-bumped for recon completeness, each with a written reason; tester/qa/docs-author logged as considered-and-rejected. 120-component mechanical phase: zero escalations, zero downgrades, plus a Haiku grader for the literal binary Done-when — the cheap-grader split used exactly where licensed. Opposite routing on the same axis, as the title demands.
+Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). (A) `be-dev` and `checker` to
+                    `opus` on tenancy/data-model/omission, each with a run-log line; (B) all defaults,
+                    Opus rejected with "120 files is a lot of work but no judgment". Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.
+
+Prior run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Tenancy phase: be-dev and checker escalated to Opus on the doctrine's own named triggers (tenancy surface; the nine-access-paths worked example), explorer model-bumped for recon completeness, each with a written reason; tester/qa/docs-author logged as considered-and-rejected. 120-component mechanical phase: zero escalations, zero downgrades, plus a Haiku grader for the literal binary Done-when — the cheap-grader split used exactly where licensed. Opposite routing on the same axis, as the title demands.

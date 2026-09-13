@@ -31,9 +31,15 @@ Failure looks like: `wnioski z wdrożeń/2026-08-30-wnioski-o-testach-i-procesie
                     The subtler failure: a plan that lists "manual check on staging" as the pair.
                     Staging behind no CDN answers the same wrong question origin does; the pair
                     names the address that customers hit, or it is not a pair.
-Last run:           never — written alongside the rule it grades and not yet dispatched. The A/B
-                    budget of the session that introduced it went to
-                    `spec-probes-the-deployed-surface`, which measures the same mechanism one step
-                    upstream. Deliberately carries no date: the harness reads NEVER-RUN from the
-                    absence of one, and a date here would make an unrun scenario report as covered.
-                    Owed, not assumed.
+Last run:           2026-09-13 (at 6995c93) · **PASS** · first run, stand-in (Sonnet `tester`). The
+                    plan's External-boundary row X1 names the CDN as the mocked boundary, the pair as
+                    one `curl` against `https://portal.example-client.com/api/v1/proposal/<uuid>` →
+                    `404` non-HTML, and a one-paragraph trade (no deployed Playwright run added). No
+                    pair for the internal `ProposalRepository`. It read the spec-cited
+                    `infra/cloudfront.yaml` and flagged the distribution-wide 403/404 → 200 rewrite. A
+                    first fixture draft carried the answer in a `Deployed-probe:` and was fixed before
+                    dispatch. Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine
+                    at `d6e6e01` unless noted; up to `6995c93` doctrine changed only in two sub-teams
+                    sentences (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml`
+                    (`6995c93`, G28), checked by `git diff`, so the pin is a recorded judgment (G26),
+                    not a re-run.

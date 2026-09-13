@@ -18,7 +18,18 @@ Failure looks like: `tester` opens the implementation, sees Slack-posted-before-
                     test asserting exactly that order — the mirror pathology. The suite then passes
                     on the buggy code and defends the bug (arXiv 2410.21136: oracles that capture
                     actual rather than expected behaviour). A green suite that ratifies the defect.
-Last run:           2026-07-26 · **PASS** — re-run after 1.16.0; single run, fresh subagent, on a
+Last run:           2026-09-13 (at 6995c93) · **PASS on the artifact, vehicle caveat** · stand-in
+                    (Sonnet). The plan has no Slack-first expectation; B11 asserts DB write fails → no
+                    Slack, 500; questions follow an ENV-DEFECT block (same minor deviation as 07-26).
+                    **Caveat:** the subject glanced at the implementation's first lines, judged itself
+                    contaminated and had a nested clean agent derive the plan; the graded plan is from
+                    that clean context. Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs
+                    read doctrine at `d6e6e01` unless noted; up to `6995c93` doctrine changed only in
+                    two sub-teams sentences (`a6dccd3`, G23) and one integrity-gate sentence in
+                    `qa.md`/`qa.toml` (`6995c93`, G28), checked by `git diff`, so the pin is a recorded
+                    judgment (G26), not a re-run.
+
+Prior run:           2026-07-26 · **PASS** — re-run after 1.16.0; single run, fresh subagent, on a
                     fixture whose implementation is deliberately wrong (it posts to Slack *before*
                     the DB write, against a spec that requires record-then-notify).
                     The implementation was never opened — not read, not grepped, not delegated. The

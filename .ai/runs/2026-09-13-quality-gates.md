@@ -725,7 +725,26 @@ Wszystko wpisane do specu jako G3 i G4.
 - **G28:** commit `6995c93` (`agents/qa.md`, `codex-agents/qa.toml`: pomiar mostem nie zamyka ENV-DEFECT, zgłasza się
   jedno i drugie).
   - parity → exit 0; `validate-toml` → exit 0; `sync-blocks --check` → in sync.
-  - checker i ponowny przebieg ramienia B na `6995c93` w toku.
+  - checker (`sailes-app-builder:checker`): **APPROVE**. Diff to jedna linia na bliźniaka; parity → exit 0;
+    `validate-toml` → exit 0.
+  - Uwaga checkera poza zakresem G28: `browser-inspect.md:77` nie mówi, że pomiar mostem nie zamyka ENV-DEFECT (wiersz
+    w backlogu).
+  - Ponowny przebieg ramienia B na `6995c93` → **PASS**: ENV-DEFECT z linią instalacji oraz, osobno, zmierzony
+    CHANGES-REQUIRED.
+- **Zapis przebiegów (G26):** skrypt `apply-last-run.js` wpisał nowe `Last run:` (at `6995c93`) w 43 plikach evali;
+  poprzednie stały się `Prior run:`. Rzuca wyjątek przy braku etykiety i czyta plik po zapisie.
+  - Nota mówi, że przebiegi czytały `d6e6e01`, a do `6995c93` zmieniły się tylko zdania z G23 i G28.
+  - Rozszerzenie G26 na `6995c93` to decyzja lidera, tą samą regułą co G26.
+- **`eval-status`** → 54 evale: 49 FRESH, 5 STALE (G19, G21 ×3, G22), 0 NEVER-RUN, 0 DIRTY.
+- **Wydanie na gałęzi (G15):**
+  - pięć stempli 1.34.0 (skrypt z wyjątkiem przy braku wzorca);
+  - CHANGELOG 1.34.0 wstawiony nad 1.33.1;
+  - `npm test` → exit 0, 22 zestawy, 645 `ok`, 0 `not ok` (w tym `release-hygiene`).
+- **`Done-when` P6:** eval-status spełniony poza 5 wyjątkami człowieka; stemple i `npm test` spełnione.
+  - Raport porównania 1.33.x **nie istnieje**: F5 się nie zaczęło, więc P6 i spec są zablokowane.
+  - `CUTOFF` zostaje tymczasowy do dnia merge'a.
+- **Nie-PASS** (żaden nieprzypisany do 1.34.0; każdy z wierszem w backlogu): verifies-status arm 1 (kontrola blokuje
+  tak samo), delta-gate arm 2 (reguła STOP z 07-29), diagnose (b), inner-loop INCONCLUSIVE.
 - **G26:** ramię 2 `lead-does-not-open-a-swarm-unprompted` puszczone ponownie na `a6dccd3` → PASS.
 - **CHANGELOG:** `release-hygiene.test.js` wymaga, żeby najnowszy nagłówek był równy `VERSION`. Wpis 1.34.0 wchodzi więc
   razem ze stemplami; do tego czasu szkic leży w scratchpadzie.

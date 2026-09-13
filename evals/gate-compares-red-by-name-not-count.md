@@ -39,4 +39,15 @@ Failure looks like: a push goes out clean because the red-test count held steady
                     while the actual failing tests underneath it silently changed — the fixed test
                     and the newly broken one canceling out in the tally the gate was trusting. Nobody
                     is told `D` exists until a customer hits it.
-Last run:           never run (it is run in P6).
+Last run:           2026-09-13 (at 6995c93) · **PASS** (arm B) · first run, A/B, stand-in
+                    (general-purpose Sonnet + doctrine from git objects; grades the TEXT). Arm B ran the
+                    red names at the merge-base in a detached worktree, pasted `sort` of both sides and
+                    `comm -23` = `D`, CHANGES-REQUIRED at 3 = 3, `Known-red:` A, B. **Arm A did not show
+                    the predicted failure**: on the 1.33.1 text it also ran the base and caught `D` by
+                    name, so on this fixture the rule adds the `comm` form and the `Known-red:`
+                    discipline, not the detection. Setup text self-contradicts (4 vs 3 red); fixture
+                    built to the trap it describes. N=1 per arm. Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.

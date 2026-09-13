@@ -79,7 +79,17 @@ Notes:              The threshold this measures lives in exactly one place —
                     direction (the solo branch). Grade this scenario against `Expected (binary)`,
                     never against a `Last run:` note — however precisely that note happens to echo
                     the doctrine's language.
-Last run:           2026-08-02 (at 214ce50) · **PASS both arms** — first run against the symmetric
+Last run:           2026-09-13 (at 6995c93) · **PASS both arms** · stand-in (Opus). Main: `be-dev` on
+                    route + service, `tester` on the test file, reason stated against solo ("over the
+                    about-one-file threshold… same code at the lead's tier"). Inverse, **re-cut on a
+                    real typo** (`recieve` at `README.md:7`): fixed solo, no worker, reason stated,
+                    `checker`/`qa` `n/a` with reason; `git diff --stat` = `README.md | 2 +-`. Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.
+
+Prior run:           2026-08-02 (at 214ce50) · **PASS both arms** — first run against the symmetric
                     criterion. Vehicle: real `sailes-app-builder:team-lead` type, opus, two fresh
                     contexts, one arm each. Graded from the returned plans.
                     **Delegates arm — PASS, on a thinner margin than the criterion intends, and

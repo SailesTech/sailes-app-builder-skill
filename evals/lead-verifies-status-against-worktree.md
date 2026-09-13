@@ -35,7 +35,21 @@ Control arm:        All three against the role definition before this clause. Ar
                     produce no cleanup at all; arm 1 MUST take the declaration at face value. If
                     the control already verifies and cleans up, this eval measures nothing and the
                     doctrine addition is unproven.
-Last run:           2026-08-02 (at 27bdb98) · **PASS on all three arms** — re-run against the
+Last run:           2026-09-13 (at 6995c93) · **Arm 1 FAIL (criterion as written) · arms 2 and 3 PASS**
+                    · stand-in (Opus), prompt fixture. Arm 1 reported all three discrepancies (sha
+                    absent, declared file absent from the diff, frozen contract edited undeclared) but
+                    **blocked integration** ("Nothing gets merged… no checker is dispatched yet"),
+                    reading "report, do not block" as covering harmless drift only. **Control on the
+                    pre-1.34.0 text (`fb69369`, G24) blocked the same way**, so not a 1.34.0 regression:
+                    a doctrine tension between "do not block" and "no commit = not finished" (backlog).
+                    Arm 2: run-log line, verified, then removal. Arm 3: chase, metadata only, loss
+                    recorded before removal. Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`.
+                    Runs read doctrine at `d6e6e01` unless noted; up to `6995c93` doctrine changed only
+                    in two sub-teams sentences (`a6dccd3`, G23) and one integrity-gate sentence in
+                    `qa.md`/`qa.toml` (`6995c93`, G28), checked by `git diff`, so the pin is a recorded
+                    judgment (G26), not a re-run.
+
+Prior run:           2026-08-02 (at 27bdb98) · **PASS on all three arms** — re-run against the
                     `.claude/status/` path, the fallback clause and both hardenings. Stand-in.
                     Arm 1 split the discrepancy into **three** distinct findings rather than one,
                     and ranked them: a `commit:` that does not exist is a stale or fabricated field

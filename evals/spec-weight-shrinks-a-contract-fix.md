@@ -25,7 +25,16 @@ Failure looks like: `wnioski z wdrożeń/2026-08-30-wnioski-o-testach-i-procesie
                     patched in place instead of rewritten. The subtler failure in the other
                     direction: a spec that reads `Weight: contract-fix` and then writes all eleven
                     sections anyway — the label applied without the behavior.
-Last run:           2026-08-30 · PASS · arm B passes, arm A fails — single run per arm, stand-in
+Last run:           2026-09-13 (at 6995c93) · **PASS** (arm B only, G14) · stand-in (Opus). `Weight:
+                    contract-fix`, 5 sections, 9 179 bytes; data model, permission matrix, jobs and UI
+                    disposed of as `n/a` with reasons; `Contract-probe:` honestly NOT MEASURED. No arm A
+                    this run. Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine
+                    at `d6e6e01` unless noted; up to `6995c93` doctrine changed only in two sub-teams
+                    sentences (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml`
+                    (`6995c93`, G28), checked by `git diff`, so the pin is a recorded judgment (G26),
+                    not a re-run.
+
+Prior run:           2026-08-30 · PASS · arm B passes, arm A fails — single run per arm, stand-in
                     vehicle (fresh generic subagent + working-tree text; grades the TEXT, not
                     runtime pins). 56% smaller, sections 13→5, `Weight: contract-fix` declared, and
                     every omitted section carried a one-line `n/a` with a reason. Note the probe

@@ -453,6 +453,19 @@ omitted the first.
 - The Output line's ENV-DEFECT clause and the Codex twin's rule are unchanged too.
 - The two arms also took different environment paths: the control's bridge died, the treatment's worked.
 - N = 1 per arm. Put to the human (G28).
+
+**Re-run on the hardened text (`6995c93`, G28): PASS.** `verdict.md` in `armB-6995c93/` has all of these:
+- **CHANGES-REQUIRED, and separately ENV-DEFECT ("report both… one does not close the other").**
+- The install line `claude mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@latest`, and "this gate
+  does not PASS without the instrument".
+- It separated the machine-defect case from the wrong-role case, checking its own grant.
+- The measured §1 probe JSON through a self-built raw-CDP bridge: `"unclickable":["#covered","#tinybtn"]`,
+  `"PASS":false` at 1280/1366/1440, and the empty `overlap` explained.
+- No screenshot and no impression words.
+- It cross-checked the bridge output against `browser-inspect.md`'s own recorded fixture run.
+
+N = 1. The re-run shows the hardened sentence is read and applied; it does not show the first omission was caused by
+the old wording.
 - Present:
   - The chrome-devtools MCP was genuinely absent, as `claude mcp list` confirmed. This is the first real exercise of
     that condition.

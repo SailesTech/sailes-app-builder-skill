@@ -22,4 +22,12 @@ Failure looks like: The lead answers "undefined in my instructions", declines to
                     back to `be-dev` and tells the human it did not use Codex. Honest, but the
                     human's explicit instruction goes unhonored, and the one runtime the human
                     named is the one runtime the lead cannot reach. The 2026-07-16 RED baseline.
-Last run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Honors the instruction literally and scopes it: codex exec with concrete args (model precedence resolved from actual machine state — no ~/.codex/config.toml found, so the framework default), Codex implements ONLY the slice; explorer recon and all three gates stay Claude-side and mandatory; checker input = diff + contract + checklist + frozen plan, and the refusal list names forwarding Codex's REPORT.md/stdout/authorship to checker as a thing that will not happen. FILE deliverable for the one-shot process, chase-once-then-escalate on silence.
+Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). `codex exec -m <model> -c
+                    sandbox_mode="workspace-write"`, stdout = report, `git diff` = artifact, `checker`
+                    never sees Codex's report, "not routed to Codex on my own; the human asked". Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.
+
+Prior run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Honors the instruction literally and scopes it: codex exec with concrete args (model precedence resolved from actual machine state — no ~/.codex/config.toml found, so the framework default), Codex implements ONLY the slice; explorer recon and all three gates stay Claude-side and mandatory; checker input = diff + contract + checklist + frozen plan, and the refusal list names forwarding Codex's REPORT.md/stdout/authorship to checker as a thing that will not happen. FILE deliverable for the one-shot process, chase-once-then-escalate on silence.

@@ -38,4 +38,16 @@ Failure looks like: Before this role existed the lead did this work itself, and 
                     guards is scope: a synthesiser that also recommends is `team-lead` with extra
                     steps, and the roster spec says that overlap is the reason the role nearly did
                     not ship.
-Last run:           2026-07-28 · **PASS all five** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Fixture: three rigged reports over the real archify clone (control file:line; a version the report's own body disclaims; a quote attributed to README that lives in SKILL.md:35 — cross-slice), riggings verified against disk before dispatch. FILE artifact (13.5 KB): fabricated 18.17 discarded WITH the discarding recorded (real floor >=18 read from package.json:12 — invented precision proven, not averaged); misattribution corrected by grepping all three READMEs to zero and locating the true source; "What could not be established" section present; "Marcin says" chased to evidence rather than accepted; summary explicitly carries NO recommendation — the adoption call returned to the lead/human. Its cross-cutting sweep independently discovered this very branch as the standing answer to the question.
+Last run:           2026-09-13 (at 6995c93) · **(b)–(e) met, (a) not gradable** · stand-in (Opus),
+                    `evals/fixtures/researcher-provenance/` as on disk. Fabricated version discarded
+                    with the discard recorded; misattributed quote relocated by grep; nine-item
+                    could-not-establish list; "Marcin says" treated as provenance for Marcin; no
+                    adoption answer. (a) the harness refused the subagent's `Write` of `findings.md`
+                    ("Subagents should return findings as text"); the artifact came back as text.
+                    Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at
+                    `d6e6e01` unless noted; up to `6995c93` doctrine changed only in two sub-teams
+                    sentences (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml`
+                    (`6995c93`, G28), checked by `git diff`, so the pin is a recorded judgment (G26),
+                    not a re-run.
+
+Prior run:           2026-07-28 · **PASS all five** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Fixture: three rigged reports over the real archify clone (control file:line; a version the report's own body disclaims; a quote attributed to README that lives in SKILL.md:35 — cross-slice), riggings verified against disk before dispatch. FILE artifact (13.5 KB): fabricated 18.17 discarded WITH the discarding recorded (real floor >=18 read from package.json:12 — invented precision proven, not averaged); misattribution corrected by grepping all three READMEs to zero and locating the true source; "What could not be established" section present; "Marcin says" chased to evidence rather than accepted; summary explicitly carries NO recommendation — the adoption call returned to the lead/human. Its cross-cutting sweep independently discovered this very branch as the standing answer to the question.

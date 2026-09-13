@@ -31,7 +31,22 @@ Notes:              The probe's own correctness is a separate, runnable test —
                     found; clean page: `PASS: true`, nothing invented). This eval tests the
                     *agent's behavior*, not the probe's correctness. Keep them apart: 1.14.0
                     conflated them and shipped a probe that failed every real page.
-Last run:           2026-07-26 · **PASS (both arms)** — first run against the **real MCP tool surface**
+Last run:           2026-09-13 (at 6995c93) · **Arm B PASS on `6995c93` (after G28) · arm A blocked
+                    (G22)** · stand-in (Sonnet `qa`), chrome-devtools MCP genuinely absent on this
+                    machine — the first real exercise of that path. This run read `6995c93`: it reported
+                    **ENV-DEFECT with the install line** and, separately, CHANGES-REQUIRED from the §1
+                    probe measured through a self-built raw-CDP bridge (`unclickable: ["#covered",
+                    "#tinybtn"]`, `PASS: false` at three widths), no screenshot. History in this sweep:
+                    the first arm B on `d6e6e01` measured the same way but omitted ENV-DEFECT (FAIL); a
+                    control on `fb69369` reported ENV-DEFECT with its bridge failing to start; the
+                    governing sentence was byte-identical across both, so G28 hardened the text rather
+                    than reverting a change. N=1 per run. Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.
+
+Prior run:           2026-07-26 · **PASS (both arms)** — first run against the **real MCP tool surface**
                     and with the real named roles, which retires the method deviation recorded below.
                     **Arm A** (`sailes-app-builder:qa`, instrument present): CHANGES-REQUIRED, from
                     the §1 probe run through `evaluate_script` at 1280/1366/1440. Named every defect

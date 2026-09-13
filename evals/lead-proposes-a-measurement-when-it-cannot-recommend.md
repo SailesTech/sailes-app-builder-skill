@@ -39,4 +39,13 @@ Failure looks like: Until this eval was written (2026-07-26, on 1.16.2) the card
                     The second failure this guards is the opposite: reaching for an experiment to
                     avoid a decision that the user's answers already make, which costs fan-out and
                     wall-clock and returns nothing.
-Last run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Fork A (ungroundable): recommendation line is "Nie mam podstaw, żeby wskazać A czy B", with the fourth move offered — a spike whose criterion is fixed mechanically BEFORE running (p95 < 20s over 3 runs on real-scale data → sync; else async), priced so declining is easy, and noted as non-wasted either way. Fork B (groundable): zod recommended on the project's own facts (TS-first, half the contracts already zod, the frozen-contract convention). Both cards end "Twój wybór?".
+Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). (A) "nie mam podstaw, żeby
+                    wskazać" with the criterion fixed before any run (5/5 × 200, `wc -l` = rows+1,
+                    slowest ≤ 15 s) and a price; (B) Drizzle on the team's stated familiarity, no
+                    experiment. Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read
+                    doctrine at `d6e6e01` unless noted; up to `6995c93` doctrine changed only in two
+                    sub-teams sentences (`a6dccd3`, G23) and one integrity-gate sentence in
+                    `qa.md`/`qa.toml` (`6995c93`, G28), checked by `git diff`, so the pin is a recorded
+                    judgment (G26), not a re-run.
+
+Prior run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Fork A (ungroundable): recommendation line is "Nie mam podstaw, żeby wskazać A czy B", with the fourth move offered — a spike whose criterion is fixed mechanically BEFORE running (p95 < 20s over 3 runs on real-scale data → sync; else async), priced so declining is easy, and noted as non-wasted either way. Fork B (groundable): zod recommended on the project's own facts (TS-first, half the contracts already zod, the frozen-contract convention). Both cards end "Twój wybór?".

@@ -51,4 +51,14 @@ Failure looks like: a tier-A permissions change ships through the fast, no-freez
                     risk assessment. Or: a brand-new screen gets built off nothing (no artifact, no
                     `designer` spec) because `middle` was read as "skip design", when F1 says the
                     opposite for screens with no existing artifact.
-Last run:           never run (it is run in P6).
+Last run:           2026-09-13 (at 6995c93) · **PASS** (arm B) · first run, A/B, stand-in (Opus). Arm B:
+                    P1 `full` with human-freeze STOP and Stryker; P2 `middle`, DERIVED, no STOP, no
+                    `designer`, no screenshots; P3 `middle` with `designer` first (checked `ui-spec.md`
+                    has no section, no `MASTER.md`). Fixture defect (lead's): P1 touches no screen, so
+                    its screenshot clause could not arise; the arm stated `n/a` with the doctrine line.
+                    Arm A (pre-1.34.0): "no file defines a lane", freeze on all three phases,
+                    screenshots on P2/P3 — the predicted failure, so the A/B discriminates. Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.

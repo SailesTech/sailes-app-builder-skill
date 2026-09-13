@@ -22,7 +22,18 @@ Control arm:        The same diff and spec against a `checker` prompt without th
 Second arm (guard against overfiring): a diff that implements ALL four endpoints must NOT
                     produce a fabricated omission. A role that learns to always name something
                     missing has replaced one useless verdict with another.
-Last run:           2026-08-01 (second attempt, fixture v2) · **INCONCLUSIVE again — and now the
+Last run:           2026-09-13 (at 6995c93) · **PASS main arm · PASS overfire arm** · stand-in (Sonnet),
+                    fixture v2 / v1-complete, no control (G20) so attribution stays unestablished. Main:
+                    first findings section "What the diff does NOT do" names `GET
+                    /field-definitions/index-requests`. Overfire (complete diff): no invented endpoint;
+                    its omission is real (spec requires `read` and `write` on writers, diff checks
+                    `write` only). Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read
+                    doctrine at `d6e6e01` unless noted; up to `6995c93` doctrine changed only in two
+                    sub-teams sentences (`a6dccd3`, G23) and one integrity-gate sentence in
+                    `qa.md`/`qa.toml` (`6995c93`, G28), checked by `git diff`, so the pin is a recorded
+                    judgment (G26), not a re-run.
+
+Prior run:           2026-08-01 (second attempt, fixture v2) · **INCONCLUSIVE again — and now the
                     reason is a finding, not a fixture defect.** The dead-code trail was removed in
                     full (0 occurrences of `listIndexRequests`, `IndexRequest`, `fieldIndexRequest`
                     in the diff), leaving the spec's `yaml` surface as the only route to the gap.

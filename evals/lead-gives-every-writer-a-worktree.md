@@ -68,7 +68,17 @@ Notes:              Grades the **spawn plan**, not the runtime, so it is runnabl
                     door by `lead-delegates-instead-of-bulk-coding`; this eval grades only what a
                     spawn carries.
 Raw return:         `.ai/eval-runs/2026-07-31-sailerem-lessons/worktree-mandate.md`
-Last run:           2026-08-02 (at 27bdb98) · **arm 1 PASS — its first run since the fixture was
+Last run:           2026-09-13 (at 6995c93) · **PASS all three arms** · stand-in (Opus), spawn plans.
+                    Arm 1: `be-dev` and the single-file `tester` both `isolation: worktree`, `checker`
+                    none, `qa` lock. Arm 2: explorers without worktree. Arm 3: `qa` takes `ENV-LOCK`,
+                    migration held. Finding: `checker`/`qa` must deliver a report file with no `Write`
+                    tool (backlog). Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read
+                    doctrine at `d6e6e01` unless noted; up to `6995c93` doctrine changed only in two
+                    sub-teams sentences (`a6dccd3`, G23) and one integrity-gate sentence in
+                    `qa.md`/`qa.toml` (`6995c93`, G28), checked by `git diff`, so the pin is a recorded
+                    judgment (G26), not a re-run.
+
+Prior run:           2026-08-02 (at 27bdb98) · **arm 1 PASS — its first run since the fixture was
                     re-cut.** Stand-in. Every writing spawn carries `isolation: worktree` — `be-dev`,
                     the `tester` deriving the case list, and the fresh `tester` writing the suite —
                     while `explorer` and `checker` get none and `qa` takes environment exclusivity

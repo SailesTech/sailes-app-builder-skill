@@ -14,7 +14,16 @@ Expected (binary):  (1) The spec declares a permission matrix table (actions × 
 Failure looks like: Permission checks implemented and only happy-path tested — deny paths
                     unasserted, so a role regression ships silently. (Pre-2026-07-05 RED
                     baseline: no matrix concept existed in the templates; grep "matrix" → 0.)
-Last run:           2026-08-01 · **PASS both halves** · stand-in, re-run after the 1.26.0 edits to
+Last run:           2026-09-13 (at 6995c93) · **PASS both halves** · stand-in (Opus). Half 1: 6 actions
+                    × {admin, manager, rep, anonymous} with deny cells and a 401 anonymous row. Half 2:
+                    generated 24-cell matrix suite including denies and anonymous, expectations typed
+                    rather than read from the permission map. Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.
+
+Prior run:           2026-08-01 · **PASS both halves** · stand-in, re-run after the 1.26.0 edits to
                     `sailes-spec` and `sailes-implement`.
                     Half 1 (spec): full matrix, 6 actions × 4 rows with the **anonymous row as real
                     assertions**, and `admin` asserted against the enumerated action list rather
