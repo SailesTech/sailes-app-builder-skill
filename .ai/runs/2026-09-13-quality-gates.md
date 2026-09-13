@@ -438,3 +438,189 @@ Wszystko wpisane do specu jako G3 i G4.
 - Spec bez daty w nazwie: nie jest oceniany, dostaje komunikat. Trwałe. Odrzucone: ocenianie.
 - Plan P1 zamrożony jak zaproponowany: tier B, separator obowiązkowy, zła data = brak daty, exit 2 wygrywa,
   luźne dopasowanie stderr. Odrzucone: tier A; zmiana odpowiedzi.
+
+## P5 (sesja 2026-09-13, po `/clear`)
+- 2026-09-13: pre-flight P5. Brief P4 `be-dev` i brief P4 `checker` wydobyte dosłownie z transkryptu sesji P4 do
+  scratchpadu, bo powtórka z G4 ma iść na tym samym briefie. Dwie różnice są wymuszone:
+  - baza `git merge --ff-only 738be36`, bo `feat/1.34.0-quality-gates` zawiera już wynik P4;
+  - osobna nazwa pliku status na przebieg.
+
+  Cache pluginu ma `be-dev` w wersji 1.33.0 z regułą pełnego zestawu przed commitem deklaracji, którą P2
+  usunęło. Nazwana rola nie odpowiada więc żadnemu ramieniu.
+- Decyzje człowieka (G5 w specu):
+  - nośnik: stand-in z tekstem roli ramienia;
+  - „utracony raport”: dwie liczby, a bramka liczy się od odtwarzalności z dysku;
+  - stop po 3 różnych plikach z listy P4;
+  - przebiegi parami A+B, w 4 rundach.
+- 2026-09-13: dispatch `be-dev` na P5.1–P5.2 (doktryna), w worktree, baza `4d9f469` przez `merge --ff-only`.
+  Status: `.claude/status/be-dev-P5-report-doctrine.md`. A/B startuje po jego powrocie, bo ramię B czyta ten tekst.
+- 2026-09-13: `be-dev` P5.1–P5.2 wrócił z commitem `da23354` (worktree `agent-af6010f35ced59c3d`). Status zamknięty,
+  `outcome: done`. Lider sprawdził w worktree:
+  - brief-closure → exit 0;
+  - parity → exit 0;
+  - sync → in sync;
+  - `npm test` → exit 0, 0 `not ok`.
+
+  Diff obejmuje 9 plików z listy i raport. `agents-md-template.md` nie został ruszony, bo nie ma tej reguły.
+
+  Dwuznaczności zgłoszone przez `be-dev`:
+  - brak konceptu parity dla nowych pól;
+  - wypadły „contract shape” i „per-file diff summary” (zgodnie z listą P5.2);
+  - miejsce pomiaru integrity w `fe-dev`.
+
+  `checker` zlecony na `4d9f469..da23354` przed A/B, żeby tekst ramienia B nie zmienił się między rundami.
+- 2026-09-13: `checker` P5.1–P5.2 → **APPROVE**, bez NITS.
+  - Diff dotyka dokładnie plików P5.1 i P5.2.
+  - Na całym drzewie nie ocalało żadne zdanie, które każe implementerowi pisać plik raportu.
+  - Bliźniaki są zgodne. `lessons.md` dostał tylko dopisek. `agents-md-template.md` słusznie nietknięty.
+  - Uwaga dla człowieka: parity nie ma konceptu dla podziału plik/wiadomość (P2–P4 go dodawały).
+    Pójdzie do okna przy bramce P5.
+
+  Tekst ramienia B zamrożony na `da23354`. Rundy A/B ruszają.
+- 2026-09-13: A/B runda 1: A1 i B1 wystartowały razem jako stand-in `general-purpose`, `model: sonnet`, w worktree.
+  Mapowanie przebiegów na agentów i worktree jest w `.ai/eval-runs/2026-09-13-implementer-report-as-message/ledger.md`.
+- 2026-09-13: runda 1 zakończona. Oba przebiegi `outcome: done`, zielony `Done-when` (lider powtórzył go na dysku),
+  8/8 plików z listy P4.
+  - B1 (`964f777`): 0 linii w `.ai/`, 41 linii treści w commitach, wiadomość 25 linii.
+  - A1 (`70e4cf4`): 182 linie w `.ai/`, 10 linii treści w commitach, wiadomość 26 linii.
+
+  Wiadomości leżą w `returns/`, a oceny w `returns/*-grade.txt`. Dla obu przebiegów zlecony `checker`.
+  Runda 2 (A2+B2) wystartowała.
+- 2026-09-13: **wada narzędzia A/B, poprawiona.** `checker` B1 dał CHANGES-REQUIRED za brak zdania P4.3 „Test, którego na
+  bazie nie ma, nie jest czerwony na bazie”.
+  - **Przyczyna:** tego zdania nie ma w specu na `738be36`, który czytał worker (`git show` → brak trafień). Jest w głównym
+    drzewie, od `4d9f469`, bo dopisano je przy bramce P4. Brief `checker` wskazywał „the spec” bez ścieżki, więc `checker`
+    czytał spec późniejszy, łącznie z G3, czyli z odpowiedzią na prawdziwe znalezisko P4. Metryka „znaleziska `checker`
+    wobec prawdziwego NITS” była przez to skażona.
+  - **Poprawka:** builder `checker` wskazuje teraz spec przez `git show 738be36:…`. Werdykt B1 zostaje zapisany jako
+    przebieg z wadliwym narzędziem. `checker` A1 zatrzymany (`TaskStop`) przed zwrotem.
+  - Oba (`A1v2`, `B1v2`) puszczone od nowa. Briefy be-dev nie są dotknięte: worker czyta spec z własnego worktree na `738be36`.
+- 2026-09-13: korekta wpisu wyżej. `checker` A1 v1 nie został zatrzymany: `TaskStop` → „no task found”, bo zdążył wrócić
+  z CHANGES-REQUIRED. Znalezisko to sprzeczność `checker.md` „You never … nothing more” z nowym wyjątkiem read-only;
+  bliźniak `.toml` jest poprawiony. Werdykt odłożony jako przebieg z wadliwym narzędziem, bez oceny. Oceniane są tylko v2.
+- 2026-09-13: runda 2 zakończona, oba przebiegi `done`, zielony `Done-when` (lider powtórzył go na dysku), 8/8 plików.
+  - A2 (`d230da0`): 182 linie w `.ai/`, 16 linii treści w commitach, wiadomość 19 linii. Ścieżki w wiadomości wskazywały
+    główne drzewo, ale `git status` głównego drzewa nie ma plików ramienia.
+  - B2 (`3bb1896`): 0 linii w `.ai/`, 39 linii treści w commitach, wiadomość 18 linii, **jeden commit bez WIP**.
+
+  **Czynnik środowiska:** scratchpad sesji jest wspólny dla lidera, workerów i `checker`. B2 zgłosił, że ktoś nadpisał
+  jego katalog `parity-mutation-p4`. W scratchpadzie widać pliki kilku agentów (`p4-diff.txt`, `spec-at-738be36.md`,
+  `regex-probe`). B2 powtórzył dowód w unikalnie nazwanym katalogu. Briefów nie zmieniam w trakcie eksperymentu.
+  Czynnik trafia do VERDICT.
+
+  `checker` v2 A1 → **NITS**. Runda 3 (A3+B3) wystartowała. `checker` v2 B2 zlecony.
+- 2026-09-13: `checker` v2 B1 → **CHANGES-REQUIRED**.
+  - Brak obsługi testu nieobecnego na bazie w krokach `qa`/`checker`, który brief wymagał.
+  - Eval przypisuje sobie `checker`, a jego scenariusz obejmuje tylko `qa`.
+  - Nieblokująco: wyjątek od blokady środowiska dla bazy przeczy wyłączności przy e2e. To niezależnie
+    odtworzone prawdziwe znalezisko P4 (G3).
+- 2026-09-13: fact-check lidera na `checker` v2 A1 (NITS). Twierdzenie, że wyjątek read-only jest też w sekcji
+  „You never” `checker.md`, jest **fałszywe**. Sekcja nadal kończy się na „nothing more”, co potwierdza `git show
+  70e4cf4:agents/checker.md`. v2 przeoczył defekt znaleziony przez v1. Metryka „znaleziska `checker`” ma więc duży
+  rozrzut między przebiegami tego samego diffu, co trafi do VERDICT. Znaleziska z weryfikacją lidera są w
+  `checker/FINDINGS.md`.
+- 2026-09-13: `checker` v2 A2 → **NITS**. Regex parity nie ma kolejności ani odległości. Rozszerzenie D-P4b na `qa`
+  wymaga zgody człowieka przy żywym stosie, co jest tematem G3, jako uwaga.
+  Grep lidera na wszystkich przebiegach, heurystyczny:
+  - Sprzeczność „nothing more” w `checker.md` `## You never` jest już na `738be36` i w prawdziwym P4, więc dotyczy
+    wszystkich przebiegów. Żaden `checker` v2 jej nie zgłosił. To wspólna ślepa plamka, a nie różnica ramion.
+  - Zdanie o teście nieobecnym na bazie pokrywa pliki różnie w każdym przebiegu (A2 cztery role, A1 `checker`, B1
+    `SKILL.md`, B2 i prawdziwy P4 nigdzie). Zależy od przebiegu, nie od ramienia.
+
+  Tabela jest w `checker/FINDINGS.md`.
+- 2026-09-13: B3 (`548d3d8`) → `done`, zielony `Done-when` (lider powtórzył go na dysku), 8/8 plików. 0 linii w `.ai/`,
+  32 linie treści w commicie, **jeden commit bez WIP**, tak jak w B2. `checker` v2 B3 zlecony. Runda 4 czeka na A3.
+- 2026-09-13: `checker` v2 B2 → **NITS**.
+  - Brak zdania o teście nieobecnym na bazie, zgodnie z grepem lidera.
+  - Przebieg bazy dla czerwonego e2e zderza się z wyłącznością `qa`: temat G3, podany niezależnie jako NIT.
+  - Regex parity sprawdza tylko współwystępowanie `merge-base` i `comm -23`.
+
+  Werdykty v2 po rundach 1–2: A1 NITS, A2 NITS, B1 CHANGES-REQUIRED, B2 NITS. Temat G3 pojawił się w trzech z nich:
+  w B1 jako znalezisko nieblokujące, w A2 i B2 jako uwaga lub NIT.
+- 2026-09-13: A3 (`fcf4696`) → `done`, zielony `Done-when` (lider powtórzył go na dysku), 8/8 plików, 184 linie w `.ai/`,
+  24 linie treści w commitach, 3 commity WIP. Katalog scratch `parity-mutation-p4` ma tę samą nazwę co katalog, który B2
+  zgłosił jako nadpisany, więc kolizja wynika ze wspólnego nawyku nazewniczego, a nie z ramienia. `checker` v2 A3 zlecony.
+- 2026-09-13: **runda 4 (przerwana)**. A4 i B4 wystartowały razem, a do każdego podpięty jest `stop-watch.sh` jako
+  Monitor. `TaskStop` następuje po 3 różnych plikach z listy P4, zgodnie z G5.
+- 2026-09-13: **A4 przerwany.** STOP-NOW o 14:26:27 (n=3), `TaskStop` o 14:26:34, w chwili zatrzymania nadal 3 pliki.
+  - Na dysku: 1 WIP (`828826d`, P4.1), niezacommitowany `qa.md`, raport z 22 liniami w WIP, status bez `closed`.
+  - Przed powrotem B4 lider zamroził w `DESIGN.md` kryteria 3b i zasadę, że metryka 2 nie dotyczy przerwanych
+    przebiegów. „Co zweryfikowano” = tak tylko wtedy, gdy artefakt nazywa uruchomione komendy albo wprost mówi, że
+    ich nie było.
+  - Ocena A4: 3a tak; 3b **2/3** (brak stanu weryfikacji), więc nie do odtworzenia.
+    Szczegóły w `returns/A4-recoverability.md`.
+- 2026-09-13: `checker` v2 B3 → **NITS**. Temat G3 wraca jako uwaga nieblokująca, obok zakresu nagłówka evala i kruchości
+  regexu. Twierdzenie o zdaniu „nieobecny na bazie” po obu stronach potwierdza grep lidera: nowe trafienia są we wszystkich
+  czterech plikach ról. A3 ma je tylko w `checker.md`. Obaj mają sprzeczność „nothing more”, żaden nie ma wyjątku od blokady.
+  Tabela jest w `checker/FINDINGS.md`.
+- 2026-09-13: **B4 przerwany.** STOP-NOW o 14:28:27 (n=3), `TaskStop` o 14:28:35, w chwili zatrzymania nadal 3 pliki.
+  - Na dysku: 0 commitów, 3 pliki niezacommitowane (+8/−2), status bez `closed`, brak raportu i treści commitów.
+  - Ocena według kryteriów zamrożonych przed jego powrotem: 3a nie; 3b **2/3** (brak stanu weryfikacji), więc nie do
+    odtworzenia, tak samo jak A4.
+  - Różnica poza metryką: A4 miał P4.1 w commicie WIP i raport mówiący, który krok skończył. B4 nie ma nic w
+    commitach, a krok trzeba wywnioskować z nazw plików.
+
+  Szczegóły w `returns/B4-recoverability.md`.
+- 2026-09-13: `checker` v2 A3 → **CHANGES-REQUIRED**: `checker.toml` zgubił zdanie o teście nieobecnym na bazie, które
+  `checker.md` ma. Grep lidera to potwierdza. Wszystkie 8 przebiegów i 6 werdyktów v2 są zebrane.
+- 2026-09-13: `Done-when` P5 na gałęzi doktryny (`da23354`), powtórzony przez lidera: brief-closure → exit 0; parity → exit 0;
+  `npm test` → exit 0, 0 `not ok`. Warunek VERDICT oceniony w `VERDICT.md`.
+
+## Decyzje człowieka na bramce P5 (2026-09-13) — w specu jako G6–G9
+- **G6.** Merge P5 plus reguła dla `be-dev`/`fe-dev`: po każdym kroku commit WIP, a w jego treści komendy weryfikacji
+  uruchomione do tej pory. Potem `checker` i jedna przerwana para: A z doktryną sprzed zmiany, B z doktryną P5 i regułą.
+  Odrzucone: merge bez zmian; P5 poza 1.34.0; 3 kolejne przerwane pary bez zmian.
+- **G7.** Koncept parity dla podziału plik/wiadomość. Odrzucone: bez konceptu.
+- **G8.** Defekt z P4 w `checker.md` („You never … nothing more”) poprawia lider od razu, potem `checker`.
+  Odrzucone: poprawka z konceptem na negację; wiersz w backlogu.
+- **G9.** Patche A4/B4, usunięcie 10 worktree, gałęzie zostają. Odrzucone: zostawić do P6; usunąć tylko 2 stare.
+
+## Zdarzenia po bramce P5
+- 2026-09-13: commit dowodów A/B → `5374b47` (`.ai/eval-runs/2026-09-13-implementer-report-as-message/`).
+- 2026-09-13: **pierwsza próba merge'a P5 nie ruszyła.** `git merge -F -` → „could not read file '-'”, bo `merge` nie
+  czyta treści ze stdin. Skrypt nie przerwał się mimo `set -e`, a HEAD został na `5374b47`. Merge powtórzony z plikiem
+  treści, bez `-F -`.
+- 2026-09-13: G9 wykonane.
+  - Patche: `returns/A4-uncommitted.patch` (2957 B, 1 plik), `returns/B4-uncommitted.patch` (10560 B, 3 pliki); żadnych
+    plików nieśledzonych.
+  - Usunięte: 2 stare worktree po sprawdzeniu `merge-base --is-ancestor` i czystego statusu. Potem 6 pełnych przebiegów,
+    po sprawdzeniu czystego statusu. Na końcu A4 i B4 z `--force`. Każde `remove` → exit 0.
+  - Zostało: 8 gałęzi A/B oraz worktree doktryny P5.
+- 2026-09-13: merge P5.1–P5.2 → **`fd4c72d`** (rodzice `5374b47` + `da23354`), bez stanu MERGE_HEAD przed operacją.
+- 2026-09-13: G8 → **`d2303e8`**. `agents/checker.md` `## You never` nie przeczy już nazwanemu wyjątkowi i odsyła do
+  niego. Końce linii: LF, jednolite. Parity → exit 0; frontmatter → exit 0; sync → in sync. `checker` na
+  `fd4c72d..d2303e8` zlecony.
+- 2026-09-13: worktree doktryny P5 usunięte po merge'u (zmergowane, czyste, gałąź zostaje). `git worktree list` pokazuje
+  tylko główne drzewo.
+- 2026-09-13: dispatch `be-dev` na G6 i G7, baza `d2303e8` przez `merge --ff-only`, status `be-dev-P5-G6G7.md`.
+  - G6: reguła WIP ze stanem weryfikacji dla `be-dev`/`fe-dev`.
+  - G7: koncepty parity (a) wiadomość do 40 linii, (b) plik tylko dla ról bramkujących na `team-lead`, (c) reguła G6.
+    Koncept (c) to decyzja lidera, zgodna z praktyką P2–P4.
+  - Raportuje wiadomością, zgodnie z doktryną P5. Katalog scratch z unikalną nazwą, bo scratchpad jest wspólny.
+- 2026-09-13: **`STATE.md` zrotowany przed dalszą pracą** (19,6 KB → 8,0 KB). Wszystkie wpisy „Last session” od zamknięcia
+  P4 wstecz do 2026-09-12, 194 linie, przeszły dosłownie do `.ai/archive/STATE-archive.md` jako nowa sekcja nad
+  rotacją 2026-08-30. Na ich miejscu jest jeden wpis P5 („resume here”): stan bramki, zadania w toku, kolejność
+  pozostałych kroków i przeniesione zaległości (lista CHANGELOG na P6, `CUTOFF`, F5, archify, kandydaci na lekcje).
+  `Last-commit:` → `d2303e8`. Oba pliki CRLF, jednolite.
+- 2026-09-13: `checker` G8 (`fd4c72d..d2303e8`) → **APPROVE**.
+  - Diff: jeden plik, +1/−1.
+  - Bliźniaki zgodne co do zakresu wyjątku: tylko przebieg bazy, tylko metadane `.git`, nigdy diff ani drzewo robocze.
+  - Jedyne niekwalifikowane „read-only” to krótkie opisy we frontmatterze (`.md:3`, `.toml:3`). Parity sprawdza je jako
+    niezmiennik, a same nie są regułą.
+  - Nowa linia jest ograniczona, bo odsyła do jednego, w pełni opisanego wyjątku. Parity → 0; frontmatter → 0; sync → in sync.
+- 2026-09-13: `be-dev` G6+G7 wrócił z commitem **`c0b8757`** i raportem wiadomością (P5).
+  - Status zamknięty, `outcome: done`, 5 plików: G6 w czterech bliźniakach `be-dev`/`fe-dev` oraz trzy koncepty w
+    `parity.test.js`.
+  - Lider sprawdził w worktree: parity → exit 0; brief-closure → 0; frontmatter → 0; sync → in sync; `npm test` → exit 0,
+    0 `not ok`; LF jednolite.
+  - Odstępstwo: bliźniaki `.toml` nie miały dosłownej reguły `WIP:`, więc zdanie G6 (skrócone, „Commit often…”) stoi przy
+    klauzuli o commicie deklaracji.
+  - Worker stosował G6 do siebie: 2 commity WIP ze stanem weryfikacji w treści. Pierwszy mówi „passed manually, see grep
+    output in session”, bez wyjścia komendy. To furtka dosłownego stosowania reguły, oddana `checker` jako punkt 2.
+  - `checker` na `d2303e8..c0b8757` zlecony. Brief B5 zbudowany z `c0b8757:agents/be-dev.md`: diff względem B4 to tylko
+    zdanie G6 i etykieta.
+  - Para A5+B5 czeka na werdykt, żeby B nie testował tekstu, który jeszcze się zmieni.
+- 2026-09-13: lider potwierdził w logu parity na `c0b8757` koncept (b) `team-lead`: „the report-FILE-from-first-change rule
+  is scoped to the gate roles (checker, qa, tester)” → ok w obu bliźniakach (linia 82). Koncepty (a) i (c) dla
+  `be-dev`/`fe-dev` → ok. Regex (c) jest prawie dosłowną frazą, więc wierna parafraza reguły go obleje. Ocenę kruchości
+  zostawiam `checker` (punkt 3 briefu).
