@@ -67,13 +67,32 @@ moves, one API path, one FE screen.` A weight nobody wrote is a weight nobody ca
 this rule exists because the default was never a decision at all.
 <!-- END spec-weight -->
 
-**Wire.** Run `node tools/deployed-surface-check.js <spec>` (or apply its rule by reading, when the
-framework repo is not reachable from here). A phase whose behavior depends on a status code, a
-header or a `Content-Type` must name where that is observed on the **deployed** address. Not
-origin, not localhost, not a mock. This is the cheapest finding in the whole gate: one command,
-and it is the only thing that would have caught 2026-08-29 — a feature that shipped with unit
-tests, Playwright e2e and a green `qa` gate, and worked for zero customers, because CloudFront
-rewrites the origin's `404` into `200 text/html` and nothing ever asked the deployed host.
+**Wire.** Run `node "${CLAUDE_PLUGIN_ROOT}/tools/deployed-surface-check.js" <spec>` (or apply its
+rule by reading, when the framework repo is not reachable from here). A phase whose behavior
+depends on a status code, a header or a `Content-Type` must name where that is observed on the
+**deployed** address. Not origin, not localhost, not a mock. This is the cheapest finding in the
+whole gate: one command, and it is the only thing that would have caught 2026-08-29 — a feature
+that shipped with unit tests, Playwright e2e and a green `qa` gate, and worked for zero customers,
+because CloudFront rewrites the origin's `404` into `200 text/html` and nothing ever asked the
+deployed host. `tools/` ships with the plugin, not the client repo's working tree —
+`${CLAUDE_PLUGIN_ROOT}` is how a hook already reaches it (`hooks/hooks.json`); an unqualified path
+into `tools/` only resolves from inside this framework repo itself. **If `CLAUDE_PLUGIN_ROOT` is
+unset** (a session running the pre-plugin `install.sh` path, which copies `skills/` only), the
+check has no script to reach — report that as a blocker ("deployed-surface-check unavailable —
+plugin not active, apply the rule by reading") rather than let `node` die with `MODULE_NOT_FOUND`,
+which reads as a broken tool rather than a missing variable.
+
+**Contract.** Before any dispatch, the lead (or `explorer` on the lead's order) calls **every
+existing contract the phase stands on** — an API it calls, a webhook payload it receives, a
+third-party response it parses — on the **local stack with seed/fixture data**, and pastes the
+raw response into the spec's `Contract-probe:` field, redacting tokens/secrets/PII as
+`<redacted>`. Documentation is not the source of truth about data shape; a measured response is.
+Run `node "${CLAUDE_PLUGIN_ROOT}/tools/contract-probe-check.js" <spec>` to confirm every graded
+phase answers. **A missing field is NOT-READY.** If the local stack does not boot, that is an
+`ENV-DEFECT` and NOT-READY — a broken environment is never a reason to write `n/a`; `n/a` is only
+for a phase that genuinely stands on no existing contract. **If `CLAUDE_PLUGIN_ROOT` is unset**,
+report that as a blocker ("contract-probe-check unavailable — plugin not active, verify every
+`Contract-probe:` field by hand") rather than let `node` die with `MODULE_NOT_FOUND`.
 
 ### Phase 2 — Backward-compatibility audit
 For each affected surface, ask: does the spec **rename / remove / narrow** something other code depends on? Walk these contract surfaces (drop those that don't apply to this stack):
