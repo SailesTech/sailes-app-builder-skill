@@ -70,6 +70,15 @@ ownership:
     - codex-agents/fe-dev.toml
     - codex-agents/parity.test.js
     - evals/lead-picks-the-lane-from-the-tier.md
+  P4:
+    - skills/sailes-implement/SKILL.md
+    - skills/sailes-bootstrap/release-checklist.md
+    - agents/qa.md
+    - codex-agents/qa.toml
+    - agents/checker.md
+    - codex-agents/checker.toml
+    - codex-agents/parity.test.js
+    - evals/gate-compares-red-by-name-not-count.md
 ```
 
 ## Decyzje
@@ -189,6 +198,118 @@ ownership:
 - `checker` uruchamia nazwy na bazie w **tymczasowym worktree poza repo**: `git worktree add --detach <tmp> <baza>`,
   a po przebiegu `git worktree remove`. To nazwany wyjątek od read-only, zapisuje tylko metadane `.git`.
   Odrzucone: przebieg na bazie przez lidera; `checker` tylko nazywa czerwień.
+
+## Zdarzenia P4
+- 2026-09-13: dispatch `be-dev` na P4 (P4.1–P4.4 i koncept parity) w worktree.
+  - Baza przez `merge --ff-only feat/1.34.0-quality-gates`, a brief wymaga, żeby HEAD był wtedy `738be36`.
+  - `tester: n/a`, brama `checker`, `qa: n/a`.
+  - Raport: `.ai/runs/2026-09-13-quality-gates-P4-be-dev-report.md`. Status: `be-dev-P4-quality-gates.md`,
+    bo `be-dev-P4-<hash>.md` z innego specu już istnieje.
+  - `parity.test.js` dopisany do tabeli plików P4, choć tabela specu go nie wymienia: `Done-when` wymaga
+    konceptu parity.
+  - Odczyt lidera w briefie: decyzję o tymczasowym worktree bazy lider przeniósł na przebieg bazy `qa`
+    przed pushem. `qa` ma to samo ograniczenie (brak Write/Edit, nie może ruszać testowanego drzewa), a
+    checkout w głównym drzewie odpada, bo niszczy kopię roboczą. Poza oknem decyzji, do potwierdzenia przy
+    bramce P4.
+- 2026-09-13: `be-dev` P4 wrócił z commitem `77df5c6` (worktree `agent-aca1acd19b701a36d`, 2 WIP + final).
+  Lider sprawdził w worktree:
+  - diff to 8 plików z tabeli P4 plus raport, nic poza tym;
+  - `merge-base` → trafienie w każdym z 4 plików; `comm -23` → w obu;
+  - parity → exit 0, koncept „pre-existing red compared by name against the base, never by count” dla
+    `qa` i `checker`;
+  - `sync --check` → in sync;
+  - `npm test` → exit 0, 0 `not ok`.
+
+  Reguła `checker` bierze bazę z lewej strony zakresu diffu od lidera i wprost odróżnia ją od merge-base
+  `qa`. Wyjątek od read-only jest ograniczony do metadanych `.git`.
+
+  Trzy niejasności z raportu `be-dev`. Lider rozstrzyga bez forka, bo każda ma jedną sensowną odpowiedź:
+  1. **Arytmetyka fixture'u evala.** Baza `{A,B,C}`, gałąź `{A,B,D}`, czyli C naprawiony, D nowy, a liczba 3 = 3.
+     To dosłowny odczyt P4.4.
+  2. **Brak nowego pola briefu `Diff-base:`.** Niepotrzebne, bo `checker` i tak dostaje zakres diffu, a
+     baza to jego lewa strona. Nowe pole byłoby nadmiarem poza tabelą P4.
+  3. **Proza P4.3 w specu („Ta sama procedura”) nie zgadza się z D-P4a.** Lider poprawi ją przy zamknięciu
+     P4 i zapisze w specu decyzję człowieka.
+
+  Dispatch `checker`: wejście to diff `738be36..77df5c6` bez `.ai/runs/`, sekcja P4 specu i D-P4a/b.
+  Rozszerzenie na `qa` oznaczone jako niepotwierdzone przez człowieka.
+- 2026-09-13: w trakcie bramki P4 lider dopisał do specu decyzje przed P4 jako wiersze G1 i G2 tabeli
+  decyzji. Proza P4.3 odwołuje się teraz do nich i mówi wprost, że test nieobecny na bazie nie jest
+  czerwony na bazie. Spec nie jest jeszcze scommitowany i wejdzie razem z zamknięciem P4.
+- 2026-09-13, przygotowanie P5 (bez dispatchu):
+  - komenda `node skills/sailes-bootstrap/hooks-template/brief-closure.test.js` z `Done-when` istnieje;
+  - `brief-closure.js` wymaga pola `Report/Raport` w briefie, co zgadza się z P5.1, gdzie etykieta zostaje;
+  - `be-dev.md` `## Report`: podsumowanie diffu per plik · wyjście komend · kształt kontraktu ·
+    `Promotion candidate:` · blokady;
+  - wzór A/B: `.ai/eval-runs/2026-08-30-spec-weight/` (`armA.md`, `armB.md`, `VERDICT.md`).
+
+  P5.3 wymaga decyzji człowieka co do projektu eksperymentu, do okna po bramce P4: na jakim zadaniu, ile
+  przebiegów na ramię, po której zmianie przerwać. Odsetek pustych zwrotów z jednego przebiegu to 0 albo
+  100%, więc liczba przebiegów decyduje, czy warunek „B ma więcej pustych” w ogóle coś mierzy.
+- 2026-09-13: `checker` P4 → **NITS**.
+  - Nic z P4.1–P4.4, Q7, R5, F3 ani G1/G2 nie zostało naruszone. `Done-when` zielony, bliźniaki zgodne.
+  - Test nieobecny na bazie jest rozwiązany z konstrukcji: `comm -23` wrzuca go do jednego koszyka z
+    zielonymi na bazie.
+  - Znalezisko: rozszerzenie na `qa` jest spójne, ale gołe drzewo bazy nie wystarczy dla czerwonego e2e
+    albo testu na żywej aplikacji, bo te potrzebują działającego stosu bazy.
+  - Uwaga o klasie regexów parity: łapią bliskość fraz, a nie ich sens. To nie jest nowa słabość.
+
+  Merge `77df5c6` do `feat/1.34.0-quality-gates` (`--no-ff`) → **`01ecf81`**.
+
+## Decyzje człowieka przy bramce P4 (2026-09-13)
+- `qa` na merge-base: tymczasowy worktree poza repo, a rozszerzenie lidera zostaje potwierdzone. Dla
+  czerwonego e2e albo testu na żywej aplikacji stos bazy stawiany jest w oknie wyłączności na świeżej
+  bazie danych z seeda, nigdy na zmigrowanej przez gałąź. Brak ścieżki seed daje ENV-DEFECT.
+  Odrzucone: e2e bez przebiegu na bazie (zawsze CHANGES-REQUIRED); e2e na bazie rozstrzyga człowiek.
+- A/B z P5.3: powtórka P4 od `738be36`. Odrzucone: syntetyczny fixture.
+- Próba: 3 pełne przebiegi i 1 przerwany na ramię, czyli ok. 8 przebiegów `be-dev` i 6 `checker`, ok.
+  1,3 mln tokenów. Odrzucone: 1+1; 5+1.
+- `TaskStop` po 3. edycji pliku. Odrzucone: po pierwszym commicie WIP.
+
+Wszystko wpisane do specu jako G3 i G4.
+
+## Zdarzenia po bramce P4
+- 2026-09-13: lider wdrożył G3 w commicie **`f0469e4`**: `qa.md`, `qa.toml`, `release-checklist.md` §0 i `parity.test.js`.
+  - **Wpadka po drodze.** Pierwsze miejsce zdania o e2e, w kroku (2), rozciągnęło w `qa.md` odstęp między
+    „never by count” a `comm -23` ponad 600 znaków, więc parity dało FAIL na koncepcie P4. Regex został bez
+    zmian, a zdanie przeszło na koniec punktu w obu bliźniakach. Poszerzenie okna osłabiłoby koncept dla
+    wszystkich.
+  - **Dowody:**
+    - `merge-base` → trafienie w 4 plikach; `comm -23` → w 2;
+    - parity → exit 0, z nowym konceptem „e2e base run on a fresh seeded database”;
+    - `sync` → in sync; frontmatter → exit 0;
+    - `npm test` → exit 0, 0 `not ok`.
+  - **Sprawdzenie w obie strony**, na kopiach w scratchpadzie: usunięcie reguły z `.md`, a osobno z `.toml`,
+    daje exit 1 i dokładnie jeden FAIL, na tym koncepcie.
+  - Proza P4.2 w specu dostała odwołanie do G3. Brama: `checker` na `01ecf81..f0469e4`.
+- 2026-09-13: `checker` na poprawkach P4 → **APPROVE**.
+  - G3 brzmi tak samo w `qa.md`, `qa.toml` i §0 checklisty.
+  - Nie koliduje z wyłącznością środowiska ani z ENV-DEFECT.
+  - `checker` słusznie bez zmian.
+  - Nadmiaru brak.
+
+  Uwagi nieblokujące:
+  - punkt w `qa` jest długi i G3 stoi na jego końcu, ale checklista ma osobną linię;
+  - regex łapie literał, więc wiernej parafrazy nie przepuści, a zaprzeczenie z zachowanym ogonem przepuści.
+- **P4 ZAMKNIĘTE 2026-09-13.**
+  - Wszystkie punkty `Done-when` spełnione, dowody w `Status:` specu.
+  - checker: NITS → G3 → APPROVE · tester: n/a · qa: n/a.
+  - `be-dev` i obaj `checker` zakończeni, zwolnieni.
+
+## Decyzje człowieka przy zamknięciu P4 (2026-09-13)
+- Po P4 handoff: `STATE.md`, `/clear`, P5 (A/B wg G4) w nowej sesji. Odrzucone: P5 w tej sesji.
+- Właściwość regexów parity (bliskość, nie sens) trafia teraz jako wiersz do `.ai/backlog.md`, obok wiersza
+  o granicach parity. Odrzucone: tylko w run logu.
+
+## Do zapamiętania (kandydat na lesson, do rotacji `lessons.md`)
+- **Cztery niezależne przebiegi `checker` (P3, poprawki P3, P4, poprawki P4) zgłosiły tę samą właściwość.**
+  Regexy w `parity.test.js` sprawdzają bliskość fraz, a nie ich sens: zaprzeczenie z zachowanymi literałami
+  przechodzi, a wierna parafraza nie. Za każdym razem słusznie bez znaleziska, bo to cecha całego pliku.
+  Powtarza się jednak na każdej bramce, więc to kandydat na wiersz backlogu obok istniejącego „parity guards
+  concepts it was never told about”, zanim ktoś zacznie traktować zielone parity jako dowód znaczenia.
+- **Okno regexu jest ukrytym ograniczeniem dla prozy.** Zdanie wstawione między dwie strzeżone frazy
+  złamało koncept, choć nic nie zmieniło w znaczeniu (P4, `qa.md`). Parity wychwyciło to od razu, więc
+  mechanizm zadziałał, ale autor doktryny nie widzi tych okien, dopóki test nie oblał.
 
 ## Forki do okna przy bramce P1
 - **Data odcięcia narzędzia.** Spec mówi „≥ dzień wydania 1.34.0”, a dzień wydania jest nieznany

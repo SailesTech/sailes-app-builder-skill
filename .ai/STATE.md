@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: 7701057
+Last-commit: f0469e4
 
 > Read at session start — it stays under 20 KB, so that is cheap; history lives verbatim in
 > `.ai/archive/` and is grepped by area, never read whole. Write before walking away. Facts enter **Verified facts** only with
@@ -52,7 +52,31 @@ Last-commit: 7701057
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-09-13 night, second session (**resume here**): **1.34.0 P3 — CLOSED** on `feat/1.34.0-quality-gates`
+- 2026-09-13 night, second session, later (**resume here**): **1.34.0 P4 — CLOSED** on `feat/1.34.0-quality-gates`
+  (merge `01ecf81` + gate fix `f0469e4`). Nothing pushed; `main` untouched (F5). Evidence is in the spec's `Status:`
+  line; events are in the run log.
+  - **Shipped in P4:** pre-existing red is established **by name against the base**, never by count.
+    - Evidence: sorted red names, the same names run on the base, a pasted `comm -23`; non-empty =
+      CHANGES-REQUIRED.
+    - Names red on the base go to the run log's `Known-red:` as `name · cause · validity: this push`.
+    - `qa` pre-push uses `git merge-base HEAD origin/<base>`. `checker` at a phase gate uses the phase's
+      integration base, the left side of its diff range (G1).
+    - Both run it in a temporary detached worktree outside the repo (G2, G3).
+    - A red e2e test runs on the base stack against a fresh seeded database, never the branch-migrated
+      one; no seed path = ENV-DEFECT (G3).
+  - **Handoff (human's choice at P4 closure):** `/clear`, then P5 in a fresh session via `sailes-implement` from P5.
+    Worktree base rule still applies: `git merge --ff-only feat/1.34.0-quality-gates`. A new backlog row
+    records that parity regexes check proximity, not meaning.
+  - **Next: P5** — implementer report as a message plus the A/B, designed by the human as G4:
+    - replay P4 from `738be36`;
+    - 3 full runs + 1 interrupted per arm, `TaskStop` after the 3rd file edit;
+    - about 1.3M tokens.
+
+    P5 enters the release only if arm B has no more empty or lost returns than arm A.
+  - **P6 CHANGELOG must also say:**
+    - P4 adds `Known-red:` and red-by-name against the base;
+    - `checker`'s named read-only exception (a temporary worktree).
+- 2026-09-13 night, second session: **1.34.0 P3 — CLOSED** on `feat/1.34.0-quality-gates`
   (merge `cc9516a` + gate fixes `7701057`). Nothing pushed; `main` untouched (F5). Evidence is in the spec's `Status:`
   line; events and decisions are in `.ai/runs/2026-09-13-quality-gates.md`.
   - **Shipped in P3:**
