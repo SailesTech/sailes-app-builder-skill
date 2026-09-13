@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: 5ab8149
+Last-commit: 1f26ba2
 
 > Read at session start — it stays under 20 KB, so that is cheap; history lives verbatim in
 > `.ai/archive/` and is grepped by area, never read whole. Write before walking away. Facts enter **Verified facts** only with
@@ -61,6 +61,15 @@ Last-commit: 5ab8149
   - (a) the token comparison against `.ai/eval-runs/2026-09-12-token-baseline/`, after the first two
     days of client work on 1.33.0;
   - (b) the archify 2.17 re-layout of four diagrams (backlog), which unblocks the docs receipt.
+
+  **Then 1.33.1, the same day, chosen by the human** over adding a line to 1.33.0 or leaving it on
+  the branch. It fixes the `mcp-toolnames-check` "server absent" flake. The real mechanism is an
+  async EPIPE on `child.stdin` with no `error` listener, not load. Load was only the trigger: under
+  the same load, 15 of 20 runs failed before the fix and 0 of 20 after. The push also carries the
+  1.33.0 spec closure. The docs delta is EMPTY (receipt `.ai/docs-deltas/2026-09-13-release-1.33.1-notes.md`).
+  The backlog row is closed. **Lesson: `git mv` moves the index entry, not the working-tree edit.**
+  The first closure commit renamed the spec without its new Status line, and `git show --stat` caught
+  it at 0 lines.
 
   Left untouched, not mine: the untracked `.ai/specs/2026-09-01-codex-marketplace-auto-update.md` and
   `package-lock.json`.

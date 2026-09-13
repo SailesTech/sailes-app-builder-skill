@@ -4,6 +4,31 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.33.1 — 2026-09-13 · a gate that crashed instead of saying SKIP
+
+**What an older-stamped repo is missing: nothing.** This is a framework-internal fix, and no
+client repo gets a copy of the tool. A repo at 1.33.0 has nothing to upgrade.
+
+`tools/mcp-toolnames-check.js` crashed with exit 1 instead of printing `SKIP:` when the MCP server
+could not start. The tool writes `initialize` to the child's `stdin`, and a write to a process that
+already exited fails **asynchronously**: EPIPE arrives as an `error` event on `stdin`, and nothing
+was listening. The `try/catch` around the write never sees it. The existing comment in `send()`
+("the exit/error handlers above will fire") was true, but those handlers never got to run.
+
+Because `npm test` is `&&`-chained, this one case also hid every suite after it. Seen by two
+workers and the lead during 1.33.0. The earlier diagnosis blamed "concurrent load", which was the
+trigger rather than the mechanism, since a standalone run failed as well. Fix: a no-op
+`child.stdin.on('error')`.
+
+Measured under the same load, 20 runs (4 concurrent × 5):
+- before the fix: 15 failures, all EPIPE;
+- after the fix: 0 failures.
+
+The full `npm test` exits 0 across all 20 suites.
+
+The same push carries the 1.33.0 spec closure: the spec moved to `.ai/specs/implemented/` with its
+evidence.
+
 ## 1.33.0 — 2026-09-12 · the cost of running, in tokens
 
 The owner's words: *"największym problemem obecnego harnessu jest koszmarna nieefektywność i

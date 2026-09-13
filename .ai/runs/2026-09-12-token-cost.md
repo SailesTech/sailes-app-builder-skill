@@ -341,6 +341,10 @@ ownership:
     `child.stdin.on('error')`. Przy tym samym obciążeniu, 20 uruchomień (4 równolegle × 5): przed
     poprawką 15 × fail, wszystkie EPIPE; po poprawce 0. Pełne `npm test` → exit 0, 20 zestawów,
     554 × ok. Wiersz w backlogu zamknięty.
+  - Człowiek wybrał wydanie **1.33.1**. Odrzucone: dopisanie linii do 1.33.0, push samego domknięcia,
+    brak pusha. Wpis CHANGELOG i pięć stempli → 1.33.1. `npm test` → exit 0, 20 zestawów;
+    `release-hygiene` → five stamps at 1.33.1; `sync-blocks --check` → in sync. Delta dokumentacji
+    PUSTA, potwierdzenie w `.ai/docs-deltas/2026-09-13-release-1.33.1-notes.md`.
 
 ## Postęp
 - [x] P0 — narzędzie + baseline (checker NITS zaakceptowane; detection 11/11; frozen 37/37)
