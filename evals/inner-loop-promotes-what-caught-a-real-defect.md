@@ -38,7 +38,18 @@ Failure looks like: the structure this change was written against — `sailes-im
                     rather than argued* died with the step, while the frozen list kept growing from
                     mandate. The subtler failure to watch for: an arm B that reports the defect but
                     not the check — the diagnosis survives and the regression test still does not.
-Last run:           2026-08-30 · PARTIAL-PASS · arm B names the check that caught the defect and its
+Last run:           2026-09-13 (at 6995c93) · **INCONCLUSIVE** · arm B only, rebuilt fixture, stand-in
+                    (Sonnet `be-dev`). The arm anticipated `parseAmount('')` → `0` from reading the
+                    helper and guarded the empty cell before any check ran, so nothing went red on a
+                    real defect and there was nothing to promote ("Promotion candidate: none", test to
+                    watch named for `tester`). Fixture defects: the helper defect is visible on a read;
+                    `node --test <dir>` fails on Node 26. Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.
+
+Prior run:           2026-08-30 · PARTIAL-PASS · arm B names the check that caught the defect and its
                     provenance; arm A reports only the diagnosis, under a heading with no check in it.
                     Neither arm built a second ID-bearing suite — the ceremony-doubling risk did not
                     materialise, and arm A is a competent control (both found the defect, A wrote 9

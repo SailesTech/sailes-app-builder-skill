@@ -40,6 +40,13 @@ A repo built with `sailes-bootstrap` has a **local** spec-writing skill at `.ai/
 5. **Design** — data model, API surface, UI surface, module boundaries, integration/webhook contracts, jobs/workflows.
 6. **Phasing** — break into **Phases** (stories) and **Steps** (testable tasks). Each step leaves the app working. **Every phase carries a `Done-when`** — a binary, machine-checkable completion condition: the exact command(s) to run + the expected outcome (e.g. `pnpm test src/auth → 0 failures`; `curl -s -o /dev/null -w '%{http_code}' -X POST /api/export → 200 + non-empty file`; UI: screenshot of screen X matches the design artifact). "Works correctly" / "is polished" is not a Done-when — if you can't write the check, the phase isn't specified yet.
    - **Wire properties are observed on the deployed address, or they are not observed.** A phase whose behavior depends on an HTTP **status code, header or `Content-Type`** carries a `Deployed-probe:` line beside its `Done-when`: one command against the deployed host, with the expected observation written out. Not origin, not `localhost`, not a mock. Where the phase truly has no deployed surface, write `Deployed-probe: n/a — <reason>`; never drop it. `node tools/deployed-surface-check.js <spec>` checks exactly this and nothing else. The mechanism: a CDN can rewrite the origin's status and `Content-Type` before any customer sees them, so a green assertion against origin proves nothing about the wire (2026-08-29). **The probe is a trade, not a tax:** when you add it, delete the mocked assertions of the same boundary it makes redundant.
+   - **Documentation is not the source of truth about data shape; a measured response is.** A phase that stands on an existing contract — an API it calls, a webhook payload it receives, a third-party response it parses — carries a `Contract-probe:` line beside its `Done-when`: the command run against the **local stack with seed/fixture data**, and the raw response pasted in a fenced code block. Tokens, secrets and PII are redacted as `<redacted>`; **a production or staging response never goes into a spec** — probe local only. Where the phase stands on no existing contract, write `Contract-probe: n/a — <reason, ≥ 20 characters>`; never drop it. `node tools/contract-probe-check.js <spec>` checks exactly this and nothing else.
+   - **Every phase carries a `Lane: full | middle — tier <A|B|C>: <trigger>` line.** The tier is computed
+     from the trigger column of `sailes-test`'s Step 5 table (money · auth/permissions/tenancy ·
+     idempotency · irreversible outbound write = A; ordinary business logic, internal writes = B; reads,
+     UI, formatting, cosmetics = C) — from triggers, not judgment. **Tier A always gets `Lane: full`**;
+     B/C get `Lane: middle` (`gate-scaling.md` § lanes). Tier may be raised, never lowered.
+   - **Every path CLASS in the phase's file list earns a named, targeted command in `Done-when`** — controller, module, screen, migration, whatever classes the phase actually touches. "Targeted" means the check exercises that class and nothing wider: the e2e of *this* controller, not `full suite`; *this* screen's own test, not the whole UI run; the up/down check for *this* migration, not a blanket `db:migrate`. A class with no targeted command is a hole in the phase, resolved while writing the spec — not discovered later by `checker` reaching for the full suite because nothing narrower was named. No tool computes this from the file list (a glob→command mapping was considered and rejected); the discipline is the check itself, and `checker` reads it by eye against the phase's own files.
 7. **Integration coverage** — list every affected API path and key UI path. Each gets a test in the same change; **how many cases each one earns is the risk tier's call, not this list's** (`sailes-test` § Step 5 — tier A enumerates the cross-products, B and C take one case per equivalence partition, invalid partitions always included). Listing a path is naming a surface, not ordering a suite.
 8. **Review** — apply the checklist below; set `Status: approved` when the user signs off, before implementation starts.
 
@@ -168,7 +175,10 @@ without a reason is not a tighter spec, it is a spec that has hidden its own esc
 - [ ] Phases leave the app working; each step is testable.
 - [ ] Every phase has a binary `Done-when` (exact commands + expected result), not a qualitative statement.
 - [ ] **Any phase depending on a status code, header or `Content-Type` carries a `Deployed-probe:`** — a command against the deployed host, or `n/a — <reason>`. `node tools/deployed-surface-check.js <spec>` answers this in a second.
+- [ ] **Any phase standing on an existing contract carries a `Contract-probe:`** — the command and the raw, redacted response measured on the local stack with seed/fixture data, in a fenced code block, or `n/a — <reason>`. `node tools/contract-probe-check.js <spec>` answers this in a second.
+- [ ] **Every phase carries a `Lane: full | middle — tier <A|B|C>: <trigger>` line**, tier computed from `sailes-test` Step 5 triggers, never from judgment — tier A → `full`, tier B/C → `middle`, never lowered.
 - [ ] **Every phase's `Done-when` covers that phase's own allowed-files list** — each path names the clause that forces it into existence. A path with no clause is surplus or a hole, and which one is decided while writing, not after shipping.
+- [ ] **Every path CLASS in that list (controller, module, screen, migration, …) has its own named, targeted `Done-when` command** — not a line only the full suite would satisfy. A class covered by nothing narrower than "run everything" is a hole, not a phase gate; `checker` runs these named commands, never the full suite, so an uncovered class passes silently otherwise.
 - [ ] API surface is a machine-comparable `yaml` block (method · path · phase) with out-of-scope paths listed explicitly, not a prose table nothing can be diffed against.
 - [ ] Every constraint states its reason — a bare prohibition is reversible only by guessing why it is there.
 - [ ] Migration numbers assigned in the spec (per phase or per migration) — parallel workers otherwise collide on the same next number, at merge.
@@ -192,6 +202,7 @@ without a reason is not a tighter spec, it is a spec that has hidden its own esc
 | Ignoring a local `.ai/skills/spec-writing/` | Local wins; this skill is the fallback. |
 | Phases that leave the app broken mid-way | Each step must leave it working + testable. |
 | No integration coverage | Every affected API + key UI path gets a test in the same change. |
+| A path class (controller/module/screen/migration) covered only by "run the full suite" | Name that class's own targeted command in `Done-when` before starting the phase. |
 
 ## Red Flags — STOP
 
@@ -201,8 +212,10 @@ without a reason is not a tighter spec, it is a spec that has hidden its own esc
 - A phase leaves the app non-working, or a step has no test.
 - A phase's completion is described qualitatively ("improve", "polish", "works well") with no binary `Done-when`.
 - A phase keys on an HTTP status, header or `Content-Type` and every check named runs against origin, `localhost` or a mock. That combination shipped a feature to zero working customers on 2026-08-29 with three green gates behind it.
+- A phase stands on an existing contract and the spec states its shape from documentation or memory, with no measured `Contract-probe:`. A screen that never worked at all, after 2400 lines, passed three gates that all read the same wrong shape about a response a global interceptor had already rewrapped — one `curl` in the first minute would have caught it.
 - The spec is the full template for a change that moves no data model, no auth model and no module boundary — pick the weight before writing, not after.
 - A phase lists files it may touch that no `Done-when` clause requires — the two lists have drifted, and the drift is invisible to every gate downstream.
+- A phase's file list has a path class (controller/module/screen/migration) with no named, targeted `Done-when` command of its own — only the full suite would ever exercise it, and `checker` does not run the full suite on a phase.
 - You're about to hand the spec to implementation with unanswered critical unknowns.
 - You wrote `Status: implemented` with a gate verdict you have not received yet — the format exists so this is unwritable, and filling it from expectation defeats it entirely.
 - A constraint in the spec says what is forbidden and not why, so the only way to challenge it is to break it.

@@ -1,0 +1,32 @@
+## A3
+worktree: /home/charlie/Work/Internal/sailes-app-builder-skill/.claude/worktrees/agent-a15c3c053640af351
+HEAD: fcf4696 · descends from 738be36: yes
+commits since base:
+  fcf4696 impl(1.34.0-P4): pre-existing red established by name against the base
+  cb58a10 WIP: P4 parity concept — red compared by name against merge-base, mutation-proven
+  2676f09 WIP: P4.2/P4.3 — qa/checker doctrine + Codex twins, red-by-name vs base
+  b7879b7 WIP: P4.1 — Known-red section + release-checklist §0 lines
+final (non-WIP) commit present: 1
+uncommitted changes:
+metric1 .ai added lines: diff=184 untracked=0 total=184
+  .ai files: .ai/runs/2026-09-13-quality-gates-P4-be-dev-report.md  
+commit body lines (non-empty): 24
+status file: /home/charlie/Work/Internal/sailes-app-builder-skill/.claude/status/be-dev-P5ab-A3.md · lines=27 · closed=1 · outcome=outcome: done
+P4-listed files changed vs base:
+  agents/checker.md
+  agents/qa.md
+  codex-agents/checker.toml
+  codex-agents/parity.test.js
+  codex-agents/qa.toml
+  skills/sailes-bootstrap/release-checklist.md
+  skills/sailes-implement/SKILL.md
+  evals/gate-compares-red-by-name-not-count.md (tracked)
+Done-when re-run by lead:
+  merge-base agents/qa.md:1
+  merge-base codex-agents/qa.toml:1
+  merge-base agents/checker.md:1
+  merge-base codex-agents/checker.toml:1
+  comm-23 agents/qa.md:1
+  comm-23 agents/checker.md:1
+  parity exit=0
+  sync exit=0

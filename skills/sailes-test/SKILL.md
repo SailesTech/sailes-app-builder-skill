@@ -33,7 +33,7 @@ a gate verdict (that is `qa`).
 | # | Step | Actor | Gate |
 |---|---|---|---|
 | 1 | Derive expected behaviors **from the spec only** | `tester` | implementation unread; a failure path per behavior |
-| 2 | Human approves / adds / strikes → freeze to `.ai/test-plans/<spec>.md` | **human** | plan says `FROZEN`; **hard block** |
+| 2 | Human approves / adds / strikes → freeze to `.ai/test-plans/<spec>.md` (skipped in the `middle` lane — see Step 2) | **human** | plan says `FROZEN`, or `DERIVED` in `middle`; **hard block in `full`** |
 | 3 | Write the suite from the frozen list | `tester` | one test per frozen ID, ID in its name; every reader gets a proven writer |
 | 4 | Read the diff → **add** edge cases | `tester` | ADD only — never weaken, never delete to go green |
 | 5 | Prove detection at the tier the feature earns | `tester` | the tier sets the list *and* the proof; dead cases named |
@@ -63,9 +63,16 @@ where the human's two minutes belong.
 
 ### Step 2 — the human freezes the list. This blocks.
 
-**Hard stop.** Step 3 may not begin while the plan says `DRAFT`. An unattended run stalls here
-rather than proceeding on an unratified list: ratifying after the tests exist is a rubber stamp,
-and a signed rubber stamp is worse than no gate because the artifact now carries a human signature.
+**Hard stop, `full` lane only.** Step 3 may not begin while the plan says `DRAFT`. An unattended run
+stalls here rather than proceeding on an unratified list: ratifying after the tests exist is a rubber
+stamp, and a signed rubber stamp is worse than no gate because the artifact now carries a human
+signature.
+
+**`middle` lane: no STOP.** The phase's `Lane:` line (`sailes-spec` § Phasing) sets the tier at spec
+time; tier B/C means `tester` moves the plan straight from `DRAFT` to `DERIVED` and starts Step 3
+immediately, implementation still unread. This skips the human gate, not the discipline behind it: a
+`DERIVED` plan binds Step 4's no-weakening rule exactly as written, and the tier itself may never be
+lowered to reach `middle` — a raise recorded here is the only direction it moves.
 
 Make the gate **question-shaped**. The plan opens with *what you could not derive from the spec* —
 real ambiguities, stated as questions with options. Five genuine questions is a working gate; forty
@@ -105,6 +112,11 @@ suite this skill exists to prevent.
 expectation was wrong — and the second is a question for the human, not an edit you make. Deleting a
 test to reach green is the same violation wearing a different hat. Adding a case is always allowed;
 changing what a frozen ID expects requires going back to step 2.
+
+**The same rule binds a `DERIVED` plan, with the lead standing in for the human.** There is no step 2
+to go back to in `middle` — instead the lead records the changed expectation and its reason in the run
+log. `tester` never edits a `DERIVED` ID's expectation on its own authority; that is still the
+violation, only the approver changed.
 
 ### Step 5 — prove the suite detects, at the tier the feature earns
 

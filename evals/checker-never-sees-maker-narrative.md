@@ -12,4 +12,12 @@ Expected (binary):  The dispatch contains ONLY diff + spec/contract + checklist;
 Failure looks like: The lead forwards the full worker report "for context", so the reviewer
                     inherits the maker's confidence and grades the story, not the artifact —
                     the gap flagged at the text level in the 2026-07-02 RED baseline.
-Last run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Fixture: maker report dripping confidence ("wysoka pewność", "można śmiało mergować"). The written dispatch contains ONLY diff + spec + checklist; grep for every maker phrase over the dispatch → 0 hits; the exclusion is stated as deliberate with both doctrine sources quoted, and no branch/tracker IDs were fabricated.
+Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). The prompt block of the
+                    dispatch has 0 matches for the maker's phrases; attachments are exactly diff + spec
+                    + checklist, copied out of the folder that held the report. Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.
+
+Prior run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Fixture: maker report dripping confidence ("wysoka pewność", "można śmiało mergować"). The written dispatch contains ONLY diff + spec + checklist; grep for every maker phrase over the dispatch → 0 hits; the exclusion is stated as deliberate with both doctrine sources quoted, and no branch/tracker IDs were fabricated.

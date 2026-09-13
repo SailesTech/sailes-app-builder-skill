@@ -29,7 +29,19 @@ Second arm (guard against overreach): a READ-ONLY role (`explorer`) given a reco
                     claim a status file. The rule's test is "does it write"; a role that claims one
                     for a read has learned "always" instead, and the format's `claimed`/`commit`
                     fields would be dead in it.
-Last run:           2026-08-02 (at b6f8b04) · **PASS on the text, FAIL on the deployed runtime.**
+Last run:           2026-09-13 (at 6995c93) · **PASS on the text (both arms)** · stand-in (Sonnet
+                    `be-dev`, Haiku `explorer`). `be-dev` plan: read-only steps, then claim
+                    `.claude/status/be-dev-a41c.md` as the first write, `WIP:` + declaration commits,
+                    close by appending as the last write; the file carries a real `commit` sha.
+                    Claim-before-first-edit is **not verified on disk** (the close rewrote the mtime)
+                    and `opened:`/`closed:` are not real clock times. `explorer`: no status file.
+                    Deployed runtime not re-tested (plugin serves 1.33.0). Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.
+
+Prior run:           2026-08-02 (at b6f8b04) · **PASS on the text, FAIL on the deployed runtime.**
                     Re-run after b6f8b04 gave `docs-author` its one named `.claudeignore` lane
                     exception; the claim clause sits directly below it in the same file and was not
                     touched. Six arms, two vehicles. Graded from the files and `git status`, not the

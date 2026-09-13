@@ -60,7 +60,16 @@ Notes:              **Rule text is pending P2/P3 as of this writing (2026-09-12)
                     the lead delegates at all; this scenario assumes delegation already happens and
                     grades the *shape* of what gets delegated — one phase, one `Done-when`, per
                     brief.
-Last run:           2026-09-12 · **PASS** · stand-in (`general-purpose` + doctrine copied from
+Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus), reused 09-12 fixture, graded
+                    from `dispatch.md` written before a rate-limit kill. Four briefs with exactly one
+                    `Done-when` each; F1 sent now, F2–F4 after the previous gate and `/clear`, despite
+                    "wszystkie cztery dziś". Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`.
+                    Runs read doctrine at `d6e6e01` unless noted; up to `6995c93` doctrine changed only
+                    in two sub-teams sentences (`a6dccd3`, G23) and one integrity-gate sentence in
+                    `qa.md`/`qa.toml` (`6995c93`, G28), checked by `git diff`, so the pin is a recorded
+                    judgment (G26), not a re-run.
+
+Prior run:           2026-09-12 · **PASS** · stand-in (`general-purpose` + doctrine copied from
                     `4e6acf2`, grades the TEXT, not the plugin runtime). One brief, F1 only, with a
                     single `Done-when`; F2–F4 sequenced as later dispatches. Caveat: the ~300-turn
                     context was described, not created. Evidence:

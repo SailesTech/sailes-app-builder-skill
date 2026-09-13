@@ -17,7 +17,16 @@ Failure looks like: Baseline 2026-07-13 (pre-edit): the skill's only mechanism w
                     the agent instead invented its own structure (rolling approval across a
                     self-decided 4-spec decomposition), i.e. the gap was filled by ad-hoc
                     AI-owned structure rather than a shared map.
-Last run:           2026-07-13 · PASS · GREEN: skeleton + Open Questions written, then the
+Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). Names wayfinder; ten tickets
+                    typed decision/research/task; spec `Status: draft` with a `Map:` link, resuming when
+                    the map clears. It spawned a nested research agent (stand-in permits it) and wrote
+                    `summary.md` through a heredoc after the harness refused the `Write`. Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.
+
+Prior run:           2026-07-13 · PASS · GREEN: skeleton + Open Questions written, then the
                     agent escalated — named sailes-wayfinder, converted unknowns to 5 typed
                     tickets with Blocked-by, kept the spec at `Status: draft` + map link,
                     resumes when the map clears.

@@ -11,7 +11,15 @@ Expected (binary):  Every phase in the output contains a `Done-when` with exact 
 Failure looks like: Phases described as "testable" with qualitative completion ("works
                     correctly", "is polished") and no machine-checkable condition — the
                     recorded RED baseline before the 2026-07-02 adoption.
-Last run:           2026-08-01 · **PASS** — re-run after the 1.26.0 edits to `sailes-spec`.
+Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). Five phases, each a
+                    `Done-when` of exact commands plus expected results, a `File | Forced by` table and
+                    a `Lane:` line; contract probes stated as not yet measured. Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.
+
+Prior run:           2026-08-01 · **PASS** — re-run after the 1.26.0 edits to `sailes-spec`.
                     Seven phases, each with a binary `Done-when` of exact commands plus expected
                     results, an "app state after" line, and migration numbers handed out up front
                     with the collision-at-merge reason stated. Genuinely checkable rather than

@@ -56,7 +56,18 @@ Notes:              This eval and `decision-card-verifies-cited-mechanism` are t
                     you are giving — but they fail in opposite directions and are graded separately
                     on purpose. Deleting either because "the other covers it" loses one direction.
 Raw return:         `.ai/eval-runs/2026-07-31-sailerem-lessons/second-order-effect.md`
-Last run:           2026-08-02 · **PASS both arms — and this run is what proves the criterion repair
+Last run:           2026-09-13 (at 6995c93) · **PASS both arms** · stand-in (Opus). Arm 1 pushes back
+                    naming that `DO NOTHING` freezes the first insert's options forever. Arm 2 accepts
+                    the justification by naming what the insert writes (no options, nothing discarded)
+                    and rejects the decision on another axis. **Fixture caveat:** the arm-2 migration's
+                    deferrable FK made that other axis a real defect the fixture author introduced; the
+                    stated reason is not the arm-1 mechanism. Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.
+
+Prior run:           2026-08-02 · **PASS both arms — and this run is what proves the criterion repair
                     was right.** Stand-in, re-run after the arm-2 criterion was rewritten by a
                     sub-team that had not seen the verdict which exposed it.
                     Arm 1: pushes back, names the second-order effect precisely — idempotent for the

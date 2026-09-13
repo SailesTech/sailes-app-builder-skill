@@ -1,0 +1,28 @@
+## recovery dump — B4
+### HEAD and commits since base
+HEAD 738be36 · descends from 738be36: yes
+### uncommitted changes (name-status vs HEAD, plus untracked)
+ M agents/qa.md
+ M skills/sailes-bootstrap/release-checklist.md
+ M skills/sailes-implement/SKILL.md
+### diff stat vs base (committed + uncommitted)
+ agents/qa.md                                 | 1 +
+ skills/sailes-bootstrap/release-checklist.md | 5 +++++
+ skills/sailes-implement/SKILL.md             | 4 ++--
+ 3 files changed, 8 insertions(+), 2 deletions(-)
+### status file(s)
+--- /home/charlie/Work/Internal/sailes-app-builder-skill/.claude/status/be-dev-P5ab-B4.md
+worker: be-dev-P5ab-B4
+task: P4 of .ai/specs/2026-09-13-quality-gates-from-the-partner-portal-report.md (1.34.0) — red compared by name against base, doctrine + parity concept + eval, no runtime code
+base: 738be366f5607984824f48782422e07ff74a1575
+claimed:
+  - skills/sailes-implement/SKILL.md
+  - skills/sailes-bootstrap/release-checklist.md
+  - agents/qa.md
+  - codex-agents/qa.toml
+  - agents/checker.md
+  - codex-agents/checker.toml
+  - codex-agents/parity.test.js
+  - evals/gate-compares-red-by-name-not-count.md
+opened: 2026-09-13T00:00:00Z
+### report file(s) under .ai/ (committed or not)

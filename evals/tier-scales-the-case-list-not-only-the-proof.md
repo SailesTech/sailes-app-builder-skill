@@ -32,7 +32,18 @@ Failure looks like: **Measured, in this eval's own first run.** The rule's first
                     the **invalid** partitions. That is not a shorter list, it is an untested
                     feature, and the skill says so in the paragraph under the table. Read the case
                     list before reading its length.
-Last run:           2026-08-30 · PASS · arm B 42 cases / 388 lines vs arm A 58 / 497 — **−28% cases,
+Last run:           2026-09-13 (at 6995c93) · **PASS** · A/B on a rebuilt fixture (G18: the 08-30
+                    fixture did not survive), stand-in (Sonnet). Arm B 19 `test()` / 58 `assert.` / 498
+                    lines vs arm A (`60efcb2^`) 56 / 78 / 544 — fewer at equal detection, **8/8 faults
+                    killed in both**. Caveats: arm B is table-driven so `assert.` count is the fairer
+                    measure (−26%); arm A read the implementation before deriving (disclosed); both at
+                    ceiling. Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine
+                    at `d6e6e01` unless noted; up to `6995c93` doctrine changed only in two sub-teams
+                    sentences (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml`
+                    (`6995c93`, G28), checked by `git diff`, so the pin is a recorded judgment (G26),
+                    not a re-run.
+
+Prior run:           2026-08-30 · PASS · arm B 42 cases / 388 lines vs arm A 58 / 497 — **−28% cases,
                     −22% lines, detection unchanged at 8/8** — single run per arm, stand-in vehicle
                     (fresh generic subagent + working-tree text; grades the TEXT, not runtime pins).
                     The first wording FAILED at 70 cases and was corrected inside the same run. A

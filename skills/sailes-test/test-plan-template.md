@@ -3,10 +3,13 @@
 Spec: `.ai/specs/<spec>.md`
 Phase: <n>
 Risk tier: A | B | C   (triggers fired: <money / auth / tenancy / idempotency / irreversible outbound write / none>)
-Status: DRAFT | FROZEN
+Status: DRAFT | DERIVED | FROZEN
 Frozen: <date> by <human>
 
 > `DRAFT` means no test may be written yet. The human moves it to `FROZEN`.
+> `DERIVED` — middle lane: tests may be written; no human freeze. `tester` moves `DRAFT` straight to
+> `DERIVED` and writes the suite immediately; the no-weakening rule binds this plan exactly as written,
+> and a changed expectation is a lead run-log entry with a reason, not a human re-freeze.
 > Raising the tier is allowed and is recorded here with its reason. Lowering it is not.
 > **The tier sets the length of the list below, not only the proof at the end** — A enumerates the
 > cross-products; B and C take one case per equivalence partition, **invalid ones included**, B also

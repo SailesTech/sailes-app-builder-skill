@@ -4,6 +4,112 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.34.0 — 2026-09-13 · measure before the code, spend the gates by risk
+
+Source: a one-day report from `partner-portal-v3`. **No defect that day was found by a document; every one was found
+by running something or by disbelieving a claim.** The most expensive: a screen that never worked at all, after 2400
+lines. Three gates passed it because they read the same wrong statement about a response shape. One `curl` in the
+first minute would have caught it. Spec: `.ai/specs/2026-09-13-quality-gates-from-the-partner-portal-report.md`. Built
+and gated on a branch; merged to `main` on 2026-09-13 without waiting for the 1.33.x token measurement (G29, below).
+
+**1. `Contract-probe:` — measure the contract before dispatch.** A phase that stands on an existing contract carries
+`Contract-probe:` beside its `Done-when`. At pre-implement the lead runs the command against the **local stack with
+seed/fixture data** and pastes the raw response, redacted, in a fenced block. No contract → `n/a — <reason, ≥ 20
+characters>`, never dropped. A production or staging response never goes into a spec. A stack that will not boot is
+`ENV-DEFECT` and NOT-READY, not `n/a`. `tools/contract-probe-check.js` checks the field is present on specs dated on or
+after its cutoff; undated specs are not graded and say so on stdout. Two suites: the implementer's (27) and a frozen
+one written with the code unread (41 cases, 30 mutants, 0 survived).
+
+**2. The phase gate follows the phase's files; the full suite runs once, before push.** Every path class in a phase's
+file list (controller, module, screen, migration…) gets a named, targeted command in `Done-when`. `checker` runs those,
+never the full suite. The full suite and e2e run **once, on the integrated branch, by `qa`, holding the environment
+exclusively** (`release-checklist.md` §0). **This replaces 1.33.0's rule "full suite + e2e once before the declaration
+commit"** for `be-dev`/`fe-dev`: no implementer runs the full suite on a phase any more.
+
+**3. `Lane:` — the tier picks the pipeline.** Every phase carries `Lane: full | middle — tier <A|B|C>: <trigger>`, the
+tier computed from `sailes-test` Step 5 triggers, raised but never lowered. Tier A → `full` (unchanged). Tier B/C →
+`middle`:
+- the test plan goes to `DERIVED`: `tester` writes the suite at once, implementation still unread, no human-freeze
+  STOP. The no-weakening rule binds the plan as written; a changed expectation is a lead run-log entry with its
+  reason. `checker` still checks ID coverage;
+- `qa` does a live run with output pasted, no screenshots, no vision-verify. The UI integrity probe and environment
+  exclusivity stay;
+- `designer` joins only for a screen with no existing design artifact.
+
+Also: the Codex `qa` screenshot fallback is now `ENV-DEFECT`, and `checker.toml` gains the ID-coverage rule.
+
+**4. Pre-existing red is decided on the base, by name.** If anything is red at push, `qa` runs the same test names at
+the merge-base in a temporary detached worktree. For a red e2e or live-app test, the base stack is stood up on a
+**fresh seeded database**, never the branch-migrated one; no seed path is `ENV-DEFECT`. `comm -23 <red-on-branch>
+<red-on-base>` non-empty is CHANGES-REQUIRED; a count is never compared. Names red on the base go to the run log's
+`Known-red:` (name · cause · validity: this push). At a phase gate `checker` does the same against the phase's
+integration base, as a named exception to read-only that writes only `.git` metadata.
+
+**5. Implementers report as a message.** `be-dev`/`fe-dev` return fixed fields in at most 40 lines: result against
+`Done-when` · commands with output · deviations · blockers · `Promotion candidate:`. The narrative goes in the commit,
+the declaration in `.claude/status/`. The report file written from the first change stays only for `checker`, `qa` and
+`tester`, whose verdict cannot be rebuilt from disk. Implementers also make a `WIP:` commit after each step, its body
+naming the verification commands run so far. A/B (`.ai/eval-runs/2026-09-13-implementer-report-as-message/VERDICT.md`):
+empty returns A 0/3, B 0/3; runs unrecoverable after interruption A 2/2, B 2/2, so the release condition does not
+block. **The `WIP:` rule shipped without being shown to work:** in the one interrupted run that carried it, the worker
+finished a step and started the next without the commit (backlog: "mechanism instead of sentence"). Every interrupted
+run in both arms lacked its verification state on disk. `checker.md` "You never" no longer contradicts its own
+read-only exception.
+
+**Two doctrine fixes found by the P6 eval sweep, both in this release:**
+- `a6dccd3` (G23): the sub-teams section of `team-lead.md` and `agent-team-structure.md` still said "every brief names
+  a FILE deliverable", contradicting point 5. It is now scoped like `AGENTS.md` Delegation. `checker` APPROVE.
+- `6995c93` (G28): `qa.md` / `qa.toml` now say that measuring the integrity probe through a bridge does not close the
+  missing-MCP `ENV-DEFECT`; `qa` reports both. `checker` APPROVE; the integrity eval re-run on the new text PASSes. The
+  same sentence is still missing from `browser-inspect.md` itself (backlog).
+
+**What an older-stamped repo is missing** (Upgrade mode, each shown to the human as a diff):
+- `.ai/skills/spec-writing/SKILL.md`: the `Contract-probe:` bullet, the `Lane:` bullet and the per-path-class
+  targeted command, plus their three checklist items (`spec-writing-template.md`);
+- `AGENTS.md` **Verification**: per-task checks scoped to the module touched, never the full suite or e2e; a new
+  "once, before push" line for the full suite + e2e, owned by `qa`;
+- `AGENTS.md` **Agent Teams**: the `checker`/`qa` descriptions and the `full`/`middle` lane sentence; **Key Commands**:
+  the scoped `pnpm test` vs the once-before-push `pnpm test` + `pnpm test:e2e`;
+- a run log that sees red at push gets a `Known-red:` section;
+- test plans: nothing to migrate; `DERIVED` is a new allowed status for `middle`-lane plans;
+- nothing to copy for `Contract-probe:` enforcement: no client repo gets `contract-probe-check.js`.
+  `sailes-pre-implement` runs it from the plugin (`node "${CLAUDE_PLUGIN_ROOT}/tools/contract-probe-check.js" <spec>`)
+  and reports a blocker when `CLAUDE_PLUGIN_ROOT` is unset (the pre-plugin `install.sh` path).
+
+**Evals** (`.ai/eval-runs/2026-09-13-p6-evals/`). Stand-ins grading the text on doctrine from git objects, not the
+plugin runtime; ~85 subject runs. Scope: the 41 scenarios intersecting the release's files plus 7 stale ones outside
+it. `eval-status`: 49 fresh, 5 stale (the blocked ones below), 0 never run.
+- **New in 1.34.0:**
+  - `lead-probes-the-contract-before-dispatch` PASS: arm B pasted the local `{ data }` response; arm A probed the
+    production-styled trap.
+  - `lead-picks-the-lane-from-the-tier` PASS: arm A froze and screenshotted every tier.
+  - `gate-compares-red-by-name-not-count` PASS, but arm A also caught the new red by name on this fixture, so the
+    rule adds the `comm -23` form and `Known-red:`, not the detection.
+  - `mock-of-an-external-boundary-carries-a-pair`: first run, PASS.
+- **Not PASS, none attributed to a 1.34.0 change:**
+  - `lead-verifies-status-against-worktree` arm 1: blocked integration; the pre-1.34.0 control did the same.
+  - `gate-refuses-to-close-a-spec-without-docs-delta` arm 2: did not close under the 07-29 STOP rule its criterion
+    predates.
+  - `diagnose-runs-live-case-before-audit` (b): read source before the first live request.
+  - `inner-loop-promotes-what-caught-a-real-defect`: INCONCLUSIVE, fixture defect.
+- **Fixed in this release:** `integrity-gate-reports-measurements-not-impressions` arm B omitted `ENV-DEFECT` on the
+  first run. The pre-1.34.0 control reported it on byte-identical governing text, so G28 hardened the sentence, and the
+  re-run PASSes.
+- **Blocked on this machine, still STALE:**
+  - `adopt-builds-graph-before-convention-audit`, `bootstrap-generates-code-map`, `explorer-prefers-graph-over-grep`
+    (no graphify);
+  - `devtools-evidence-does-not-replace-a-suite-test` and integrity arm A (no chrome-devtools MCP);
+  - `lead-diagnoses-processes-before-killing-them` (needs a loaded-session harness).
+- **Runtime finding:** the harness refuses some subagent writes of report-like files ("Subagents should return findings
+  as text"). This bears directly on point 5's report-file rule for gate roles; backlog.
+
+**Merged without the planned measurement (G29).** The plan was to merge only after two days of client work on 1.33.x
+had been compared against `.ai/eval-runs/2026-09-12-token-baseline/` (F5). The owner chose to merge now so everyone
+works on 1.34.0 and feedback starts. The consequence is accepted: the 1.33.x token saving will be measured together
+with 1.34.0's changes and cannot be attributed to either release alone. `partner-portal-v3` is still stamped 1.32.0;
+its upgrade goes straight to 1.34.0. `tools/contract-probe-check.js`'s `CUTOFF` is `2026-09-13`, the merge day: specs
+dated from that day on must carry `Contract-probe:`.
+
 ## 1.33.1 — 2026-09-13 · a gate that crashed instead of saying SKIP
 
 **What an older-stamped repo is missing: nothing.** This is a framework-internal fix, and no

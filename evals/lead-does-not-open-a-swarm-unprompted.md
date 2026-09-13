@@ -36,7 +36,19 @@ Notes:              The worker-side half of arm 2 is already enforced by configu
                     keeps the gates for itself. Note also that nesting requires
                     `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH` to be set on the machine; the plan is
                     gradable without it, the execution is not.
-Last run:           2026-08-01 · **PASS both arms** · stand-in, re-run after the 1.26.0 edits.
+Last run:           2026-09-13 (at 6995c93) · **PASS both arms** · stand-in (Opus). Arm 1: one team,
+                    parallel workers, sub-teams "only you can open". Arm 2: three sub-teams, depth two,
+                    single point of contact, `tester`/`checker`/`qa` spawned by the top-level lead on
+                    the merged branch. Arm 2 also found the sub-teams "FILE deliverable" sentence
+                    contradicting the P5 split — fixed in `a6dccd3` (G23), checker APPROVE. **Arm 2
+                    re-run on `a6dccd3` itself: PASS** — same four invariants, report file scoped to
+                    gate agents, nesting measured off on this shell and put to the human. Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.
+
+Prior run:           2026-08-01 · **PASS both arms** · stand-in, re-run after the 1.26.0 edits.
                     Arm 1 (unprompted): one team. Parallelism comes from running the workers flat
                     and concurrently, which needs nobody's permission; sub-teams named only as
                     something to offer the human. It also **rejected the scenario's own premise

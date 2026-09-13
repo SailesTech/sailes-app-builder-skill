@@ -116,6 +116,12 @@ const INVARIANTS = {
     // `autoCompactWindow` fuse, but the handoff RULE applies on both runtimes: the block text makes
     // no claim of the fuse existing on Codex, only that the lead hands off after the gate closes.
     ['a closed phase ends the lead session; the human runs /clear before the next phase starts', /\/clear/],
+    // P5 (spec 2026-09-13-quality-gates-from-the-partner-portal-report, G7) — the report-FILE-from-
+    // first-change mandate is scoped to the gate roles, whose verdict cannot be reconstructed from
+    // disk any other way. `be-dev`/`fe-dev` report a message instead (G7a, checked on their own
+    // entries below) — losing this scoping from a twin reinstates the file mandate for implementer
+    // roles too, which is the exact 1.34.0 P4 cost this split was written to remove.
+    ['the report-FILE-from-first-change rule is scoped to the gate roles (checker, qa, tester)', /gate roles?[\s\S]{0,10}checker,\s*qa,\s*tester/i],
   ],
   explorer: [
     ['strictly read-only', /read-only/i],
@@ -152,10 +158,22 @@ const INVARIANTS = {
     // Q3 — same rule as team-lead's above, stated in the worker's own voice: a worker that notices
     // its brief bundles more than one Done-when says so rather than quietly doing both.
     ['a task is one phase with one Done-when', /phase with one .{0,3}Done-when/i],
-    // Q3(b) — the inner loop runs only affected-file tests; the full suite/e2e runs once, before
-    // the declaration commit. Measured 2026-09-12: a full `yarn test` re-run 7x and a full
-    // `test:e2e` re-run 7x inside single briefs, because nothing said the loop should stay narrow.
-    ['inner loop = affected tests; full suite/e2e run once before the declaration commit', /inner loop[\s\S]{0,150}(full suite|e2e)[\s\S]{0,60}once/i],
+    // P2.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — REPLACES the Q3(b)
+    // concept above: the inner loop still runs only affected-file tests, but the full suite/e2e no
+    // longer runs on a phase at all. It runs once, after the last phase, before push, by `qa`, on
+    // the integrated branch. Measured 2026-09-12: a full `yarn test` re-run 7x and a full
+    // `test:e2e` re-run 7x inside single briefs is the reason the inner loop stays narrow — it is
+    // NOT a reason to keep a second full run per worker per phase, which is what 1.33.0 did.
+    ['verification is lint/build/tests of the changed module; never the full suite on a phase', /(lint|build)[\s\S]{0,150}(module|full suite)/i],
+    ['full suite/e2e run once, before push, by qa', /full suite[\s\S]{0,80}(before push|by .?qa.?)/i],
+    // P5 (spec 2026-09-13-quality-gates-from-the-partner-portal-report, G7a) — the implementer's
+    // report is a message in fixed fields, capped at 40 lines, never a file — the mirror of G7b's
+    // scoping on team-lead above.
+    ['report is a message in fixed fields, at most 40 lines', /message in fixed fields[\s\S]{0,20}at most 40 lines/i],
+    // P5 (G7c) — the G6 doctrine: a WIP: checkpoint whose commit body names the verification
+    // commands run so far (or states none have run yet). Losing this from a twin reintroduces the
+    // exact gap G6 exists to close — an interrupted worker with commits but no verification record.
+    ['WIP: commit body names verification commands run so far, or states none have run yet', /WIP:? commit, and its body names the verification commands run so far/i],
   ],
   'fe-dev': [
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
@@ -163,7 +181,16 @@ const INVARIANTS = {
     ['works against the frozen contract', /frozen|contract/i],
     ['claims `.claude/status/fe-dev-<n>.md` before the first edit', /\.claude\/status\/fe-dev/i],
     ['a task is one phase with one Done-when', /phase with one .{0,3}Done-when/i],
-    ['inner loop = affected tests; full suite/e2e run once before the declaration commit', /inner loop[\s\S]{0,150}(full suite|e2e)[\s\S]{0,60}once/i],
+    // See be-dev's P2.6 note above — same replacement, same reason.
+    ['verification is lint/build/tests of the changed module; never the full suite on a phase', /(lint|build)[\s\S]{0,150}(module|full suite)/i],
+    ['full suite/e2e run once, before push, by qa', /full suite[\s\S]{0,80}(before push|by .?qa.?)/i],
+    // P3.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — middle lane: build from
+    // the existing design artifact or the designer spec F1 called in, never with neither.
+    ['middle lane: design artifact or designer spec, never neither', /design artifact[\s\S]{0,150}designer.{0,10}spec[\s\S]{0,100}never with neither/i],
+    // P5 (G7a) — see be-dev's identical note above.
+    ['report is a message in fixed fields, at most 40 lines', /message in fixed fields[\s\S]{0,20}at most 40 lines/i],
+    // P5 (G7c) — see be-dev's identical note above.
+    ['WIP: commit body names verification commands run so far, or states none have run yet', /WIP:? commit, and its body names the verification commands run so far/i],
   ],
   tester: [
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
@@ -172,6 +199,9 @@ const INVARIANTS = {
     ['never weakens a frozen assertion', /weaken/i],
     ['reports a code defect rather than fixing it', /report/i],
     ['claims `.claude/status/tester-<n>.md` before the first edit', /\.claude\/status\/tester/i],
+    // P3.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — middle lane: no human
+    // freeze STOP, the plan goes straight from DRAFT to DERIVED and tester writes immediately.
+    ['middle lane: DERIVED plan, no human freeze STOP', /DRAFT straight to .?DERIVED/i],
   ],
   checker: [
     ['never sees the maker narrative', /narrative|maker/i],
@@ -185,6 +215,15 @@ const INVARIANTS = {
     // an invented one was not, which is how unrequested code reaches a repo through a gate that
     // read every line of it. Guarded here because parity green means only what someone listed.
     ['also hunts SURPLUS — what the diff contains that the spec does not require', /does not require/i],
+    // P2.3 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — checker runs the
+    // phase's own Done-when commands and never the full suite; that scope is `qa`'s alone (P2.4).
+    ['runs the phase Done-when commands; never the full suite', /Done-when[\s\S]{0,200}full suite|full suite[\s\S]{0,200}Done-when/i],
+    // P3.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — ID coverage applies to
+    // a DERIVED plan (middle lane) exactly as it does to a FROZEN one, not only to FROZEN.
+    ['ID coverage applies to a DERIVED plan, not only FROZEN', /DERIVED[\s\S]{0,250}non-struck behavior ID/i],
+    // P4 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — same rule as qa's above,
+    // applied to the phase's own Done-when commands against the phase's cut-from base.
+    ['pre-existing red compared by name against the base, never by count', /never by count[\s\S]{0,600}comm -23/i],
   ],
   qa: [
     ['never fakes a pass', /fake|ENV-DEFECT/i],
@@ -193,6 +232,25 @@ const INVARIANTS = {
     // clone, so this rule has no structural backstop anywhere — losing it from a twin loses it
     // entirely for that harness.
     ['holds the runtime environment exclusively', /exclusiv/i],
+    // P2.4 (spec 2026-09-13-quality-gates-from-the-partner-portal-report, R1) — qa alone runs the
+    // full suite + e2e, exactly once, before push, on the integrated branch.
+    ['runs full suite + e2e once, before push, on the integrated branch', /full suite[\s\S]{0,100}(before push|once)/i],
+    // P3.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — middle lane: live run,
+    // no screenshots.
+    ['middle lane: live run with pasted output, no screenshots', /middle lane[\s\S]{0,150}screenshots[\s\S]{0,150}paste/i],
+    // P3 gate (human decision 2026-09-13) — the UI integrity probe runs in BOTH lanes, and a missing
+    // instrument is ENV-DEFECT. The Codex twin said "fall back to the screenshot" from 2026-07-26
+    // until this fix while every listed concept stayed green; see the inverse entry below.
+    ['UI integrity probe runs in both lanes', /integrity[\s\S]{0,120}both lanes|both lanes[\s\S]{0,120}integrity/i],
+    ['missing integrity instrument is ENV-DEFECT', /unavailable[\s\S]{0,40}ENV-DEFECT/i],
+    // P4 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — pre-existing red is
+    // established by running the same red test names on the base and comparing BY NAME (comm -23),
+    // never by count. Losing this from a twin reintroduces the exact failure Q7/F3 rule out: a red
+    // count that happens to match the previous run hides a genuinely new regression.
+    ['pre-existing red compared by name against the base, never by count', /never by count[\s\S]{0,600}comm -23/i],
+    // P4 gate (human decision 2026-09-13) — a red e2e/live-app test is run on the base's own stack,
+    // on a fresh seeded database; the branch-migrated database would make the base run meaningless.
+    ['e2e base run on a fresh seeded database, never the branch-migrated one', /fresh database[\s\S]{0,60}seed[\s\S]{0,40}never the database the branch migrated/i],
   ],
   'docs-author': [
     ['documents the code as it is — evidence over aspiration', /as it is|evidence over aspiration/i],
@@ -202,6 +260,38 @@ const INVARIANTS = {
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
     ['commits inside its own worktree', /own worktree/i],
     ['claims `.claude/status/docs-author-<n>.md` before the first edit', /\.claude\/status\/docs-author/i],
+  ],
+};
+
+/**
+ * Inverse invariants: concepts that must NOT survive, on either side. Everything above (INVARIANTS)
+ * asserts a phrase appears on both twins; this is the mirror image — a phrase that must be ABSENT
+ * from both, because P2.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) replaces
+ * the 1.33.0 rule rather than supplementing it. Without this, the OLD sentence ("full suite ...
+ * once ... right before your declaration commit") could sit right next to the new one forever and
+ * every positive INVARIANTS check above would still go green — a replaced rule needs a check that
+ * the replaced text is gone, not only that the new text arrived.
+ */
+// Built from parts, deliberately: the two halves of the phrase this regex hunts for never sit on
+// the same source line here, so this file does not itself trip the release gate's own sweep for
+// the exact replaced wording (spec P2 Done-when — see the run log for the literal grep command).
+const REPLACED_1_33_0_WORDING_RE = new RegExp(
+  'full suite[\\s\\S]{0,120}' +
+    'declaration' + ' commit',
+  'i'
+);
+
+const INVERSE_INVARIANTS = {
+  'be-dev': [
+    ['no longer ties the full suite to the OLD per-worker completion commit (1.33.0, replaced by P2.6)', REPLACED_1_33_0_WORDING_RE],
+  ],
+  'fe-dev': [
+    ['no longer ties the full suite to the OLD per-worker completion commit (1.33.0, replaced by P2.6)', REPLACED_1_33_0_WORDING_RE],
+  ],
+  // P3 gate (human decision 2026-09-13) — the Codex twin's screenshot fallback for a missing
+  // integrity instrument is replaced by ENV-DEFECT, as the Claude twin has said since 2026-07-26.
+  qa: [
+    ['no screenshot fallback when the integrity instrument is missing (replaced at the 1.34.0 P3 gate)', /fall back to the screenshot/i],
   ],
 };
 
@@ -259,6 +349,57 @@ for (const role of claudeRoles) {
     });
   }
 }
+
+// ---------------------------------------------------------------- both twins must NOT carry the inverse concepts
+
+for (const role of Object.keys(INVERSE_INVARIANTS)) {
+  if (!claudeRoles.includes(role) || !codexRoles.includes(role)) continue; // reported by the set check above
+
+  const md = claudeText(role);
+  const toml = codexText(role);
+
+  for (const [label, re] of INVERSE_INVARIANTS[role]) {
+    test(`${role}: "${label}" — ABSENT from BOTH twins`, () => {
+      assert.ok(!re.test(md), `agents/${role}.md still carries a replaced wording`);
+      assert.ok(!re.test(toml), `codex-agents/${role}.toml still carries a replaced wording`);
+    });
+  }
+}
+
+// The inverse check above is only meaningful if it can actually fire. Prove both directions with
+// the literal wording each side shipped through 1.33.0 (`agents/be-dev.md:16` / `be-dev.toml:11`
+// before this spec's edit) — the regex must MATCH the old text (it would have failed the check)
+// and must NOT match the current files (asserted by the loop above, on real disk content).
+test('the be-dev/fe-dev inverse regex FIRES on the 1.33.0 wording it was written to catch', () => {
+  // Each fixture is built from two halves, split across lines, for the same reason as the regex
+  // above: this file must not itself match the release gate's own sweep for the exact phrase.
+  const OLD_1_33_0_MD =
+    'your inner loop runs only the tests for the files you touched, and the full suite plus any e2e requirement runs once, right before your ' +
+    'declaration commit.';
+  const OLD_1_33_0_TOML =
+    'Run the full suite and any e2e requirement exactly once, right before your ' +
+    'declaration commit, never repeatedly inside the loop.';
+  const re = INVERSE_INVARIANTS['be-dev'][0][1];
+  assert.ok(
+    re.test(normalize(OLD_1_33_0_MD)),
+    'inverse regex does not catch the old agents/be-dev.md wording — it would have gone green on the un-replaced rule'
+  );
+  assert.ok(
+    re.test(normalize(OLD_1_33_0_TOML)),
+    'inverse regex does not catch the old codex-agents/be-dev.toml wording — it would have gone green on the un-replaced rule'
+  );
+});
+
+test('the qa inverse regex FIRES on the Codex screenshot-fallback wording it replaced', () => {
+  const OLD_QA_TOML =
+    'When the instrument is unavailable, fall back to the screenshot and record an explicit skip in the verdict; ' +
+    'never report a gate you did not measure as passed.';
+  const re = INVERSE_INVARIANTS.qa[0][1];
+  assert.ok(
+    re.test(normalize(OLD_QA_TOML)),
+    'inverse regex does not catch the old codex-agents/qa.toml fallback — it would have gone green on the un-replaced rule'
+  );
+});
 
 // ---------------------------------------------------------------- shape checks that cost nothing
 

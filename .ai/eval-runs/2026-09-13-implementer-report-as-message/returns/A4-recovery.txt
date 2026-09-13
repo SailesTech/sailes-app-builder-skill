@@ -1,0 +1,55 @@
+## recovery dump — A4
+### HEAD and commits since base
+HEAD 828826d · descends from 738be36: yes
+--- 828826d WIP(1.34.0-P4): P4.1 — Known-red section + release-checklist base-run lines
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Ax3cR3Cj2asLc4m9snH7q8
+
+### uncommitted changes (name-status vs HEAD, plus untracked)
+ M agents/qa.md
+### diff stat vs base (committed + uncommitted)
+ .../2026-09-13-quality-gates-P4-be-dev-report.md   | 22 ++++++++++++++++++++++
+ agents/qa.md                                       |  1 +
+ skills/sailes-bootstrap/release-checklist.md       |  3 +++
+ skills/sailes-implement/SKILL.md                   |  4 ++--
+ 4 files changed, 28 insertions(+), 2 deletions(-)
+### status file(s)
+--- /home/charlie/Work/Internal/sailes-app-builder-skill/.claude/status/be-dev-P5ab-A4.md
+worker: be-dev-P5ab-A4
+task: 1.34.0 P4 — pre-existing red established by name against the base (spec 2026-09-13-quality-gates-from-the-partner-portal-report.md)
+base: 738be36
+claimed:
+  - skills/sailes-implement/SKILL.md
+  - skills/sailes-bootstrap/release-checklist.md
+  - agents/qa.md
+  - codex-agents/qa.toml
+  - agents/checker.md
+  - codex-agents/checker.toml
+  - codex-agents/parity.test.js
+  - evals/gate-compares-red-by-name-not-count.md
+  - .ai/runs/2026-09-13-quality-gates-P4-be-dev-report.md
+opened: 2026-09-13T00:00:00Z
+### report file(s) under .ai/ (committed or not)
+--- .ai/runs/2026-09-13-quality-gates-P4-be-dev-report.md (22 lines)
+# P4 be-dev report — pre-existing red established by name against the base
+
+Task: spec `.ai/specs/2026-09-13-quality-gates-from-the-partner-portal-report.md`, P4 section
+(P4.1–P4.4), plus human decisions D-P4a/D-P4b taken 2026-09-13 (base = phase's integration base at
+a phase gate, merge-base at pre-push; base run via temporary detached worktree outside the repo).
+
+Base: merged `738be36` (ff-only) — confirmed HEAD is `738be36` before first edit.
+
+Status file: `.claude/status/be-dev-P5ab-A4.md` (outside worktree — write succeeded, no fallback
+needed).
+
+This report is appended to as work proceeds, per section below.
+
+## Progress log
+
+- Read P4 spec text (lines 218–250) and the brief's D-P4a/D-P4b. Starting with P4.1.
+- P4.1 done: `skills/sailes-implement/SKILL.md` — Pre-flight step 3 (run log opening list) now
+  names a `Known-red:` section with the exact entry form and "a count is never an acceptable
+  entry"; the Pre-push gate paragraph gains a pointer to `qa`'s red-by-name/merge-base/`comm -23`
+  procedure. `skills/sailes-bootstrap/release-checklist.md` §0 checklist gains three lines: base
+  run (temporary detached worktree) + pasted sort, pasted `comm -23` with non-empty meaning
+  CHANGES-REQUIRED, and `Known-red:` entries by name+cause never a count.

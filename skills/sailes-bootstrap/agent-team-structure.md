@@ -29,6 +29,23 @@ dependency ranges and product copy all can, and none of them are prose.
 "No gate is optional" means you never drop a gate to save time or because you wrote the code
 yourself. It does not mean driving `qa` through a change with no observable behavior — a skip
 leaves a hole nobody can see, a stated `n/a` is a claim someone can argue with.
+
+**Lane scales the pipeline a phase runs, not only which gates fire.** Every phase carries
+`Lane: full | middle — tier <A|B|C>: <trigger>`, set at spec time from the tier `sailes-test` Step 5
+computes from triggers, never from judgment. Tier A always gets `full`; tier B/C get `middle`; a tier
+is raised, never lowered.
+
+- **`full`** — today's pipeline, unchanged: implementer → `tester` (derives, human freezes to
+  `FROZEN`, hard STOP until then) → `checker` → `qa` (screenshots, vision-verify against the design
+  artifact and `.ai/screens/` baseline).
+- **`middle`** — implementer → `tester` with a `DERIVED` plan (writes the suite immediately, the
+  implementation still UNREAD, no human-freeze STOP) → `checker` → `qa` with a **live run on the
+  stack, output pasted** — no screenshots, no vision-verify, no `.ai/screens/` update. `designer`
+  joins `middle` ONLY when the phase creates a screen with no existing design artifact
+  (`.ai/specs/ui-spec.md` / `design-system/MASTER.md`) — a touched screen that already has one skips
+  `designer` even in `middle`, and `fe-dev` builds from that artifact instead. `qa`'s environment
+  exclusivity is unchanged in either lane, and so is the UI integrity probe (`sailes-design`
+  `browser-inspect.md` §1): `middle` drops screenshots, never that measurement.
 <!-- END gate-scaling -->
 
 
@@ -76,9 +93,9 @@ Add a role, change a pin or change a lane **here only**.
 | `researcher` | `claude-opus-5` · high | synthesise what several explorers brought back into ONE findings artifact — provenance per claim, confidence, an explicit could-not-establish list — and verify load-bearing claims at source with its own cross-cutting sweep. Integrates **to know**, where the lead integrates **to act** | decide anything, recommend an architecture, spawn (it has no `Agent` — see roster spec Q1), or present an unverified claim as verified |
 | `designer` | `claude-sonnet-5` · high | UX/UI spec from design tokens (layout, states, responsive) | write feature code |
 | `be-dev` / `fe-dev` | `claude-sonnet-5` · high | implement exactly the approved scope, per spec / per design | commit, push, or expand scope |
-| `tester` | `claude-sonnet-5` · high | author the phase's suite via `sailes-test`: derive cases from the spec with the code UNREAD → human freezes `.ai/test-plans/<spec>.md` → write → ADD-only from the diff → tiered detection proof. The **one gate role that writes** | read the implementation before deriving cases; weaken a frozen assertion; lower its own risk tier; commit or push |
+| `tester` | `claude-sonnet-5` · high | author the phase's suite via `sailes-test`: derive cases from the spec with the code UNREAD → human freezes `.ai/test-plans/<spec>.md` → write → ADD-only from the diff → tiered detection proof (the freeze is `middle`-lane `DERIVED`, no human STOP — `gate-scaling` block above). The **one gate role that writes** | read the implementation before deriving cases; weaken a frozen assertion; lower its own risk tier; commit or push |
 | `checker` | `claude-sonnet-5` · high | independent read-only review of the diff vs. spec → APPROVE / NITS / CHANGES-REQUIRED; input = diff + spec + checklist ONLY (see Gate isolation) | grade on reasoning instead of result; read the maker's narrative; touch code |
-| `qa` | `claude-sonnet-5` · high | run the `tester` suite on the live app as the gate verdict + real-flow proof + screenshots; behavior before diff; vision-verify vs design artifact + `.ai/screens/` baseline | fake a pass when stack/creds are missing |
+| `qa` | `claude-sonnet-5` · high | run the `tester` suite on the live app as the gate verdict + real-flow proof + screenshots; behavior before diff; vision-verify vs design artifact + `.ai/screens/` baseline (`full` lane only — `middle` is a live run with pasted output, no screenshots, per `gate-scaling` above) | fake a pass when stack/creds are missing |
 | `docs-author` | `claude-sonnet-5` · medium | author the archify diagram set from repo evidence (`sailes-docs`); every diagram held to a validate/deliver receipt; runs at bootstrap/adopt and before the docs-delta step of spec closure — outside the phase order above | edit feature code (findings are reported upward); hand off without a receipt; call a `SKIP archify` a pass |
 
 ## Model routing — the role default is a default, not a ceiling
@@ -164,6 +181,9 @@ explorer → designer → BE contract finalized → fe-dev → tester → checke
 - **`tester`, `checker` and `qa` are all gates, not formalities.** `tester` CHANGES nothing but authors the proof; CHANGES-REQUIRED from `checker` loops back to the relevant dev; a faked or skipped `qa` is not a pass.
 - Not every task needs every role. A backend-only change skips `designer`/`fe-dev`. The **order among the roles you do use** is preserved.
 - **Dropping a role is provisional, not final.** If a later decision introduces a surface you'd skipped — e.g. a perf constraint forces an async-download UX, so a backend-only task suddenly needs a UI flow — **reinstate the dropped role** (`designer` here) and re-freeze the contract before `fe-dev`. Don't push a new UX surface through without the design pass just because the original plan skipped it.
+- **This pipeline is the `full` lane.** A phase's `Lane:` line (`gate-scaling` block above) may instead
+  route it through `middle` — `tester` writes a `DERIVED` plan with no human-freeze STOP, `qa` does a
+  live run with no screenshots, and `designer` joins only under F1.
 
 ## How the lead actually runs it
 
@@ -500,7 +520,7 @@ A verifier grades honestly only on a clean context. The failure mode this sectio
 
 - **`checker` receives ONLY: the diff, the spec/contract it implements, and the review checklist.** The lead **never forwards** the worker's report, reasoning, or self-assessment to `checker` — the worker's narrative is input for the lead's *integration*, not for the *review*. If the checker asks "why was this done this way", the answer is the spec, not the worker's story.
 - **`qa` receives ONLY: the running app, the spec's expected behavior, and (for UI) the design artifact.** Not the implementation story, not "what should work now".
-- **Vision-verify (UI):** for every screen the task touched, `qa` compares a fresh screenshot against (a) the design artifact (`.ai/specs/ui-spec.md` or `design-system/MASTER.md`) and (b) the previous accepted screenshot in `.ai/screens/` (visual regression). Mismatch = CHANGES-REQUIRED naming the concrete difference. On APPROVE, the new screenshot replaces the baseline in `.ai/screens/`. A text-only review cannot see a failure that only exists on screen.
+- **Vision-verify (UI), `full` lane:** for every screen the task touched, `qa` compares a fresh screenshot against (a) the design artifact (`.ai/specs/ui-spec.md` or `design-system/MASTER.md`) and (b) the previous accepted screenshot in `.ai/screens/` (visual regression). Mismatch = CHANGES-REQUIRED naming the concrete difference. On APPROVE, the new screenshot replaces the baseline in `.ai/screens/`. A text-only review cannot see a failure that only exists on screen. In the `middle` lane `qa` instead does a live run with pasted output — no screenshots, no vision-verify, no `.ai/screens/` update (`gate-scaling` block).
 - **Cheap graders for binary checks:** a phase's `Done-when` (exact commands + expected output) may be verified by a lightweight model (haiku) — it's a pass/fail read, not judgment. Judgment review stays with `checker`.
 - **`checker` never re-checks what the toolchain enforces.** Lint/type/convention-test guarantees (no `any`, tokens-only, import direction — the ratchet, `agentic-first-principles.md` §B.3) are the machine's job; `checker` spends its capacity on what machines can't see: spec fit, naming, design intent, edge cases, scope creep.
 - **ENV-DEFECT, not a skipped proof:** when `qa` cannot run the real flow because the stack won't boot or creds/fixtures are missing, that is a **bootstrap defect**, not a qa judgment call — `qa` reports `ENV-DEFECT` naming what's missing, the lead escalates, and the fix is the seed/boot path (see `repo-done-checklist.md` Environment block). A faked or skipped pass is never the answer to a broken environment.
@@ -618,19 +638,30 @@ Status:      claim `.claude/status/<worker-id>.md` as your FIRST action — `wor
              the claim. [read-only roles: drop this line — you write nothing, so nothing to claim.]
 Checkpoint:  write progress to files as you go. Your in-memory state does not survive your
              process; disk does.
-Verification: two levels, named separately, never collapsed into one command list.
+Verification: two levels are yours, named separately, never collapsed into one command
+             list; the third, pre-push run belongs to `qa`.
              **Inner loop** (run as you go): only the tests for the files you touched.
-             **Once, before the declaration commit**: the full suite and the e2e requirement.
-             Running the full suite or e2e repeatedly inside the inner loop is what a task with
-             no Done-when boundary produces, not caution — one worker re-ran a full `yarn test`
-             seven times and a full `test:e2e` seven times in two separate runs (2026-09-12
-             measurement), inside a single brief.
-Report:      `<path>` — per-file diff summary · command output · contract shape ·
-             blockers/deviations. Your REPORT IS the deliverable — not a summary for a
-             human, not a status line. **Create that file with your FIRST change and
-             append to it as you go**; a report composed at the end dies with the process
-             holding it. If you did not finish, say so plainly and list what you did and
-             did not establish. Never return empty.
+             **Phase gate**: the phase's own named, targeted `Done-when` commands — never
+             the full suite, never e2e, on a phase. Running the full suite or e2e inside
+             the inner loop, or as a substitute phase gate, is what a task with no
+             Done-when boundary produces, not caution — one worker re-ran a full
+             `yarn test` seven times and a full `test:e2e` seven times in two separate
+             runs (2026-09-12 measurement), inside a single brief. **Once, after the last
+             phase, before push**: `qa` runs the full suite and the e2e requirement on the
+             integrated branch, holding the environment exclusively — this replaces the
+             1.33.0 rule that ran them per worker, per phase, before the declaration commit.
+Report:      Gate roles (`checker`, `qa`, `tester`) — a FILE at `<path>`: per-file diff
+             summary · command output · contract shape · blockers/deviations. Your REPORT
+             IS the deliverable — not a summary for a human, not a status line. **Create
+             that file with your FIRST change and append to it as you go**; a report
+             composed at the end dies with the process holding it, and their verdict
+             cannot be reconstructed from disk any other way. If you did not finish, say so
+             plainly and list what you did and did not establish. Never return empty.
+             Implementer roles (`be-dev`, `fe-dev`) — a MESSAGE in fixed fields, at most 40
+             lines: result against `Done-when` · commands run with output · deviations ·
+             blockers · `Promotion candidate:`. Narrative goes in the commit message; the
+             declaration (`outcome`/`touched`) goes in `.claude/status/`. Never return
+             empty.
 Delivery:    [scoped subagent] your final message is returned automatically — just end with it.
              [background teammate] plain text reaches NO ONE; you must call SendMessage
              to deliver. State which of the two applies — the worker cannot tell.
@@ -674,9 +705,9 @@ surfaces at merge time, when it is most expensive.
 
 **Name the delivery mechanism, because the worker cannot infer it.** Measured 2026-07-18: of five background teammates given "your final message IS the deliverable", three produced a correct answer and delivered nothing — one said outright it had written the answer as plain text instead of calling `SendMessage`. The instruction was not ignored; it was *true for a different spawn mode*. A scoped subagent returns its final message automatically; a background teammate must send it, and only the lead knows which it spawned. Telling the worker how to deliver is the lead's job, not the worker's guess.
 
-**For work a gate will grade, name a FILE — not a message.** A gate verdict, a review, a findings list, a test-case list: the brief gives the path and says the file is the deliverable ("no file = task not done"), and the lead reads it from disk instead of waiting for a report. Measured 2026-07-25, same session as above: four briefs whose deliverable was the final message produced six empty idle returns and two pointless re-spawns; the one brief that named `VERDICT.md` produced a gradable artifact on the first attempt, with the raw instrument output pasted in. A message is a channel that can drop; a file is an artifact that survives the drop, the context reset, and the worker itself. Ordinary chatter stays on messages — this is about anything whose loss costs a re-run.
+**For work a gate will grade, name a FILE — not a message.** This is `checker`, `qa`, `tester`: a gate verdict, a review, a findings list, a test-case list — the brief gives the path and says the file is the deliverable ("no file = task not done"), and the lead reads it from disk instead of waiting for a report. Their verdict cannot be reconstructed from disk any other way. Measured 2026-07-25, same session as above: four briefs whose deliverable was the final message produced six empty idle returns and two pointless re-spawns; the one brief that named `VERDICT.md` produced a gradable artifact on the first attempt, with the raw instrument output pasted in. A message is a channel that can drop; a file is an artifact that survives the drop, the context reset, and the worker itself. Ordinary chatter stays on messages — this is about anything whose loss costs a re-run. Implementer roles (`be-dev`, `fe-dev`) do not carry this: their report is a message in fixed fields, at most 40 lines (P5, 1.34.0) — their narrative lands in the commit message and their declaration in `.claude/status/`, both of which already survive the worker.
 
-**And name WHEN the file is written, because the path alone left the hole open.** The brief says the report exists **from the worker's first change** and grows by appending — it is not a document composed at the end and saved once. A file promised at the end is a report held in memory, and it dies exactly the way a message does. Measured 2026-08-30: two agent assignments burned; one died together with its process holding an unwritten report, and the second attempt at the same task survived only because it wrote incrementally. `Checkpoint:` already covers the worker's **progress** in the same words; this covers the **deliverable**, and until now nothing said the two obey one rule.
+**And name WHEN the file is written, because the path alone left the hole open.** For the gate roles above, the brief says the report exists **from the worker's first change** and grows by appending — it is not a document composed at the end and saved once. A file promised at the end is a report held in memory, and it dies exactly the way a message does. Measured 2026-08-30: two agent assignments burned; one died together with its process holding an unwritten report, and the second attempt at the same task survived only because it wrote incrementally. `Checkpoint:` already covers the worker's **progress** in the same words; this covers the **deliverable**, and until now nothing said the two obey one rule.
 
 ## Agent lifecycle — spawn one task, release when done
 
@@ -760,8 +791,10 @@ What holds when the mode is open:
     reports the termination — and at depth two a sub-lead must release its own workers *and* be
     released, so a half-completed shutdown leaves a live sub-tree. Reconstruct the live set from the
     run log before each release round, never from memory.
-  The prevention for the mode-independent half is unchanged and already shipped: every brief names a
-  FILE deliverable, and "released" is recorded only for a termination actually observed — a returned
+  The prevention for the mode-independent half is unchanged and already shipped: every brief names its
+  deliverable — a report FILE written from the first change for a gate role (`checker`, `qa`,
+  `tester`), and for an implementer the fixed-field message plus its commit and its `.claude/status/`
+  declaration — and "released" is recorded only for a termination actually observed — a returned
   result on the fallback path, a confirmed shutdown on the live one.
 
 **Enabling it is a machine-level act the human performs**, not something the framework turns on:

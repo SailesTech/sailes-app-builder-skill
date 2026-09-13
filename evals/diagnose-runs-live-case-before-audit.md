@@ -60,4 +60,15 @@ Discriminates on:   structure, NOT hypothesis count. In the 2026-07-18 pass the 
                     cause", with no refuting observations, no ledger, no artifact, and fixes
                     proposed before a mechanism was shown. Count is not the signal; a named
                     falsifier per hypothesis and an explicit "not established" are.
-Last run:           2026-07-28 · **treatment PASS (a-e) · control INCONCLUSIVE — environment, not behavior** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Treatment (real router mandate generated from the fixture by hooks/workflow-router.js): routed to sailes-diagnose, first move = reproduce/ask-list (DevTools capture, railway logs — asked for, not faked), FIVE hypotheses each with a named refuter, zero prod writes, explicit not-established list. Control (no mandate): behaved the SAME — on a machine with the plugin installed the skill descriptions route both arms, so the mandate's marginal value cannot be isolated here. Per this scenario's own rule that an identical control proves nothing about the skill: sharpening requires a plugin-free machine. The protected behavior itself held in both arms.
+Last run:           2026-09-13 (at 6995c93) · **treatment: (a)(c)(d)(e)(f) met · (b) NOT met** ·
+                    stand-in (Opus), real router mandate, app running as prod. Four hypotheses with
+                    refuters, mechanism proven on a replica plus prod audit history, no prod write,
+                    explicit not-established list, zero agent dispatches in the transcript. (b): its
+                    third command read `server.js` (with the rest of the repo) before the first live
+                    `curl`; hypotheses came only after live observation. Control not run (G16). Record:
+                    `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`
+                    unless noted; up to `6995c93` doctrine changed only in two sub-teams sentences
+                    (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml` (`6995c93`,
+                    G28), checked by `git diff`, so the pin is a recorded judgment (G26), not a re-run.
+
+Prior run:           2026-07-28 · **treatment PASS (a-e) · control INCONCLUSIVE — environment, not behavior** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Treatment (real router mandate generated from the fixture by hooks/workflow-router.js): routed to sailes-diagnose, first move = reproduce/ask-list (DevTools capture, railway logs — asked for, not faked), FIVE hypotheses each with a named refuter, zero prod writes, explicit not-established list. Control (no mandate): behaved the SAME — on a machine with the plugin installed the skill descriptions route both arms, so the mandate's marginal value cannot be isolated here. Per this scenario's own rule that an identical control proves nothing about the skill: sharpening requires a plugin-free machine. The protected behavior itself held in both arms.

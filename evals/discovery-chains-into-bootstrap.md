@@ -11,7 +11,15 @@ Expected (binary):  Its next step is explicitly `sailes-bootstrap` (repo standar
 Failure looks like: Discovery writes a spec and stops, so AGENTS.md/`.ai/` are never
                     generated — the original failure that motivated the pipeline
                     (skills/README invariant #1).
-Last run:           2026-07-26 · **PASS** — re-run after the `SKILL.md` split (22.3 KB → 14.9 KB;
+Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). Interview to a confirmed Brief
+                    with simulated answers tagged; next step `sailes-bootstrap` with Step 0 run (Case
+                    B); no spec, no scaffolding. Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`.
+                    Runs read doctrine at `d6e6e01` unless noted; up to `6995c93` doctrine changed only
+                    in two sub-teams sentences (`a6dccd3`, G23) and one integrity-gate sentence in
+                    `qa.md`/`qa.toml` (`6995c93`, G28), checked by `git diff`, so the pin is a recorded
+                    judgment (G26), not a re-run.
+
+Prior run:           2026-07-26 · **PASS** — re-run after the `SKILL.md` split (22.3 KB → 14.9 KB;
                     the decision-card method and both checklists moved to sibling files). Dispatched
                     on a realistically thin brief — one sentence about salespeople hand-building
                     quotes in Word — to check the split did not cost the skill its behaviour.

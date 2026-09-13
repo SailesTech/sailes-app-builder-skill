@@ -41,7 +41,17 @@ Failure looks like: The escaped defect this whole change came from, `wnioski z w
                     watch for is a phase that says "verify in production" with no command and no
                     address — a sentence, not a check, and it passes a human reader while proving
                     nothing.
-Last run:           2026-08-30 · PASS · arm B passes, arm A fails — single run per arm, stand-in
+Last run:           2026-09-13 (at 6995c93) · **PASS** (arm B only, G14) · stand-in (Opus).
+                    `deployed-surface-check` exit 0 on a dated copy; deployed-host `curl`s with the
+                    expected wire observation; the CloudFront distribution-wide error-page rewrite named
+                    at design time. No arm A this run, so the control condition was not re-exercised.
+                    Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at
+                    `d6e6e01` unless noted; up to `6995c93` doctrine changed only in two sub-teams
+                    sentences (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml`
+                    (`6995c93`, G28), checked by `git diff`, so the pin is a recorded judgment (G26),
+                    not a re-run.
+
+Prior run:           2026-08-30 · PASS · arm B passes, arm A fails — single run per arm, stand-in
                     vehicle (fresh generic subagent + working-tree text; grades the TEXT, not runtime
                     pins). Graded mechanically: `deployed-surface-check` exits 1 on arm A, 0 on arm B.
                     The control is NOT clean and the verdict says so — arm A reached a deployed phase

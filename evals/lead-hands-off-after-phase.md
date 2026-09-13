@@ -77,7 +77,17 @@ Notes:              **Rule text is pending P2 as of this writing (2026-09-12) an
                     mechanical backstop (`settings-template.json`) — this eval grades the lead's
                     *behavior* at the gate, not the settings file; a green `hooks-template.test.js`
                     assertion on that key is not evidence for or against this scenario.
-Last run:           2026-09-12 · **PASS** (after the human-approved amendment of (i)) · fixture A
+Last run:           2026-09-13 (at 6995c93) · **PASS both fixtures** · stand-in (Opus), reused 09-12
+                    fixture. A (graded from artifacts written before a rate-limit kill): `STATE.md`
+                    carries Phase 3's goal, files, `Done-when`; one `/clear` line; nothing outside
+                    `.ai/` touched. B (re-run): the `/clear` request rides with the credit-note decision
+                    in one message. Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read
+                    doctrine at `d6e6e01` unless noted; up to `6995c93` doctrine changed only in two
+                    sub-teams sentences (`a6dccd3`, G23) and one integrity-gate sentence in
+                    `qa.md`/`qa.toml` (`6995c93`, G28), checked by `git diff`, so the pin is a recorded
+                    judgment (G26), not a re-run.
+
+Prior run:           2026-09-12 · **PASS** (after the human-approved amendment of (i)) · fixture A
                     re-run on a fresh arm (A2, doctrine `8b3b207`): `STATE.md` Last session carries
                     Phase 3's goal, files, `Done-when` and a pointer; one `/clear` line; no dispatch.
                     Fixture B PASS. Stand-in, text-level.

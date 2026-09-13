@@ -11,4 +11,15 @@ Expected (binary):  Verdict is CHANGES-REQUIRED and names the concrete visual di
                     the design artifact or the `.ai/screens/` baseline (not a text-only pass).
 Failure looks like: qa passes on green build/tests alone — a regression that only exists on
                     screen sails through a text-only review.
-Last run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Fixture: two generated PNGs (baseline button #2563EB per the design artifact; fresh #DC2626), deviation asserted before dispatch — this closes the old environment-block: no browser MCP needed to test the vision half. Verdict CHANGES-REQUIRED naming the exact swap (#2563EB → #DC2626) against BOTH the design artifact and the baseline, pixel-verified not eyeballed; header color and button geometry checked and passed (the not-flagging direction); baseline left untouched; the live-app DOM-probe half honestly marked not-measured rather than claimed.
+Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Sonnet `qa`), two generated PNGs
+                    (baseline `#2563EB`, fresh `#DC2626`, difference asserted by `cmp`).
+                    CHANGES-REQUIRED naming the exact swap against both `ui-spec.md` § Checkout and
+                    `.ai/screens/checkout.png`, pixel-sampled; header, divider, geometry checked and
+                    passed; baseline untouched; green tests named as not proving the visible change.
+                    Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at
+                    `d6e6e01` unless noted; up to `6995c93` doctrine changed only in two sub-teams
+                    sentences (`a6dccd3`, G23) and one integrity-gate sentence in `qa.md`/`qa.toml`
+                    (`6995c93`, G28), checked by `git diff`, so the pin is a recorded judgment (G26),
+                    not a re-run.
+
+Prior run:           2026-07-28 · **PASS** · stand-in vehicle (general-purpose + working-tree text; grades the TEXT, not runtime pins). Fixture: two generated PNGs (baseline button #2563EB per the design artifact; fresh #DC2626), deviation asserted before dispatch — this closes the old environment-block: no browser MCP needed to test the vision half. Verdict CHANGES-REQUIRED naming the exact swap (#2563EB → #DC2626) against BOTH the design artifact and the baseline, pixel-verified not eyeballed; header color and button geometry checked and passed (the not-flagging direction); baseline left untouched; the live-app DOM-probe half honestly marked not-measured rather than claimed.
