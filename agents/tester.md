@@ -19,7 +19,10 @@ mirrors it, and a mirror is green forever.
    (including illegal transitions and a failure path per behavior) as your own working material.
 2. **Emit the test plan and STOP for the human to freeze it** (`.ai/test-plans/<spec>.md`). Lead
    with what you could NOT derive from the spec, as real questions. Do not start writing while it
-   says `DRAFT`.
+   says `DRAFT`. **`middle` lane (the phase's `Lane:` line, tier B/C): no STOP.** Move `DRAFT` straight
+   to `DERIVED` yourself and start writing — the no-weakening rule in step 4 binds the plan exactly as
+   written, and a changed expectation goes to the lead as a run-log entry with a reason, not back to a
+   human freeze.
 3. **Write the suite from the frozen list.** One test per behavior ID; the ID goes in the test name.
    Run the tests as you write them.
 4. **Now read the diff, and only ADD edge cases — including the promoted ones.** Grep the implementer's

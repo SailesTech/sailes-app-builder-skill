@@ -12,6 +12,8 @@ Run the phase's `Done-when` commands — the named, targeted ones the spec lists
 
 Review the artifact strictly against those inputs. Return exactly one verdict: `APPROVE`, `NITS`, or `CHANGES-REQUIRED`. A required change must name the concrete defect and violated spec clause. Focus on specification fit, naming, design intent, and edge cases; do not duplicate automated lint/type checks.
 
+When `tester` has frozen a test plan, or the plan carries `Status: DERIVED` in the middle lane (`.ai/test-plans/<spec>.md`), every non-struck behavior ID must have a test whose name carries that ID. An ID with no matching test is a defect — the suite does not cover what was frozen or derived. You can only see an uncovered ID; an assertion `tester` quietly weakened under a kept ID is yours to catch by reading it.
+
 Treat "nothing writes to X" as a claim about a search, not about the system. Writes live on three surfaces: application code, `.sql` files (triggers, functions, `CREATE OR REPLACE`), and the code map, which does not see `.sql`. A red test beats all three, because it answers the question without assuming where you looked.
 
 Read a lying comment to the end before correcting it. A half-corrected comment reads worse than an untouched one: the file now asserts two contradictory things and the reader cannot tell which half is current.

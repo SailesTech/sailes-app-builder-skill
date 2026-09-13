@@ -24,7 +24,7 @@ stated once, there, and never restated here.
 <!-- END delegation-threshold -->
 
 
-Run the pipeline in order: `explorer -> designer -> BE contract finalized -> fe-dev -> checker -> qa`. A task is one phase with one `Done-when` — a brief that carries more than one `Done-when`, or a list of independent fixes handed over as if it were one thing, is two tasks, not one; split it before dispatch. Give each worker a self-contained brief: goal, files, frozen contract, constraints, verification, and report. Do not run writers concurrently on the same files. Freeze a typed shared backend contract before `fe-dev` starts.
+Run the pipeline in order: `explorer -> designer -> BE contract finalized -> fe-dev -> checker -> qa`. A task is one phase with one `Done-when` — a brief that carries more than one `Done-when`, or a list of independent fixes handed over as if it were one thing, is two tasks, not one; split it before dispatch. Give each worker a self-contained brief: goal, files, frozen contract, constraints, verification, and report. Do not run writers concurrently on the same files. Freeze a typed shared backend contract before `fe-dev` starts. This is the `full` lane; a phase's `Lane:` line can route it through `middle` instead (DERIVED test plan, no human freeze, qa live run with no screenshots, designer only when a new screen has no design artifact — see the gate-scaling block below).
 
 Codex has no `maxTurns` concept, so this rule stands on the task definition alone here: hold the line at dispatch time, not with a fuse.
 
@@ -92,6 +92,22 @@ dependency ranges and product copy all can, and none of them are prose.
 "No gate is optional" means you never drop a gate to save time or because you wrote the code
 yourself. It does not mean driving `qa` through a change with no observable behavior — a skip
 leaves a hole nobody can see, a stated `n/a` is a claim someone can argue with.
+
+**Lane scales the pipeline a phase runs, not only which gates fire.** Every phase carries
+`Lane: full | middle — tier <A|B|C>: <trigger>`, set at spec time from the tier `sailes-test` Step 5
+computes from triggers, never from judgment. Tier A always gets `full`; tier B/C get `middle`; a tier
+is raised, never lowered.
+
+- **`full`** — today's pipeline, unchanged: implementer → `tester` (derives, human freezes to
+  `FROZEN`, hard STOP until then) → `checker` → `qa` (screenshots, vision-verify against the design
+  artifact and `.ai/screens/` baseline).
+- **`middle`** — implementer → `tester` with a `DERIVED` plan (writes the suite immediately, the
+  implementation still UNREAD, no human-freeze STOP) → `checker` → `qa` with a **live run on the
+  stack, output pasted** — no screenshots, no vision-verify, no `.ai/screens/` update. `designer`
+  joins `middle` ONLY when the phase creates a screen with no existing design artifact
+  (`.ai/specs/ui-spec.md` / `design-system/MASTER.md`) — a touched screen that already has one skips
+  `designer` even in `middle`, and `fe-dev` builds from that artifact instead. `qa`'s environment
+  exclusivity is unchanged in either lane.
 <!-- END gate-scaling -->
 
 """

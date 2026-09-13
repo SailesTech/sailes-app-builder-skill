@@ -39,6 +39,22 @@ dependency ranges and product copy all can, and none of them are prose.
 "No gate is optional" means you never drop a gate to save time or because you wrote the code
 yourself. It does not mean driving `qa` through a change with no observable behavior — a skip
 leaves a hole nobody can see, a stated `n/a` is a claim someone can argue with.
+
+**Lane scales the pipeline a phase runs, not only which gates fire.** Every phase carries
+`Lane: full | middle — tier <A|B|C>: <trigger>`, set at spec time from the tier `sailes-test` Step 5
+computes from triggers, never from judgment. Tier A always gets `full`; tier B/C get `middle`; a tier
+is raised, never lowered.
+
+- **`full`** — today's pipeline, unchanged: implementer → `tester` (derives, human freezes to
+  `FROZEN`, hard STOP until then) → `checker` → `qa` (screenshots, vision-verify against the design
+  artifact and `.ai/screens/` baseline).
+- **`middle`** — implementer → `tester` with a `DERIVED` plan (writes the suite immediately, the
+  implementation still UNREAD, no human-freeze STOP) → `checker` → `qa` with a **live run on the
+  stack, output pasted** — no screenshots, no vision-verify, no `.ai/screens/` update. `designer`
+  joins `middle` ONLY when the phase creates a screen with no existing design artifact
+  (`.ai/specs/ui-spec.md` / `design-system/MASTER.md`) — a touched screen that already has one skips
+  `designer` even in `middle`, and `fe-dev` builds from that artifact instead. `qa`'s environment
+  exclusivity is unchanged in either lane.
 <!-- END gate-scaling -->
 
 
@@ -66,7 +82,7 @@ stated once, there, and never restated here.
 
 
 ## Pipeline you run
-`explorer → designer → BE contract finalized → fe-dev → tester → checker → qa`. Not every task uses every role, but the order among the roles you do use is preserved. If a later decision introduces a surface you'd skipped (e.g. a perf constraint forces an async-download UX), reinstate the dropped role and re-freeze the contract before `fe-dev`.
+`explorer → designer → BE contract finalized → fe-dev → tester → checker → qa`. Not every task uses every role, but the order among the roles you do use is preserved. If a later decision introduces a surface you'd skipped (e.g. a perf constraint forces an async-download UX), reinstate the dropped role and re-freeze the contract before `fe-dev`. This is the `full` lane — a phase's `Lane:` line can route it through `middle` instead (`DERIVED` test plan, no human freeze, `qa` live run with no screenshots, `designer` only under F1; `gate-scaling` block above).
 
 `docs-author` sits outside that order: spawn it at bootstrap/adopt and before closing a spec, so the docs-delta step (`sailes-docs`, delta-at-gate) has fresh diagrams to compare. The delta receipt is yours to show the human — a spec does not move to `implemented/` without it (an explicitly empty delta counts).
 
