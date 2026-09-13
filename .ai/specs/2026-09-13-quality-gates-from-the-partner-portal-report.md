@@ -310,6 +310,9 @@ Contract-probe: n/a. Deployed-probe: n/a.
   - run log dostaje sekcję `Known-red:`;
   - plan testów dostaje status `DERIVED`;
   - wpis mówi wprost, że **zastępuje** regułę 1.33.0 „full suite once before the declaration commit”.
+- **`CUTOFF` w `tools/contract-probe-check.js` = dzień merge'a na `main`** (decyzja 2026-09-13). Do tego
+  czasu stała ma wartość tymczasową. Specy bez daty w nazwie nie są oceniane i dostają komunikat na
+  stdout; to trwałe zachowanie, nie tymczasowe.
 - **Merge na `main` dopiero po pomiarze 1.33.x (F5):** porównanie dwóch dni pracy klienta na 1.33.x
   z `.ai/eval-runs/2026-09-12-token-baseline/` zapisane na dysku. Potem pięć stempli, pełne `npm test`
   i zgoda człowieka na push.

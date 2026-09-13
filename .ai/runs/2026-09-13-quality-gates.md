@@ -63,3 +63,16 @@ ownership:
   Pytania Q1–Q3 i Q5 wysłane do `be-dev` jako tymczasowe domyślne: separator `n/a` obowiązkowy,
   nieprawidłowa data kalendarzowa traktowana jak brak daty, exit 2 wygrywa przy mieszanych argumentach,
   eksport `CUTOFF`. Q4 (spec bez daty) i Q6 (brzmienie stderr) idą do okna decyzji.
+- 2026-09-13: `be-dev` wrócił, commit `af3e556`, 26/26 testów. Sprawdzone przez lidera: `contract-probe-check.test.js` zielony,
+  narzędzie na kopii tego specu z datą 2099 → exit 1 dla P4, P5 i P6. Raport `be-dev` podawał tylko
+  P6. P4 i P5 mają `n/a.` bez separatora, więc to poprawny wynik, a pomyłka jest w raporcie.
+  Zmergowane do gałęzi (`08fc91b`, `44949b6`), `npm test` exit 0, 21 zestawów w `package.json` = 21 w `AGENTS.md`.
+  Worktree mają pliki w LF, bo tak robi checkout na Linuksie. CRLF w głównym drzewie to pozostałość,
+  a git przechowuje LF (`* text=auto`), więc treść się nie różni. Brief twierdził „CRLF” i się mylił.
+- 2026-09-13: `checker` P1 zlecony na `d9d50c6..af3e556`, bez raportu `be-dev` i bez run logu.
+
+## Decyzje człowieka przy bramce P1 (2026-09-13)
+- Cutoff: dzień merge'a na `main`, ustawiany w P6 (wpisane do P6 w specu). Odrzucone: stałe 2026-09-14.
+- Spec bez daty w nazwie: nie jest oceniany, dostaje komunikat. Trwałe. Odrzucone: ocenianie.
+- Plan P1 zamrożony jak zaproponowany: tier B, separator obowiązkowy, zła data = brak daty, exit 2 wygrywa,
+  luźne dopasowanie stderr. Odrzucone: tier A; zmiana odpowiedzi.
