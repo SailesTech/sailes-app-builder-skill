@@ -170,7 +170,8 @@ test('a file name with no date at all is not graded (decided 2026-09-13 — see 
 
 test('gradingStatus compares the date, not the string, at the exact cutoff boundary', () => {
   assert.strictEqual(gradingStatus(`${CUTOFF}-x.md`).graded, true, 'the cutoff date itself is graded');
-  assert.strictEqual(gradingStatus('2026-09-13-x.md').graded, false, 'one day before the cutoff is not');
+  const dayBefore = new Date(Date.parse(`${CUTOFF}T00:00:00Z`) - 86400000).toISOString().slice(0, 10);
+  assert.strictEqual(gradingStatus(`${dayBefore}-x.md`).graded, false, 'one day before the cutoff is not');
   assert.strictEqual(gradingStatus('2027-01-01-x.md').graded, true);
   assert.strictEqual(gradingStatus('no-date-here.md').graded, false);
 });

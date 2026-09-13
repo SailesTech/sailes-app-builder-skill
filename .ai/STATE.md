@@ -58,7 +58,15 @@ Last-commit: 6995c93
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-09-13 evening, fourth session (**resume here**): **1.34.0 P6 — done on the branch, blocked on F5.**
+- **2026-09-13 late, same session — G29: the owner chose to merge 1.34.0 to `main` now, without F5**, "żeby wszyscy
+  mogli pracować na tym i zbierać feedback". F5 and G15 are superseded:
+  - the 1.33.x saving will be measured mixed with 1.34.0;
+  - `CUTOFF` = `2026-09-13`;
+  - CHANGELOG corrected.
+  The merge-day entry of the run log records the commit, the `npm test` output and the push. **Resume from there**,
+  not from the F5 plan below. What stays true: the spec is not moved to `implemented/` until its docs-delta receipt
+  (blocked by archify 2.17 debt) has been shown to the human.
+- 2026-09-13 evening, fourth session: **1.34.0 P6 — done on the branch, blocked on F5** (superseded by G29 above).
   `feat/1.34.0-quality-gates`, nothing pushed, `main` untouched. Evidence is in the spec's `Status:` line, events
   in the run log (§ P6), and every eval verdict in `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`, with fixture caveats
   in its `README.md`. Human decisions G14–G28 are in the spec.

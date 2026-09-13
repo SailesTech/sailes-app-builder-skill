@@ -743,6 +743,10 @@ Wszystko wpisane do specu jako G3 i G4.
 - **`Done-when` P6:** eval-status spełniony poza 5 wyjątkami człowieka; stemple i `npm test` spełnione.
   - Raport porównania 1.33.x **nie istnieje**: F5 się nie zaczęło, więc P6 i spec są zablokowane.
   - `CUTOFF` zostaje tymczasowy do dnia merge'a.
+- **G29 (dzień merge'a, 2026-09-13):** po zamknięciu prac na gałęzi właściciel zdecydował o merge'u na `main` teraz,
+  bez F5, „żeby wszyscy mogli pracować na tym i zbierać feedback”.
+  - `CUTOFF` = `2026-09-13`; akapit CHANGELOG o F5 poprawiony; `STATE.md` uzupełniony.
+  - Commit, `npm test` i push: w następnym wpisie.
 - **Nie-PASS** (żaden nieprzypisany do 1.34.0; każdy z wierszem w backlogu): verifies-status arm 1 (kontrola blokuje
   tak samo), delta-gate arm 2 (reguła STOP z 07-29), diagnose (b), inner-loop INCONCLUSIVE.
 - **G26:** ramię 2 `lead-does-not-open-a-swarm-unprompted` puszczone ponownie na `a6dccd3` → PASS.

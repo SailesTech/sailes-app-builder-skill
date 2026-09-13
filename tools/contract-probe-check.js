@@ -32,10 +32,10 @@ const path = require('path');
  * ------------------------------------------------------------------ */
 
 /** The one place this value lives (P1.3). DECIDED 2026-09-13 (human, P1 gate): the cutoff is the
- *  day 1.34.0 merges to `main`, set in P6 when the release is stamped — until then this is a
- *  placeholder. Exported (below) so the frozen suite reads it via `require` and never hard-codes a
- *  date of its own. */
-const CUTOFF = '2026-09-14';
+ *  day 1.34.0 merges to `main` — set in P6, 2026-09-13 (G29: merged without waiting for F5).
+ *  Exported (below) so the frozen suite reads it via `require` and never hard-codes a date of its
+ *  own. */
+const CUTOFF = '2026-09-13';
 
 const DATE_IN_NAME = /^(\d{4})-(\d{2})-(\d{2})-/;
 

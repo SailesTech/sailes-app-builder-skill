@@ -10,7 +10,7 @@ Source: a one-day report from `partner-portal-v3`. **No defect that day was foun
 by running something or by disbelieving a claim.** The most expensive: a screen that never worked at all, after 2400
 lines. Three gates passed it because they read the same wrong statement about a response shape. One `curl` in the
 first minute would have caught it. Spec: `.ai/specs/2026-09-13-quality-gates-from-the-partner-portal-report.md`. Built
-and gated on a branch; the merge to `main` waits for the 1.33.x token measurement (F5).
+and gated on a branch; merged to `main` on 2026-09-13 without waiting for the 1.33.x token measurement (G29, below).
 
 **1. `Contract-probe:` — measure the contract before dispatch.** A phase that stands on an existing contract carries
 `Contract-probe:` beside its `Done-when`. At pre-implement the lead runs the command against the **local stack with
@@ -103,9 +103,12 @@ it. `eval-status`: 49 fresh, 5 stale (the blocked ones below), 0 never run.
 - **Runtime finding:** the harness refuses some subagent writes of report-like files ("Subagents should return findings
   as text"). This bears directly on point 5's report-file rule for gate roles; backlog.
 
-**Not yet measured.** The 1.33.x token saving (F5): `partner-portal-v3` is still stamped 1.32.0, so the two days of
-client work on 1.33.x that the comparison against `.ai/eval-runs/2026-09-12-token-baseline/` needs have not started.
-`tools/contract-probe-check.js`'s `CUTOFF` keeps its placeholder until the merge day.
+**Merged without the planned measurement (G29).** The plan was to merge only after two days of client work on 1.33.x
+had been compared against `.ai/eval-runs/2026-09-12-token-baseline/` (F5). The owner chose to merge now so everyone
+works on 1.34.0 and feedback starts. The consequence is accepted: the 1.33.x token saving will be measured together
+with 1.34.0's changes and cannot be attributed to either release alone. `partner-portal-v3` is still stamped 1.32.0;
+its upgrade goes straight to 1.34.0. `tools/contract-probe-check.js`'s `CUTOFF` is `2026-09-13`, the merge day: specs
+dated from that day on must carry `Contract-probe:`.
 
 ## 1.33.1 — 2026-09-13 · a gate that crashed instead of saying SKIP
 
