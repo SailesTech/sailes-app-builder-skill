@@ -71,6 +71,16 @@ ownership:
   a git przechowuje LF (`* text=auto`), więc treść się nie różni. Brief twierdził „CRLF” i się mylił.
 - 2026-09-13: `checker` P1 zlecony na `d9d50c6..af3e556`, bez raportu `be-dev` i bez run logu.
 
+- 2026-09-13: `checker` P1 → **CHANGES-REQUIRED**, jedno znalezisko: czwarty tymczasowy punkt (exit 2
+  wygrywa) nie był oznaczony w kodzie. Działanie było poprawne i przetestowane. Poza tym czysto:
+  Done-when zielone (27/27, `CLAUDE_PLUGIN_ROOT` przy obu narzędziach, `npm test` exit 0, 21 = 21),
+  bez nadmiaru zakresu, sync-blocks w zgodzie, 15 prób złamania narzędzia bez defektu.
+  Poprawka lidera, tylko komentarze: wszystkie znaczniki `PROVISIONAL` zmienione na
+  `DECIDED 2026-09-13` z decyzjami człowieka, dodany brakujący przy exit 2, `CUTOFF` powiązany z P6.
+  Uwaga informacyjna `checker`: granicą wartości pola jest każda linia `<Word>-<word>:`, więc np.
+  `Request-Id:` między etykietą a blokiem kodu ucina zbieranie wartości. To własność kontraktu
+  zamrożonego przez lidera, nie błąd `be-dev`. Idzie do okna przy zamknięciu P1.
+
 ## Decyzje człowieka przy bramce P1 (2026-09-13)
 - Cutoff: dzień merge'a na `main`, ustawiany w P6 (wpisane do P6 w specu). Odrzucone: stałe 2026-09-14.
 - Spec bez daty w nazwie: nie jest oceniany, dostaje komunikat. Trwałe. Odrzucone: ocenianie.

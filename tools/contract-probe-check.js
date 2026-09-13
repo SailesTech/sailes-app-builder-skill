@@ -31,9 +31,10 @@ const path = require('path');
  * Grading eligibility — only specs dated at or after the cutoff are judged at all.
  * ------------------------------------------------------------------ */
 
-/** The one place this value lives (P1.3). The real cutoff is a human decision pending at the P1
- *  gate — this is the provisional value the spec itself carries. Exported (below) so the tester's
- *  frozen suite reads it via `require` and never hard-codes a date of its own. */
+/** The one place this value lives (P1.3). DECIDED 2026-09-13 (human, P1 gate): the cutoff is the
+ *  day 1.34.0 merges to `main`, set in P6 when the release is stamped — until then this is a
+ *  placeholder. Exported (below) so the frozen suite reads it via `require` and never hard-codes a
+ *  date of its own. */
 const CUTOFF = '2026-09-14';
 
 const DATE_IN_NAME = /^(\d{4})-(\d{2})-(\d{2})-/;
@@ -56,19 +57,16 @@ function gradingStatus(file) {
   const base = path.basename(file);
   const m = base.match(DATE_IN_NAME);
   if (!m) {
-    // PROVISIONAL DEFAULT (deviation — see run log, reported to the lead): the frozen contract
-    // only states the comparison for a file name that DOES carry a date. A file with no date at
-    // all is treated as not-graded rather than graded-by-default: applying a date-based rule to a
-    // file with no date to compare would mean either always-graded (risks firing on arbitrary
-    // markdown passed in by mistake) or always-exempt in the other direction — and "not graded" is
-    // the reading that cannot manufacture a false failure on a file this tool was never meant to
-    // see. The human decides this at the freeze.
+    // DECIDED 2026-09-13 (human, P1 gate — durable, not a stopgap): a file name with no date is
+    // not graded, and says so on stdout. Grading it would fire on the undated legacy specs of
+    // adopted repos, and a gate that fires on legacy is a gate that gets disabled. The stdout line
+    // keeps the exemption visible instead of silent.
     return { graded: false, reason: 'not graded — no date in file name' };
   }
   const [, yStr, mStr, dStr] = m;
-  // PROVISIONAL DEFAULT (tester addendum): a prefix with the right SHAPE but not a real calendar
-  // date (`2026-13-40-x.md`) is treated the same as no date at all, never as "always graded" or
-  // "always not-graded" by some other rule. One place, easily changed at the freeze.
+  // DECIDED 2026-09-13 (human, P1 plan freeze, CP39): a prefix with the right SHAPE but not a real
+  // calendar date (`2026-13-40-x.md`) is treated the same as no date at all — never rolled over
+  // into a later month by `Date`.
   if (!isValidCalendarDate(Number(yStr), Number(mStr), Number(dStr))) {
     return { graded: false, reason: 'not graded — no date in file name' };
   }
@@ -164,12 +162,11 @@ function namesBrokenEnvironment(reason) {
 function judgeField(value) {
   const stripped = value.trim().replace(/^[`*_>\s]+/, '').replace(/[`*_\s]+$/, '');
 
-  // PROVISIONAL DEFAULT (tester addendum): the separator between `n/a` and its reason is
-  // MANDATORY. `n/a because it is already covered` — no `—`/`–`/`-`/`:` — is not recognised as a
+  // DECIDED 2026-09-13 (human, P1 plan freeze, CP40): the separator between `n/a` and its reason
+  // is MANDATORY. `n/a because it is already covered` — no `—`/`–`/`-`/`:` — is not recognised as a
   // waiver attempt at all here; it falls through to the fenced-block check below and, finding
   // none, reports `no-block`, exactly like any other unlabelled prose value. A BARE `n/a` (nothing
-  // after it at all) is still the "no reason" case Done-when names explicitly. One place, easily
-  // changed at the freeze if the human wants a looser separator rule.
+  // after it at all) is still the "no reason" case Done-when names explicitly.
   const bareNa = /^n\/?a\b\s*$/i.test(stripped);
   const waiver = bareNa
     ? { 1: '' }
@@ -277,6 +274,9 @@ function main(argv) {
     }
   }
 
+  // DECIDED 2026-09-13 (human, P1 plan freeze, CP41): an unreadable file wins over every graded
+  // result, including a failing one. Exit 2 means the tool could not establish what it was asked
+  // to grade, which is a harder failure than a phase breaking the rule.
   if (unreadable) return 2;
   return failed ? 1 : 0;
 }
