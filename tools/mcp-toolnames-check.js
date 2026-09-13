@@ -297,6 +297,12 @@ function queryServerTools(commandLine, opts = {}) {
       });
     });
 
+    // A write to a process that already died fails ASYNCHRONOUSLY (EPIPE as an 'error' event), which
+    // the try/catch below cannot see — unhandled, it crashes this tool instead of reporting SKIP.
+    child.stdin.on('error', () => {
+      // the exit/error handlers above report why the server is gone
+    });
+
     const send = (obj) => {
       try {
         child.stdin.write(JSON.stringify(obj) + '\n');

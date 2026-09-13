@@ -336,6 +336,11 @@ ownership:
     (cicho na 22 specach) i `spec-status-evidence`. `mcp-toolnames-check` osobno: 2 × pass, 1 × ten sam
     EPIPE, a ta porażka szła równolegle z pozostałymi zestawami. Flake jest znany, ale odtwarza się
     także poza pełnym łańcuchem.
+  - Flake naprawiony (poprawka jednolinijkowa, bez specu). EPIPE przychodzi asynchronicznie jako
+    zdarzenie `error` na `child.stdin`, którego `try/catch` w `send()` nie łapie. Dodany pusty
+    `child.stdin.on('error')`. Przy tym samym obciążeniu, 20 uruchomień (4 równolegle × 5): przed
+    poprawką 15 × fail, wszystkie EPIPE; po poprawce 0. Pełne `npm test` → exit 0, 20 zestawów,
+    554 × ok. Wiersz w backlogu zamknięty.
 
 ## Postęp
 - [x] P0 — narzędzie + baseline (checker NITS zaakceptowane; detection 11/11; frozen 37/37)
