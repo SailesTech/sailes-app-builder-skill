@@ -116,6 +116,12 @@ const INVARIANTS = {
     // `autoCompactWindow` fuse, but the handoff RULE applies on both runtimes: the block text makes
     // no claim of the fuse existing on Codex, only that the lead hands off after the gate closes.
     ['a closed phase ends the lead session; the human runs /clear before the next phase starts', /\/clear/],
+    // P5 (spec 2026-09-13-quality-gates-from-the-partner-portal-report, G7) — the report-FILE-from-
+    // first-change mandate is scoped to the gate roles, whose verdict cannot be reconstructed from
+    // disk any other way. `be-dev`/`fe-dev` report a message instead (G7a, checked on their own
+    // entries below) — losing this scoping from a twin reinstates the file mandate for implementer
+    // roles too, which is the exact 1.34.0 P4 cost this split was written to remove.
+    ['the report-FILE-from-first-change rule is scoped to the gate roles (checker, qa, tester)', /gate roles?[\s\S]{0,10}checker,\s*qa,\s*tester/i],
   ],
   explorer: [
     ['strictly read-only', /read-only/i],
@@ -160,6 +166,14 @@ const INVARIANTS = {
     // NOT a reason to keep a second full run per worker per phase, which is what 1.33.0 did.
     ['verification is lint/build/tests of the changed module; never the full suite on a phase', /(lint|build)[\s\S]{0,150}(module|full suite)/i],
     ['full suite/e2e run once, before push, by qa', /full suite[\s\S]{0,80}(before push|by .?qa.?)/i],
+    // P5 (spec 2026-09-13-quality-gates-from-the-partner-portal-report, G7a) — the implementer's
+    // report is a message in fixed fields, capped at 40 lines, never a file — the mirror of G7b's
+    // scoping on team-lead above.
+    ['report is a message in fixed fields, at most 40 lines', /message in fixed fields[\s\S]{0,20}at most 40 lines/i],
+    // P5 (G7c) — the G6 doctrine: a WIP: checkpoint whose commit body names the verification
+    // commands run so far (or states none have run yet). Losing this from a twin reintroduces the
+    // exact gap G6 exists to close — an interrupted worker with commits but no verification record.
+    ['WIP: commit body names verification commands run so far, or states none have run yet', /WIP:? commit, and its body names the verification commands run so far/i],
   ],
   'fe-dev': [
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
@@ -173,6 +187,10 @@ const INVARIANTS = {
     // P3.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — middle lane: build from
     // the existing design artifact or the designer spec F1 called in, never with neither.
     ['middle lane: design artifact or designer spec, never neither', /design artifact[\s\S]{0,150}designer.{0,10}spec[\s\S]{0,100}never with neither/i],
+    // P5 (G7a) — see be-dev's identical note above.
+    ['report is a message in fixed fields, at most 40 lines', /message in fixed fields[\s\S]{0,20}at most 40 lines/i],
+    // P5 (G7c) — see be-dev's identical note above.
+    ['WIP: commit body names verification commands run so far, or states none have run yet', /WIP:? commit, and its body names the verification commands run so far/i],
   ],
   tester: [
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
