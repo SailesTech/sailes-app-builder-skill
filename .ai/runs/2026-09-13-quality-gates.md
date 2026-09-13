@@ -624,3 +624,55 @@ Wszystko wpisane do specu jako G3 i G4.
   is scoped to the gate roles (checker, qa, tester)” → ok w obu bliźniakach (linia 82). Koncepty (a) i (c) dla
   `be-dev`/`fe-dev` → ok. Regex (c) jest prawie dosłowną frazą, więc wierna parafraza reguły go obleje. Ocenę kruchości
   zostawiam `checker` (punkt 3 briefu).
+- 2026-09-13: `checker` G6/G7 (`d2303e8..c0b8757`) → **NITS**. Uwagi nieblokujące, odłożone do okna przy zamknięciu P5:
+  1. Treść G6 („names the verification commands … and their result”) nie wymaga dosłownej komendy, więc „ran the tests,
+     they pass” formalnie spełnia regułę.
+  2. Koncept (b) na `team-lead` przechodzi na negacji albo poszerzeniu zakresu, jeśli nazwy ról stoją obok.
+  3. Koncepty (a) i (c) są prawie dosłowne: wierna parafraza je obleje, negacja z zachowaną frazą przejdzie. Brak
+     fixture odwrotnych.
+  4. Kolejność w `.toml`: „a commit is your declaration” stoi przed wyjątkiem `WIP:`. To było tam już wcześniej.
+
+  Zakres potwierdzony: 5 plików. W `.toml` doszło też zdanie „Commit often, prefix WIP:”, konieczne jako kontekst. Checker
+  zaznacza, że dopiero przerwana para domyka pomiarową połowę G6.
+- 2026-09-13: merge G6+G7 → **`8a941b6`**. Para A5+B5 w następnym kroku, osobno od merge'a, żeby
+  `git worktree add` nie konkurował o blokady refów.
+- 2026-09-13: **para G6 (przerwana).** A5 (doktryna sprzed P5, kontrola) i B5 (doktryna P5 plus G6, tekst roli z `c0b8757`)
+  wystartowały razem. Obu pilnuje `stop-watch.sh` jako Monitor, `TaskStop` po 3 plikach z listy P4. Wierność promptów i
+  mapowanie przebiegów są w `ledger.md`. Ocena według kryteriów 3b zamrożonych w `DESIGN.md` o 14:27 UTC, bez zmian.
+- 2026-09-13: **A5 przerwany** (kontrola pary G6, doktryna sprzed P5). STOP-NOW o 14:56:47 (n=3), `TaskStop` o 14:56:52,
+  w chwili zatrzymania nadal 3 pliki.
+  - Na dysku: 1 WIP (`f287854`, P4.1) z pustą treścią i niezacommitowany `checker.md` (patch zapisany). Status bez
+    `closed`. **Raportu nie ma**, choć status go deklaruje, a brief każe pisać od pierwszej zmiany.
+  - Ocena według tych samych zamrożonych kryteriów: 3a nie; 3b **2/3** (brak stanu weryfikacji), więc nie do
+    odtworzenia.
+  - To pierwszy przebieg ramienia A, który złamał klauzulę pliku od pierwszej zmiany. Szczegóły w
+    `returns/A5-recoverability.md`.
+- 2026-09-13: **B5 przerwany** (para G6, doktryna P5 plus G6). STOP-NOW o 14:58:43 (n=3), `TaskStop` o 14:58:48,
+  w chwili zatrzymania nadal 3 pliki.
+  - Na dysku: **0 commitów** i 3 pliki niezacommitowane (`checker.md`, `qa.md`, `qa.toml`), patch zapisany. Status
+    bez `closed`.
+  - Z kolejności plików wynika, że krok P4.2 (qa.md i qa.toml) był skończony, a worker zaczął P4.3, bez commita WIP
+    wymaganego przez G6. Ocena 3b według zamrożonych kryteriów w następnym wpisie.
+- 2026-09-13: ocena B5 według zamrożonych kryteriów: 3a nie; 3b **2/3**, więc nie do odtworzenia. **G6 nie zadziałało**:
+  P4.2 skończone, P4.3 rozpoczęte bez commita WIP. Para G6: A5 2/3 (bez raportu, choć klauzula go wymaga), B5 2/3.
+  Łącznie przerwane przebiegi: A 2/2, B 2/2 nie do odtworzenia, więc warunek nadal nie blokuje. Dopisek jest w
+  `VERDICT.md`, a wniosek brzmi: ani zdanie o pliku, ani zdanie G6 nie zostawia na dysku stanu weryfikacji w chwili
+  przerwania. To pojedyncze przebiegi, bez wskaźników.
+- 2026-09-13: **`Done-when` P5 na zintegrowanej gałęzi `8a941b6`**, powtórzony przez lidera:
+  - brief-closure → exit 0; parity → exit 0 (10 ról); sync → in sync; frontmatter → exit 0;
+  - `npm test` → exit 0, 0 `not ok`;
+  - VERDICT ma cztery metryki dla obu ramion (3a i 3b osobno);
+  - warunek „B ma więcej pustych albo utraconych zwrotów” nie jest spełniony: 0/3 wobec 0/3, 2/2 wobec 2/2.
+
+  Status specu zaktualizowany. Zamknięcie czeka na okno decyzji.
+
+## Decyzje człowieka przy zamknięciu P5 (2026-09-13) — w specu jako G10–G13
+- **G10.** G6 zostaje w 1.34.0, a do backlogu trafia wiersz „mechanizm zamiast zdania”. Odrzucone: usunięcie G6;
+  mechanizm od razu w P5.
+- **G11.** NITS G6/G7 idą do backlogu: regexy parity do istniejącego wiersza o bliskości zamiast sensu; ogólnik w treści
+  WIP i kolejność zdań w `.toml` do wiersza G10. Odrzucone: poprawka teraz.
+- **G12.** Usunięte worktree A5, B5 i G6/G7, gałęzie zostają. Odrzucone: zostawić do P6.
+- **G13.** Commit zamykający, `STATE.md`, `/clear`, P6 w nowej sesji. Odrzucone: P6 w tej sesji; wstrzymanie do F5.
+- **P5 ZAMKNIĘTE 2026-09-13.** `Done-when` spełniony na `8a941b6`; dowody w `Status:` specu. checker: APPROVE (P5.1–P5.2),
+  APPROVE (G8), NITS (G6/G7) · tester: n/a · qa: n/a (brak działającej aplikacji). Wszyscy workerzy i checkerzy
+  zakończeni, zwolnieni.

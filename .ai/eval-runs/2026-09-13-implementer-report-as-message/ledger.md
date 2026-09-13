@@ -10,6 +10,8 @@
 | B3 | B | full | a8f22b0c9cbd4cf4a | .claude/worktrees/agent-a8f22b0c9cbd4cf4a | 14:12:50 | 548d3d8 | ~14:20, done, 428 s, 132k tokens; single commit, 0 WIP; checker v2 aac234d550863d314 |
 | A4 | A | interrupted | a8d128ac1b377e883 | .claude/worktrees/agent-a8d128ac1b377e883 | ~14:25:46 | 828826d (WIP) + uncommitted agents/qa.md | STOP-NOW 14:26:27 (n=3: agents/qa.md, release-checklist.md, SKILL.md) → TaskStop success 14:26:34; n at stop = 3; return = one kill-truncated line |
 | B4 | B | interrupted | a5b9237baf412ea70 | .claude/worktrees/agent-a5b9237baf412ea70 | ~14:25:46 | no commits; 3 uncommitted files | STOP-NOW 14:28:27 (n=3: agents/qa.md, release-checklist.md, SKILL.md) → TaskStop success 14:28:35; n at stop = 3; return = one kill-truncated line |
+| A5 | A | interrupted, G6 pair (control, pre-P5 doctrine) | aa12a60ff0d8e89e4 | .claude/worktrees/agent-aa12a60ff0d8e89e4 | ~14:55:55 | f287854 (WIP) + uncommitted agents/checker.md | STOP-NOW 14:56:47 (n=3: agents/checker.md, release-checklist.md, SKILL.md) → TaskStop success 14:56:52; n at stop = 3; return = one kill-truncated line |
+| B5 | B | interrupted, G6 pair (P5 doctrine + G6 rule, role text from `c0b8757`) | a60a0e460ebc40f7a | .claude/worktrees/agent-a60a0e460ebc40f7a | ~14:55:55 | no commits; 3 uncommitted files | STOP-NOW 14:58:43 (n=3: agents/checker.md, agents/qa.md, codex-agents/qa.toml) → TaskStop success 14:58:48; n at stop = 3; return = one kill-truncated line |
 
 ## Control (not an arm)
 The real P4 run, worktree `agent-aca1acd19b701a36d`, tip `77df5c6`, graded with `instruments/grade-run.sh`. This is the instrument's positive control.
@@ -44,3 +46,4 @@ The check is repeated for every later run before VERDICT.
   the finished run B2.
 - checker v2 B3: IDENTICAL.
 - checker v2 A3: IDENTICAL, A4: IDENTICAL, B4: IDENTICAL.
+- A5: IDENTICAL, B5: IDENTICAL (brief-B5 differs from brief-B4 only by the G6 paragraph and the label).

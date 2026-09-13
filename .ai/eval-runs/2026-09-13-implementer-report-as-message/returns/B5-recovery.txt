@@ -1,0 +1,28 @@
+## recovery dump — B5
+### HEAD and commits since base
+HEAD 738be36 · descends from 738be36: yes
+### uncommitted changes (name-status vs HEAD, plus untracked)
+ M agents/checker.md
+ M agents/qa.md
+ M codex-agents/qa.toml
+### diff stat vs base (committed + uncommitted)
+ agents/checker.md    | 2 +-
+ agents/qa.md         | 1 +
+ codex-agents/qa.toml | 2 ++
+ 3 files changed, 4 insertions(+), 1 deletion(-)
+### status file(s)
+--- /home/charlie/Work/Internal/sailes-app-builder-skill/.claude/status/be-dev-P5ab-B5.md
+worker: be-dev-P5ab-B5
+task: 1.34.0 P4 — pre-existing red established by name against the base (spec 2026-09-13-quality-gates-from-the-partner-portal-report.md)
+base: 738be36
+claimed:
+  - skills/sailes-implement/SKILL.md
+  - skills/sailes-bootstrap/release-checklist.md
+  - agents/qa.md
+  - codex-agents/qa.toml
+  - agents/checker.md
+  - codex-agents/checker.toml
+  - codex-agents/parity.test.js
+  - evals/gate-compares-red-by-name-not-count.md
+opened: 2026-09-13T00:00:00Z
+### report file(s) under .ai/ (committed or not)

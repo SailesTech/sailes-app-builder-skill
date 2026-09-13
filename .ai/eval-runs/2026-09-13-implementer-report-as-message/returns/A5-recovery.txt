@@ -1,0 +1,29 @@
+## recovery dump — A5
+### HEAD and commits since base
+HEAD f287854 · descends from 738be36: yes
+--- f287854 WIP(1.34.0-P4): P4.1 red-by-name doctrine in SKILL.md pre-push gate + release-checklist §0
+
+### uncommitted changes (name-status vs HEAD, plus untracked)
+ M agents/checker.md
+### diff stat vs base (committed + uncommitted)
+ agents/checker.md                            | 2 +-
+ skills/sailes-bootstrap/release-checklist.md | 4 ++++
+ skills/sailes-implement/SKILL.md             | 4 ++--
+ 3 files changed, 7 insertions(+), 3 deletions(-)
+### status file(s)
+--- /home/charlie/Work/Internal/sailes-app-builder-skill/.claude/status/be-dev-P5ab-A5.md
+worker: be-dev
+task: 1.34.0-quality-gates P4 (red-by-name-against-base parity + qa/checker procedure + eval)
+base: 738be366f5607984824f48782422e07ff74a1575
+claimed:
+  - skills/sailes-implement/SKILL.md
+  - skills/sailes-bootstrap/release-checklist.md
+  - agents/qa.md
+  - codex-agents/qa.toml
+  - agents/checker.md
+  - codex-agents/checker.toml
+  - codex-agents/parity.test.js
+  - evals/gate-compares-red-by-name-not-count.md
+  - .ai/runs/2026-09-13-quality-gates-P4-be-dev-report.md
+opened: 2026-09-13T00:00:00Z
+### report file(s) under .ai/ (committed or not)

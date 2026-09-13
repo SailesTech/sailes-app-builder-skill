@@ -79,6 +79,36 @@ Mechanical table produced by `instruments/aggregate.py`:
 - **Other message-format outcomes:** whether the fixed message fields help or hurt the lead's integration speed was
   not measured.
 
+## Addendum — the G6 pair (after the gate, decision G6)
+At the P5 gate the human merged P5 and added G6: "after each completed step, a `WIP:` commit whose body names the
+verification commands run so far". It was followed by one interrupted pair under the same instrument and the same
+frozen 3b criteria. A5 ran the pre-P5 doctrine as a control; B5 ran the P5 doctrine plus G6, with the role text from
+`c0b8757`. Prompts were checked byte for byte: IDENTICAL.
+
+| | A5 (control) | B5 (P5 + G6) |
+|---|---|---|
+| Stop | STOP-NOW 14:56:47 → `TaskStop` 14:56:52, n=3 | STOP-NOW 14:58:43 → `TaskStop` 14:58:48, n=3 |
+| Commits at stop | 1 WIP (P4.1), **empty body** | **0** |
+| 3a report text present | **no** — the report file was claimed in status and never written | no |
+| 3b recoverable | **no — 2/3** (verification state missing) | **no — 2/3** (verification state missing) |
+| G6 followed | n/a (rule not in this arm) | **no** — P4.2 finished (qa.md + qa.toml) and P4.3 begun with no `WIP:` commit |
+
+**Cumulative interrupted runs:** A 2/2 unrecoverable, B 2/2 unrecoverable. The release condition still does not
+block.
+
+**What the pair shows:**
+- **G6 did not land in its only live test.** The G6 sentence was in B5's role text, and B5 still crossed a step
+  boundary without committing.
+- **The file clause failed in the control arm too.** A5, told to write the report "from your first change", had no
+  report on disk after one commit and a second file edit. The clause was followed in A1–A4, so 4 of 5 A runs complied.
+
+Neither doctrine, as text, reliably leaves a verification state on disk at an interruption. Both observations are
+single runs and establish no rates.
+
+**What would change the picture, not done here:** a mechanism rather than a sentence. Examples are a step boundary
+the brief enforces (a `Done-when` per step with a commit), or a status-file field updated per step. The choice is
+the human's.
+
 ## Instrument history (full detail in `ledger.md`)
 - **Checker v1 defect:** the brief named "the spec" without a path, so the v1 checker read the later shared-checkout
   spec, which carries G3 and the absent-on-base sentence. Both v1 verdicts are kept as defective-instrument runs.
