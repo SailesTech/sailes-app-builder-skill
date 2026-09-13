@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: 999e819
+Last-commit: aeee5e3
 
 > Read at session start — it stays under 20 KB, so that is cheap; history lives verbatim in
 > `.ai/archive/` and is grepped by area, never read whole. Write before walking away. Facts enter **Verified facts** only with
@@ -52,7 +52,24 @@ Last-commit: 999e819
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-09-13 late (**resume here**): **1.34.0 P1 — CLOSED** on branch `feat/1.34.0-quality-gates` at
+- 2026-09-13 night (**resume here**): **1.34.0 P2 — CLOSED** on `feat/1.34.0-quality-gates` at `aeee5e3`
+  (merge `94a44ea` + NITS fix). Nothing pushed; `main` untouched (F5). Evidence is in the spec's `Status:`
+  line, and every event is in `.ai/runs/2026-09-13-quality-gates.md`.
+  - **Shipped in P2:**
+    - `be-dev`/`fe-dev` run lint + build + changed-module tests and never the full suite on a phase.
+      `checker` runs the phase's `Done-when` commands and checks that every path class has a named
+      targeted command.
+    - `qa` alone runs full suite + e2e, once, before push, on the integrated branch, holding the
+      environment exclusively. This is in `release-checklist.md` §0 and in the new "Pre-push gate" in
+      `sailes-implement`.
+    - The 1.33.0 "once before the declaration commit" rule is REPLACED everywhere it stood.
+    - `parity.test.js` gains `INVERSE_INVARIANTS`, proven in both directions: the old text gives exit 1.
+  - checker: APPROVE with 2 NITS, which the lead fixed. tester and qa: n/a.
+  - **Next: P3** (`Lane:` from the risk tier, `DERIVED` plan, F1 `designer` rule), in a fresh session:
+    `sailes-implement` from P3. The worktree base rule still applies: `git merge --ff-only feat/1.34.0-quality-gates`.
+  - **P6 CHANGELOG must say:** P2 replaces 1.33.0's per-worker full-suite rule. The client `AGENTS.md`
+    template's Verification and Key Commands changed.
+- 2026-09-13 late: **1.34.0 P1 — CLOSED** on branch `feat/1.34.0-quality-gates` at
   `999e819`. Nothing pushed; `main` untouched (F5: merge only after the 1.33.x token comparison).
   Progress and every event are in the run log `.ai/runs/2026-09-13-quality-gates.md`; the evidence
   is in the spec's `Status:` line.

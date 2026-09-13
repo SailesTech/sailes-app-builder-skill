@@ -33,6 +33,22 @@ ownership:
   P1-tester:
     - .ai/test-plans/2026-09-13-quality-gates-P1.md
     - tools/contract-probe-check.frozen.test.js
+  P2:
+    - skills/sailes-spec/SKILL.md
+    - skills/sailes-bootstrap/spec-writing-template.md
+    - skills/sailes-implement/SKILL.md
+    - skills/sailes-bootstrap/agent-team-structure.md
+    - agents/be-dev.md
+    - agents/fe-dev.md
+    - agents/checker.md
+    - agents/qa.md
+    - codex-agents/be-dev.toml
+    - codex-agents/fe-dev.toml
+    - codex-agents/checker.toml
+    - codex-agents/qa.toml
+    - skills/sailes-bootstrap/release-checklist.md
+    - skills/sailes-bootstrap/agents-md-template.md
+    - codex-agents/parity.test.js
 ```
 
 ## Decyzje
@@ -40,6 +56,12 @@ ownership:
 - 2026-09-13: P1 prowadzą `be-dev` (narzędzie + doktryna + eval) oraz `tester` (plan ze specu,
   implementacja nieprzeczytana), równolegle i na rozłącznych plikach. Bramy: `checker`.
   `qa: n/a` (brak działającej aplikacji, jak w specu).
+- 2026-09-13 (nowa sesja po `/clear`): człowiek dał „kontynuuj”, czyli zgodę na P2. P2 prowadzi jeden
+  `be-dev` w worktree (tylko doktryna i koncept parity). `tester: n/a`, bo spec daje go tylko P1.
+  Brama: `checker`. `qa: n/a`.
+  Przed dispatchem lider sprawdził, że grep z `Done-when` P2 trafia dziś w 7 miejsc
+  (`be-dev.md:16`, `fe-dev.md:17`, oba `.toml:11`, `sailes-implement/SKILL.md:41`, `parity.test.js:158,166`).
+  Warunek „brak trafień” coś więc mierzy i nie przechodzi pusto.
 
 ## Forki do okna przy bramce P1
 - **Data odcięcia narzędzia.** Spec mówi „≥ dzień wydania 1.34.0”, a dzień wydania jest nieznany
@@ -110,6 +132,47 @@ ownership:
 
   Werdykty: checker APPROVE, qa n/a. Pracownicy zwolnieni (be-dev, tester i checker zakończyli pracę).
   Eval `lead-probes-the-contract-before-dispatch` jest NEVER-RUN i ruszy w P6.
+- 2026-09-13: dispatch `be-dev` na P2 (P2.1–P2.6) w worktree, baza `0969d92` przez `merge --ff-only`.
+- 2026-09-13: `be-dev` wrócił z commitem `15d9f36` (worktree `agent-a6ad107922f6dba39`). Lider sprawdził na dysku:
+  - diff dotyka 15 plików z listy P2 i raportu `be-dev` w `.ai/runs/`, nic poza tym;
+  - w worktree: `parity.test.js` exit 0, 0 FAIL; `sync-blocks --check` in sync; grep z `Done-when` bez trafień
+    (exit 1); `npm test` exit 0, 0 `not ok`;
+  - koncept odwrotny sprawdzony w obu kierunkach na kopii w scratchpadzie: nowy tekst → exit 0; stary
+    `be-dev.md`/`fe-dev.md` z `0969d92` → exit 1, 6 × FAIL (m.in. „no longer ties the full suite to the OLD
+    per-worker completion commit — ABSENT from BOTH twins”).
+
+  Odstępstwa zgłoszone przez `be-dev`, do oceny przez lidera:
+  - `spec-writing-template.md` nie ma sekcji Red Flags, więc punkt P2.1 trafił tam tylko jako checklista;
+  - złagodzone zdanie w `checker.md` „run … the suite”;
+  - nowa sekcja `## 0 ·` w `release-checklist.md`, bez przenumerowania pliku.
+
+  `checker` zlecony na `0969d92..15d9f36`, z wyłączeniem `.ai/runs`.
+- 2026-09-13: `checker` P2 → **APPROVE**.
+  - Pominięcia: brak. Checker przeszukał całe drzewo pod kątem ocalałego sformułowania 1.33.0. Jedyne
+    trafienie, `team-lead.md:76`, dotyczy `maxTurns` i nie ma związku z P2.
+  - Nadmiar, oba jako NITS: autotest regexu odwrotnego oraz rozbudowana proza w §0 i w Key Commands.
+  - Próba złamania: przeredagowanie reguły 1.33.0 bez bigramu `declaration commit` omija regex odwrotny,
+    ale oblewa pozytywny koncept „full suite … before push/qa”. To ta sama klasa ograniczeń co każdy regex parity.
+  - NIT spójności: nagłówek briefu „two levels” nie pasował do trzech poziomów w treści.
+
+  Lider zmergował `94a44ea` (`--no-ff`) i sam poprawił oba NITS (nagłówek briefu, słowa w Key Commands),
+  bez nowego workera. W głównym drzewie: parity exit 0; sync in sync; grep bez trafień; `npm test` exit 0,
+  0 `not ok`, 22 zestawy; oba pliki LF.
+- **P2 ZAMKNIĘTE 2026-09-13.** Wszystkie cztery warunki `Done-when` spełnione. Werdykty: checker APPROVE,
+  tester n/a, qa n/a. `be-dev` i `checker` zakończyli pracę i są zwolnieni.
+
+## Decyzje człowieka przy zamknięciu P2 (2026-09-13)
+- Po P2 handoff: `STATE.md`, `/clear`, P3 w nowej sesji. Odrzucone: P3 w tej sesji.
+- Worktree:
+  - wybrane: `git worktree remove` na 14 żywych, zmergowanych do `feat/1.34.0-quality-gates`, bez
+    `--force`, więc worktree z nieśledzonymi plikami zostaje i trafia na listę; do tego
+    `git worktree prune` na 31 martwych wpisach (ścieżki `D:/`); gałęzie zostają;
+  - odrzucone: sam `prune`; zostawienie wszystkiego.
+
+  Wynik: 14/14 usunięte, żadne nie zostało pominięte, bo żaden worktree nie miał nieśledzonych plików.
+  Każdy był przed usunięciem sprawdzony przez `merge-base --is-ancestor`. `prune -v` wypisał 31 wpisów.
+  `git worktree list` pokazuje teraz tylko główne drzewo. Gałęzie `worktree-agent-*` zostały, a 24
+  pliki w `.claude/status/` nietknięte.
 
 ## Decyzje człowieka przy zamknięciu P1 (2026-09-13)
 - Granica wartości `Contract-probe:` zostaje ogólna (`<Word>-<word>:`). Odrzucone: tylko znane etykiety,
