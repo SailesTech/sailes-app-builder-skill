@@ -230,6 +230,9 @@ const INVARIANTS = {
     // never by count. Losing this from a twin reintroduces the exact failure Q7/F3 rule out: a red
     // count that happens to match the previous run hides a genuinely new regression.
     ['pre-existing red compared by name against the base, never by count', /never by count[\s\S]{0,600}comm -23/i],
+    // P4 gate (human decision 2026-09-13) — a red e2e/live-app test is run on the base's own stack,
+    // on a fresh seeded database; the branch-migrated database would make the base run meaningless.
+    ['e2e base run on a fresh seeded database, never the branch-migrated one', /fresh database[\s\S]{0,60}seed[\s\S]{0,40}never the database the branch migrated/i],
   ],
   'docs-author': [
     ['documents the code as it is — evidence over aspiration', /as it is|evidence over aspiration/i],
