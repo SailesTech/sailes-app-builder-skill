@@ -43,6 +43,23 @@ ownership:
 
 ## Forki do okna przy bramce P1
 - **Data odcięcia narzędzia.** Spec mówi „≥ dzień wydania 1.34.0”, a dzień wydania jest nieznany
-  (F5). Narzędzie potrzebuje stałej już teraz. Tymczasowo `be-dev` trzyma ją w jednej nazwanej stałej.
+  (F5). Narzędzie potrzebuje stałej już teraz. Tymczasowo `be-dev` trzyma ją w jednej nazwanej stałej
+  `CUTOFF = '2026-09-14'`. Każda wartość > 2026-09-13 daje dziś ten sam wynik na dysku.
+- **Spec bez daty w nazwie.** Tymczasowo nie jest oceniany, a narzędzie wypisuje powód na stdout.
+  Alternatywa: oceniać, bo szablon każe datować.
+
+## Kontrakt narzędzia (zamrożony przez lidera w obu briefach, 2026-09-13)
+- CLI `node tools/contract-probe-check.js <spec.md> [...]`; exit 0 / 1 / 2 (brak argumentów albo plik nieczytelny).
+- Nagłówki faz: `^#{2,4}\s+(?:Phase|Faza|P\d+)\b`, czyli regex `deployed-surface-check` plus `P<n>`,
+  bo tego formatu używają specy tego repo. Bez nagłówka cały spec jest jedną jednostką.
+- Pole ważne, jeśli ma `n/a` + separator + powód ≥ 20 znaków bez `stack`/`not running`/`nie wstał`/`ENV`
+  albo blok kodu przed następną etykietą lub nagłówkiem. Faza przechodzi, gdy ma ≥ 1 pole i wszystkie są ważne.
 
 ## Zdarzenia
+- 2026-09-13: dispatch `be-dev` (P1.1–P1.4) i `tester` (plan P1, na razie tylko DRAFT; STOP na
+  zamrożenie przez człowieka). Oba w worktree, baza `d9d50c6` przez `merge --ff-only`.
+- 2026-09-13: `tester` wrócił z planem DRAFT, commit `73d26f7` w worktree `agent-a33fbb254b106410d`.
+  Plan ma 41 przypadków (CP01–CP41), tier B, sześć pytań. Sprawdzone na dysku: 200 linii, 41 wierszy `| CP`.
+  Pytania Q1–Q3 i Q5 wysłane do `be-dev` jako tymczasowe domyślne: separator `n/a` obowiązkowy,
+  nieprawidłowa data kalendarzowa traktowana jak brak daty, exit 2 wygrywa przy mieszanych argumentach,
+  eksport `CUTOFF`. Q4 (spec bez daty) i Q6 (brzmienie stderr) idą do okna decyzji.
