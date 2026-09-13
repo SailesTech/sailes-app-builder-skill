@@ -1,6 +1,10 @@
 # Spec: koszt uruchomienia frameworka — tokeny, nie proza
 
-Status: in-progress — 2026-09-12, start P0 (run log `.ai/runs/2026-09-12-token-cost.md`). Zatwierdzony 2026-09-12 przez właściciela, razem z progami z pomiaru (pamięć 20/40 KB, `autoCompactWindow` 400 k, `maxTurns` per rola). Pre-implement 2026-09-12: READY-WITH-FIXES (`.ai/audits/2026-09-12-pre-implement-token-cost.md`); poprawki i decyzje F1–F4 wpisane w fazy. Następny krok: `sailes-implement`, od P0
+Status: implemented — dowody: `npm test` → exit 0 (20 zestawów, 554 × ok, 0 × not ok) · `release-hygiene` → five stamps at 1.33.0 · detection proof: P0 11/11, P1a 9/9 (+ P1a-26) · evale: `lead-splits-brief-per-phase` PASS; `lead-hands-off-after-phase` PASS (ramię A2, po zmianie kryterium decyzją człowieka `6c43a0c`; pierwszy FAIL zostaje w `03ad03b`) · sprawdzenia na żywo: `autoCompactWindow` → `/context` 1m → 150k; `Agent(be-dev)` deny blokuje tylko lokalną kopię · docs-delta: `architecture.json` i `dataflow.json` zaktualizowane, potwierdzenie ZABLOKOWANE (archify 2.17 `composition/desktop-readability`), dług zaakceptowany przez człowieka · checker: P1b/P2/P3/P4 i zdanie o wskaźniku APPROVE, P0/P1a NITS zaakceptowane · qa: n/a — to repo nie ma działającej aplikacji
+Shipped: 2026-09-13, `main` na `5ab8149` (fast-forward `c0b31ff` → `5ab8149`, push zatwierdzony przez człowieka).
+        Oszczędność nie jest jeszcze zmierzona: porównanie z `.ai/eval-runs/2026-09-12-token-baseline/`
+        po pierwszych dwóch dniach pracy klienta na 1.33.0.
+Run log: `.ai/runs/2026-09-12-token-cost.md`. Pre-implement: READY-WITH-FIXES (`.ai/audits/2026-09-12-pre-implement-token-cost.md`).
 Framework-Version target: 1.33.0
 Weight: contract fix × 4 powierzchnie — hook `session-start`, doktryna lidera, brief workera, Upgrade
         mode. Nie rusza modelu danych ani żadnego kontraktu API; zmienia to, co każda sesja w każdym

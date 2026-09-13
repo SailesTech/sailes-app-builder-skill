@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: 8b3b207
+Last-commit: 5ab8149
 
 > Read at session start — it stays under 20 KB, so that is cheap; history lives verbatim in
 > `.ai/archive/` and is grepped by area, never read whole. Write before walking away. Facts enter **Verified facts** only with
@@ -52,7 +52,19 @@ Last-commit: 8b3b207
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-09-12 (**resume here**): pre-implement of `.ai/specs/2026-09-12-token-cost-of-running.md`
+- 2026-09-13 (**resume here**): **1.33.0 — SHIPPED.** `main` fast-forwarded `c0b31ff` → `5ab8149`
+  (the human chose ff over squash). `origin/main` was verified with all five stamps at 1.33.0 and
+  `## 1.33.0` as the top CHANGELOG heading. `npm test` → exit 0, 20 suites, 0 `not ok`. The spec moved
+  to `.ai/specs/implemented/` with pasted evidence; AGENTS.md now says twenty-two implemented specs.
+  `CHANGELOG.md` is **LF** on disk. The older note below saying "CRLF, like CHANGELOG.md" was wrong.
+  **Owed:**
+  - (a) the token comparison against `.ai/eval-runs/2026-09-12-token-baseline/`, after the first two
+    days of client work on 1.33.0;
+  - (b) the archify 2.17 re-layout of four diagrams (backlog), which unblocks the docs receipt.
+
+  Left untouched, not mine: the untracked `.ai/specs/2026-09-01-codex-marketplace-auto-update.md` and
+  `package-lock.json`.
+- 2026-09-12: pre-implement of `.ai/specs/2026-09-12-token-cost-of-running.md`
   → READY-WITH-FIXES, report `.ai/audits/2026-09-12-pre-implement-token-cost.md`. The human decided
   four forks (F1 hook emits sections-or-head, F2 Upgrade-mode patch of the local hook, F3 archive
   grep by area keyword, F4 lead asks the human for `/clear`); the spec was rewritten with them and
@@ -66,7 +78,7 @@ Last-commit: 8b3b207
   lessons.md 45 → 39 KB, the rest verbatim in `.ai/archive/`. **Worktrees are cut from the default
   branch, not from the lead's current branch** — the first P0 worker stopped on its base check;
   the fix is `git merge --ff-only <lead-branch>` inside the worktree.
-  **SESSION ENDED BY THE HUMAN 2026-09-12 late — RESUME FROM THIS BLOCK.** Branch
+  **SESSION ENDED BY THE HUMAN 2026-09-12 late — superseded by the 2026-09-13 block above.** Branch
   `feat/1.33.0-token-cost`; nothing pushed, `main` untouched. Every human decision this session is in
   `.ai/runs/2026-09-12-token-cost.md` (F1–F5, JSON naming, tester n/a P2–P4, P1a-26, handoff pointer,
   P0 Done-when, docs receipt debt, archify kept).

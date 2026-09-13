@@ -104,7 +104,7 @@ The live plugin does **not** run from this working directory. It runs from a clo
   (`tools/{sync-blocks,ownership-check,worker-status,mcp-toolnames-check,business-logic-check,
   deployed-surface-check}.test.js` — `business-logic-check` also asserts byte-parity between the
   framework checker and its client-repo copy, because sync-blocks cannot carry JS: its markers are
-  HTML comments; `deployed-surface-check` also asserts it stays QUIET on this repo's own twenty-one
+  HTML comments; `deployed-surface-check` also asserts it stays QUIET on this repo's own twenty-two
   implemented specs, because a check that fires on prose is a check somebody disables), the token
   instrument and its frozen suite (`tools/token-report{,.frozen}.test.js`), the client-repo
   hook templates (`hooks-template/*.test.js`, incl. `brief-closure` and the frozen

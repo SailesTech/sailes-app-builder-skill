@@ -321,10 +321,26 @@ ownership:
   Szkic CHANGELOG uzupełniony o zdanie o wskaźniku i wynik A2. Do wydania zostają: wpis + stemple
   w jednym commicie, pełne `npm test` i zgoda człowieka na push.
 
+- 2026-09-13 — **1.33.0 WYDANE.**
+  - Wpis CHANGELOG i pięć stempli w jednym commicie `5ab8149`. Szkic był CRLF, a `CHANGELOG.md` na
+    dysku jest LF, więc przy wstawianiu przekonwertowano go na LF. Notatka w STATE.md mówiła „CRLF,
+    like `CHANGELOG.md`” i była błędna.
+  - `npm test` → exit 0: 20 zestawów, 554 × ok, 0 × not ok. Flake `mcp-toolnames-check` się nie pojawił.
+  - Człowiek wybrał fast-forward (odrzucone: squash, jeden push razem z domknięciem). `main`
+    `c0b31ff` → `5ab8149`, push wykonany. `origin/main` sprawdzony: VERSION, package.json, plugin.json,
+    marketplace.json i AGENTS.md mają 1.33.0, a pierwszy nagłówek CHANGELOG to `## 1.33.0`.
+  - Domknięcie: spec przeniesiony do `implemented/` z dowodami, AGENTS.md „twenty-one” → „twenty-two”.
+    `npm test` po przeniesieniu → exit 1 na `mcp-toolnames-check` („server absent”: `write EPIPE` w
+    `tools/mcp-toolnames-check.js:302`, nieobsłużony `error` na sockecie). Łańcuch `&&` zatrzymał się
+    na zestawie 4. Pozostałe 19 uruchomione osobno → wszystkie exit 0, w tym `deployed-surface-check`
+    (cicho na 22 specach) i `spec-status-evidence`. `mcp-toolnames-check` osobno: 2 × pass, 1 × ten sam
+    EPIPE, a ta porażka szła równolegle z pozostałymi zestawami. Flake jest znany, ale odtwarza się
+    także poza pełnym łańcuchem.
+
 ## Postęp
-- [ ] P0 — narzędzie + baseline
-- [ ] P1 — pamięć na starcie
+- [x] P0 — narzędzie + baseline (checker NITS zaakceptowane; detection 11/11; frozen 37/37)
+- [x] P1 — pamięć na starcie (P1b checker APPROVE; P1a NITS zaakceptowane; detection 9/9 + P1a-26)
 - [x] P3 — worker: zadanie = faza, `maxTurns` (merge `273030a`; checker APPROVE; tester n/a — decyzja człowieka)
-- [ ] P2 — przekazanie sesji + bezpiecznik
+- [x] P2 — przekazanie sesji + bezpiecznik (merge `4e6acf2`; checker APPROVE; eval PASS po A2)
 - [x] P4 — stare role (merge `d4fa89f` + `dcb4b72` + `3fafddd` + `e3cab8e`; sprawdzenie na żywo; checker APPROVE; tester n/a)
-- [ ] P5 — evale, wydanie
+- [x] P5 — evale, wydanie (oba evale PASS; 1.33.0 na `main` `5ab8149`)
