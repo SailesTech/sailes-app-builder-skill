@@ -746,7 +746,16 @@ Wszystko wpisane do specu jako G3 i G4.
 - **G29 (dzień merge'a, 2026-09-13):** po zamknięciu prac na gałęzi właściciel zdecydował o merge'u na `main` teraz,
   bez F5, „żeby wszyscy mogli pracować na tym i zbierać feedback”.
   - `CUTOFF` = `2026-09-13`; akapit CHANGELOG o F5 poprawiony; `STATE.md` uzupełniony.
-  - Commit, `npm test` i push: w następnym wpisie.
+- **Dzień merge'a — wykonane 2026-09-13:**
+  - `666fead`: `CUTOFF` = `2026-09-13`, CHANGELOG/spec/STATE z G29.
+    - Naprawiony test implementera `contract-probe-check.test.js:173`. Wpisywał na sztywno `2026-09-13` jako „dzień
+      przed cutoffem”, co było prawdą tylko przy placeholderze; teraz liczy go z `CUTOFF`.
+    - Pierwsze `npm test` po zmianie `CUTOFF` padło na tym jednym przypadku, zanim cokolwiek zostało zacommitowane.
+  - `77f4e1e`: pin `lead-probes-the-contract-before-dispatch` przeniesiony na `666fead`, tą samą regułą co G26.
+  - `npm test` → exit 0, 0 `not ok` na gałęzi i na `main` po merge'u.
+  - `eval-status` → 49 FRESH, 5 STALE (G19, G21 ×3, G22).
+  - `origin/main` był na `fb69369` (przodek gałęzi). Merge `--no-ff` → `4ede48e`.
+  - `git push origin main` → `fb69369..4ede48e`; `origin/main` = `4ede48e`, zweryfikowane po `fetch`.
 - **Nie-PASS** (żaden nieprzypisany do 1.34.0; każdy z wierszem w backlogu): verifies-status arm 1 (kontrola blokuje
   tak samo), delta-gate arm 2 (reguła STOP z 07-29), diagnose (b), inner-loop INCONCLUSIVE.
 - **G26:** ramię 2 `lead-does-not-open-a-swarm-unprompted` puszczone ponownie na `a6dccd3` → PASS.

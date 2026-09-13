@@ -63,8 +63,15 @@ Last-commit: 6995c93
   - the 1.33.x saving will be measured mixed with 1.34.0;
   - `CUTOFF` = `2026-09-13`;
   - CHANGELOG corrected.
-  The merge-day entry of the run log records the commit, the `npm test` output and the push. **Resume from there**,
-  not from the F5 plan below. What stays true: the spec is not moved to `implemented/` until its docs-delta receipt
+  **Merged and pushed:** `origin/main` = `4ede48e` (from `fb69369`). `npm test` exit 0 and 0 `not ok` on the branch and
+  on `main`; `eval-status` 49 fresh, 5 stale (G19, G21 ×3, G22). The run log's merge-day entry has the commits.
+  **Resume from there**, not from the F5 plan below. Open next:
+  - collect feedback from people working on 1.34.0;
+  - upgrade `partner-portal-v3` from 1.32.0 straight to 1.34.0 (client-repo work, Upgrade mode);
+  - when there are two days of client work on it, run the token comparison against the 09-12 baseline, knowing
+    1.33 and 1.34 are mixed;
+  - the backlog rows from the P6 sweep, first the harness refusing report-file writes, since it bears on P5's gate-role
+    report file. What stays true: the spec is not moved to `implemented/` until its docs-delta receipt
   (blocked by archify 2.17 debt) has been shown to the human.
 - 2026-09-13 evening, fourth session: **1.34.0 P6 — done on the branch, blocked on F5** (superseded by G29 above).
   `feat/1.34.0-quality-gates`, nothing pushed, `main` untouched. Evidence is in the spec's `Status:` line, events
