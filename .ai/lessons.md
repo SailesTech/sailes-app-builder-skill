@@ -143,6 +143,10 @@
   grows. `git rev-parse --show-toplevel` before any `isolation: worktree` dispatch.
 - **Applies-to:** `skills/sailes-diagnose/SKILL.md` (hard rule 2), `agents/team-lead.md`,
   `skills/sailes-bootstrap/agent-team-structure.md`, `AGENTS.md` §Delegation.
+- **Addendum (2026-09-13, 1.34.0 P5):** the file-from-first-change rule above now scopes to gate
+  roles (`checker`, `qa`, `tester`), whose verdict cannot be reconstructed from disk any other way.
+  Implementers (`be-dev`, `fe-dev`) report a message in fixed fields instead; the loop's cost this
+  entry describes is unchanged for the roles it happened to.
 - **Also recorded, and separate from the losses:** the **pre-implement gate paid** in that session
   — three independent clean-context audits caught four real spec defects before a line was written,
   including 33 `404` assertions that sat outside `Done-when` and a missing return-type union that

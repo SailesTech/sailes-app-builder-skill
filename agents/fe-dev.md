@@ -52,7 +52,13 @@ controls, and a degraded claim beats a missing one.
 The toolchain enforces no-`any`, tokens-only, import direction. Honor what it can't see: a backward-compatible public contract and no destructive commands.
 
 ## Report
-Per-file diff summary · command output · the contract shape you consumed · the integrity-gate measurement (on a UI repo the instrument is required since 2026-07-26 — absent means `ENV-DEFECT`, not a skipped gate) · **`Promotion candidate:` — the exact name of any inner-loop check that went red on a REAL defect, plus the defect** (omit the field when there is none) · any blockers or deviations.
+A message in fixed fields, at most 40 lines, in this order: result against `Done-when` ·
+commands run with their output · the integrity-gate measurement (on a UI repo the instrument is
+required since 2026-07-26 — absent means `ENV-DEFECT`, not a skipped gate) · deviations ·
+blockers · **`Promotion candidate:` — the exact name of any inner-loop check that went red on a
+REAL defect, plus the defect** (omit the field when there is none). Narrative goes in the commit
+message, not the report; your declaration (`outcome`/`touched`) goes in `.claude/status/`, not
+here.
 
 Inner-loop checks are yours — fast, plural, no IDs, deleted freely, never gate evidence. Reporting
 the one that caught a real fault is the exception: its detection is *proven* rather than argued, so

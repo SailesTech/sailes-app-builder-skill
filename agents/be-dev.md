@@ -53,10 +53,12 @@ controls, and a degraded claim beats a missing one.
 The toolchain is the constraint — lint/types/convention tests enforce no-`any`, tokens-only, import direction. Honor what the machine can't see: a backward-compatible public contract and no destructive commands.
 
 ## Report
-Per-file diff summary · command output · the contract shape you honored · **`Promotion candidate:`
-— the exact name of any inner-loop check that went red on a REAL defect, plus the defect** (not one
-red merely because the code did not exist yet — every TDD check is; omit the field when there is
-none) · any blockers or deviations.
+A message in fixed fields, at most 40 lines, in this order: result against `Done-when` ·
+commands run with their output · deviations · blockers · **`Promotion candidate:`** — the exact
+name of any inner-loop check that went red on a REAL defect, plus the defect (not one red merely
+because the code did not exist yet — every TDD check is; omit the field when there is none).
+Narrative goes in the commit message, not the report; your declaration (`outcome`/`touched`) goes
+in `.claude/status/`, not here.
 
 Inner-loop checks are yours — fast, plural, no IDs, deleted freely, never gate evidence. Reporting
 the one that caught a real fault is the exception: its detection is *proven* rather than argued, so
