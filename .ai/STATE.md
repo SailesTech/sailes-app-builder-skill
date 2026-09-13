@@ -71,6 +71,18 @@ Last-commit: 1f26ba2
   The first closure commit renamed the spec without its new Status line, and `git show --stat` caught
   it at 0 lines.
 
+  **Spec 2 started (human chose "D1 scope").** Skeleton at
+  `.ai/specs/2026-09-13-quality-gates-from-the-partner-portal-report.md`: report §3.1, 3.2, 3.3/3.3a,
+  3.4, 3.8; Status draft. **Q1–Q7 answered 2026-09-13** (table in the spec; Q5a needed a second
+  window — the human's words were "robimy pełny test po zakończonej pracy, przed pushem" = full suite
+  + e2e once before push, not per phase; tier still picks the lane). Spec rewritten with phases
+  P1–P6. Second round R1–R5 also answered (all as recommended: `qa` runs the pre-push full suite,
+  `tester` without the freeze STOP in the middle lane, 40-line message cap, new narrow
+  `contract-probe-check.js`, `Known-red:` in the run log). **Next gate: the human approves the whole
+  spec → `Status: approved` → `sailes-pre-implement`.** Not crossed. Out-of-D1 items (3.6, 3.7, 3.9, 3b, 3c)
+  are backlog rows dated 2026-09-13. Found while grounding: 3.3a (only the gate role runs full suite +
+  e2e) contradicts what 1.33.0 P3 just shipped (implementer runs them once before commit) — Q3.
+
   Left untouched, not mine: the untracked `.ai/specs/2026-09-01-codex-marketplace-auto-update.md` and
   `package-lock.json`.
 - 2026-09-12: pre-implement of `.ai/specs/2026-09-12-token-cost-of-running.md`
