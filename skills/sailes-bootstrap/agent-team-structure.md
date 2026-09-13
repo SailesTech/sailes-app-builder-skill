@@ -650,12 +650,18 @@ Verification: two levels are yours, named separately, never collapsed into one c
              phase, before push**: `qa` runs the full suite and the e2e requirement on the
              integrated branch, holding the environment exclusively — this replaces the
              1.33.0 rule that ran them per worker, per phase, before the declaration commit.
-Report:      `<path>` — per-file diff summary · command output · contract shape ·
-             blockers/deviations. Your REPORT IS the deliverable — not a summary for a
-             human, not a status line. **Create that file with your FIRST change and
-             append to it as you go**; a report composed at the end dies with the process
-             holding it. If you did not finish, say so plainly and list what you did and
-             did not establish. Never return empty.
+Report:      Gate roles (`checker`, `qa`, `tester`) — a FILE at `<path>`: per-file diff
+             summary · command output · contract shape · blockers/deviations. Your REPORT
+             IS the deliverable — not a summary for a human, not a status line. **Create
+             that file with your FIRST change and append to it as you go**; a report
+             composed at the end dies with the process holding it, and their verdict
+             cannot be reconstructed from disk any other way. If you did not finish, say so
+             plainly and list what you did and did not establish. Never return empty.
+             Implementer roles (`be-dev`, `fe-dev`) — a MESSAGE in fixed fields, at most 40
+             lines: result against `Done-when` · commands run with output · deviations ·
+             blockers · `Promotion candidate:`. Narrative goes in the commit message; the
+             declaration (`outcome`/`touched`) goes in `.claude/status/`. Never return
+             empty.
 Delivery:    [scoped subagent] your final message is returned automatically — just end with it.
              [background teammate] plain text reaches NO ONE; you must call SendMessage
              to deliver. State which of the two applies — the worker cannot tell.
@@ -699,9 +705,9 @@ surfaces at merge time, when it is most expensive.
 
 **Name the delivery mechanism, because the worker cannot infer it.** Measured 2026-07-18: of five background teammates given "your final message IS the deliverable", three produced a correct answer and delivered nothing — one said outright it had written the answer as plain text instead of calling `SendMessage`. The instruction was not ignored; it was *true for a different spawn mode*. A scoped subagent returns its final message automatically; a background teammate must send it, and only the lead knows which it spawned. Telling the worker how to deliver is the lead's job, not the worker's guess.
 
-**For work a gate will grade, name a FILE — not a message.** A gate verdict, a review, a findings list, a test-case list: the brief gives the path and says the file is the deliverable ("no file = task not done"), and the lead reads it from disk instead of waiting for a report. Measured 2026-07-25, same session as above: four briefs whose deliverable was the final message produced six empty idle returns and two pointless re-spawns; the one brief that named `VERDICT.md` produced a gradable artifact on the first attempt, with the raw instrument output pasted in. A message is a channel that can drop; a file is an artifact that survives the drop, the context reset, and the worker itself. Ordinary chatter stays on messages — this is about anything whose loss costs a re-run.
+**For work a gate will grade, name a FILE — not a message.** This is `checker`, `qa`, `tester`: a gate verdict, a review, a findings list, a test-case list — the brief gives the path and says the file is the deliverable ("no file = task not done"), and the lead reads it from disk instead of waiting for a report. Their verdict cannot be reconstructed from disk any other way. Measured 2026-07-25, same session as above: four briefs whose deliverable was the final message produced six empty idle returns and two pointless re-spawns; the one brief that named `VERDICT.md` produced a gradable artifact on the first attempt, with the raw instrument output pasted in. A message is a channel that can drop; a file is an artifact that survives the drop, the context reset, and the worker itself. Ordinary chatter stays on messages — this is about anything whose loss costs a re-run. Implementer roles (`be-dev`, `fe-dev`) do not carry this: their report is a message in fixed fields, at most 40 lines (P5, 1.34.0) — their narrative lands in the commit message and their declaration in `.claude/status/`, both of which already survive the worker.
 
-**And name WHEN the file is written, because the path alone left the hole open.** The brief says the report exists **from the worker's first change** and grows by appending — it is not a document composed at the end and saved once. A file promised at the end is a report held in memory, and it dies exactly the way a message does. Measured 2026-08-30: two agent assignments burned; one died together with its process holding an unwritten report, and the second attempt at the same task survived only because it wrote incrementally. `Checkpoint:` already covers the worker's **progress** in the same words; this covers the **deliverable**, and until now nothing said the two obey one rule.
+**And name WHEN the file is written, because the path alone left the hole open.** For the gate roles above, the brief says the report exists **from the worker's first change** and grows by appending — it is not a document composed at the end and saved once. A file promised at the end is a report held in memory, and it dies exactly the way a message does. Measured 2026-08-30: two agent assignments burned; one died together with its process holding an unwritten report, and the second attempt at the same task survived only because it wrote incrementally. `Checkpoint:` already covers the worker's **progress** in the same words; this covers the **deliverable**, and until now nothing said the two obey one rule.
 
 ## Agent lifecycle — spawn one task, release when done
 

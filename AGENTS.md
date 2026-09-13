@@ -171,7 +171,11 @@ Delegation is the lead's default (`agents/team-lead.md`). Three rules earn their
 - **The report is a file written from the worker's first change**, appended to as it goes — never
   composed at the end. A file promised at the end is a report held in memory. Measured 2026-08-30:
   two assignments burned; one died with its process holding an unwritten report, the second attempt
-  at the same task wrote incrementally and survived.
+  at the same task wrote incrementally and survived. **Scope (1.34.0 P5): this file rule is for gate
+  roles — `checker`, `qa`, `tester` — whose verdict cannot be reconstructed from disk any other way.**
+  Implementer roles — `be-dev`, `fe-dev` — report a message in fixed fields instead, at most 40 lines;
+  their narrative goes in the commit message and their declaration (`outcome`/`touched`) in
+  `.claude/status/`.
 
 ## Hard safety rules
 - Never push to `main` without tests green and a CHANGELOG entry — it is a live deploy.
