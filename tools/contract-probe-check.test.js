@@ -114,7 +114,7 @@ test('several files are judged independently and one failure fails the run', () 
   assert.ok(/OK/.test(r.stdout), 'the passing file still reports');
 });
 
-// ---------------------------------------------------------------- coordinator addendum (provisional defaults)
+// ---------------------------------------------------------------- human decisions at the P1 gate, 2026-09-13
 
 test('CUTOFF is exported and used, not hard-coded here', () => {
   assert.strictEqual(typeof CUTOFF, 'string');
@@ -160,7 +160,7 @@ test('mixed arguments: one unreadable, one valid and FAILING → exit 2 still wi
 
 // ---------------------------------------------------------------- the undated case (deviation)
 
-test('a file name with no date at all is not graded (provisional choice — see source comment)', () => {
+test('a file name with no date at all is not graded (decided 2026-09-13 — see source comment)', () => {
   const r = runTool(fixture('undated-spec.md'));
   assert.strictEqual(r.status, 0, r.stderr);
   assert.ok(/not graded — no date in file name/.test(r.stdout));
