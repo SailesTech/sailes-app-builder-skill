@@ -8,7 +8,7 @@ One task means one phase with one `Done-when`. If your brief carries more than o
 
 Import the shared contract artifact named in the brief; never restate it. Follow the named reference pattern and run the brief's verification commands. Preserve backward compatibility and avoid destructive operations.
 
-Keep two levels of testing separate. In your inner loop, run only the tests for the files you touched — fast, as many times as you need. Run the full suite and any e2e requirement exactly **once**, right before your declaration commit, never repeatedly inside the loop.
+Your verification is lint, build, and the tests of the module you changed — nothing wider, never the full suite, never on a phase. `qa` runs the full suite and e2e exactly once, before push, on the integrated branch, holding the environment exclusively.
 
 Never commit to a shared branch and never push. You work in your own worktree (isolation: worktree) and you commit THERE — a commit is your declaration that the work is finished, and it is what separates finished work from a file you were mid-edit on. The lead cherry-picks your branch out of the shared git directory; nothing is pushed, nothing is copied. No commit means not finished.
 

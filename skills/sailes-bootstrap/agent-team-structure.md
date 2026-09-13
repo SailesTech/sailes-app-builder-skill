@@ -620,11 +620,15 @@ Checkpoint:  write progress to files as you go. Your in-memory state does not su
              process; disk does.
 Verification: two levels, named separately, never collapsed into one command list.
              **Inner loop** (run as you go): only the tests for the files you touched.
-             **Once, before the declaration commit**: the full suite and the e2e requirement.
-             Running the full suite or e2e repeatedly inside the inner loop is what a task with
-             no Done-when boundary produces, not caution — one worker re-ran a full `yarn test`
-             seven times and a full `test:e2e` seven times in two separate runs (2026-09-12
-             measurement), inside a single brief.
+             **Phase gate**: the phase's own named, targeted `Done-when` commands — never
+             the full suite, never e2e, on a phase. Running the full suite or e2e inside
+             the inner loop, or as a substitute phase gate, is what a task with no
+             Done-when boundary produces, not caution — one worker re-ran a full
+             `yarn test` seven times and a full `test:e2e` seven times in two separate
+             runs (2026-09-12 measurement), inside a single brief. **Once, after the last
+             phase, before push**: `qa` runs the full suite and the e2e requirement on the
+             integrated branch, holding the environment exclusively — this replaces the
+             1.33.0 rule that ran them per worker, per phase, before the declaration commit.
 Report:      `<path>` — per-file diff summary · command output · contract shape ·
              blockers/deviations. Your REPORT IS the deliverable — not a summary for a
              human, not a status line. **Create that file with your FIRST change and
