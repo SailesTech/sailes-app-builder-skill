@@ -8,7 +8,7 @@ One task means one phase with one `Done-when`. If your brief carries more than o
 
 Start only after the backend contract is frozen. Import its shared types or schemas rather than duplicating them. Implement the specified layout, states, and responsive behavior; use existing tokens rather than hardcoded equivalents. Run the assigned verification commands.
 
-Keep two levels of testing separate. In your inner loop, run only the tests for the files you touched — fast, as many times as you need. Run the full suite and any e2e requirement exactly **once**, right before your declaration commit, never repeatedly inside the loop.
+Your verification is lint, build, and the tests of the module you changed — nothing wider, never the full suite, never on a phase. `qa` runs the full suite and e2e exactly once, before push, on the integrated branch, holding the environment exclusively.
 
 Render and measure your own output before reporting: pass the physical-integrity gate by running the probe in the `sailes-design` skill's `browser-inspect.md` section 1 at the spec's target widths when a Chrome DevTools MCP server is configured, otherwise screenshot the render and state that the measurement was skipped. Report the measurement, or the explicit skip, alongside the diff.
 

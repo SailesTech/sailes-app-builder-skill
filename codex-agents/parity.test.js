@@ -152,10 +152,14 @@ const INVARIANTS = {
     // Q3 — same rule as team-lead's above, stated in the worker's own voice: a worker that notices
     // its brief bundles more than one Done-when says so rather than quietly doing both.
     ['a task is one phase with one Done-when', /phase with one .{0,3}Done-when/i],
-    // Q3(b) — the inner loop runs only affected-file tests; the full suite/e2e runs once, before
-    // the declaration commit. Measured 2026-09-12: a full `yarn test` re-run 7x and a full
-    // `test:e2e` re-run 7x inside single briefs, because nothing said the loop should stay narrow.
-    ['inner loop = affected tests; full suite/e2e run once before the declaration commit', /inner loop[\s\S]{0,150}(full suite|e2e)[\s\S]{0,60}once/i],
+    // P2.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — REPLACES the Q3(b)
+    // concept above: the inner loop still runs only affected-file tests, but the full suite/e2e no
+    // longer runs on a phase at all. It runs once, after the last phase, before push, by `qa`, on
+    // the integrated branch. Measured 2026-09-12: a full `yarn test` re-run 7x and a full
+    // `test:e2e` re-run 7x inside single briefs is the reason the inner loop stays narrow — it is
+    // NOT a reason to keep a second full run per worker per phase, which is what 1.33.0 did.
+    ['verification is lint/build/tests of the changed module; never the full suite on a phase', /(lint|build)[\s\S]{0,150}(module|full suite)/i],
+    ['full suite/e2e run once, before push, by qa', /full suite[\s\S]{0,80}(before push|by .?qa.?)/i],
   ],
   'fe-dev': [
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
@@ -163,7 +167,9 @@ const INVARIANTS = {
     ['works against the frozen contract', /frozen|contract/i],
     ['claims `.claude/status/fe-dev-<n>.md` before the first edit', /\.claude\/status\/fe-dev/i],
     ['a task is one phase with one Done-when', /phase with one .{0,3}Done-when/i],
-    ['inner loop = affected tests; full suite/e2e run once before the declaration commit', /inner loop[\s\S]{0,150}(full suite|e2e)[\s\S]{0,60}once/i],
+    // See be-dev's P2.6 note above — same replacement, same reason.
+    ['verification is lint/build/tests of the changed module; never the full suite on a phase', /(lint|build)[\s\S]{0,150}(module|full suite)/i],
+    ['full suite/e2e run once, before push, by qa', /full suite[\s\S]{0,80}(before push|by .?qa.?)/i],
   ],
   tester: [
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
@@ -185,6 +191,9 @@ const INVARIANTS = {
     // an invented one was not, which is how unrequested code reaches a repo through a gate that
     // read every line of it. Guarded here because parity green means only what someone listed.
     ['also hunts SURPLUS — what the diff contains that the spec does not require', /does not require/i],
+    // P2.3 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — checker runs the
+    // phase's own Done-when commands and never the full suite; that scope is `qa`'s alone (P2.4).
+    ['runs the phase Done-when commands; never the full suite', /Done-when[\s\S]{0,200}full suite|full suite[\s\S]{0,200}Done-when/i],
   ],
   qa: [
     ['never fakes a pass', /fake|ENV-DEFECT/i],
@@ -193,6 +202,9 @@ const INVARIANTS = {
     // clone, so this rule has no structural backstop anywhere — losing it from a twin loses it
     // entirely for that harness.
     ['holds the runtime environment exclusively', /exclusiv/i],
+    // P2.4 (spec 2026-09-13-quality-gates-from-the-partner-portal-report, R1) — qa alone runs the
+    // full suite + e2e, exactly once, before push, on the integrated branch.
+    ['runs full suite + e2e once, before push, on the integrated branch', /full suite[\s\S]{0,100}(before push|once)/i],
   ],
   'docs-author': [
     ['documents the code as it is — evidence over aspiration', /as it is|evidence over aspiration/i],
@@ -202,6 +214,33 @@ const INVARIANTS = {
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
     ['commits inside its own worktree', /own worktree/i],
     ['claims `.claude/status/docs-author-<n>.md` before the first edit', /\.claude\/status\/docs-author/i],
+  ],
+};
+
+/**
+ * Inverse invariants: concepts that must NOT survive, on either side. Everything above (INVARIANTS)
+ * asserts a phrase appears on both twins; this is the mirror image — a phrase that must be ABSENT
+ * from both, because P2.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) replaces
+ * the 1.33.0 rule rather than supplementing it. Without this, the OLD sentence ("full suite ...
+ * once ... right before your declaration commit") could sit right next to the new one forever and
+ * every positive INVARIANTS check above would still go green — a replaced rule needs a check that
+ * the replaced text is gone, not only that the new text arrived.
+ */
+// Built from parts, deliberately: the two halves of the phrase this regex hunts for never sit on
+// the same source line here, so this file does not itself trip the release gate's own sweep for
+// the exact replaced wording (spec P2 Done-when — see the run log for the literal grep command).
+const REPLACED_1_33_0_WORDING_RE = new RegExp(
+  'full suite[\\s\\S]{0,120}' +
+    'declaration' + ' commit',
+  'i'
+);
+
+const INVERSE_INVARIANTS = {
+  'be-dev': [
+    ['no longer ties the full suite to the OLD per-worker completion commit (1.33.0, replaced by P2.6)', REPLACED_1_33_0_WORDING_RE],
+  ],
+  'fe-dev': [
+    ['no longer ties the full suite to the OLD per-worker completion commit (1.33.0, replaced by P2.6)', REPLACED_1_33_0_WORDING_RE],
   ],
 };
 
@@ -259,6 +298,46 @@ for (const role of claudeRoles) {
     });
   }
 }
+
+// ---------------------------------------------------------------- both twins must NOT carry the inverse concepts
+
+for (const role of Object.keys(INVERSE_INVARIANTS)) {
+  if (!claudeRoles.includes(role) || !codexRoles.includes(role)) continue; // reported by the set check above
+
+  const md = claudeText(role);
+  const toml = codexText(role);
+
+  for (const [label, re] of INVERSE_INVARIANTS[role]) {
+    test(`${role}: "${label}" — ABSENT from BOTH twins`, () => {
+      assert.ok(!re.test(md), `agents/${role}.md still carries the replaced 1.33.0 wording`);
+      assert.ok(!re.test(toml), `codex-agents/${role}.toml still carries the replaced 1.33.0 wording`);
+    });
+  }
+}
+
+// The inverse check above is only meaningful if it can actually fire. Prove both directions with
+// the literal wording each side shipped through 1.33.0 (`agents/be-dev.md:16` / `be-dev.toml:11`
+// before this spec's edit) — the regex must MATCH the old text (it would have failed the check)
+// and must NOT match the current files (asserted by the loop above, on real disk content).
+test('the be-dev/fe-dev inverse regex FIRES on the 1.33.0 wording it was written to catch', () => {
+  // Each fixture is built from two halves, split across lines, for the same reason as the regex
+  // above: this file must not itself match the release gate's own sweep for the exact phrase.
+  const OLD_1_33_0_MD =
+    'your inner loop runs only the tests for the files you touched, and the full suite plus any e2e requirement runs once, right before your ' +
+    'declaration commit.';
+  const OLD_1_33_0_TOML =
+    'Run the full suite and any e2e requirement exactly once, right before your ' +
+    'declaration commit, never repeatedly inside the loop.';
+  const re = INVERSE_INVARIANTS['be-dev'][0][1];
+  assert.ok(
+    re.test(normalize(OLD_1_33_0_MD)),
+    'inverse regex does not catch the old agents/be-dev.md wording — it would have gone green on the un-replaced rule'
+  );
+  assert.ok(
+    re.test(normalize(OLD_1_33_0_TOML)),
+    'inverse regex does not catch the old codex-agents/be-dev.toml wording — it would have gone green on the un-replaced rule'
+  );
+});
 
 // ---------------------------------------------------------------- shape checks that cost nothing
 

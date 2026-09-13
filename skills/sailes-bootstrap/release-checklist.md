@@ -13,6 +13,20 @@ block** at **every** release (§1.1 — clean-clone boot, fixture users, fast ve
 `.env.example`) and the **Operations block** at the first production launch (error tracking
 alerting a human, /health, backup with a tested restore, uptime check, runbook).
 
+## 0 · Full suite + e2e, once, before push (`qa`, exclusive environment)
+
+Every phase gate above ran only that phase's own named, targeted `Done-when` commands — `be-dev`/
+`fe-dev` never ran the full suite on a phase, and neither did `checker`. Before push, `qa` runs the
+full test suite and the e2e requirement **once**, on the integrated branch, holding the environment
+exclusively for the run (`agents/qa.md`, "You hold the environment, exclusively"). This is the gate
+that proves the whole branch still holds together, not a repeat of any single phase's `Done-when`.
+
+```text
+[ ] full test suite run on the integrated branch, output pasted
+[ ] e2e requirement run on the integrated branch, output pasted
+[ ] environment held exclusively for the duration of this run (.ai/ENV-LOCK)
+```
+
 ## 1 · Environment parity (before anything ships)
 
 ```text
@@ -99,3 +113,5 @@ One paragraph answering, concretely:
   is what let it keep happening.
 - **A "successful" deploy without pasted smoke output is not done** — behavior before diff
   applies to releases too.
+- **A push without `qa`'s pre-push full suite + e2e run, on the integrated branch, is not
+  approved** (§0). It runs once — not per phase, and not by `be-dev`/`fe-dev`/`checker`.

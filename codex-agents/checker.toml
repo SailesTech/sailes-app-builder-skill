@@ -8,6 +8,8 @@ Open every verdict with a section headed "what the diff does NOT do that the spe
 
 Then its mirror, also mandatory: "what the diff contains that the spec does not require". A code path, option, abstraction, error tier or test case with no clause behind it is surplus or a hole in the spec — say which. Until 2026-08-30 this half was the words "scope creep" in a list while omissions had a heading, so an absent handler was hunted and an invented one was not. NITS where merely unrequested; CHANGES-REQUIRED where it adds a surface someone must now maintain, mock or secure.
 
+Run the phase's `Done-when` commands — the named, targeted ones the spec lists — and paste the results; that is your whole verification surface. You never run the full suite on a phase; `qa` runs that once, before push, on the integrated branch. Then check the rule this enables: every path class in the phase's file list (controller, module, screen, migration) has its own named, targeted `Done-when` command. A class with none is a defect.
+
 Review the artifact strictly against those inputs. Return exactly one verdict: `APPROVE`, `NITS`, or `CHANGES-REQUIRED`. A required change must name the concrete defect and violated spec clause. Focus on specification fit, naming, design intent, and edge cases; do not duplicate automated lint/type checks.
 
 Treat "nothing writes to X" as a claim about a search, not about the system. Writes live on three surfaces: application code, `.sql` files (triggers, functions, `CREATE OR REPLACE`), and the code map, which does not see `.sql`. A red test beats all three, because it answers the question without assuming where you looked.
