@@ -49,6 +49,27 @@ ownership:
     - skills/sailes-bootstrap/release-checklist.md
     - skills/sailes-bootstrap/agents-md-template.md
     - codex-agents/parity.test.js
+  P3:
+    - skills/sailes-spec/SKILL.md
+    - skills/sailes-bootstrap/spec-writing-template.md
+    - skills/sailes-bootstrap/gate-scaling.md
+    - skills/sailes-bootstrap/agent-team-structure.md
+    - agents/team-lead.md
+    - codex-agents/team-lead.toml
+    - skills/sailes-bootstrap/agents-md-template.md
+    - skills/sailes-test/SKILL.md
+    - skills/sailes-test/test-plan-template.md
+    - agents/tester.md
+    - codex-agents/tester.toml
+    - agents/checker.md
+    - codex-agents/checker.toml
+    - agents/qa.md
+    - codex-agents/qa.toml
+    - skills/sailes-implement/SKILL.md
+    - agents/fe-dev.md
+    - codex-agents/fe-dev.toml
+    - codex-agents/parity.test.js
+    - evals/lead-picks-the-lane-from-the-tier.md
 ```
 
 ## Decyzje
@@ -62,6 +83,112 @@ ownership:
   Przed dispatchem lider sprawdził, że grep z `Done-when` P2 trafia dziś w 7 miejsc
   (`be-dev.md:16`, `fe-dev.md:17`, oba `.toml:11`, `sailes-implement/SKILL.md:41`, `parity.test.js:158,166`).
   Warunek „brak trafień” coś więc mierzy i nie przechodzi pusto.
+- 2026-09-13 (nowa sesja po `/clear`): człowiek dał „kontynuuj”, czyli zgodę na P3. Tak jak w P2: jeden `be-dev`
+  w worktree, baza przez `merge --ff-only feat/1.34.0-quality-gates` od `7718210`. `tester: n/a`,
+  brama `checker`, `qa: n/a`. Raport: `.ai/runs/2026-09-13-quality-gates-P3-be-dev-report.md`.
+  Przed dispatchem lider sprawdził dwie rzeczy. Grep `DERIVED` z `Done-when` P3 daje dziś 0 trafień
+  we wszystkich czterech plikach, a `Lane:` nie występuje w `skills/`, `agents/` ani `codex-agents/`.
+  Warunek coś więc mierzy. Kotwice linii z tabeli P3 pochodzą sprzed P2 i się przesunęły (np.
+  `qa.md` :17/:18 to teraz :18/:19), dlatego brief wskazuje miejsca po treści.
+  Punkt otwarty w briefie: `qa.md` ma też bullet o sondzie integralności (browser-inspect §1), którego
+  spec w P3.4 nie wymienia. Zostaje bez zmian. Jeśli `be-dev` zgłosi sprzeczność, to fork dla człowieka.
+- 2026-09-13: `be-dev` P3 wrócił z commitem `75d8d11` (worktree `agent-a5054500d8f3a4787`, 6 WIP + final).
+  Lider sprawdził w worktree:
+  - diff to 20 plików z listy P3 i raport, nic poza tym;
+  - `sync-blocks --check` → in sync;
+  - parity → exit 0 (10 ról);
+  - frontmatter → exit 0;
+  - grep `DERIVED` → 3/5/1/1 trafień (baseline 0);
+  - eval istnieje;
+  - `npm test` → exit 0, 0 `not ok`.
+
+  `be-dev` zgłosił dwie niejasności:
+  1. **Sonda integralności w `qa.md`** nadal obowiązuje bez warunku toru, tuż pod screenami, które warunek
+     `full` już dostały. Zgłoszona zgodnie z briefem. To fork dla człowieka, do okna po werdykcie `checker`.
+  2. **`checker.toml` nie miał dotąd pokrycia ID** (`.md` je miał). `be-dev` dopisał je zamiast rozszerzać
+     istniejące zdanie. Lider przyjmuje to bez forka: P3.6 wymaga, żeby koncept pasował do obu bliźniaków,
+     więc bez tego parity nie przejdzie. Była to też cicha luka parity sprzed tego specu, do CHANGELOG w P6.
+
+  Dispatch `checker`: wejście to diff `7718210..75d8d11` bez `.ai/runs/` i sekcja P3 specu. Raportu
+  `be-dev` nie dostaje.
+- 2026-09-13: `checker` P3 → **NITS**. Wszystkie punkty `Done-when` potwierdzone. Wszystkie wiersze tabeli P3
+  pokryte. Nadmiaru brak: 4 koncepty parity i 3 fazy evala, dokładnie tyle, ile wymaga spec.
+  Dwa znaleziska poza tabelą P3, oba sprawdzone przez lidera na dysku:
+  - (a) `codex-agents/qa.toml:13` każe przy braku instrumentu integralności wrócić do screena, a
+    `agents/qa.md:20` każe zgłosić ENV-DEFECT. To rozjazd bliźniaków sprzed P3, którego test parity nie
+    widzi. Teraz stoi też w sprzeczności z nowym zdaniem o torze `middle` w tym samym pliku.
+  - (b) `skills/sailes-bootstrap/agentic-first-principles.md:91` powtarza kolejność ról bez odsyłacza do
+    `gate-scaling`.
+
+  Merge `75d8d11` do `feat/1.34.0-quality-gates` (`--no-ff`) → **`cc9516a`**. Pierwsza próba padła
+  (`git merge -F -`: „could not read file '-'”, `git merge` nie czyta wiadomości ze stdin) i nic nie
+  zmieniła. Wiadomość poszła więc z pliku. Forki (a), (b), sonda integralności w `middle` i handoff
+  poszły do jednego okna.
+
+## Decyzje człowieka przy bramce P3 (2026-09-13)
+- Sonda integralności UI (browser-inspect §1) działa **w obu torach**. Odrzucone: tylko `full`; w `middle`
+  tylko przy nowym ekranie.
+- `qa.toml:13` wyrównany do `qa.md` teraz: brak instrumentu → ENV-DEFECT, nigdy screen. Dochodzi koncept
+  parity, żeby rozjazd nie wrócił. Odrzucone: wiersz w backlogu.
+- `agentic-first-principles.md:91` dostaje odsyłacz do `gate-scaling` teraz. Przegląd pozostałych
+  powtórzeń kolejności ról idzie do backlogu. Odrzucone: wszystko do backlogu.
+- P4 w tej sesji, bez handoffu. Odrzucone: `/clear` i P4 w nowej sesji.
+
+## Zdarzenia po bramce P3
+- 2026-09-13: lider wdrożył decyzje w commicie **`7701057`** (9 plików).
+  - Zmiana w źródle `gate-scaling`, `sync-blocks` przeniósł ją do 3 kopii.
+  - `qa.md` i `qa.toml`: sonda w obu torach, a brak instrumentu to ENV-DEFECT.
+  - `parity.test.js`: dwa koncepty pozytywne, jeden odwrotny i test sprawdzający, że odwrotny łapie stary
+    tekst. Komunikat odwrotny jest teraz ogólny, bez „1.33.0”.
+  - Odsyłacz w `agentic-first-principles.md`.
+  - Wiersz w backlogu: pozostałe powtórzenia kolejności; oba pliki `sailes-discovery` pomijają też `tester`.
+
+  Dowody:
+  - `sync --check` → in sync;
+  - parity → exit 0;
+  - frontmatter → exit 0;
+  - grep `DERIVED` 3/5/1/1;
+  - `npm test` → exit 0, 0 `not ok`.
+
+  Sprawdzenie w obie strony, na kopiach w scratchpadzie, bez dotykania repo:
+  - `.toml` bez „in both lanes” → exit 1, FAIL tylko na tym koncepcie;
+  - `.md` bez „in both lanes” → exit 1, to samo;
+  - `.toml` z powrotem ze starym zdaniem o screenie → exit 1, FAIL na ENV-DEFECT i na koncepcie odwrotnym.
+
+  Brama: `checker` na `cc9516a..7701057`, bo diff napisał lider.
+- 2026-09-13: przygotowanie P4, bez dispatchu, bo P3 nie jest jeszcze zamknięte.
+  - Baseline `Done-when` P4: `merge-base` daje 0 trafień w `qa.md`, `qa.toml`, `checker.md` i `checker.toml`;
+    `comm -23` daje 0 w `qa.md` i `checker.md`; `Known-red` daje 0 w `skills/`, `agents/`, `codex-agents/` i `evals/`.
+    Warunki coś więc mierzą.
+  - Doktryna nigdzie nie definiuje merge-base dla bramki fazy, a `checker` nie ma żadnej reguły o
+    worktree ani checkout.
+  - Dwie luki P4.3 poszły do okna: jak read-only `checker` uruchamia komendy na bazie oraz która baza
+    obowiązuje na bramce fazy.
+  - Rozstrzygnięte przez lidera bez forka, bo ma jedną sensowną odpowiedź: test, którego na bazie nie ma,
+    liczy się jako „nie czerwony na bazie”. Jego czerwień na gałęzi jest więc nowa.
+- 2026-09-13: `checker` na poprawkach P3 (`cc9516a..7701057`) → **NITS**.
+  - Trzy decyzje wdrożone w obu bliźniakach i w `gate-scaling`.
+  - `sync`, parity, frontmatter i `npm test` zielone; 637 `ok`, 0 `not ok`.
+  - Nadmiaru brak.
+  - Jedyne znalezisko: wiersz backlogu pomijał `docs/agent-roles.md:30` i `README.md:159`. Lider sprawdził
+    to grepem i poprawił wiersz.
+
+  Uwaga `checker` bez znaleziska, bo dotyczy całej klasy regexów w parity: nowe regexy sprawdzają bliskość
+  fraz, a nie ich sens. Zdanie wykluczające `middle` z sondy nadal przejdzie, jeśli stoją w nim obok siebie
+  „integrity” i „both lanes”. Odwrotny regex łapie dosłowną frazę, a nie parafrazę.
+- **P3 ZAMKNIĘTE 2026-09-13.**
+  - Wszystkie punkty `Done-when` spełnione, dowody w `Status:` specu.
+  - checker: NITS → poprawki → NITS poprawione.
+  - tester: n/a · qa: n/a.
+  - Agenci `be-dev` i obaj `checker` zakończeni, zwolnieni.
+
+## Decyzje człowieka przed P4 (2026-09-13)
+- Na bramce fazy `checker` porównuje czerwień z **bazą integracji fazy**: commitem, od którego worker
+  wyszedł (baza `ff-only` z briefu). `origin/<baza>` z `git merge-base` zostaje dla `qa` przed pushem.
+  Odrzucone: `origin/<baza>` na obu bramkach.
+- `checker` uruchamia nazwy na bazie w **tymczasowym worktree poza repo**: `git worktree add --detach <tmp> <baza>`,
+  a po przebiegu `git worktree remove`. To nazwany wyjątek od read-only, zapisuje tylko metadane `.git`.
+  Odrzucone: przebieg na bazie przez lidera; `checker` tylko nazywa czerwień.
 
 ## Forki do okna przy bramce P1
 - **Data odcięcia narzędzia.** Spec mówi „≥ dzień wydania 1.34.0”, a dzień wydania jest nieznany

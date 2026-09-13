@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: aeee5e3
+Last-commit: 7701057
 
 > Read at session start — it stays under 20 KB, so that is cheap; history lives verbatim in
 > `.ai/archive/` and is grepped by area, never read whole. Write before walking away. Facts enter **Verified facts** only with
@@ -52,7 +52,28 @@ Last-commit: aeee5e3
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
-- 2026-09-13 night (**resume here**): **1.34.0 P2 — CLOSED** on `feat/1.34.0-quality-gates` at `aeee5e3`
+- 2026-09-13 night, second session (**resume here**): **1.34.0 P3 — CLOSED** on `feat/1.34.0-quality-gates`
+  (merge `cc9516a` + gate fixes `7701057`). Nothing pushed; `main` untouched (F5). Evidence is in the spec's `Status:`
+  line; events and decisions are in `.ai/runs/2026-09-13-quality-gates.md`.
+  - **Shipped in P3:**
+    - Every phase carries `Lane: full | middle — tier <A|B|C>: <trigger>`. A → `full`; B/C → `middle`, which
+      means a `DERIVED` test plan with no human freeze, a live `qa` run without screenshots, and `designer`
+      only for a screen with no design artifact. The rule lives in the `gate-scaling` block.
+    - At the gate the human chose: the UI integrity probe runs in **both** lanes, and `qa.toml` now says
+      ENV-DEFECT instead of a screenshot fallback. That drift had been there since 2026-07-26 while parity
+      stayed green. Parity gained two concepts and one inverse concept, each mutation-proven.
+    - A backlog row covers the rest of the role-order restatements. Two `sailes-discovery` files omit `tester`.
+  - **Decided for P4 (human, 2026-09-13):**
+    - At a phase gate, `checker` compares red tests against the **phase's integration base**. `qa`
+      compares against `origin/<base>` before push.
+    - `checker` runs the base in a temporary detached worktree outside the repo. This is a named
+      exception to read-only.
+  - **Next: P4**, in the same session (human's choice). If interrupted: `sailes-implement` from P4.
+  - **P6 CHANGELOG must also say:**
+    - P3 adds lanes;
+    - the Codex `qa` screenshot fallback is replaced by ENV-DEFECT;
+    - `checker.toml` gained the ID-coverage rule it never had.
+- 2026-09-13 night: **1.34.0 P2 — CLOSED** on `feat/1.34.0-quality-gates` at `aeee5e3`
   (merge `94a44ea` + NITS fix). Nothing pushed; `main` untouched (F5). Evidence is in the spec's `Status:`
   line, and every event is in `.ai/runs/2026-09-13-quality-gates.md`.
   - **Shipped in P2:**
