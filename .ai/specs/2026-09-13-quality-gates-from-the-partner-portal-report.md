@@ -1,6 +1,6 @@
 # Spec: bramy jakości z raportu partner-portal — pomiar przed kodem, wysiłek proporcjonalny
 
-Status: approved — 2026-09-13 przez właściciela. Pre-implement: READY-WITH-FIXES (`.ai/audits/2026-09-13-pre-implement-quality-gates.md`); decyzje F1–F5 i poprawki wpisane, spec przepisany. Następny krok: `sailes-implement`, od P1. Merge na `main` dopiero po pomiarze 1.33.x (F5)
+Status: in-progress — P1 od 2026-09-13 (run log `.ai/runs/2026-09-13-quality-gates.md`). Approved 2026-09-13 przez właściciela. Pre-implement: READY-WITH-FIXES (`.ai/audits/2026-09-13-pre-implement-quality-gates.md`); decyzje F1–F5 i poprawki wpisane, spec przepisany. Następny krok: `sailes-implement`, od P1. Merge na `main` dopiero po pomiarze 1.33.x (F5)
 Framework-Version target: 1.34.0
 Weight: contract fix × 5 powierzchni — szablon specu + pre-implement, doktryna lidera i brief,
         definicje ról (+ bliźniaki Codex), jedno nowe narzędzie w `tools/`. Nie rusza modelu danych
