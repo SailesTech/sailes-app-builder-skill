@@ -279,6 +279,37 @@ Re-verified: M23 now turns CP19 red (confirmed above); the full suite is green w
 reverted. No `DEAD` case and no plan-level gap resulted from this — the fix was containable inside
 CP19's own test body, the same shape as the token-report precedent.
 
+**Correction to CP17 — the test drifted from its own row, caught by the lead's review.** CP17's row
+above says the corpus is filtered to root files whose basename date is `< CUTOFF`. The test as first
+written (`tools/contract-probe-check.frozen.test.js:390-396` at the time) ran `listMd(.ai/specs)`
+with no filter at all, asserting silence over *every* root file unconditionally — a silent widening
+of the row, not a narrowing (every currently-graded case happens to have no root file dated
+`>= CUTOFF` yet, so it read as correct by accident). The failure mode: the first root spec dated
+`>= CUTOFF` without a `Contract-probe:` field would be *correctly* graded and *correctly* flagged by
+the real tool, but CP17 would go red for it and `npm test` would misattribute a real, working defect
+report as a CP17 regression. Fixed to filter by `isPreCutoffDatedBasename()` (basename date
+extracted and calendar-validated locally, then compared against `CUTOFF` read via `require()` per
+Q5 — never a literal), with an explicit, documented decision that an undated or calendar-invalid
+basename is excluded from CP17's set (that partition belongs to CP13/CP39's own synthetic fixtures,
+not this corpus check). This is a correction to the test's *implementation*, not a weakening of the
+frozen row — CP17 now asserts exactly what its row always said, no more and no less.
+
+Detection proof for this fix, both directions:
+- **(a) New defect, must NOT trigger CP17.** A scratch file
+  `.ai/specs/2026-09-14-scratch-cp17-detection-proof.md` (dated exactly at `CUTOFF`, no
+  `Contract-probe:` field) was added directly to this worktree's real `.ai/specs/` — never
+  committed, removed immediately after. Confirmed the real tool DOES flag it directly
+  (`node tools/contract-probe-check.js .ai/specs/2026-09-14-scratch-cp17-detection-proof.md` → exit
+  1, "missing field"). With the FIXED CP17 body, the full frozen suite stayed green (the file is
+  excluded from CP17's filtered set, being `>= CUTOFF`). With CP17's body temporarily reverted
+  in-place to the OLD unfiltered form (same scratch file still present), it went red exactly as
+  predicted — proving the fix closes a real gap, not an imagined one. The old body was then restored
+  to the fixed version and the scratch file deleted; `git status .ai/specs/` confirmed no trace.
+- **(b) Existing mutant still detects.** M2 (date-before-cutoff exclusion disabled) was re-run
+  against the fixed CP17: still kills **CP12, CP15, CP16, CP17** together, identically to the
+  original run. Reverted; `tools/contract-probe-check.js` confirmed byte-identical
+  (`sha256sum 79d125c7cf491807a7d7539dc604dbd24a33d05d92fd188baae6aed8d8927356`) throughout.
+
 **No survivors and no remaining `DEAD` case:** every one of the 41 frozen IDs (CP01–CP41) was killed
 by at least one of the thirty mutants above, each kill matching the mechanism intentionally targeted.
 `tools/contract-probe-check.js` confirmed byte-identical

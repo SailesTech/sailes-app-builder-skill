@@ -387,12 +387,45 @@ test('CP16 — silent over every .ai/specs/implemented/*.md (enumerated at run t
   assert.strictEqual(r.stderr.trim(), '', `expected zero stderr failure lines across ${files.length} implemented specs:\n${r.stderr}`);
 });
 
+// The plan's own row for CP17 filters the root corpus to files whose basename date is `< CUTOFF` —
+// it does NOT claim silence over every root file unconditionally. A root spec dated `>= CUTOFF`
+// (this repo's very next graded spec, whenever it lands) is meant to be GRADED, and if it ships
+// without a `Contract-probe:` field it SHOULD fail — that is the tool doing its job, not a CP17
+// regression. Running the unfiltered directory here would attribute a real, correct failure to the
+// wrong cause the moment such a spec exists. `CUTOFF` itself is read via `require()` (Q5), never a
+// literal, for the same reason the rest of this suite avoids hard-coding it.
+const NAME_DATE = /^(\d{4})-(\d{2})-(\d{2})-/;
+function isRealCalendarDate(y, m, d) {
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+}
+/** Mirrors the same three-way split CP13/CP39 already test directly (undated / calendar-invalid /
+ *  before-cutoff), duplicated locally rather than imported from the implementation, to keep this
+ *  suite's black-box discipline intact (the only sanctioned exception to "assert on the CLI only"
+ *  is reading `CUTOFF` itself, not reusing the implementation's parsing logic as an oracle).
+ *  DECISION (documented per the fix request, not previously made explicit): an undated or
+ *  calendar-invalid basename is excluded from CP17's set. Those are "not graded" for a DIFFERENT
+ *  reason than "dated before CUTOFF" — CP13 and CP39 already own that partition with their own
+ *  synthetic fixtures — and the plan's row names only the pre-cutoff-dated case for this corpus
+ *  check. Today's root files are all validly dated, so this choice changes nothing on disk now;
+ *  it only matters if an undated file is ever added to `.ai/specs/` root. */
+function isPreCutoffDatedBasename(basename, cutoff) {
+  const m = basename.match(NAME_DATE);
+  if (!m) return false; // undated — CP13's partition, not this one
+  const [, yStr, mStr, dStr] = m;
+  if (!isRealCalendarDate(Number(yStr), Number(mStr), Number(dStr))) return false; // CP39's partition
+  return `${yStr}-${mStr}-${dStr}` < cutoff;
+}
+
 test('CP17 — silent over every live pre-cutoff spec in .ai/specs/ root (enumerated at run time)', () => {
-  const files = listMd(path.join(REPO_ROOT, '.ai', 'specs'));
-  assert.ok(files.length > 0, 'expected at least one live spec on disk to run this against');
+  const cutoff = readCutoffOrNull();
+  assert.ok(cutoff, 'contract-probe-check.js must export CUTOFF as a YYYY-MM-DD string (Q5) — this corpus check cannot filter without it');
+  const files = listMd(path.join(REPO_ROOT, '.ai', 'specs'))
+    .filter((f) => isPreCutoffDatedBasename(path.basename(f), cutoff));
+  assert.ok(files.length > 0, 'expected at least one live pre-cutoff spec on disk to run this against');
   const r = run(files);
-  assert.strictEqual(r.status, 0, `every live spec currently in .ai/specs/ root predates the 2026-09-14+ CUTOFF and must stay silent:\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
-  assert.strictEqual(r.stderr.trim(), '', `expected zero stderr failure lines across ${files.length} live specs:\n${r.stderr}`);
+  assert.strictEqual(r.status, 0, `every live spec dated before CUTOFF (${cutoff}) must stay silent:\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+  assert.strictEqual(r.stderr.trim(), '', `expected zero stderr failure lines across ${files.length} pre-cutoff live specs:\n${r.stderr}`);
 });
 
 // ================================================================== edges and failures
