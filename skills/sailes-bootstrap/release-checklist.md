@@ -25,6 +25,10 @@ that proves the whole branch still holds together, not a repeat of any single ph
 [ ] full test suite run on the integrated branch, output pasted
 [ ] e2e requirement run on the integrated branch, output pasted
 [ ] environment held exclusively for the duration of this run (.ai/ENV-LOCK)
+[ ] if red: sorted red test names on the branch pasted
+[ ] if red: the same names run at the merge-base (temporary detached worktree), sorted names pasted
+[ ] if red: `comm -23 <red-on-branch> <red-on-base>` pasted — non-empty is CHANGES-REQUIRED, never a count comparison
+[ ] names red on the base recorded in the run log's `Known-red:` (name · cause · validity: this push)
 ```
 
 ## 1 · Environment parity (before anything ships)

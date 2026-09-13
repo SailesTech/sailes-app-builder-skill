@@ -203,6 +203,9 @@ const INVARIANTS = {
     // P3.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — ID coverage applies to
     // a DERIVED plan (middle lane) exactly as it does to a FROZEN one, not only to FROZEN.
     ['ID coverage applies to a DERIVED plan, not only FROZEN', /DERIVED[\s\S]{0,250}non-struck behavior ID/i],
+    // P4 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — same rule as qa's above,
+    // applied to the phase's own Done-when commands against the phase's cut-from base.
+    ['pre-existing red compared by name against the base, never by count', /never by count[\s\S]{0,600}comm -23/i],
   ],
   qa: [
     ['never fakes a pass', /fake|ENV-DEFECT/i],
@@ -222,6 +225,11 @@ const INVARIANTS = {
     // until this fix while every listed concept stayed green; see the inverse entry below.
     ['UI integrity probe runs in both lanes', /integrity[\s\S]{0,120}both lanes|both lanes[\s\S]{0,120}integrity/i],
     ['missing integrity instrument is ENV-DEFECT', /unavailable[\s\S]{0,40}ENV-DEFECT/i],
+    // P4 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — pre-existing red is
+    // established by running the same red test names on the base and comparing BY NAME (comm -23),
+    // never by count. Losing this from a twin reintroduces the exact failure Q7/F3 rule out: a red
+    // count that happens to match the previous run hides a genuinely new regression.
+    ['pre-existing red compared by name against the base, never by count', /never by count[\s\S]{0,600}comm -23/i],
   ],
   'docs-author': [
     ['documents the code as it is — evidence over aspiration', /as it is|evidence over aspiration/i],
