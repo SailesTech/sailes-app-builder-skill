@@ -690,3 +690,42 @@ Wszystko wpisane do specu jako G3 i G4.
     `STATE.md`, wiersz G10 w backlogu. Nowy wiersz backlogu opisuje naruszenie izolacji. Warunek wydania bez zmian.
   - **Przyczyna błędnej pierwszej oceny:** `recover-run.sh` czyta tylko worktree, więc zapisu poza nim nie widzi. To
     ograniczenie narzędzia, dopisane do ledgera.
+
+## P6 — evale, pomiar, wydanie (2026-09-13, czwarta sesja)
+- Start ze `STATE.md` po `/clear` (G13).
+- **Przecięcie evali:** 41 evali ma w `Files:` ścieżkę z `git diff --name-only main...HEAD`, policzone parserem
+  `eval-status.js` (`readField`/`parseFiles`). Z tego 4 NEVER-RUN, 37 STALE; poza przecięciem 7 STALE. Pierwsze liczenie
+  własnym regexem dało 39: zgubiło `lead-proposes-a-measurement-when-it-cannot-recommend` i
+  `researcher-reports-provenance-and-does-not-decide`. Poprawione przed oknem decyzji.
+- **F5:** `partner-portal-v3/AGENTS.md` ma stempel 1.32.0. Klon marketplace jest na 1.33.0 (`5ab8149`), a `main` na 1.33.1.
+  Klient nie ma plików 1.33.0 (hook session-start, deny w settings, `autoCompactWindow`), więc okno pomiaru 1.33.x się
+  nie zaczęło.
+- **Decyzje G14–G16** w specu: evale według rekomendacji; P6 kończy się na gałęzi, merge czeka na F5; 7 evali spoza
+  przecięcia wchodzi.
+- **`docs-author`** (worktree) zwrócił CHANGED. `architecture.json`: tag `tools` 7 → 8 skryptów i punkt karty o
+  `contract-probe-check`; pozostałe cztery diagramy mają jawnie pustą deltę. Receipt jest zablokowany przez dług archify
+  2.17: `desktop-readability` odrzuca też bazę na `main`, więc to nie regresja 1.34.0. Lider sprawdził commit i receipt, nie
+  raport; liczba skryptów zgadza się z `package.json`. Cherry-pick → `d6e6e01`. Worktree zostaje do decyzji.
+- **Evale P6:** decyzje G17–G22 w specu. Werdykty zapisywane na bieżąco w
+  `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`, fixture i zastrzeżenia w `README.md` tego katalogu.
+  - Limit sesji (reset 20:10) zabił 7 agentów. Trzy zdążyły zapisać kompletne artefakty, więc ocena idzie z nich.
+    Cztery puszczone ponownie na fixture sprawdzonych jako niezmienione.
+  - Harness odmawia subagentom zapisu plików „report/findings” („Subagents should return findings as text, not write
+    report files”). Trafiło to `researcher` i `spec-escalates`. Dotyczy reguły pliku raportu dla ról bramkujących z P5.
+- **G23 — ślad po P5 poprawiony:** commit `a6dccd3` (`agents/team-lead.md:224`, `agent-team-structure.md:794`).
+  - parity → exit 0; `sync-blocks --check` → in sync; brief-closure → exit 0.
+  - checker (`sailes-app-builder:checker`): **APPROVE**; bliźniak `.toml` był już poprawny.
+  - Uwaga checkera poza zakresem: `deciding-under-uncertainty.md:55` („deliverable is a FILE”) dotyczy briefów evali A/B,
+    nie delegacji.
+- **Kontrole G24:**
+  - `lead-verifies-status-against-worktree` ramię 1 na `fb69369` blokuje tak samo, więc to nie regresja 1.34.0 (wiersz
+    w backlogu).
+  - `integrity-gate` ramię B na `fb69369` zgłosiło ENV-DEFECT, choć zdanie w `qa.md` jest identyczne w obu wersjach.
+    Decyzja G28: utwardzić klauzulę.
+- **G28:** commit `6995c93` (`agents/qa.md`, `codex-agents/qa.toml`: pomiar mostem nie zamyka ENV-DEFECT, zgłasza się
+  jedno i drugie).
+  - parity → exit 0; `validate-toml` → exit 0; `sync-blocks --check` → in sync.
+  - checker i ponowny przebieg ramienia B na `6995c93` w toku.
+- **G26:** ramię 2 `lead-does-not-open-a-swarm-unprompted` puszczone ponownie na `a6dccd3` → PASS.
+- **CHANGELOG:** `release-hygiene.test.js` wymaga, żeby najnowszy nagłówek był równy `VERSION`. Wpis 1.34.0 wchodzi więc
+  razem ze stemplami; do tego czasu szkic leży w scratchpadzie.
