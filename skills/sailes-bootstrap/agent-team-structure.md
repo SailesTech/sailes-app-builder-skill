@@ -44,7 +44,8 @@ is raised, never lowered.
   joins `middle` ONLY when the phase creates a screen with no existing design artifact
   (`.ai/specs/ui-spec.md` / `design-system/MASTER.md`) — a touched screen that already has one skips
   `designer` even in `middle`, and `fe-dev` builds from that artifact instead. `qa`'s environment
-  exclusivity is unchanged in either lane.
+  exclusivity is unchanged in either lane, and so is the UI integrity probe (`sailes-design`
+  `browser-inspect.md` §1): `middle` drops screenshots, never that measurement.
 <!-- END gate-scaling -->
 
 

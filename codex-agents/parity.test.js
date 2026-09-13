@@ -217,6 +217,11 @@ const INVARIANTS = {
     // P3.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — middle lane: live run,
     // no screenshots.
     ['middle lane: live run with pasted output, no screenshots', /middle lane[\s\S]{0,150}screenshots[\s\S]{0,150}paste/i],
+    // P3 gate (human decision 2026-09-13) — the UI integrity probe runs in BOTH lanes, and a missing
+    // instrument is ENV-DEFECT. The Codex twin said "fall back to the screenshot" from 2026-07-26
+    // until this fix while every listed concept stayed green; see the inverse entry below.
+    ['UI integrity probe runs in both lanes', /integrity[\s\S]{0,120}both lanes|both lanes[\s\S]{0,120}integrity/i],
+    ['missing integrity instrument is ENV-DEFECT', /unavailable[\s\S]{0,40}ENV-DEFECT/i],
   ],
   'docs-author': [
     ['documents the code as it is — evidence over aspiration', /as it is|evidence over aspiration/i],
@@ -253,6 +258,11 @@ const INVERSE_INVARIANTS = {
   ],
   'fe-dev': [
     ['no longer ties the full suite to the OLD per-worker completion commit (1.33.0, replaced by P2.6)', REPLACED_1_33_0_WORDING_RE],
+  ],
+  // P3 gate (human decision 2026-09-13) — the Codex twin's screenshot fallback for a missing
+  // integrity instrument is replaced by ENV-DEFECT, as the Claude twin has said since 2026-07-26.
+  qa: [
+    ['no screenshot fallback when the integrity instrument is missing (replaced at the 1.34.0 P3 gate)', /fall back to the screenshot/i],
   ],
 };
 
@@ -321,8 +331,8 @@ for (const role of Object.keys(INVERSE_INVARIANTS)) {
 
   for (const [label, re] of INVERSE_INVARIANTS[role]) {
     test(`${role}: "${label}" — ABSENT from BOTH twins`, () => {
-      assert.ok(!re.test(md), `agents/${role}.md still carries the replaced 1.33.0 wording`);
-      assert.ok(!re.test(toml), `codex-agents/${role}.toml still carries the replaced 1.33.0 wording`);
+      assert.ok(!re.test(md), `agents/${role}.md still carries a replaced wording`);
+      assert.ok(!re.test(toml), `codex-agents/${role}.toml still carries a replaced wording`);
     });
   }
 }
@@ -348,6 +358,17 @@ test('the be-dev/fe-dev inverse regex FIRES on the 1.33.0 wording it was written
   assert.ok(
     re.test(normalize(OLD_1_33_0_TOML)),
     'inverse regex does not catch the old codex-agents/be-dev.toml wording — it would have gone green on the un-replaced rule'
+  );
+});
+
+test('the qa inverse regex FIRES on the Codex screenshot-fallback wording it replaced', () => {
+  const OLD_QA_TOML =
+    'When the instrument is unavailable, fall back to the screenshot and record an explicit skip in the verdict; ' +
+    'never report a gate you did not measure as passed.';
+  const re = INVERSE_INVARIANTS.qa[0][1];
+  assert.ok(
+    re.test(normalize(OLD_QA_TOML)),
+    'inverse regex does not catch the old codex-agents/qa.toml fallback — it would have gone green on the un-replaced rule'
   );
 });
 
