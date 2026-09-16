@@ -69,6 +69,7 @@ Spec robi pięć rzeczy:
 | Q4 | Nieustalone fakty | **P0 — pomiar przed doktryną** | Doktryna z oznaczeniem „niezmierzone” |
 | Q5 | Codex | **Doktryna tylko dla Claude Code**; `parity.test.js` wyklucza nowe pojęcia jawnie | Odpowiednik dla Codex |
 | Q6 | Handoff lidera | **Po każdym workflow** (każdy STOP z D2) | Próg liczby tur |
+| D8 | Umiejscowienie bramek (2026-09-16, zmienia fragment D2 „tester/checker per faza”) | **Bramki na końcu (A)**: wszystkie fazy WF2 (równolegle, gdzie pliki rozłączne) → jeden `tester` + jeden `checker` na cały spec → ≤1 runda poprawek. Rozstrzygnięte **wyłącznie kosztem i czasem** (`.ai/eval-runs/2026-09-16-gate-placement/VERDICT-round1.md`): A $1.37 / 9.7 min · per faza $2.61 / 19.1 min · hybryda $2.53 / 11.4 min | Per faza szeregowo (B); hybryda (C). Wykrywalność i koszt późnej poprawki **niezmierzone** — runda 2 odłożona przez człowieka |
 
 **Przeniesione z zastępowanego specu 2026-08-06:**
 - **D5 (tamże Q1)** — lider zachowuje dokładnie szóstkę: merge/integracja · zamrożenie kontraktu · run log ·
@@ -88,8 +89,9 @@ boot e2e raz → wynik do promptów ──▶ WF1  explorer → [designer] → k
   STOP: człowiek zamraża plan  ◀──        zwraca: mapa, kontrakt, plan (schemat)       [lane full]
   STATE.md, nowa sesja
                                  ──▶ WF2  pipeline(fale z Plan wykonania):
-                                            faza: be-dev|fe-dev (worktree) → tester(write) → checker
-                                          zwraca: werdykty per faza (schemat) | blocked + powód
+                                            fazy: be-dev|fe-dev (worktree), fale równolegle
+                                          → tester(write, cały spec) → checker (cały diff) → ≤1 poprawka (D8)
+                                          zwraca: werdykty (schemat) | blocked + powód
   STOP przy decyzji kluczowej  ◀──
   integracja, STATE.md, nowa sesja
                                  ──▶ WF3  qa (szeregowo, wyłączne środowisko) → docs-author
@@ -97,8 +99,10 @@ boot e2e raz → wynik do promptów ──▶ WF1  explorer → [designer] → k
 ```
 
 - **Lane middle**: WF1 i WF2 w jednym skrypcie (plan `DERIVED`, brak STOP-u zamrożenia).
-- **Tester i checker per faza**, nie po wszystkich fazach — regresje F2 wyszły w 2. rundzie checkera, bez budżetu
-  na poprawki (`research/spec.md`, e).
+- **Tester i checker raz, po wszystkich fazach (D8)** — zmierzone: przy poprawnej implementacji bramki per faza kosztują
+  2,2–2,6× więcej i (dla faz zależnych) trwają 2× dłużej. Znany koszt tego wyboru: regresja wychodzi późno — na
+  `wf_4eb1edf7-db8` prawdziwe regresje F2 wyszły w 2. rundzie checkera; dlatego checker uruchamia testy z
+  `git grep -l <zmieniony symbol> tests/`, nie tylko `Done-when` faz.
 - **Werdykt = schemat.** tester/checker/qa zwracają `{verdict, evidence[], defects[], known_red[]}` przez
   `StructuredOutput`; skrypt zwraca je liderowi, lider zapisuje do `.ai/` (D3). Plik raportu w Workflow znika
   z obowiązków roli; poza Workflow (narzędzie Agent) reguła „raport = plik” zostaje bez zmian.
