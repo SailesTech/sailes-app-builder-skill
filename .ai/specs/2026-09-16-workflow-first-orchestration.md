@@ -1,6 +1,6 @@
 # Spec: Workflow jako silnik wykonania — role Sailes, koszt i spec gotowy do dispatchu
 
-Status: approved — 2026-09-16 przez właściciela ("no to zacznij realizowac"); pre-implement: w toku
+Status: approved — 2026-09-16 przez właściciela ("no to zacznij realizowac"); pre-implement: READY-WITH-FIXES → poprawki wpisane (`.ai/audits/2026-09-16-pre-implement-workflow-first.md`)
 Framework-Version target: 1.35.0
 Weight: contract fix × 5 powierzchni — doktryna orkestracji (nowy plik + `team-lead.md` +
         `agent-team-structure.md`), szablon specu (pola fazy), `tools/ownership-check.js` (tryb specu),
@@ -208,8 +208,10 @@ Lane: middle — tier C: raport, odczyt, formatowanie.
 Contract-probe: n/a — format transkryptów zmierzony na prawdziwym wf_4eb1edf7-db8 w Done-when, brak kontraktu API
 Deployed-probe: n/a — brak wdrożonego hosta; framework nie ma powierzchni sieciowej
 
-- **P1.1** — `discoverTranscripts()` rozpoznaje `<session>/subagents/workflows/wf_*/agent-*.jsonl` jako subagentów;
-  z `.meta.json` bierze etykietę, `agentType`, model.
+- **P1.1** — `discoverTranscripts()` rozpoznaje `<session>/subagents/workflows/wf_*/agent-*.jsonl` jako subagentów,
+  a podany wprost katalog `wf_*` (same `agent-*.jsonl`) też jako subagentów, nie lidera. Z `.meta.json` bierze
+  `description` (etykieta), `agentType`, `workflowPhase`; model rzeczywisty z `message.model` transkryptu
+  (`meta.model` to tylko alias z wywołania albo brak).
 - **P1.2** — `--cost`: USD per transkrypt i agregaty per etykieta / rola / tier; cena z jednej tabeli w pliku,
   cache read 0,1×, cache write 1,25× wejścia.
 
@@ -273,7 +275,9 @@ Deployed-probe: n/a — brak wdrożonego hosta; framework nie ma powierzchni sie
   faza z wynikiem sugerującym > ~60% `maxTurns` roli → NOT-READY z propozycją podziału.
 
 **Done-when:**
-- `grep -c -E "^\- .*\`(Owns|Blast-radius|Depends-on|Agent|Human-STOP):\`" skills/sailes-spec/SKILL.md skills/sailes-bootstrap/spec-writing-template.md` → ≥ 5 w każdym.
+- dla każdego z pól `Owns:`, `Blast-radius:`, `Depends-on:`, `Agent:`, `Human-STOP:`:
+  `grep -c -F "<pole>" skills/sailes-spec/SKILL.md skills/sailes-bootstrap/spec-writing-template.md` → ≥ 1 w każdym
+  (pięć komend, wynik wklejony).
 - `grep -c "Plan wykonania" skills/sailes-spec/SKILL.md skills/sailes-bootstrap/spec-writing-template.md` → ≥ 1 w każdym.
 - `grep -n "Blast-radius" skills/sailes-pre-implement/SKILL.md` → trafienie w sekcji BC impact.
 - `npm test` → exit 0 (w tym `sync-blocks`, jeśli dotknięte bloki).
@@ -302,6 +306,9 @@ Blast-radius (policzone 2026-09-16, `git grep -c -E <wzorzec> -- ':!.ai' ':!CHAN
   Workflow zostaje.
 - `session-handoff` → blok synchronizowany (`tools/blocks.json`); P4 **nie edytuje bloku**, tylko się do niego odwołuje.
 Depends-on: `wynik: P0` (P0.1 effort, P0.2 worktree, P0.3 zapis plików wchodzą do doktryny jako fakty).
+Uwaga (pre-implement): zdania o kolejności modelu (`team-lead.md:166`, `agent-team-structure.md:105`) leżą **poza**
+blokami synchronizowanymi (`gate-scaling`, `delegation-threshold`, `session-handoff`) — edycja bez `sync-blocks`.
+Edycja tych plików wystawi evale z `Files:` na nie jako STALE — obsługa w P6.
 Agent: `be-dev` · tier C · —
 Human-STOP: —
 Lane: middle — tier C: doktryna; zachowanie mierzy eval P4.7.
@@ -346,6 +353,8 @@ Deployed-probe: n/a — brak wdrożonego hosta; framework nie ma powierzchni sie
 
 - **P5a.1** — hook: stdin JSON → wyciąga treść skryptu (inline albo z `scriptPath`) → wywołania `agent(` bez `agentType`
   w opcjach (także bez drugiego argumentu) → `exit 2` z linią i regułą; brak skryptu / inne narzędzie → `exit 0` cicho.
+  Wywołanie zapisanego workflow po `name` (bez `script`/`scriptPath`) → `exit 0` z notą w stderr — treść
+  nierozwiązywalna z payloadu; hook nie zgaduje ścieżki rejestru.
 - **P5a.2** — przypadki: `agent(` w stringu i komentarzu nie blokuje; `agent(p, opts)` ze zmienną opcji
   → nie blokuje (nierozstrzygalne statycznie, raport w stderr).
 
@@ -407,6 +416,10 @@ Deployed-probe: n/a — brak wdrożonego hosta; framework nie ma powierzchni sie
 - `node release-hygiene.test.js && node spec-status-evidence.test.js` → exit 0.
 - `git status --short .ai/specs` → zastępowany spec w `archived/`, z linią `Superseded-by:`.
 - `grep -c "2026-08-06-spec-carries-the-execution-plan" .ai/backlog.md` → ≥ 3.
+- `node evals/harness/eval-status.js` → lista evali STALE przez P3/P4 wklejona; każdy re-run albo wyjątek przyjęty
+  przez człowieka (precedens G19/G21/G22 w 1.34.0).
+- CHANGELOG 1.35.0 mówi wprost: `Owns`/`Plan wykonania` wymagane dla specu pisanego od 1.35.0; żywe specy
+  sprzed wersji nie są przepisywane, a `ownership-check --spec` uruchamia się tylko jawnie.
 - `npm test` → exit 0 (przez `qa`, raz); receipt docs-delta pokazany.
 
 ## Integration coverage
