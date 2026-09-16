@@ -51,6 +51,7 @@ const {
   discoverTranscripts,
   withinWindow,
   percentile,
+  parseTranscript,
   buildReport,
   tierFromModel,
   costUsdForTranscript,
@@ -447,6 +448,111 @@ async function run() {
   await test('--help documents --cost', () => {
     const r = runTool('--help');
     assert.ok(/--cost/.test(r.stdout));
+  });
+
+  // ---------------------------------------------------------------- P1-B1..B9 (tester-authored,
+  // .ai/test-plans/2026-09-16-workflow-first-P1.md, frozen DERIVED, no human STOP — middle/tier C)
+
+  await test('P1-B1: nested workflow layout (<session>/subagents/workflows/wf_*/agent-*.jsonl) is ' +
+    'classified as subagent, never lead, and its path carries the workflows/wf_test1 association', () => {
+    const found = discoverTranscripts(PROJECT_WITH_WORKFLOW);
+    const wfFiles = found.filter((f) => path.basename(f.filePath).startsWith('agent-wf-'));
+    assert.strictEqual(wfFiles.length, 2, 'agent-wf-1 and agent-wf-2 both discovered');
+    for (const f of wfFiles) {
+      assert.strictEqual(f.kind, 'subagent', `${f.filePath} must be a subagent, not a lead`);
+      assert.ok(f.filePath.includes(`${path.sep}workflows${path.sep}wf_test1${path.sep}`),
+        `${f.filePath} must carry its workflow id in the path`);
+    }
+  });
+
+  await test('P1-B2: a wf_* directory passed DIRECTLY as the root has zero leads — every agent-*.jsonl ' +
+    'at its top level is a subagent', () => {
+    const found = discoverTranscripts(DIRECT_WF_DIR);
+    assert.strictEqual(found.filter((f) => f.kind === 'lead').length, 0);
+    assert.strictEqual(found.filter((f) => f.kind === 'subagent').length, 2);
+    assert.ok(found.every((f) => f.kind === 'subagent'), 'no entry may be classified as a lead');
+  });
+
+  await test('P1-B3: .meta.json fields description/agentType/workflowPhase are all exposed on a ' +
+    'discovered workflow subagent, for two distinct subagents in the same wf_* dir', () => {
+    const found = discoverTranscripts(PROJECT_WITH_WORKFLOW);
+    const byFile = Object.fromEntries(found.map((f) => [path.basename(f.filePath), f]));
+    assert.strictEqual(byFile['agent-wf-1.jsonl'].label, 'F1');
+    assert.strictEqual(byFile['agent-wf-1.jsonl'].agentType, 'general-purpose');
+    assert.strictEqual(byFile['agent-wf-1.jsonl'].workflowPhase, 'Implement');
+    assert.strictEqual(byFile['agent-wf-2.jsonl'].label, 'F2');
+    assert.strictEqual(byFile['agent-wf-2.jsonl'].agentType, 'sailes-app-builder:be-dev');
+    assert.strictEqual(byFile['agent-wf-2.jsonl'].workflowPhase, 'Review');
+  });
+
+  await test('P1-B4 (invalid partition): a subagent transcript with NO sibling .meta.json at all does ' +
+    'not crash discovery — label/agentType/workflowPhase are all null, role falls back to unknown', () => {
+    const found = discoverTranscripts(DIRECT_WF_DIR);
+    const noMeta = found.find((f) => path.basename(f.filePath) === 'agent-a.jsonl');
+    assert.ok(noMeta, 'agent-a.jsonl (no .meta.json sibling) must still be discovered');
+    assert.strictEqual(noMeta.kind, 'subagent');
+    assert.strictEqual(noMeta.role, 'unknown');
+    assert.strictEqual(noMeta.label, null);
+    assert.strictEqual(noMeta.agentType, null);
+    assert.strictEqual(noMeta.workflowPhase, null);
+  });
+
+  await test('P1-B5: resolved model comes from the transcript\'s message.model, not the .meta.json ' +
+    '"model" alias, when the two differ (meta says "haiku", transcript says the full API id)', async () => {
+    const metaPath = path.join(PROJECT_WITH_WORKFLOW, 'lead-session', 'subagents', 'workflows', 'wf_test1', 'agent-wf-1.meta.json');
+    const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+    assert.strictEqual(meta.model, 'haiku', 'fixture precondition: the meta alias is the bare tier name');
+    const parsed = await parseTranscript(path.join(PROJECT_WITH_WORKFLOW, 'lead-session', 'subagents', 'workflows', 'wf_test1', 'agent-wf-1.jsonl'));
+    assert.strictEqual(parsed.model, 'claude-haiku-4-5-20251001',
+      'model must be the real transcript message.model, never the shorter meta.json alias');
+  });
+
+  await test('P1-B6 (invalid partition): with no .meta.json at all (no alias to even ignore), the ' +
+    'resolved model still comes correctly from message.model, never blank/undefined', async () => {
+    const parsed = await parseTranscript(path.join(DIRECT_WF_DIR, 'agent-a.jsonl'));
+    assert.strictEqual(parsed.model, 'claude-haiku-4-5-20251001');
+  });
+
+  await test('P1-B7: cache-read tokens are priced at 0.1x the same model\'s input-token rate ' +
+    '(ratio, derived from the spec multiplier, not the absolute price table)', () => {
+    const inputOnly = costUsdForTranscript(
+      [{ input: 1_000_000, cacheCreate: 0, cacheRead: 0, output: 0 }],
+      'claude-sonnet-4-5-20250929', PRICE_TABLE_USD_PER_MTOK,
+    );
+    const cacheReadOnly = costUsdForTranscript(
+      [{ input: 0, cacheCreate: 0, cacheRead: 1_000_000, output: 0 }],
+      'claude-sonnet-4-5-20250929', PRICE_TABLE_USD_PER_MTOK,
+    );
+    assert.ok(inputOnly.usd > 0, 'sanity: input-only cost must be positive');
+    assert.ok(Math.abs(cacheReadOnly.usd / inputOnly.usd - 0.1) < 1e-9,
+      `cache-read/input ratio must be 0.1, got ${cacheReadOnly.usd / inputOnly.usd}`);
+  });
+
+  await test('P1-B8: cache-write tokens are priced at 1.25x the same model\'s input-token rate ' +
+    '(ratio, derived from the spec multiplier, not the absolute price table)', () => {
+    const inputOnly = costUsdForTranscript(
+      [{ input: 1_000_000, cacheCreate: 0, cacheRead: 0, output: 0 }],
+      'claude-haiku-4-5-20251001', PRICE_TABLE_USD_PER_MTOK,
+    );
+    const cacheWriteOnly = costUsdForTranscript(
+      [{ input: 0, cacheCreate: 1_000_000, cacheRead: 0, output: 0 }],
+      'claude-haiku-4-5-20251001', PRICE_TABLE_USD_PER_MTOK,
+    );
+    assert.ok(inputOnly.usd > 0, 'sanity: input-only cost must be positive');
+    assert.ok(Math.abs(cacheWriteOnly.usd / inputOnly.usd - 1.25) < 1e-9,
+      `cache-write/input ratio must be 1.25, got ${cacheWriteOnly.usd / inputOnly.usd}`);
+  });
+
+  await test('P1-B9: --cost aggregation is sum-consistent — byLabel/byRole totals equal subagentsUSD, ' +
+    'byTier total equals leadUSD+subagentsUSD, for every grouping key the fixture produces', async () => {
+    const report = await buildReport({ dir: PROJECT_WITH_WORKFLOW, sinceMs: null, untilMs: null, cost: true });
+    const sum = (obj) => Object.values(obj).reduce((a, b) => a + b, 0);
+    assert.ok(Math.abs(sum(report.cost.byLabel) - report.cost.subagentsUSD) < 1e-9,
+      'sum of byLabel buckets must equal subagentsUSD exactly (no double count, none dropped)');
+    assert.ok(Math.abs(sum(report.cost.byRole) - report.cost.subagentsUSD) < 1e-9,
+      'sum of byRole buckets must equal subagentsUSD exactly');
+    assert.ok(Math.abs(sum(report.cost.byTier) - report.cost.totalUSD) < 1e-9,
+      'sum of byTier buckets must equal totalUSD (lead + subagents) exactly');
   });
 
   console.log(
