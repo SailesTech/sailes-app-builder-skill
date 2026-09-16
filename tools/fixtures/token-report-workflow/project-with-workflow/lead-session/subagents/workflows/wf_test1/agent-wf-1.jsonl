@@ -1,0 +1,1 @@
+{"type":"assistant","message":{"id":"msg_WF1","model":"claude-haiku-4-5-20251001","usage":{"input_tokens":1000000,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":1000000},"content":[{"type":"text","text":"workflow-nested haiku turn"}]}}

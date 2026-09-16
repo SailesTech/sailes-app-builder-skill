@@ -70,7 +70,7 @@ const BUILTIN_SUBAGENT_TYPES = new Set([
 const HELP = `token-report — token cost of Claude Code sessions, from transcript JSONL files
 
 Usage:
-  node tools/token-report.js <projectTranscriptDir> [--since YYYY-MM-DD] [--until YYYY-MM-DD] [--json]
+  node tools/token-report.js <projectTranscriptDir> [--since YYYY-MM-DD] [--until YYYY-MM-DD] [--json] [--cost]
 
 Options:
   --since YYYY-MM-DD   include files with mtime >= this date, 00:00 LOCAL time
@@ -78,6 +78,8 @@ Options:
                        --since/--until form a half-open range [since, until): "--since 2026-09-11
                        --until 2026-09-13" covers the two calendar days 09-11 and 09-12 local time.
   --json               print a machine-readable report instead of the text summary
+  --cost               add USD estimates (per transcript, and aggregated by label/role/tier) from
+                       the built-in price table — see PRICE_TABLE_USD_PER_MTOK in the source
   --help, -h           print this message
 
 Definitions:
@@ -89,7 +91,9 @@ Definitions:
     the built-ins: ${[...BUILTIN_SUBAGENT_TYPES].join(', ')}.
   A subagent transcript's ROLE comes from its sibling <file>.meta.json ("agentType", falling back
     to "subagent_type"/"subagentType"), with any "pluginName:" prefix stripped. Missing/unreadable
-    meta -> role "unknown".
+    meta -> role "unknown". <session>/subagents/workflows/wf_*/agent-*.jsonl is also a subagent
+    (Workflow-tool layout), and so is agent-*.jsonl at the TOP of a wf_* directory passed directly.
+  --cost prices by the transcript's REAL model (message.model), never the meta.json "model" alias.
   DATE FILTER IS BY FILE MTIME, LOCAL TIME, NOT BY MESSAGE TIMESTAMPS INSIDE THE TRANSCRIPT — see
     the header comment in this file's source for why. Omitting --since/--until includes every
     transcript found under the directory.
@@ -115,13 +119,15 @@ function parseDateArg(name, value) {
 }
 
 function parseArgs(argv) {
-  const result = { dir: null, sinceMs: null, untilMs: null, json: false, help: false };
+  const result = { dir: null, sinceMs: null, untilMs: null, json: false, cost: false, help: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--help' || a === '-h') {
       result.help = true;
     } else if (a === '--json') {
       result.json = true;
+    } else if (a === '--cost') {
+      result.cost = true;
     } else if (a === '--since') {
       i++;
       result.sinceMs = parseDateArg('--since', argv[i]);
@@ -154,17 +160,138 @@ function isUnprefixedSpawn(subagentType) {
 }
 
 /**
- * Walk `dir` for the two known shapes only (not a generic recursive walk): lead sessions are
- * `<dir>/<session>.jsonl`; subagents are `<dir>/<session>/subagents/agent-*.jsonl` with an optional
- * sibling `.meta.json` naming the role.
+ * P1.2 — the ONE price table `--cost` reads from (USD per MILLION tokens, "standard" service
+ * tier, per Narzędzia: "cena z jednej tabeli w pliku"). Cache read/write are not separate rows:
+ * they are each row's `input` price scaled by the multipliers the spec fixes — cache read 0.1x
+ * input, cache write 1.25x input — not looked up from a second table.
+ *
+ * SUBSTITUTE DECISION (be-dev, spec 2026-09-16 P1, not a key decision — dollar constants, not
+ * stack/contract/data-model/auth/roles): these three rows are Anthropic's last known per-MTok
+ * list prices at this worker's knowledge cutoff (Jan 2026), standard <=200K-context tier. The
+ * phase's Done-when checks `--cost`'s total against `research/costs.md`; that file does not exist
+ * anywhere in this worktree (checked: no `research/` directory, no file matching `*costs*` outside
+ * `agents/researcher.md`/`codex-agents/researcher.toml`, neither of which is a price reference).
+ * A from-scratch reconstruction against the real `wf_4eb1edf7-db8` transcript with this table
+ * gives ~$33 for its 12 subagent transcripts, not the spec's $18.33 — flagged as a deviation in
+ * the P1 report, not silently reconciled by fitting the table to the target number.
+ */
+const PRICE_TABLE_USD_PER_MTOK = {
+  haiku: { input: 1, output: 5 },
+  sonnet: { input: 3, output: 15 },
+  opus: { input: 15, output: 75 },
+};
+
+/** Bucket a real model string (`message.model`) into a pricing tier by substring — case-insensitive,
+ *  since the API's model id (`claude-haiku-4-5-20251001`) always carries the family name in full. */
+function tierFromModel(model) {
+  if (!model) return 'unknown';
+  const m = model.toLowerCase();
+  if (m.includes('haiku')) return 'haiku';
+  if (m.includes('sonnet')) return 'sonnet';
+  if (m.includes('opus')) return 'opus';
+  return 'unknown';
+}
+
+/**
+ * USD for one transcript's deduped usage records (see `parseTranscript`), at a single model —
+ * P1.1 treats a transcript as having one real model, so pricing does too. Returns `usd` (0 when
+ * the tier is not in `priceTable`) and `unpricedMessages` (a count, never silently absorbed into
+ * `usd` as zero-and-indistinguishable — an unknown model should be visible in the report, not
+ * quietly under-cost the transcript it belongs to).
+ */
+function costUsdForTranscript(usageMessages, model, priceTable) {
+  const tier = tierFromModel(model);
+  const price = priceTable[tier];
+  let usd = 0;
+  let unpricedMessages = 0;
+  if (!price) {
+    unpricedMessages = usageMessages.length;
+    return { usd, tier, unpricedMessages };
+  }
+  for (const m of usageMessages) {
+    usd += (
+      m.input * price.input
+      + m.cacheCreate * price.input * 1.25
+      + m.cacheRead * price.input * 0.1
+      + m.output * price.output
+    ) / 1e6;
+  }
+  return { usd, tier, unpricedMessages };
+}
+
+/**
+ * Read a subagent's sibling `.meta.json` (P1.1): `role` (from `agentType`, falling back to
+ * `subagent_type`/`subagentType`, plugin prefix stripped — unchanged from P0), plus the two new
+ * fields P1.1 asks for: `label` (meta `description`) and `workflowPhase` (meta `workflowPhase`).
+ * `agentType` is also returned RAW (unstripped) — some callers want the bare role, others the
+ * full `plugin:role` string. Missing/unreadable meta — or a meta file with none of the role
+ * fields — falls back to `role: 'unknown'`, `label: null`, `agentType: null`, `workflowPhase:
+ * null`, never a thrown error (same contract P0 already had for `role`).
+ */
+function readSubagentMeta(filePath) {
+  const metaPath = filePath.replace(/\.jsonl$/, '.meta.json');
+  let role = 'unknown';
+  let label = null;
+  let agentType = null;
+  let workflowPhase = null;
+  if (fs.existsSync(metaPath)) {
+    try {
+      const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+      agentType = meta.agentType || meta.subagent_type || meta.subagentType || null;
+      role = roleFromAgentType(agentType);
+      if (typeof meta.description === 'string') label = meta.description;
+      if (typeof meta.workflowPhase === 'string') workflowPhase = meta.workflowPhase;
+    } catch {
+      // malformed meta file — keep the defaults above rather than fail the whole report
+    }
+  }
+  return { role, label, agentType, workflowPhase };
+}
+
+/** Collect `agent-*.jsonl` subagent transcripts directly inside `dirPath` (non-recursive). */
+function collectAgentFiles(dirPath) {
+  const out = [];
+  let entries;
+  try {
+    entries = fs.readdirSync(dirPath, { withFileTypes: true });
+  } catch {
+    return out;
+  }
+  for (const e of entries) {
+    if (!e.isFile() || !e.name.endsWith('.jsonl') || !e.name.startsWith('agent-')) continue;
+    const filePath = path.join(dirPath, e.name);
+    out.push({ filePath, kind: 'subagent', ...readSubagentMeta(filePath) });
+  }
+  return out;
+}
+
+/**
+ * Walk `dir` for the known shapes (not a generic recursive walk):
+ *   - lead sessions:    `<dir>/<session>.jsonl`
+ *   - subagents:        `<dir>/<session>/subagents/agent-*.jsonl`
+ *   - Workflow subagents (P1.1): `<dir>/<session>/subagents/workflows/wf_<id>/agent-<n>.jsonl` —
+ *     the layout `agent()` calls inside the `Workflow` tool produce (spec 2026-09-16, P1.1).
+ *   - a `wf_*` directory passed DIRECTLY as `dir` (only `agent-*.jsonl` at its top level, no
+ *     wrapping `<session>/subagents/`): those are subagents too, never a lead — P1.1's explicit
+ *     requirement, and what the phase's own Done-when invokes token-report on.
+ * All three subagent shapes get their role/label/agentType/workflowPhase from the sibling
+ * `.meta.json` via `readSubagentMeta`.
  */
 function discoverTranscripts(dir) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   const out = [];
 
   for (const e of entries) {
-    if (e.isFile() && e.name.endsWith('.jsonl')) {
-      out.push({ filePath: path.join(dir, e.name), kind: 'lead', role: null });
+    if (!e.isFile() || !e.name.endsWith('.jsonl')) continue;
+    if (e.name.startsWith('agent-')) {
+      // `dir` is itself a `wf_*` (or otherwise agent-file-only) directory — subagent, not lead.
+      const filePath = path.join(dir, e.name);
+      out.push({ filePath, kind: 'subagent', ...readSubagentMeta(filePath) });
+    } else {
+      out.push({
+        filePath: path.join(dir, e.name), kind: 'lead',
+        role: null, label: null, agentType: null, workflowPhase: null,
+      });
     }
   }
 
@@ -172,27 +299,20 @@ function discoverTranscripts(dir) {
     if (!e.isDirectory()) continue;
     const subagentsDir = path.join(dir, e.name, 'subagents');
     if (!fs.existsSync(subagentsDir)) continue;
-    let subEntries;
+
+    out.push(...collectAgentFiles(subagentsDir));
+
+    // Workflow layout (P1.1): <session>/subagents/workflows/wf_*/agent-*.jsonl
+    const workflowsDir = path.join(subagentsDir, 'workflows');
+    let wfEntries;
     try {
-      subEntries = fs.readdirSync(subagentsDir, { withFileTypes: true });
+      wfEntries = fs.readdirSync(workflowsDir, { withFileTypes: true });
     } catch {
       continue;
     }
-    for (const se of subEntries) {
-      if (!se.isFile() || !se.name.endsWith('.jsonl') || !se.name.startsWith('agent-')) continue;
-      const filePath = path.join(subagentsDir, se.name);
-      const metaPath = filePath.replace(/\.jsonl$/, '.meta.json');
-      let role = 'unknown';
-      if (fs.existsSync(metaPath)) {
-        try {
-          const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
-          const agentType = meta.agentType || meta.subagent_type || meta.subagentType || null;
-          role = roleFromAgentType(agentType);
-        } catch {
-          // malformed meta file — keep 'unknown' rather than fail the whole report
-        }
-      }
-      out.push({ filePath, kind: 'subagent', role });
+    for (const we of wfEntries) {
+      if (!we.isDirectory() || !we.name.startsWith('wf_')) continue;
+      out.push(...collectAgentFiles(path.join(workflowsDir, we.name)));
     }
   }
 
@@ -208,15 +328,30 @@ function withinWindow(mtimeMs, sinceMs, untilMs) {
 /**
  * Parse one transcript file. Returns per-transcript aggregates plus the raw list of spawns found
  * in it (every tool_use named Agent/Task, from every line — see header comment).
+ *
+ * P1.1/P1.2: also returns `model` — the REAL model, read from `message.model` on the transcript's
+ * assistant lines (the first non-null one seen). This is deliberately NOT the sibling
+ * `.meta.json`'s `model` field: that field is only the alias/override passed at the `agent()`
+ * call site (e.g. `"haiku"`), or absent entirely, never the resolved model the API actually ran
+ * (e.g. `"claude-haiku-4-5-20251001"`) — using it for `--cost` pricing would silently price by
+ * request, not by what was billed.
+ * Also returns `usageMessages`: one entry per distinct `message.id`, `{ input, cacheCreate,
+ * cacheRead, output }`. `input`/`cacheCreate`/`cacheRead` are fixed at first sight of an id (they
+ * repeat identically across a split message's lines, same as `contextTokens` above). `output` is
+ * NOT: on a real transcript a split message's later lines carry a GROWING `output_tokens` snapshot
+ * for the SAME id (measured on `wf_4eb1edf7-db8`: 1, 1, 768 across three lines of one message) —
+ * so `output` here is the max seen, never the first, or `--cost` would price a generation at the
+ * token count of its opening line.
  */
 async function parseTranscript(filePath) {
-  const seenUsageIds = new Set();
+  const usageByMessageId = new Map();
   const seenToolIds = new Set();
   let turns = 0;
   let firstTurnContext = null;
   let peakContext = 0;
   let contextTokens = 0;
   let malformedLines = 0;
+  let model = null;
   const spawns = [];
 
   const input = fs.createReadStream(filePath, { encoding: 'utf8' });
@@ -241,15 +376,27 @@ async function parseTranscript(filePath) {
     // write) and contributes 0 context tokens in that case, never NaN. Usage is still deduped by
     // message.id: several lines can repeat the SAME message.id/usage (split message), and that
     // must count once, not once per line.
-    if (!seenUsageIds.has(message.id)) {
-      seenUsageIds.add(message.id);
+    const u = message.usage || {};
+    if (!usageByMessageId.has(message.id)) {
       turns += 1;
-      const u = message.usage || {};
       const ctx = (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0)
         + (u.cache_read_input_tokens || 0);
       if (firstTurnContext === null) firstTurnContext = ctx;
       peakContext = Math.max(peakContext, ctx);
       contextTokens += ctx;
+      usageByMessageId.set(message.id, {
+        input: u.input_tokens || 0,
+        cacheCreate: u.cache_creation_input_tokens || 0,
+        cacheRead: u.cache_read_input_tokens || 0,
+        output: u.output_tokens || 0,
+      });
+      if (model === null && message.model) model = message.model;
+    } else {
+      // Split message, later line: input/cache stay fixed, output can still grow — see doc comment.
+      const rec = usageByMessageId.get(message.id);
+      if (typeof u.output_tokens === 'number' && u.output_tokens > rec.output) {
+        rec.output = u.output_tokens;
+      }
     }
 
     // Collect tool_use from every line unconditionally — NOT nested inside the usage-dedupe
@@ -275,6 +422,8 @@ async function parseTranscript(filePath) {
     contextTokens,
     spawns,
     malformedLines,
+    model,
+    usageMessages: [...usageByMessageId.values()],
   };
 }
 
@@ -338,7 +487,45 @@ function summarizeByRole(subagentTranscripts) {
   return result;
 }
 
-async function buildReport({ dir, sinceMs, untilMs }) {
+/**
+ * P1.2 — USD aggregated per transcript (already on each stat via `costUSD`/`costTier`, attached in
+ * `buildReport`), then summed per etykieta (label)/rola (role)/tier across BOTH groups — a lead
+ * session has no label (leads carry no `.meta.json`) so `byLabel`/`byRole` only ever see subagents,
+ * but `byTier` sees both: a lead session still ran on a real model and belongs in its tier's total.
+ */
+function summarizeCost(leadStats, subagentStats) {
+  const byLabel = {};
+  const byRole = {};
+  const byTier = {};
+  let leadUSD = 0;
+  let subagentsUSD = 0;
+  let unpricedMessages = 0;
+
+  const addTier = (t) => {
+    byTier[t.costTier] = (byTier[t.costTier] || 0) + t.costUSD;
+    unpricedMessages += t.costUnpriced;
+  };
+
+  for (const t of leadStats) {
+    leadUSD += t.costUSD;
+    addTier(t);
+  }
+  for (const t of subagentStats) {
+    subagentsUSD += t.costUSD;
+    addTier(t);
+    const label = t.label || 'unknown';
+    const role = t.role || 'unknown';
+    byLabel[label] = (byLabel[label] || 0) + t.costUSD;
+    byRole[role] = (byRole[role] || 0) + t.costUSD;
+  }
+
+  return {
+    leadUSD, subagentsUSD, totalUSD: leadUSD + subagentsUSD,
+    byLabel, byRole, byTier, unpricedMessages,
+  };
+}
+
+async function buildReport({ dir, sinceMs, untilMs, cost }) {
   const discovered = discoverTranscripts(dir);
   const leadStats = [];
   const subagentStats = [];
@@ -359,10 +546,19 @@ async function buildReport({ dir, sinceMs, untilMs }) {
     malformedLines += parsed.malformedLines;
     if (parsed.turns === 0) continue;
 
+    let costFields = {};
+    if (cost) {
+      const c = costUsdForTranscript(parsed.usageMessages, parsed.model, PRICE_TABLE_USD_PER_MTOK);
+      costFields = { costUSD: c.usd, costTier: c.tier, costUnpriced: c.unpricedMessages };
+    }
+
     if (d.kind === 'lead') {
-      leadStats.push(parsed);
+      leadStats.push({ ...parsed, ...costFields });
     } else {
-      subagentStats.push({ ...parsed, role: d.role });
+      subagentStats.push({
+        ...parsed, role: d.role, label: d.label, agentType: d.agentType,
+        workflowPhase: d.workflowPhase, ...costFields,
+      });
     }
   }
 
@@ -372,7 +568,7 @@ async function buildReport({ dir, sinceMs, untilMs }) {
     unprefixedByName[s.subagentType] = (unprefixedByName[s.subagentType] || 0) + 1;
   }
 
-  return {
+  const report = {
     dateFilter: { sinceMs, untilMs, basis: 'file-mtime-local' },
     lead: summarizeGroup(leadStats),
     subagents: summarizeGroup(subagentStats),
@@ -384,6 +580,12 @@ async function buildReport({ dir, sinceMs, untilMs }) {
     },
     malformedLines,
   };
+
+  if (cost) {
+    report.cost = summarizeCost(leadStats, subagentStats);
+  }
+
+  return report;
 }
 
 function fmtK(n) {
@@ -443,6 +645,33 @@ function fmtLocalDate(ms) {
   return `${y}-${m}-${day}`;
 }
 
+function fmtUSD(n) {
+  return `$${n.toFixed(2)}`;
+}
+
+function renderCost(report) {
+  const c = report.cost;
+  const lines = [];
+  lines.push('');
+  lines.push(`Cost: ${fmtUSD(c.totalUSD)} total  (lead ${fmtUSD(c.leadUSD)}, subagents ${fmtUSD(c.subagentsUSD)})`);
+  if (c.unpricedMessages > 0) {
+    lines.push(`  ${c.unpricedMessages} message(s) on a model outside the price table — priced as $0, see PRICE_TABLE_USD_PER_MTOK`);
+  }
+  lines.push('  by tier:');
+  for (const [tier, usd] of Object.entries(c.byTier).sort((a, b) => b[1] - a[1])) {
+    lines.push(`    ${tier.padEnd(10)} ${fmtUSD(usd)}`);
+  }
+  lines.push('  by role (subagents):');
+  for (const [role, usd] of Object.entries(c.byRole).sort((a, b) => b[1] - a[1])) {
+    lines.push(`    ${role.padEnd(20)} ${fmtUSD(usd)}`);
+  }
+  lines.push('  by label (subagents):');
+  for (const [label, usd] of Object.entries(c.byLabel).sort((a, b) => b[1] - a[1])) {
+    lines.push(`    ${label.padEnd(20)} ${fmtUSD(usd)}`);
+  }
+  return lines.join('\n');
+}
+
 function renderText(dir, args, report) {
   const lines = [];
   lines.push(`Token Report — ${dir}`);
@@ -468,6 +697,9 @@ function renderText(dir, args, report) {
   }
   lines.push('');
   lines.push(`Malformed JSONL lines skipped: ${report.malformedLines}`);
+  if (report.cost) {
+    lines.push(renderCost(report));
+  }
   return lines.join('\n');
 }
 
@@ -500,7 +732,9 @@ async function main(argv) {
     return;
   }
 
-  const report = await buildReport({ dir: args.dir, sinceMs: args.sinceMs, untilMs: args.untilMs });
+  const report = await buildReport({
+    dir: args.dir, sinceMs: args.sinceMs, untilMs: args.untilMs, cost: args.cost,
+  });
 
   if (report.malformedLines > 0) {
     process.stderr.write(`token-report: skipped ${report.malformedLines} malformed JSONL line(s)\n`);
@@ -515,16 +749,22 @@ async function main(argv) {
 
 module.exports = {
   BUILTIN_SUBAGENT_TYPES,
+  PRICE_TABLE_USD_PER_MTOK,
   parseArgs,
   parseDateArg,
   roleFromAgentType,
   isUnprefixedSpawn,
+  readSubagentMeta,
+  collectAgentFiles,
   discoverTranscripts,
   withinWindow,
   parseTranscript,
   percentile,
   summarizeGroup,
   summarizeByRole,
+  tierFromModel,
+  costUsdForTranscript,
+  summarizeCost,
   buildReport,
   renderText,
 };
