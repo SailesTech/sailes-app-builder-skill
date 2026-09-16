@@ -54,6 +54,7 @@ const {
   parseTranscript,
   buildReport,
   tierFromModel,
+  priceForModel,
   costUsdForTranscript,
   PRICE_TABLE_USD_PER_MTOK,
 } = require('./token-report.js');
@@ -369,14 +370,19 @@ async function run() {
   });
 
   await test('costUsdForTranscript: input + cache-write (1.25x) + cache-read (0.1x) + output, from the one price table', () => {
+    // NOTE (be-dev, spec P1 price-table swap): this test's model was 'claude-sonnet-4-5-20250929'
+    // under the old tier-substring table (sonnet == $3/$15 flat). The new PRICE_TABLE_USD_PER_MTOK
+    // is keyed by exact model-id prefix, and 'claude-sonnet-4-5' is not one of its rows — swapped
+    // to 'claude-sonnet-4-6...', which IS a row, at the SAME $3/$15 price, so the dollar constants
+    // below are unchanged.
     const usageMessages = [{ input: 1_000_000, cacheCreate: 0, cacheRead: 0, output: 0 }];
-    const r1 = costUsdForTranscript(usageMessages, 'claude-sonnet-4-5-20250929', PRICE_TABLE_USD_PER_MTOK);
-    assert.strictEqual(r1.usd, 3, '1M input tokens at $3/MTok sonnet');
+    const r1 = costUsdForTranscript(usageMessages, 'claude-sonnet-4-6-20260101', PRICE_TABLE_USD_PER_MTOK);
+    assert.strictEqual(r1.usd, 3, '1M input tokens at $3/MTok sonnet-4-6');
     assert.strictEqual(r1.tier, 'sonnet');
     assert.strictEqual(r1.unpricedMessages, 0);
 
     const cacheMsgs = [{ input: 0, cacheCreate: 1_000_000, cacheRead: 1_000_000, output: 0 }];
-    const r2 = costUsdForTranscript(cacheMsgs, 'claude-sonnet-4-5-20250929', PRICE_TABLE_USD_PER_MTOK);
+    const r2 = costUsdForTranscript(cacheMsgs, 'claude-sonnet-4-6-20260101', PRICE_TABLE_USD_PER_MTOK);
     assert.ok(Math.abs(r2.usd - 4.05) < 1e-9, `expected 3*1.25 + 3*0.1 = 4.05, got ${r2.usd}`);
 
     const outMsgs = [{ input: 0, cacheCreate: 0, cacheRead: 0, output: 1_000_000 }];
@@ -392,24 +398,66 @@ async function run() {
     assert.strictEqual(r.unpricedMessages, 1);
   });
 
+  await test('P1: priceForModel picks the LONGEST matching prefix, not just any matching prefix', () => {
+    const table = {
+      'claude-x': { input: 1, output: 1 },
+      'claude-x-2': { input: 9, output: 9 },
+    };
+    assert.deepStrictEqual(priceForModel('claude-x-2-20260101', table), { input: 9, output: 9 },
+      'the more specific row (claude-x-2) must win over the shorter row (claude-x) it extends');
+    assert.deepStrictEqual(priceForModel('claude-x-9-20260101', table), { input: 1, output: 1 },
+      'a model matching only the shorter row falls back to it');
+    assert.strictEqual(priceForModel('claude-y-20260101', table), null,
+      'a model matching no row prices as null, never a nearby row');
+  });
+
+  await test('P1: distinct model-id prefixes price differently within the same tier — ' +
+    'claude-sonnet-4-6 at $3/$15, claude-sonnet-5 at $2/$10, not a single flat "sonnet" price', () => {
+    const usageMessages = [{ input: 1_000_000, cacheCreate: 0, cacheRead: 0, output: 1_000_000 }];
+    const older = costUsdForTranscript(usageMessages, 'claude-sonnet-4-6-20260101', PRICE_TABLE_USD_PER_MTOK);
+    const newer = costUsdForTranscript(usageMessages, 'claude-sonnet-5-20260601', PRICE_TABLE_USD_PER_MTOK);
+    assert.strictEqual(older.usd, 3 + 15, 'claude-sonnet-4-6: $3 in + $15 out per MTok');
+    assert.strictEqual(newer.usd, 2 + 10, 'claude-sonnet-5: $2 in + $10 out per MTok');
+    assert.strictEqual(older.tier, 'sonnet');
+    assert.strictEqual(newer.tier, 'sonnet', 'both still bucket into the same "sonnet" tier for aggregation');
+  });
+
+  await test('P1: a model matching no prefix is counted, never guessed at — costUsdForTranscript ' +
+    'reports it as unpriced (tested above); summarizeCost surfaces it per-model, not folded into $0 silently', async () => {
+    const c = costUsdForTranscript(
+      [{ input: 1_000_000, cacheCreate: 0, cacheRead: 0, output: 0 }],
+      'claude-opus-4-1-20250805', PRICE_TABLE_USD_PER_MTOK,
+    );
+    assert.strictEqual(c.usd, 0, 'claude-opus-4-1 matches no row in the new prefix table');
+    assert.strictEqual(c.unpricedMessages, 1);
+    assert.strictEqual(c.tier, 'opus', 'still buckets as opus for aggregation even though unpriced');
+  });
+
   await test('P1.2: --cost aggregates per transcript, and by label/role/tier, across lead + workflow-nested subagents', async () => {
+    // NOTE (be-dev, spec P1 price-table swap): the fixture's lead/wf-1/wf-2 transcripts are on
+    // sonnet-4-5/haiku-4-5, priced identically under old (tier-substring) and new (exact-prefix)
+    // tables, so those dollar figures are unchanged. `agent-direct-1.jsonl` is on
+    // 'claude-opus-4-1-20250805', which is NOT a row in the new prefix table (only opus-5/4-8/4-7/
+    // 4-6 are) — it is correctly unpriced now, at $0, rather than the old flat opus $1.50. This is
+    // the real, intended behavior change P1 asks for (unpriced, not guessed), not a defect.
     const report = await buildReport({ dir: PROJECT_WITH_WORKFLOW, sinceMs: null, untilMs: null, cost: true });
     assert.ok(report.cost, '--cost must add a `cost` key to the report');
     assert.ok(Math.abs(report.cost.leadUSD - 6) < 1e-9, 'lead: 2M input tokens sonnet = 2*3 = $6');
-    assert.ok(Math.abs(report.cost.subagentsUSD - 11.55) < 1e-9, 'direct-1 (opus, $1.50) + wf-1 (haiku, $6) + wf-2 (sonnet, $4.05)');
-    assert.ok(Math.abs(report.cost.totalUSD - 17.55) < 1e-9);
-    assert.strictEqual(report.cost.unpricedMessages, 0);
+    assert.ok(Math.abs(report.cost.subagentsUSD - 10.05) < 1e-9, 'direct-1 (opus-4-1, unpriced $0) + wf-1 (haiku, $6) + wf-2 (sonnet, $4.05)');
+    assert.ok(Math.abs(report.cost.totalUSD - 16.05) < 1e-9);
+    assert.strictEqual(report.cost.unpricedMessages, 1, 'the direct-1 opus-4-1 message is unpriced');
+    assert.deepStrictEqual(report.cost.unpricedTranscripts, { 'claude-opus-4-1-20250805': 1 });
 
     assert.ok(Math.abs(report.cost.byLabel.F1 - 6) < 1e-9);
     assert.ok(Math.abs(report.cost.byLabel.F2 - 4.05) < 1e-9);
-    assert.ok(Math.abs(report.cost.byLabel['direct-nested explorer'] - 1.5) < 1e-9);
+    assert.ok(Math.abs(report.cost.byLabel['direct-nested explorer'] - 0) < 1e-9, 'unpriced model contributes $0, not a guessed price');
 
     assert.ok(Math.abs(report.cost.byRole['general-purpose'] - 6) < 1e-9);
     assert.ok(Math.abs(report.cost.byRole['be-dev'] - 4.05) < 1e-9);
-    assert.ok(Math.abs(report.cost.byRole.explorer - 1.5) < 1e-9);
+    assert.ok(Math.abs(report.cost.byRole.explorer - 0) < 1e-9);
 
     assert.ok(Math.abs(report.cost.byTier.haiku - 6) < 1e-9);
-    assert.ok(Math.abs(report.cost.byTier.opus - 1.5) < 1e-9, 'opus: only the direct-nested subagent');
+    assert.ok(Math.abs(report.cost.byTier.opus - 0) < 1e-9, 'opus tier still exists for aggregation, unpriced -> $0');
     assert.ok(Math.abs(report.cost.byTier.sonnet - 10.05) < 1e-9, 'sonnet: lead ($6) + wf-2 ($4.05)');
   });
 
@@ -515,13 +563,17 @@ async function run() {
 
   await test('P1-B7: cache-read tokens are priced at 0.1x the same model\'s input-token rate ' +
     '(ratio, derived from the spec multiplier, not the absolute price table)', () => {
+    // NOTE (be-dev, spec P1 price-table swap): model swapped from 'claude-sonnet-4-5-20250929' to
+    // 'claude-sonnet-4-6-...' — the old model string matches no row in the new exact-prefix table
+    // (only claude-sonnet-4-6 / claude-sonnet-5 are rows); the ratio under test is unaffected by
+    // which priced sonnet row is used.
     const inputOnly = costUsdForTranscript(
       [{ input: 1_000_000, cacheCreate: 0, cacheRead: 0, output: 0 }],
-      'claude-sonnet-4-5-20250929', PRICE_TABLE_USD_PER_MTOK,
+      'claude-sonnet-4-6-20260101', PRICE_TABLE_USD_PER_MTOK,
     );
     const cacheReadOnly = costUsdForTranscript(
       [{ input: 0, cacheCreate: 0, cacheRead: 1_000_000, output: 0 }],
-      'claude-sonnet-4-5-20250929', PRICE_TABLE_USD_PER_MTOK,
+      'claude-sonnet-4-6-20260101', PRICE_TABLE_USD_PER_MTOK,
     );
     assert.ok(inputOnly.usd > 0, 'sanity: input-only cost must be positive');
     assert.ok(Math.abs(cacheReadOnly.usd / inputOnly.usd - 0.1) < 1e-9,

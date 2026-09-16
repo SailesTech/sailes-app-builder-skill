@@ -161,34 +161,59 @@ function isUnprefixedSpawn(subagentType) {
 
 /**
  * P1.2 — the ONE price table `--cost` reads from (USD per MILLION tokens, "standard" service
- * tier, per Narzędzia: "cena z jednej tabeli w pliku"). Cache read/write are not separate rows:
- * they are each row's `input` price scaled by the multipliers the spec fixes — cache read 0.1x
- * input, cache write 1.25x input — not looked up from a second table.
+ * tier, per Narzędzia: "cena z jednej tabeli w pliku"). Keyed by model-id PREFIX (see
+ * `priceForModel`, longest matching prefix wins) — NOT by tier bucket: two model generations in
+ * the same tier (e.g. `claude-sonnet-5` vs `claude-sonnet-4-6`) carry different prices here, so a
+ * tier-substring lookup would silently misprice one of them. Cache read/write are not separate
+ * rows: they are each row's `input` price scaled by the multipliers the spec fixes — cache read
+ * 0.1x input, cache write 1.25x input — not looked up from a second table. A model whose id
+ * matches no prefix below is NOT priced (see `priceForModel`) — it is counted in the report's
+ * `unpricedTranscripts`, never guessed at by falling back to a nearby row.
  *
- * SUBSTITUTE DECISION (be-dev, spec 2026-09-16 P1, not a key decision — dollar constants, not
- * stack/contract/data-model/auth/roles): these three rows are Anthropic's last known per-MTok
- * list prices at this worker's knowledge cutoff (Jan 2026), standard <=200K-context tier. The
- * phase's Done-when checks `--cost`'s total against `research/costs.md`; that file does not exist
- * anywhere in this worktree (checked: no `research/` directory, no file matching `*costs*` outside
- * `agents/researcher.md`/`codex-agents/researcher.toml`, neither of which is a price reference).
- * A from-scratch reconstruction against the real `wf_4eb1edf7-db8` transcript with this table
- * gives ~$33 for its 12 subagent transcripts, not the spec's $18.33 — flagged as a deviation in
- * the P1 report, not silently reconciled by fitting the table to the target number.
+ * Source: Anthropic API pricing, claude-api skill model table cached 2026-06-24 (lead-supplied,
+ * spec 2026-09-16 P1 — this file's own knowledge cutoff has no visibility into current list
+ * prices, and the spec's own price reference, `research/costs.md`, lives outside this repo).
  */
 const PRICE_TABLE_USD_PER_MTOK = {
-  haiku: { input: 1, output: 5 },
-  sonnet: { input: 3, output: 15 },
-  opus: { input: 15, output: 75 },
+  'claude-fable-5': { input: 10, output: 50 },
+  'claude-opus-5': { input: 5, output: 25 },
+  'claude-opus-4-8': { input: 5, output: 25 },
+  'claude-opus-4-7': { input: 5, output: 25 },
+  'claude-opus-4-6': { input: 5, output: 25 },
+  'claude-sonnet-5': { input: 2, output: 10 },
+  'claude-sonnet-4-6': { input: 3, output: 15 },
+  'claude-haiku-4-5': { input: 1, output: 5 },
 };
 
-/** Bucket a real model string (`message.model`) into a pricing tier by substring — case-insensitive,
- *  since the API's model id (`claude-haiku-4-5-20251001`) always carries the family name in full. */
+/**
+ * P1 — prefix-keyed lookup into `priceTable` (keyed by model-id prefix, see
+ * `PRICE_TABLE_USD_PER_MTOK`). The LONGEST matching prefix wins, so a more specific row (were one
+ * ever added that is itself an extension of a shorter row's key) takes priority over a coarser
+ * one. Returns `null` — never a nearby row's price — when no key in `priceTable` is a prefix of
+ * `model`; the caller must treat that as "not priced".
+ */
+function priceForModel(model, priceTable) {
+  if (!model) return null;
+  let bestKey = null;
+  for (const key of Object.keys(priceTable)) {
+    if (model.startsWith(key) && (bestKey === null || key.length > bestKey.length)) {
+      bestKey = key;
+    }
+  }
+  return bestKey === null ? null : priceTable[bestKey];
+}
+
+/** Bucket a real model string (`message.model`) into a TIER for aggregation (`byTier` in
+ *  `summarizeCost`) by substring — case-insensitive, since the API's model id
+ *  (`claude-haiku-4-5-20251001`) always carries the family name in full. This is independent of
+ *  pricing: `priceForModel` decides whether/how much a model costs, this only names its bucket. */
 function tierFromModel(model) {
   if (!model) return 'unknown';
   const m = model.toLowerCase();
   if (m.includes('haiku')) return 'haiku';
   if (m.includes('sonnet')) return 'sonnet';
   if (m.includes('opus')) return 'opus';
+  if (m.includes('fable')) return 'fable';
   return 'unknown';
 }
 
@@ -201,7 +226,7 @@ function tierFromModel(model) {
  */
 function costUsdForTranscript(usageMessages, model, priceTable) {
   const tier = tierFromModel(model);
-  const price = priceTable[tier];
+  const price = priceForModel(model, priceTable);
   let usd = 0;
   let unpricedMessages = 0;
   if (!price) {
@@ -497,6 +522,7 @@ function summarizeCost(leadStats, subagentStats) {
   const byLabel = {};
   const byRole = {};
   const byTier = {};
+  const unpricedTranscripts = {};
   let leadUSD = 0;
   let subagentsUSD = 0;
   let unpricedMessages = 0;
@@ -504,6 +530,10 @@ function summarizeCost(leadStats, subagentStats) {
   const addTier = (t) => {
     byTier[t.costTier] = (byTier[t.costTier] || 0) + t.costUSD;
     unpricedMessages += t.costUnpriced;
+    if (t.costUnpriced > 0) {
+      const key = t.model || 'unknown';
+      unpricedTranscripts[key] = (unpricedTranscripts[key] || 0) + 1;
+    }
   };
 
   for (const t of leadStats) {
@@ -521,7 +551,7 @@ function summarizeCost(leadStats, subagentStats) {
 
   return {
     leadUSD, subagentsUSD, totalUSD: leadUSD + subagentsUSD,
-    byLabel, byRole, byTier, unpricedMessages,
+    byLabel, byRole, byTier, unpricedMessages, unpricedTranscripts,
   };
 }
 
@@ -656,6 +686,10 @@ function renderCost(report) {
   lines.push(`Cost: ${fmtUSD(c.totalUSD)} total  (lead ${fmtUSD(c.leadUSD)}, subagents ${fmtUSD(c.subagentsUSD)})`);
   if (c.unpricedMessages > 0) {
     lines.push(`  ${c.unpricedMessages} message(s) on a model outside the price table — priced as $0, see PRICE_TABLE_USD_PER_MTOK`);
+    lines.push('  unpriced transcripts (model matched no prefix in the price table):');
+    for (const [model, count] of Object.entries(c.unpricedTranscripts).sort((a, b) => b[1] - a[1])) {
+      lines.push(`    ${model.padEnd(30)} ${count}`);
+    }
   }
   lines.push('  by tier:');
   for (const [tier, usd] of Object.entries(c.byTier).sort((a, b) => b[1] - a[1])) {
@@ -763,6 +797,7 @@ module.exports = {
   summarizeGroup,
   summarizeByRole,
   tierFromModel,
+  priceForModel,
   costUsdForTranscript,
   summarizeCost,
   buildReport,
