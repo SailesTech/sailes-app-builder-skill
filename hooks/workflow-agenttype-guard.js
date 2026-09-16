@@ -251,13 +251,16 @@ function resolveScript(input) {
       };
     }
   }
-  return {
-    text: null,
-    note:
-      'Workflow call carries no `script`/`scriptPath` — likely a saved workflow invoked by ' +
-      '`name`. Its content is not resolvable from this payload, and this hook does not guess ' +
-      'the registry path. Skipping the agentType check.',
-  };
+  if (typeof toolInput.name === 'string' && toolInput.name) {
+    return {
+      text: null,
+      note:
+        'Workflow call carries no `script`/`scriptPath` — likely a saved workflow invoked by ' +
+        '`name`. Its content is not resolvable from this payload, and this hook does not guess ' +
+        'the registry path. Skipping the agentType check.',
+    };
+  }
+  return { text: null, note: null };
 }
 
 function main() {
