@@ -17,9 +17,9 @@ Zespół realizuje fazy przez narzędzie Workflow, a framework nie ma o nim ani 
 `agent()`, `agentType`, `StructuredOutput`, `resumeFromRunId` w `skills/`, `agents/`, `hooks/`.
 Skrypt `zawsze-popup-auto-przerwa-wf_2fb79243-84e.js` musiał sam wymyślić rolę, model, podział plików,
 limit wywołań, bramkę F1 i procedurę QA. Koszty zmierzone na transkryptach pokazują, że **dźwignią
-nie jest tier modelu, tylko liczba tur i długość kontekstu**: 75% kosztu to cache read, koszt tury
+nie jest tier modelu, tylko liczba tur i długość kontekstu**: 62% kosztu to cache read, koszt tury
 rośnie 2,7–5,6× w trakcie sesji, jedna sesja lidera na Opusie ($63.70) kosztowała więcej niż wszyscy
-subagenci czterech workflow razem ($34.32), a oba zmarnowane przebiegi ($5.13 + $6.47) były porażką
+subagenci czterech workflow razem ($41.28), a oba zmarnowane przebiegi były porażką
 kompletności specu i limitu tur, nie tieru.
 
 Spec robi pięć rzeczy:
@@ -32,6 +32,11 @@ Spec robi pięć rzeczy:
 5. **Pomiar kosztu**: `token-report.js` rozumie `subagents/workflows/wf_*/`.
 
 ## Problem
+
+> **Korekta 2026-09-16 (P1):** liczby kosztów z researchu liczono parserem, który brał pierwsze `usage` z linii
+> strumienia (zaniżone `output_tokens`). Po korekcie: 4 workflow $41.28 (nie $34.32), udział cache read 62%, cache write 19%,
+> output 19% (nie 75/23/2). Sesje lidera bez zmian ($63.70, $19.31). Wnioski (koszt lidera > subagenci; tury i kontekst
+> jako dźwignia) stoją; kwoty pojedynczych przebiegów poniżej są zaniżone o ~0–20%.
 
 - **U1 — brak doktryny.** `git grep -c -E "agentType|StructuredOutput|resumeFromRunId" -- skills agents hooks` → 0.
   Każdy skrypt workflow wymyśla orkestrację od zera (`research/spec.md`, a: rola, model, podział plików, limit, bramka).
@@ -222,7 +227,9 @@ Deployed-probe: n/a — brak wdrożonego hosta; framework nie ma powierzchni sie
 **Done-when:**
 - `node tools/token-report.test.js && node tools/token-report.frozen.test.js` → exit 0.
 - `node tools/token-report.js ~/.claude/projects/-home-charlie/646d3e6d-dc3d-40c8-a58a-be9228a5fafd/subagents/workflows/wf_4eb1edf7-db8 --json --cost`
-  → `subagents.transcriptCount` = 12, suma USD w granicach 1% od $18.33 (`research/costs.md`).
+  → `subagents.transcriptCount` = 12, suma USD w granicach 1% od $22.19 — wartość z niezależnego parsera lidera
+  (ostatnie `usage` per `message.id`). Poprzednia referencja $18.33 z `research/costs.md` była zaniżona: parser researchu
+  brał pierwszą linię strumienia, w której `output_tokens` jest częściowe (F2: 12 282 vs 73 705).
 - Dowód detekcji (tier C: jeden przypadek na partycję): cofnięcie rozpoznania `workflows/` → test P1.1 czerwony.
 
 ### P2 — `ownership-check.js` czyta spec i fale
