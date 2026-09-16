@@ -447,18 +447,23 @@ test('--spec: a lone blocking phase (bare "tak", one-phase fala) is recognized a
 // ---------------------------------------------------------- P2.4 spec without Owns is loud
 
 test('--spec: "## Fazy" present but a phase has no "Owns:" table -> exit 1, names the phase', () => {
+  // P1 is deliberately left OUT of the Plan wykonania Fazy column, so the only thing that can
+  // catch this fixture is the missing-Owns: check itself — a cross-check on unknown phases
+  // referenced by a fala would otherwise mask a broken missing-Owns: check with the right-looking
+  // exit code for the wrong reason (found while proving detection below).
   const body = specFixture(
     [
       { id: 'P0', title: 'has owns', owns: ['tools/a.js'] },
       { id: 'P1', title: 'missing owns' /* no owns key at all */ },
     ],
-    [{ num: 1, fazy: ['P0', 'P1'], blokuje: 'nie' }]
+    [{ num: 1, fazy: ['P0'], blokuje: 'nie' }]
   );
   const { dir, file } = tmpSpec(body);
   try {
     const r = runSpec(file);
     assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
     assert.ok(/P1/.test(r.stdout + r.stderr), 'the phase missing Owns: is not named in the error');
+    assert.ok(!/Plan wykonania.*references/.test(r.stdout + r.stderr), 'wrong check caught this — should be the missing-Owns: check, not the unknown-phase cross-check');
   } finally {
     rm(dir);
   }
