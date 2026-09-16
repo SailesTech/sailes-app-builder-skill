@@ -160,6 +160,110 @@ test('a bare identifier that merely contains "agent" is not mistaken for a call'
   assert.strictEqual(res.stderr, '');
 });
 
+// --- Tester additions: frozen behavior IDs from .ai/test-plans/2026-09-16-workflow-first-P5a.md
+// One test per ID. Derived from the spec ("### P5a —" / "### Narzędzia") with the implementation
+// unread; only now mapped onto the payload shape the implementation actually parses
+// (`tool_name` / `tool_input.{script,scriptPath,name}` / `cwd`). Do not weaken or delete these. ---
+
+test('P5a-B1: agent() with no second argument at all — exit 2, line + rule named', () => {
+  const res = run(workflowCall("agent('build the widget');\n"));
+  assert.strictEqual(res.status, 2);
+  assert.match(res.stderr, /line 1/);
+  assert.match(res.stderr, /agentType/);
+});
+
+test('P5a-B2: agent(p, {...}) options object literal missing agentType key — exit 2, line + rule named', () => {
+  const res = run(workflowCall("agent('build', { model: 'sonnet' });\n"));
+  assert.strictEqual(res.status, 2);
+  assert.match(res.stderr, /line 1/);
+  assert.match(res.stderr, /agentType/);
+});
+
+test('P5a-B3: agent(p, { agentType, ... }) valid — baseline negative, exit 0, no stderr', () => {
+  const res = run(workflowCall("agent('build', { agentType: 'be-dev', model: 'sonnet' });\n"));
+  assert.strictEqual(res.status, 0);
+  assert.strictEqual(res.stderr, '');
+});
+
+test('P5a-B4: scriptPath file with a call missing agentType — exit 2, same detection as inline', (dir) => {
+  fs.writeFileSync(path.join(dir, 'wf.js'), "agent('build', { model: 'sonnet' });\n");
+  const res = run({ tool_name: 'Workflow', tool_input: { scriptPath: 'wf.js' }, cwd: dir });
+  assert.strictEqual(res.status, 2);
+  assert.match(res.stderr, /agentType/);
+});
+
+test('P5a-B5: scriptPath file fully valid — exit 0, no stderr (file-path parity negative)', (dir) => {
+  fs.writeFileSync(path.join(dir, 'wf.js'), "agent('build', { agentType: 'be-dev' });\n");
+  const res = run({ tool_name: 'Workflow', tool_input: { scriptPath: 'wf.js' }, cwd: dir });
+  assert.strictEqual(res.status, 0);
+  assert.strictEqual(res.stderr, '');
+});
+
+test('P5a-B6: saved workflow invoked by name (no script/scriptPath) — exit 0 with a stderr note', () => {
+  const res = run({ tool_name: 'Workflow', tool_input: { name: 'wf_3227fe3d-ad3' } });
+  assert.strictEqual(res.status, 0);
+  assert.match(res.stderr, /not resolvable|does not guess the registry path/);
+});
+
+// P5a-B7 — generic "no script" case, WITHOUT a `name` field either (distinct from P5a-B6). The
+// spec's Narzędzia/P5a.1 text gives this its own clause — "brak skryptu / inne narzędzie -> exit 0
+// cicho" (quiet) — separate from the `name`-carrying case, which gets a note. Frozen assertion:
+// do not weaken to accept a note here just because the implementation currently always notes.
+test('P5a-B7: no script/scriptPath/name at all — exit 0, SILENT (distinct from the named case)', () => {
+  const res = run({ tool_name: 'Workflow', tool_input: {} });
+  assert.strictEqual(res.status, 0);
+  assert.strictEqual(res.stderr, '');
+});
+
+test('P5a-B8: non-Workflow tool — exit 0, silent regardless of content', () => {
+  const res = run({ tool_name: 'Bash', tool_input: { command: "agent('x')" } });
+  assert.strictEqual(res.status, 0);
+  assert.strictEqual(res.stderr, '');
+});
+
+test('P5a-B9: agent( occurring only inside a string literal — not a call, exit 0, silent', () => {
+  const res = run(workflowCall("const msg = \"remember to call agent(x) later\";\n"));
+  assert.strictEqual(res.status, 0);
+  assert.strictEqual(res.stderr, '');
+});
+
+test('P5a-B10: agent( occurring only inside a comment — not a call, exit 0, silent', () => {
+  const res = run(workflowCall("// agent(x) — discouraged, see docs\n" + "doSomethingElse();\n"));
+  assert.strictEqual(res.status, 0);
+  assert.strictEqual(res.stderr, '');
+});
+
+test('P5a-B11: agent(p, opts) with opts as a variable — statically undecidable, not blocked, reported', () => {
+  const script = [
+    "const opts = { agentType: 'be-dev' };",
+    "agent('build', opts);",
+  ].join('\n');
+  const res = run(workflowCall(script));
+  assert.strictEqual(res.status, 0);
+  assert.match(res.stderr, /undecidable|cannot decide/);
+  assert.match(res.stderr, /line 2/);
+});
+
+test('P5a-B12: two calls, only one missing agentType — exit 2, reports the offending line only', () => {
+  const script = [
+    "agent('ok one', { agentType: 'be-dev' });",
+    "agent('bad one', { model: 'sonnet' });",
+  ].join('\n');
+  const res = run(workflowCall(script));
+  assert.strictEqual(res.status, 2);
+  assert.match(res.stderr, /line 2/);
+  assert.doesNotMatch(res.stderr, /line 1:/);
+});
+
+// --- Tester addition, step 4: edge case found only on reading the implementation (resolveScript's
+// fs.readFileSync failure branch) — not in the frozen partition list, added per sailes-test step 4
+// ("only ADD edge cases"). Not an ID; not graded as a partition, but detection-proofed the same way. ---
+test('P5a-EDGE1: scriptPath naming a file that does not exist — exit 0 with a read-failure note, never blocks', (dir) => {
+  const res = run({ tool_name: 'Workflow', tool_input: { scriptPath: 'does-not-exist.js' }, cwd: dir });
+  assert.strictEqual(res.status, 0);
+  assert.match(res.stderr, /could not read scriptPath/);
+});
+
 if (failures) {
   console.log(`\n${failures} failing`);
   process.exit(1);
