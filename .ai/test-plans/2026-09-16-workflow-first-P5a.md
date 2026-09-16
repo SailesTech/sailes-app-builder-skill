@@ -59,31 +59,38 @@ spec-named partitions (no options → B1/B4; options without `agentType` → B2/
 B9/B10) plus the additional partitions above, each proven by breaking that behavior's own code,
 showing the matching test go red, reverting, and confirming the suite green again.
 
-## Defect found (frozen assertion, not weakened — reported, not fixed)
+## Defect found (frozen assertion, not weakened — reported, fixed by be-dev)
 
-**P5a-B7 is RED against the real implementation** and stays red: `hooks/workflow-agenttype-guard.js`
-`resolveScript()` does not distinguish "saved workflow invoked by `name`" (P5a-B6, spec: note in
-stderr) from the generic "no `script`/`scriptPath` and no `name` either" case (P5a-B7, spec's
-Narzędzia/P5a.1 clause "brak skryptu / inne narzędzie → exit 0 **cicho**", i.e. silent, the same
-outcome as the other-tool case P5a-B8). The `else` branch of `resolveScript` always returns the
-"likely a saved workflow invoked by `name`" note whenever `script`/`scriptPath` are both absent,
-without checking whether `tool_input.name` is actually present. Actual stderr for the P5a-B7
-payload (`{ tool_name: 'Workflow', tool_input: {} }`):
+**P5a-B7 was RED against the real implementation** when this suite was first written:
+`hooks/workflow-agenttype-guard.js` `resolveScript()` did not distinguish "saved workflow invoked
+by `name`" (P5a-B6, spec: note in stderr) from the generic "no `script`/`scriptPath` and no `name`
+either" case (P5a-B7, spec's Narzędzia/P5a.1 clause "brak skryptu / inne narzędzie → exit 0
+**cicho**", i.e. silent, the same outcome as the other-tool case P5a-B8). The `else` branch of
+`resolveScript` always returned the "likely a saved workflow invoked by `name`" note whenever
+`script`/`scriptPath` were both absent, without checking whether `tool_input.name` was actually
+present. Actual stderr for the P5a-B7 payload (`{ tool_name: 'Workflow', tool_input: {} }`) before
+the fix:
 ```
 workflow-agenttype-guard: Workflow call carries no `script`/`scriptPath` — likely a saved workflow
 invoked by `name`. Its content is not resolvable from this payload, and this hook does not guess
 the registry path. Skipping the agentType check.
 ```
-Expected per spec: empty stderr (`''`). This is reported to the lead as a defect for `be-dev` to
-fix (check `tool_input.name` before choosing the note vs. silent branch); it is not weakened,
-deleted, or fixed here.
+Expected per spec: empty stderr (`''`). This was reported to the lead as a defect for `be-dev` to
+fix — the frozen assertion was never weakened, deleted, or fixed by `tester`.
+
+**Fixed by `be-dev` in `37f32d0`**: `resolveScript()` now checks
+`typeof toolInput.name === 'string' && toolInput.name` before choosing between the name-note
+(P5a-B6) and silence (P5a-B7), matching the frozen behavior IDs as originally specified. P5a-B7 is
+now **green**, unchanged from its frozen expectation (empty stderr, exit 0). Full suite:
+`node hooks/workflow-agenttype-guard.test.js` → 28/28 passing.
 
 ## Detection proof (tier B — each ID's own mutant, killed, then reverted)
 
 Every mutation below was applied to `hooks/workflow-agenttype-guard.js`, run against the full
 suite, then reverted with `git checkout -- hooks/workflow-agenttype-guard.js` (confirmed via
-`git diff --stat` returning empty). Final suite state after all reverts: 27 passing, 1 failing
-(`P5a-B7`, the real defect above — not a mutation artifact).
+`git diff --stat` returning empty). At the time this proof was first run, final suite state after
+all reverts was 27 passing, 1 failing (`P5a-B7`, the real defect above — not a mutation artifact).
+After `be-dev`'s fix in `37f32d0`, the suite is **28/28 passing**, including P5a-B7.
 
 | Mutation | Code changed | IDs killed (went RED) | Reverted, suite green? |
 |---|---|---|---|
@@ -96,11 +103,12 @@ suite, then reverted with `git checkout -- hooks/workflow-agenttype-guard.js` (c
 | M7 | `main`: `if (input.tool_name !== 'Workflow')` → `if (false)` | **P5a-B8** (+ be-dev's "other tool" test) | yes |
 | M8 | `resolveScript` catch branch → `return { text: '', note: null }` | **P5a-EDGE1** (+ be-dev's "unreadable scriptPath" test) | yes |
 | M_B6 | `resolveScript` final `note:` string → `'skipping check'` | **P5a-B6** (+ be-dev's "saved workflow invoked by name" test) | yes |
-| n/a — real code, no mutation needed | (see Defect section above) | **P5a-B7** — RED against unmutated `main`; this IS the detection proof (the assertion can and does fail) | left red, per doctrine — not reverted, not weakened |
+| n/a — real code, no mutation needed | (see Defect section above; fixed in `37f32d0`) | **P5a-B7** — was RED against unmutated `main` prior to the fix; this WAS the detection proof (the assertion could and did fail on real, unmodified code). Now green against the fixed `main`, unchanged from its frozen expectation. | fixed by be-dev, not reverted or weakened by tester |
 
 All 12 frozen IDs + the one added edge case (P5a-EDGE1) are proven to detect a real break in the
-behavior they name. `P5a-B7`'s "detection proof" is that it already caught a real defect — the
-strongest form of proof available for a red test.
+behavior they name. `P5a-B7`'s detection proof is that it caught a real defect before the fix —
+the strongest form of proof available for a test — and remains green, unweakened, against the
+fixed implementation. Suite: 28/28 passing.
 
 ## 🔀 External boundaries
 n/a — spec: "Deployed-probe: n/a — brak wdrożonego hosta; framework nie ma powierzchni sieciowej."
