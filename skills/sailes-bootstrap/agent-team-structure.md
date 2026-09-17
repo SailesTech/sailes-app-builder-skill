@@ -102,9 +102,10 @@ Add a role, change a pin or change a lane **here only**.
 
 The `Model · effort` column above is what each role's definition file pins, and it is the default for
 an **ordinary task of that role**. The lead may override it for a single task with the Agent tool's
-`model` / `effort` parameters. Resolution order is `CLAUDE_CODE_SUBAGENT_MODEL` env → the
-per-invocation parameter → the role's frontmatter, so a lead's override beats the file and loses to an
-environment pin the human set deliberately.
+`model` / `effort` parameters. Resolution order since Claude Code v2.1.251 is the per-invocation
+parameter → the role's frontmatter → the session model → `CLAUDE_CODE_SUBAGENT_MODEL` env (before
+v2.1.251 the env var came first), so a lead's override beats the file, and omitting `model` keeps the
+role's pin: `agentType` alone loads the frontmatter model rather than falling back to the session's.
 
 **Model IDs are pinned, not aliases** (`claude-sonnet-5`, not `sonnet`). An alias silently follows
 whatever the tier's default becomes, which makes a run un-reproducible and makes "the framework got
@@ -225,6 +226,14 @@ phase's state is already on disk in `STATE.md` before the turn ends, so nothing 
 <!-- END session-handoff -->
 
 <!-- Generated from session-handoff.md by tools/sync-blocks.js — edit the source, not this copy. -->
+
+7. **Workflow is the default path for a pipeline of more than one phase** — see
+   `skills/sailes-bootstrap/workflow-orchestration.md` for the script shape, `agentType` on every
+   `agent()` call, and the tester/checker/qa verdict schema. Delegating through Workflow does not
+   shrink the lead's job: it still keeps exactly six things itself (D5) — merge/integration,
+   freezing the contract, the run log, `STATE.md`, the gate verdict, and escalation to the human.
+   Everything else (spawning phases, running the gates, deriving the plan) executes inside the
+   Workflow script rather than through the lead's own per-task delegation calls.
 
 ## Isolation — every worker that writes gets a worktree
 
@@ -524,6 +533,7 @@ A verifier grades honestly only on a clean context. The failure mode this sectio
 - **Cheap graders for binary checks:** a phase's `Done-when` (exact commands + expected output) may be verified by a lightweight model (haiku) — it's a pass/fail read, not judgment. Judgment review stays with `checker`.
 - **`checker` never re-checks what the toolchain enforces.** Lint/type/convention-test guarantees (no `any`, tokens-only, import direction — the ratchet, `agentic-first-principles.md` §B.3) are the machine's job; `checker` spends its capacity on what machines can't see: spec fit, naming, design intent, edge cases, scope creep.
 - **ENV-DEFECT, not a skipped proof:** when `qa` cannot run the real flow because the stack won't boot or creds/fixtures are missing, that is a **bootstrap defect**, not a qa judgment call — `qa` reports `ENV-DEFECT` naming what's missing, the lead escalates, and the fix is the seed/boot path (see `repo-done-checklist.md` Environment block). A faked or skipped pass is never the answer to a broken environment.
+- Inside Workflow (`skills/sailes-bootstrap/workflow-orchestration.md`), `tester`/`checker`/`qa` still see only what this section says — the isolation does not relax because dispatch moved into a script.
 
 ## Spawn the named role, not a generic agent wearing its instructions
 

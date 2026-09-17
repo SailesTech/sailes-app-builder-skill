@@ -142,6 +142,7 @@ phase's state is already on disk in `STATE.md` before the turn ends, so nothing 
      source, not this copy. -->
 
 7. **Harvest what the workers hit.** A worker that ran into a real problem — a wrong assumption in the brief, a contract that did not hold, a tool that failed silently — carries knowledge worth more than its diff. Land it in `.ai/lessons.md` (Context / Problem / Rule / Applies-to) before releasing the agent, and the delegation itself in the run log (`.ai/runs/`) wherever one is open — `sailes-implement` opens one above ~5 commits. Neither survives in a message queue; both survive on disk, which is where the next iteration will look.
+8. **Workflow is the default path for a pipeline of more than one phase** — see `skills/sailes-bootstrap/workflow-orchestration.md` for the script shape, `agentType` on every `agent()` call, and the tester/checker/qa verdict schema. Delegating through Workflow does not shrink your job: you still keep exactly six things yourself (D5) — merge/integration, freezing the contract, the run log, `STATE.md`, the gate verdict, and escalation to the human. Everything else (spawning phases, running the gates, deriving the plan) executes inside the Workflow script rather than through your own per-task `Agent` calls.
 
 ## When you cannot recommend — escalate with a measurement, not a guess
 
@@ -163,7 +164,7 @@ provenance nobody can detect. Full method: `deciding-under-uncertainty.md`, in t
 skill — load the skill; the repo-relative path resolves only inside this framework's own repo.
 
 ## Model routing — the role default is a default, not a ceiling
-Each role pins its own model and effort in its definition file. That pin is the **default for an ordinary task of that role**, and you may override it per task with the Agent tool's `model` / `effort` parameters. Resolution is `CLAUDE_CODE_SUBAGENT_MODEL` env → your per-invocation parameter → the role's frontmatter, so your override wins over the file but loses to an explicit environment pin the human set.
+Each role pins its own model and effort in its definition file. That pin is the **default for an ordinary task of that role**, and you may override it per task with the Agent tool's `model` / `effort` parameters. Resolution order since Claude Code v2.1.251 is your per-invocation parameter → the role's frontmatter → the session model → `CLAUDE_CODE_SUBAGENT_MODEL` env (before v2.1.251 the env var came first) — so your override wins over the file, and omitting `model` keeps the role's pin: `agentType` alone loads the frontmatter model rather than falling back to the session's.
 
 **An override is a decision you owe the run log a reason for** — the same accountability as "I'll write this one myself". Record the task, the tier you chose, and why. Unlogged escalation is indistinguishable from drift, and next session cannot tell whether the expensive run bought anything.
 
@@ -193,6 +194,7 @@ What you lose without noticing: the routing never happens (a generic agent runs 
 - `checker` receives ONLY the diff, the spec/contract, and the review checklist. Never forward the worker's report or self-assessment to `checker` — the verifier grades honestly only on a clean context.
 - `qa` receives ONLY the running app, the spec's expected behavior, and (for UI) the design artifact.
 - No gate is optional. CHANGES-REQUIRED loops back to the relevant dev with a fresh worker; a faked or skipped `qa` is not a pass. **"Not optional" means you never drop a gate to save time or because you wrote the code yourself — it does not mean you run `qa` against a change with no observable behavior.** That case is `qa: n/a` with its reason, stated (see "When to convene a team"), which is the opposite of skipping: a skip leaves a hole nobody can see, a stated `n/a` is a claim someone can disagree with.
+- Inside Workflow (`skills/sailes-bootstrap/workflow-orchestration.md`), `tester`/`checker`/`qa` still see only what this section says — the isolation does not relax because dispatch moved into a script.
 
 ## Agent lifecycle
 Spawn a worker when its pipeline task is actually ready; integrate its result, then release it; re-spawn fresh (never reuse a stale, context-heavy agent) on a CHANGES-REQUIRED loop. Never hold idle agents.
