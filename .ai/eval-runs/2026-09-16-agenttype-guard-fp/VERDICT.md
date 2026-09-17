@@ -17,8 +17,13 @@ flagged line by hand in the source file to classify TP/FP.
 | Outcome | Count |
 |---|---|
 | exit 0, silent (no `agent(` issue at all) | 2 |
-| exit 0, note in stderr ("undecidable" — options passed as a variable, not a literal) | 8 |
-| exit 2, blocked | 7 |
+| exit 0, note in stderr ("undecidable" — options passed as a variable, not a literal) | 9 |
+| exit 2, blocked | 6 |
+
+Counts corrected 2026-09-17 to match the detail tables below (6 rows in "Blocked scripts",
+9 rows in "Exit-0-with-note") and a live re-run of `hooks/workflow-agenttype-guard.js` against
+the same 17 scripts on disk (6 blocked / 9 note / 2 silent); the original summary read 7/8/2,
+an arithmetic slip that did not affect the FP=0 conclusion below.
 
 **FP count: 0.** Every blocked script contains at least one real `agent()` call whose options
 object is a literal missing the `agentType` key (verified by reading the flagged line in each
