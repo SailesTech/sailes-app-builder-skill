@@ -495,6 +495,71 @@ test('--spec on a missing file -> exit 1, names the file', () => {
 
 // ---------------------------------------------------------- real artifact (not a fixture)
 
+// ---------------------------------------------------------- F-numbered phase ids (spec 1.35.0 P2 fix)
+//
+// Client specs number phases F1..F5, not P0..P8 — the lead's own dispatch fixture
+// (.ai/eval-runs/2026-09-17-lead-dispatches-workflow/fixture-spec.md) is F-numbered and this tool
+// originally rejected it outright with "no phase headers", because the header/plan-row parser only
+// recognized `P<n>`. These fixtures target that defect directly: an F-numbered header must parse
+// exactly like a P-numbered one, and a spec mixing both must not confuse the phase lookup.
+
+test('--spec: an F-numbered spec (2 fale, one blocking phase) -> exit 0, phases and fala counts named', () => {
+  const body = specFixture(
+    [
+      { id: 'F1', title: 'generator CSV', owns: ['apps/api/csv-export.service.ts'] },
+      { id: 'F2', title: 'szablon e-maila', owns: ['apps/worker/export-ready.tsx'] },
+      { id: 'F3', title: 'endpoint i job', owns: ['apps/api/export.controller.ts'] },
+    ],
+    [
+      { num: 1, fazy: ['F1', 'F2'], blokuje: 'nie' },
+      { num: 2, fazy: ['F3'], blokuje: '**F3: tak** — human decyduje gdzie przechowujemy plik' },
+    ]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.ok(/3 faz/.test(r.stdout), `expected 3 phases in stdout, got: ${r.stdout}`);
+    assert.ok(/2 fal/.test(r.stdout), `expected 2 fale in stdout, got: ${r.stdout}`);
+    assert.ok(/\bF3\b/.test(r.stdout), `expected F3 named as excluded, got: ${r.stdout}`);
+  } finally {
+    rm(dir);
+  }
+});
+
+test('--spec: mixed P- and F-numbered headers in the same spec are both parsed', () => {
+  const body = specFixture(
+    [
+      { id: 'P0', title: 'facts phase', owns: ['tools/measure.js'] },
+      { id: 'F1', title: 'client-numbered phase', owns: ['apps/api/export.ts'] },
+    ],
+    [{ num: 1, fazy: ['P0', 'F1'], blokuje: 'nie' }]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.ok(/2 faz/.test(r.stdout), `expected 2 phases in stdout, got: ${r.stdout}`);
+  } finally {
+    rm(dir);
+  }
+});
+
+test('--spec on the real F-numbered fixture (lead-dispatches-workflow eval) -> exit 0, 3 phases, 2 fale, F3 excluded', () => {
+  const specPath = path.join(
+    REPO_ROOT,
+    '.ai',
+    'eval-runs',
+    '2026-09-17-lead-dispatches-workflow',
+    'fixture-spec.md'
+  );
+  const r = runSpec(specPath);
+  assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+  assert.ok(/3 faz/.test(r.stdout), `expected 3 phases in stdout, got: ${r.stdout}`);
+  assert.ok(/2 fal/.test(r.stdout), `expected 2 fale in stdout, got: ${r.stdout}`);
+  assert.ok(/\bF3\b/.test(r.stdout), `expected F3 named as excluded, got: ${r.stdout}`);
+});
+
 test('--spec on this repo\'s own spec 1.35.0 -> exit 0, 8 phases, 3 fale, P0 and P6 excluded', () => {
   const specPath = path.join(REPO_ROOT, '.ai', 'specs', '2026-09-16-workflow-first-orchestration.md');
   const r = runSpec(specPath);
