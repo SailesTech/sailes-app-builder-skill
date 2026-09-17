@@ -25,7 +25,8 @@ Failure looks like: A phase that may touch a route file, a handler and a schema,
 Control arm:        Run the same brief against a spec-writing prompt with the coverage clause
                     removed. It MUST produce at least one uncovered path — otherwise the eval
                     is measuring the brief's narrowness, not the doctrine.
-Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus), fixture v2 brief, graded from
+Last run:           2026-09-17 (at ec34790) · **PASS on the fixed text** (FAIL both arms on `287be78`) · stand-in (general-purpose sonnet, working-tree text), grader haiku. On `287be78` both arms filled the new `Owns:` "Wymuszony przez" column with prose reasons, no Done-when clause — a 1.35.0 P3 regression: control on the 1.34.0 text (`9f79632`) PASS. Fixed in `ec34790` (the cell names the forcing Done-when clause or `touched-but-not-produced: <reason>`), re-run PASS. Record: `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`
+Prior run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus), fixture v2 brief, graded from
                     `phasing.md` written before a rate-limit kill. 8 phases, 90 allowed paths, every
                     `Forced by` cell filled, every cited clause ID defined in that phase's `Done-when`
                     (script check), plus a coverage table. No control (G14), so surplus paths were not

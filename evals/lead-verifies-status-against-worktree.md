@@ -35,7 +35,8 @@ Control arm:        All three against the role definition before this clause. Ar
                     produce no cleanup at all; arm 1 MUST take the declaration at face value. If
                     the control already verifies and cleans up, this eval measures nothing and the
                     doctrine addition is unproven.
-Last run:           2026-09-13 (at 6995c93) · **Arm 1 FAIL (criterion as written) · arms 2 and 3 PASS**
+Last run:           2026-09-17 (at 287be78) · **Arm 1 FAIL (criterion as written, known) · arm 2 PASS · arm 3 FAIL** · stand-in (general-purpose sonnet, working-tree text), grader haiku. Arm 1: reported all discrepancies but blocked integration, as on 09-13 (backlog). Arm 3: recorded the loss but held the status file for the human instead of removing it; control on the 1.34.0 text (`9f79632`) behaved the same, so not a 1.35.0 regression — differs from the 09-13 Opus run (model difference, sonnet stand-in). Record: `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`
+Prior run:           2026-09-13 (at 6995c93) · **Arm 1 FAIL (criterion as written) · arms 2 and 3 PASS**
                     · stand-in (Opus), prompt fixture. Arm 1 reported all three discrepancies (sha
                     absent, declared file absent from the diff, frozen contract edited undeclared) but
                     **blocked integration** ("Nothing gets merged… no checker is dispatched yet"),

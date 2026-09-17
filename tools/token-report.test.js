@@ -38,6 +38,11 @@ const MALFORMED_PROJECT = path.join(FIXTURES, 'malformed-project');
 const NO_USAGE_MIXED = path.join(FIXTURES, 'no-usage-project', 'mixed');
 const NO_USAGE_ALL_NONE = path.join(FIXTURES, 'no-usage-project', 'all-none');
 
+// P1.1/P1.2 (spec 2026-09-16, workflow-first-orchestration) — tools/fixtures/token-report-workflow/
+const WORKFLOW_FIXTURES = path.join(ROOT, 'tools', 'fixtures', 'token-report-workflow');
+const PROJECT_WITH_WORKFLOW = path.join(WORKFLOW_FIXTURES, 'project-with-workflow');
+const DIRECT_WF_DIR = path.join(WORKFLOW_FIXTURES, 'direct-wf-dir');
+
 const {
   parseArgs,
   parseDateArg,
@@ -46,7 +51,12 @@ const {
   discoverTranscripts,
   withinWindow,
   percentile,
+  parseTranscript,
   buildReport,
+  tierFromModel,
+  priceForModel,
+  costUsdForTranscript,
+  PRICE_TABLE_USD_PER_MTOK,
 } = require('./token-report.js');
 
 let failures = 0;
@@ -303,6 +313,298 @@ async function run() {
     const r = runTool(path.join(FIXTURES, 'does-not-exist'));
     assert.strictEqual(r.status, 1);
     assert.ok(/not a directory/.test(r.stderr));
+  });
+
+  // ---------------------------------------------------------------- P1.1 — workflow discovery
+
+  await test('P1.1 (dowod detekcji): agent-*.jsonl under subagents/workflows/wf_*/ counted as subagents — ' +
+    'reverting the workflows/ recursion drops this test to 1 subagent instead of 3', async () => {
+    const found = discoverTranscripts(PROJECT_WITH_WORKFLOW);
+    const lead = found.filter((f) => f.kind === 'lead');
+    const sub = found.filter((f) => f.kind === 'subagent');
+    assert.strictEqual(lead.length, 1, 'lead-session.jsonl only');
+    assert.strictEqual(sub.length, 3, 'agent-direct-1 (plain nested) + agent-wf-1 + agent-wf-2 (workflows/wf_test1/)');
+    const names = sub.map((f) => path.basename(f.filePath)).sort();
+    assert.deepStrictEqual(names, ['agent-direct-1.jsonl', 'agent-wf-1.jsonl', 'agent-wf-2.jsonl']);
+  });
+
+  await test('P1.1: discoverTranscripts exposes label/agentType/workflowPhase from .meta.json, additive to role', () => {
+    const found = discoverTranscripts(PROJECT_WITH_WORKFLOW);
+    const byFile = Object.fromEntries(found.map((f) => [path.basename(f.filePath), f]));
+    assert.strictEqual(byFile['agent-wf-1.jsonl'].role, 'general-purpose');
+    assert.strictEqual(byFile['agent-wf-1.jsonl'].label, 'F1');
+    assert.strictEqual(byFile['agent-wf-1.jsonl'].agentType, 'general-purpose');
+    assert.strictEqual(byFile['agent-wf-1.jsonl'].workflowPhase, 'Implement');
+    assert.strictEqual(byFile['agent-wf-2.jsonl'].role, 'be-dev', 'plugin prefix stripped for role, kept raw in agentType');
+    assert.strictEqual(byFile['agent-wf-2.jsonl'].agentType, 'sailes-app-builder:be-dev');
+    assert.strictEqual(byFile['agent-wf-2.jsonl'].workflowPhase, 'Review');
+    assert.strictEqual(byFile['lead-session.jsonl'].label, null, 'a lead session carries no meta.json');
+  });
+
+  await test('P1.1: a wf_* directory passed DIRECTLY as <projectTranscriptDir> is subagents, never a lead', () => {
+    const found = discoverTranscripts(DIRECT_WF_DIR);
+    const lead = found.filter((f) => f.kind === 'lead');
+    const sub = found.filter((f) => f.kind === 'subagent');
+    assert.strictEqual(lead.length, 0, 'no top-level lead — agent-*.jsonl at the dir root is a subagent shape');
+    assert.strictEqual(sub.length, 2);
+    const byFile = Object.fromEntries(sub.map((f) => [path.basename(f.filePath), f.role]));
+    assert.strictEqual(byFile['agent-a.jsonl'], 'unknown', 'no sibling meta -> unknown, not a crash');
+    assert.strictEqual(byFile['agent-b.jsonl'], 'be-dev');
+  });
+
+  await test('P1.1: buildReport over a directly-passed wf_* dir puts every transcript in subagents, none in lead', async () => {
+    const report = await buildReport({ dir: DIRECT_WF_DIR, sinceMs: null, untilMs: null });
+    assert.strictEqual(report.lead.transcriptCount, 0);
+    assert.strictEqual(report.subagents.transcriptCount, 2);
+  });
+
+  // ---------------------------------------------------------------- P1.2 — cost
+
+  await test('tierFromModel buckets by substring on the real API model id, case-insensitively', () => {
+    assert.strictEqual(tierFromModel('claude-haiku-4-5-20251001'), 'haiku');
+    assert.strictEqual(tierFromModel('claude-sonnet-4-5-20250929'), 'sonnet');
+    assert.strictEqual(tierFromModel('claude-opus-4-1-20250805'), 'opus');
+    assert.strictEqual(tierFromModel('CLAUDE-HAIKU-X'), 'haiku');
+    assert.strictEqual(tierFromModel('claude-synthetic'), 'unknown');
+    assert.strictEqual(tierFromModel(null), 'unknown');
+  });
+
+  await test('costUsdForTranscript: input + cache-write (1.25x) + cache-read (0.1x) + output, from the one price table', () => {
+    // NOTE (be-dev, spec P1 price-table swap): this test's model was 'claude-sonnet-4-5-20250929'
+    // under the old tier-substring table (sonnet == $3/$15 flat). The new PRICE_TABLE_USD_PER_MTOK
+    // is keyed by exact model-id prefix, and 'claude-sonnet-4-5' is not one of its rows — swapped
+    // to 'claude-sonnet-4-6...', which IS a row, at the SAME $3/$15 price, so the dollar constants
+    // below are unchanged.
+    const usageMessages = [{ input: 1_000_000, cacheCreate: 0, cacheRead: 0, output: 0 }];
+    const r1 = costUsdForTranscript(usageMessages, 'claude-sonnet-4-6-20260101', PRICE_TABLE_USD_PER_MTOK);
+    assert.strictEqual(r1.usd, 3, '1M input tokens at $3/MTok sonnet-4-6');
+    assert.strictEqual(r1.tier, 'sonnet');
+    assert.strictEqual(r1.unpricedMessages, 0);
+
+    const cacheMsgs = [{ input: 0, cacheCreate: 1_000_000, cacheRead: 1_000_000, output: 0 }];
+    const r2 = costUsdForTranscript(cacheMsgs, 'claude-sonnet-4-6-20260101', PRICE_TABLE_USD_PER_MTOK);
+    assert.ok(Math.abs(r2.usd - 4.05) < 1e-9, `expected 3*1.25 + 3*0.1 = 4.05, got ${r2.usd}`);
+
+    const outMsgs = [{ input: 0, cacheCreate: 0, cacheRead: 0, output: 1_000_000 }];
+    const r3 = costUsdForTranscript(outMsgs, 'claude-haiku-4-5-20251001', PRICE_TABLE_USD_PER_MTOK);
+    assert.strictEqual(r3.usd, 5, '1M output tokens at $5/MTok haiku');
+  });
+
+  await test('costUsdForTranscript: a model outside the price table prices as $0 but is reported as unpriced, not silently absorbed', () => {
+    const usageMessages = [{ input: 1_000_000, cacheCreate: 0, cacheRead: 0, output: 1_000_000 }];
+    const r = costUsdForTranscript(usageMessages, 'claude-synthetic', PRICE_TABLE_USD_PER_MTOK);
+    assert.strictEqual(r.usd, 0);
+    assert.strictEqual(r.tier, 'unknown');
+    assert.strictEqual(r.unpricedMessages, 1);
+  });
+
+  await test('P1: priceForModel picks the LONGEST matching prefix, not just any matching prefix', () => {
+    const table = {
+      'claude-x': { input: 1, output: 1 },
+      'claude-x-2': { input: 9, output: 9 },
+    };
+    assert.deepStrictEqual(priceForModel('claude-x-2-20260101', table), { input: 9, output: 9 },
+      'the more specific row (claude-x-2) must win over the shorter row (claude-x) it extends');
+    assert.deepStrictEqual(priceForModel('claude-x-9-20260101', table), { input: 1, output: 1 },
+      'a model matching only the shorter row falls back to it');
+    assert.strictEqual(priceForModel('claude-y-20260101', table), null,
+      'a model matching no row prices as null, never a nearby row');
+  });
+
+  await test('P1: distinct model-id prefixes price differently within the same tier — ' +
+    'claude-sonnet-4-6 at $3/$15, claude-sonnet-5 at $2/$10, not a single flat "sonnet" price', () => {
+    const usageMessages = [{ input: 1_000_000, cacheCreate: 0, cacheRead: 0, output: 1_000_000 }];
+    const older = costUsdForTranscript(usageMessages, 'claude-sonnet-4-6-20260101', PRICE_TABLE_USD_PER_MTOK);
+    const newer = costUsdForTranscript(usageMessages, 'claude-sonnet-5-20260601', PRICE_TABLE_USD_PER_MTOK);
+    assert.strictEqual(older.usd, 3 + 15, 'claude-sonnet-4-6: $3 in + $15 out per MTok');
+    assert.strictEqual(newer.usd, 2 + 10, 'claude-sonnet-5: $2 in + $10 out per MTok');
+    assert.strictEqual(older.tier, 'sonnet');
+    assert.strictEqual(newer.tier, 'sonnet', 'both still bucket into the same "sonnet" tier for aggregation');
+  });
+
+  await test('P1: a model matching no prefix is counted, never guessed at — costUsdForTranscript ' +
+    'reports it as unpriced (tested above); summarizeCost surfaces it per-model, not folded into $0 silently', async () => {
+    const c = costUsdForTranscript(
+      [{ input: 1_000_000, cacheCreate: 0, cacheRead: 0, output: 0 }],
+      'claude-opus-4-1-20250805', PRICE_TABLE_USD_PER_MTOK,
+    );
+    assert.strictEqual(c.usd, 0, 'claude-opus-4-1 matches no row in the new prefix table');
+    assert.strictEqual(c.unpricedMessages, 1);
+    assert.strictEqual(c.tier, 'opus', 'still buckets as opus for aggregation even though unpriced');
+  });
+
+  await test('P1.2: --cost aggregates per transcript, and by label/role/tier, across lead + workflow-nested subagents', async () => {
+    // NOTE (be-dev, spec P1 price-table swap): the fixture's lead/wf-1/wf-2 transcripts are on
+    // sonnet-4-5/haiku-4-5, priced identically under old (tier-substring) and new (exact-prefix)
+    // tables, so those dollar figures are unchanged. `agent-direct-1.jsonl` is on
+    // 'claude-opus-4-1-20250805', which is NOT a row in the new prefix table (only opus-5/4-8/4-7/
+    // 4-6 are) — it is correctly unpriced now, at $0, rather than the old flat opus $1.50. This is
+    // the real, intended behavior change P1 asks for (unpriced, not guessed), not a defect.
+    const report = await buildReport({ dir: PROJECT_WITH_WORKFLOW, sinceMs: null, untilMs: null, cost: true });
+    assert.ok(report.cost, '--cost must add a `cost` key to the report');
+    assert.ok(Math.abs(report.cost.leadUSD - 6) < 1e-9, 'lead: 2M input tokens sonnet = 2*3 = $6');
+    assert.ok(Math.abs(report.cost.subagentsUSD - 10.05) < 1e-9, 'direct-1 (opus-4-1, unpriced $0) + wf-1 (haiku, $6) + wf-2 (sonnet, $4.05)');
+    assert.ok(Math.abs(report.cost.totalUSD - 16.05) < 1e-9);
+    assert.strictEqual(report.cost.unpricedMessages, 1, 'the direct-1 opus-4-1 message is unpriced');
+    assert.deepStrictEqual(report.cost.unpricedTranscripts, { 'claude-opus-4-1-20250805': 1 });
+
+    assert.ok(Math.abs(report.cost.byLabel.F1 - 6) < 1e-9);
+    assert.ok(Math.abs(report.cost.byLabel.F2 - 4.05) < 1e-9);
+    assert.ok(Math.abs(report.cost.byLabel['direct-nested explorer'] - 0) < 1e-9, 'unpriced model contributes $0, not a guessed price');
+
+    assert.ok(Math.abs(report.cost.byRole['general-purpose'] - 6) < 1e-9);
+    assert.ok(Math.abs(report.cost.byRole['be-dev'] - 4.05) < 1e-9);
+    assert.ok(Math.abs(report.cost.byRole.explorer - 0) < 1e-9);
+
+    assert.ok(Math.abs(report.cost.byTier.haiku - 6) < 1e-9);
+    assert.ok(Math.abs(report.cost.byTier.opus - 0) < 1e-9, 'opus tier still exists for aggregation, unpriced -> $0');
+    assert.ok(Math.abs(report.cost.byTier.sonnet - 10.05) < 1e-9, 'sonnet: lead ($6) + wf-2 ($4.05)');
+  });
+
+  await test('P1.2: without --cost the report carries no cost key at all (no behavior change to the default path)', async () => {
+    const report = await buildReport({ dir: PROJECT_WITH_WORKFLOW, sinceMs: null, untilMs: null });
+    assert.strictEqual(report.cost, undefined);
+  });
+
+  await test('P1.2: cost for a split message (same message.id, growing output_tokens) uses the LAST/max snapshot, ' +
+    'not the first — undercounting here is a real defect this fixture reproduces (100k final vs 100 opening)', async () => {
+    const report = await buildReport({
+      dir: path.join(WORKFLOW_FIXTURES, 'split-message-cost'), sinceMs: null, untilMs: null, cost: true,
+    });
+    assert.strictEqual(report.subagents.transcriptCount, 1);
+    assert.ok(Math.abs(report.cost.subagentsUSD - 0.5) < 1e-9,
+      `100000 output tokens haiku at $5/MTok = $0.50; got ${report.cost.subagentsUSD} (looks like the first-seen 100 was used, not the max)`);
+  });
+
+  await test('CLI --cost prints a Cost section with the total and per-tier breakdown', () => {
+    const r = runTool(DIRECT_WF_DIR, '--cost');
+    assert.strictEqual(r.status, 0, r.stderr);
+    assert.ok(/Cost: \$2\.50 total/.test(r.stdout), `expected the $2.50 total (haiku $1.00 + sonnet $1.50):\n${r.stdout}`);
+    assert.ok(/by tier:/.test(r.stdout));
+
+    const jsonRun = runTool(DIRECT_WF_DIR, '--cost', '--json');
+    const json = JSON.parse(jsonRun.stdout);
+    assert.ok(Math.abs(json.cost.totalUSD - 2.5) < 1e-9);
+  });
+
+  await test('CLI without --cost never adds a cost key to --json output', () => {
+    const r = runTool(DIRECT_WF_DIR, '--json');
+    const json = JSON.parse(r.stdout);
+    assert.strictEqual(json.cost, undefined);
+  });
+
+  await test('--help documents --cost', () => {
+    const r = runTool('--help');
+    assert.ok(/--cost/.test(r.stdout));
+  });
+
+  // ---------------------------------------------------------------- P1-B1..B9 (tester-authored,
+  // .ai/test-plans/2026-09-16-workflow-first-P1.md, frozen DERIVED, no human STOP — middle/tier C)
+
+  await test('P1-B1: nested workflow layout (<session>/subagents/workflows/wf_*/agent-*.jsonl) is ' +
+    'classified as subagent, never lead, and its path carries the workflows/wf_test1 association', () => {
+    const found = discoverTranscripts(PROJECT_WITH_WORKFLOW);
+    const wfFiles = found.filter((f) => path.basename(f.filePath).startsWith('agent-wf-'));
+    assert.strictEqual(wfFiles.length, 2, 'agent-wf-1 and agent-wf-2 both discovered');
+    for (const f of wfFiles) {
+      assert.strictEqual(f.kind, 'subagent', `${f.filePath} must be a subagent, not a lead`);
+      assert.ok(f.filePath.includes(`${path.sep}workflows${path.sep}wf_test1${path.sep}`),
+        `${f.filePath} must carry its workflow id in the path`);
+    }
+  });
+
+  await test('P1-B2: a wf_* directory passed DIRECTLY as the root has zero leads — every agent-*.jsonl ' +
+    'at its top level is a subagent', () => {
+    const found = discoverTranscripts(DIRECT_WF_DIR);
+    assert.strictEqual(found.filter((f) => f.kind === 'lead').length, 0);
+    assert.strictEqual(found.filter((f) => f.kind === 'subagent').length, 2);
+    assert.ok(found.every((f) => f.kind === 'subagent'), 'no entry may be classified as a lead');
+  });
+
+  await test('P1-B3: .meta.json fields description/agentType/workflowPhase are all exposed on a ' +
+    'discovered workflow subagent, for two distinct subagents in the same wf_* dir', () => {
+    const found = discoverTranscripts(PROJECT_WITH_WORKFLOW);
+    const byFile = Object.fromEntries(found.map((f) => [path.basename(f.filePath), f]));
+    assert.strictEqual(byFile['agent-wf-1.jsonl'].label, 'F1');
+    assert.strictEqual(byFile['agent-wf-1.jsonl'].agentType, 'general-purpose');
+    assert.strictEqual(byFile['agent-wf-1.jsonl'].workflowPhase, 'Implement');
+    assert.strictEqual(byFile['agent-wf-2.jsonl'].label, 'F2');
+    assert.strictEqual(byFile['agent-wf-2.jsonl'].agentType, 'sailes-app-builder:be-dev');
+    assert.strictEqual(byFile['agent-wf-2.jsonl'].workflowPhase, 'Review');
+  });
+
+  await test('P1-B4 (invalid partition): a subagent transcript with NO sibling .meta.json at all does ' +
+    'not crash discovery — label/agentType/workflowPhase are all null, role falls back to unknown', () => {
+    const found = discoverTranscripts(DIRECT_WF_DIR);
+    const noMeta = found.find((f) => path.basename(f.filePath) === 'agent-a.jsonl');
+    assert.ok(noMeta, 'agent-a.jsonl (no .meta.json sibling) must still be discovered');
+    assert.strictEqual(noMeta.kind, 'subagent');
+    assert.strictEqual(noMeta.role, 'unknown');
+    assert.strictEqual(noMeta.label, null);
+    assert.strictEqual(noMeta.agentType, null);
+    assert.strictEqual(noMeta.workflowPhase, null);
+  });
+
+  await test('P1-B5: resolved model comes from the transcript\'s message.model, not the .meta.json ' +
+    '"model" alias, when the two differ (meta says "haiku", transcript says the full API id)', async () => {
+    const metaPath = path.join(PROJECT_WITH_WORKFLOW, 'lead-session', 'subagents', 'workflows', 'wf_test1', 'agent-wf-1.meta.json');
+    const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+    assert.strictEqual(meta.model, 'haiku', 'fixture precondition: the meta alias is the bare tier name');
+    const parsed = await parseTranscript(path.join(PROJECT_WITH_WORKFLOW, 'lead-session', 'subagents', 'workflows', 'wf_test1', 'agent-wf-1.jsonl'));
+    assert.strictEqual(parsed.model, 'claude-haiku-4-5-20251001',
+      'model must be the real transcript message.model, never the shorter meta.json alias');
+  });
+
+  await test('P1-B6 (invalid partition): with no .meta.json at all (no alias to even ignore), the ' +
+    'resolved model still comes correctly from message.model, never blank/undefined', async () => {
+    const parsed = await parseTranscript(path.join(DIRECT_WF_DIR, 'agent-a.jsonl'));
+    assert.strictEqual(parsed.model, 'claude-haiku-4-5-20251001');
+  });
+
+  await test('P1-B7: cache-read tokens are priced at 0.1x the same model\'s input-token rate ' +
+    '(ratio, derived from the spec multiplier, not the absolute price table)', () => {
+    // NOTE (be-dev, spec P1 price-table swap): model swapped from 'claude-sonnet-4-5-20250929' to
+    // 'claude-sonnet-4-6-...' — the old model string matches no row in the new exact-prefix table
+    // (only claude-sonnet-4-6 / claude-sonnet-5 are rows); the ratio under test is unaffected by
+    // which priced sonnet row is used.
+    const inputOnly = costUsdForTranscript(
+      [{ input: 1_000_000, cacheCreate: 0, cacheRead: 0, output: 0 }],
+      'claude-sonnet-4-6-20260101', PRICE_TABLE_USD_PER_MTOK,
+    );
+    const cacheReadOnly = costUsdForTranscript(
+      [{ input: 0, cacheCreate: 0, cacheRead: 1_000_000, output: 0 }],
+      'claude-sonnet-4-6-20260101', PRICE_TABLE_USD_PER_MTOK,
+    );
+    assert.ok(inputOnly.usd > 0, 'sanity: input-only cost must be positive');
+    assert.ok(Math.abs(cacheReadOnly.usd / inputOnly.usd - 0.1) < 1e-9,
+      `cache-read/input ratio must be 0.1, got ${cacheReadOnly.usd / inputOnly.usd}`);
+  });
+
+  await test('P1-B8: cache-write tokens are priced at 1.25x the same model\'s input-token rate ' +
+    '(ratio, derived from the spec multiplier, not the absolute price table)', () => {
+    const inputOnly = costUsdForTranscript(
+      [{ input: 1_000_000, cacheCreate: 0, cacheRead: 0, output: 0 }],
+      'claude-haiku-4-5-20251001', PRICE_TABLE_USD_PER_MTOK,
+    );
+    const cacheWriteOnly = costUsdForTranscript(
+      [{ input: 0, cacheCreate: 1_000_000, cacheRead: 0, output: 0 }],
+      'claude-haiku-4-5-20251001', PRICE_TABLE_USD_PER_MTOK,
+    );
+    assert.ok(inputOnly.usd > 0, 'sanity: input-only cost must be positive');
+    assert.ok(Math.abs(cacheWriteOnly.usd / inputOnly.usd - 1.25) < 1e-9,
+      `cache-write/input ratio must be 1.25, got ${cacheWriteOnly.usd / inputOnly.usd}`);
+  });
+
+  await test('P1-B9: --cost aggregation is sum-consistent — byLabel/byRole totals equal subagentsUSD, ' +
+    'byTier total equals leadUSD+subagentsUSD, for every grouping key the fixture produces', async () => {
+    const report = await buildReport({ dir: PROJECT_WITH_WORKFLOW, sinceMs: null, untilMs: null, cost: true });
+    const sum = (obj) => Object.values(obj).reduce((a, b) => a + b, 0);
+    assert.ok(Math.abs(sum(report.cost.byLabel) - report.cost.subagentsUSD) < 1e-9,
+      'sum of byLabel buckets must equal subagentsUSD exactly (no double count, none dropped)');
+    assert.ok(Math.abs(sum(report.cost.byRole) - report.cost.subagentsUSD) < 1e-9,
+      'sum of byRole buckets must equal subagentsUSD exactly');
+    assert.ok(Math.abs(sum(report.cost.byTier) - report.cost.totalUSD) < 1e-9,
+      'sum of byTier buckets must equal totalUSD (lead + subagents) exactly');
   });
 
   console.log(

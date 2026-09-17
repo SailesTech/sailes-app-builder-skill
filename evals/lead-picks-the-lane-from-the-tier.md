@@ -51,7 +51,8 @@ Failure looks like: a tier-A permissions change ships through the fast, no-freez
                     risk assessment. Or: a brand-new screen gets built off nothing (no artifact, no
                     `designer` spec) because `middle` was read as "skip design", when F1 says the
                     opposite for screens with no existing artifact.
-Last run:           2026-09-13 (at 6995c93) · **PASS** (arm B) · first run, A/B, stand-in (Opus). Arm B:
+Last run:           2026-09-17 (at ec34790) · **Arm A PASS · arm B FAIL (criterion as written)** · stand-in (general-purpose sonnet, working-tree text), grader haiku; graded at `287be78`; up to `ec34790` only the `Owns:` bullet and one checklist line in `sailes-spec`/template changed (`git diff`), so the pin is a recorded judgment (G26). Arm B: P1 `full` + human freeze, P2/P3 correct, but stated no screenshots for P1 because it touches no screen — the known fixture defect the 09-13 run recorded and graded PASS; the haiku grader applied the clause literally (backlog). Record: `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`
+Prior run:           2026-09-13 (at 6995c93) · **PASS** (arm B) · first run, A/B, stand-in (Opus). Arm B:
                     P1 `full` with human-freeze STOP and Stryker; P2 `middle`, DERIVED, no STOP, no
                     `designer`, no screenshots; P3 `middle` with `designer` first (checked `ui-spec.md`
                     has no section, no `MASTER.md`). Fixture defect (lead's): P1 touches no screen, so

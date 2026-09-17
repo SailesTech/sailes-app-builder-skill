@@ -23,7 +23,8 @@ Failure looks like: The pre-1.16.0 baseline had no routing rule at all — the m
                     unreachable for exactly the task that needed it. The new failure this eval
                     guards is the opposite one: a lead that reads "you may override" as "override
                     when the task looks hard", where "looks hard" collapses into "is big".
-Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). (A) `be-dev` and `checker` to
+Last run:           2026-09-17 (at 287be78) · **PASS** · stand-in (general-purpose sonnet, working-tree text), grader haiku. Record: `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`
+Prior run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). (A) `be-dev` and `checker` to
                     `opus` on tenancy/data-model/omission, each with a run-log line; (B) all defaults,
                     Opus rejected with "120 files is a lot of work but no judgment". Record:
                     `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`

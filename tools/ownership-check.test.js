@@ -16,6 +16,13 @@
  * Driven the way a gate would drive it: a real plan-shaped file on disk, argv in, exit code +
  * stdout/stderr out.
  *
+ * Second section (spec 1.35.0 P2) drives `--spec` mode the same way: a real spec-shaped file on
+ * disk (`## Fazy` with `### P<n> — …` phases carrying `Owns:` tables, `## Plan wykonania` with the
+ * wave table), argv in, exit code + stdout/stderr out. The fixtures model the same incident this
+ * whole tool exists for, moved one level up: a spec's own `## Plan wykonania` claiming two fale
+ * are needed when the file sets say one would do, or two phases sharing a file inside the *same*
+ * fala where sharing across different fale is fine.
+ *
  * Run: node tools/ownership-check.test.js
  */
 
@@ -26,6 +33,7 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const CHECK = path.join(__dirname, 'ownership-check.js');
+const REPO_ROOT = path.resolve(__dirname, '..');
 
 let failures = 0;
 
@@ -49,8 +57,19 @@ function tmpPlan(body) {
   return { dir, file };
 }
 
+function tmpSpec(body) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sailes-ownership-spec-'));
+  const file = path.join(dir, '2026-09-16-fixture-spec.md');
+  fs.writeFileSync(file, body);
+  return { dir, file };
+}
+
 function run(file) {
   return spawnSync(process.execPath, [CHECK, file], { encoding: 'utf8' });
+}
+
+function runSpec(file) {
+  return spawnSync(process.execPath, [CHECK, '--spec', file], { encoding: 'utf8' });
 }
 
 const plan = (yamlBody) =>
@@ -260,6 +279,455 @@ test('prose ownership tables outside a yaml fence are never parsed', () => {
   } finally {
     rm(dir);
   }
+});
+
+// ================================================================================================
+// --spec mode (spec 1.35.0 P2)
+// ================================================================================================
+
+/** Builds a minimal spec-shaped fixture: `## Plan wykonania` + `## Fazy`, in that order (matching
+ *  the real spec, where the wave table comes before the phase bodies). `phases` is
+ *  `[{ id, title, owns: [path,...] }]`; `waveRows` is `[{ num, fazy: [id,...], blokuje: 'nie'|'tak'|'P0: tak' }]`. */
+function specFixture(phases, waveRows) {
+  let out = '## Plan wykonania\n\n| Fala | Fazy | Równolegle | Blokuje lidera | Workflow |\n|---|---|---|---|---|\n';
+  for (const w of waveRows) {
+    out += `| ${w.num} | ${w.fazy.join(' · ')} | tak | ${w.blokuje} | WF2 |\n`;
+  }
+  out += '\n## Fazy\n\n';
+  for (const p of phases) {
+    out += `### ${p.id} — ${p.title}\n\n`;
+    if (p.owns) {
+      out += 'Owns:\n| Plik | Wymuszony przez |\n|---|---|\n';
+      for (const f of p.owns) out += `| \`${f}\` | ${p.id}.1 |\n`;
+      out += '\n';
+    }
+    out += `Some narrative prose for ${p.id}.\n\n`;
+  }
+  return out;
+}
+
+// ---------------------------------------------------------- P2.1 reads Owns + Plan wykonania
+
+test('--spec: reads Owns and Plan wykonania, disjoint fale -> exit 0', () => {
+  const body = specFixture(
+    [
+      { id: 'P0', title: 'first', owns: ['tools/a.js'] },
+      { id: 'P1', title: 'second', owns: ['tools/b.js'] },
+    ],
+    [{ num: 1, fazy: ['P0', 'P1'], blokuje: 'nie' }]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.ok(/2 faz/.test(r.stdout), 'phase count missing from stdout');
+    assert.ok(/1 fal/.test(r.stdout), 'fala count missing from stdout');
+  } finally {
+    rm(dir);
+  }
+});
+
+// ---------------------------------------------------------- P2.2 same-fala vs different-fala
+
+test('--spec: two phases sharing a path in DIFFERENT fale -> exit 0 (not a conflict)', () => {
+  const body = specFixture(
+    [
+      { id: 'P0', title: 'first', owns: ['shared/file.md'] },
+      { id: 'P1', title: 'second', owns: ['shared/file.md'] },
+    ],
+    [
+      { num: 1, fazy: ['P0'], blokuje: 'nie' },
+      { num: 2, fazy: ['P1'], blokuje: 'nie' },
+    ]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+  } finally {
+    rm(dir);
+  }
+});
+
+test('--spec: two phases sharing a path in the SAME fala -> exit 1, names path, fala, both phases', () => {
+  const body = specFixture(
+    [
+      { id: 'P0', title: 'first', owns: ['shared/file.md'] },
+      { id: 'P1', title: 'second', owns: ['shared/file.md'] },
+    ],
+    [{ num: 1, fazy: ['P0', 'P1'], blokuje: 'nie' }]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const out = r.stdout + r.stderr;
+    assert.ok(/shared\/file\.md/.test(out), 'the shared path is not named');
+    assert.ok(/\bP0\b/.test(out) && /\bP1\b/.test(out), 'both phases are not named');
+    assert.ok(/fala 1/.test(out), 'the fala number is not named');
+  } finally {
+    rm(dir);
+  }
+});
+
+// ---------------------------------------------------------- P2.3 excessive serialization
+
+test('--spec: two fully disjoint phases declared as two fale -> exit 1, excessive serialization, names both numbers', () => {
+  const body = specFixture(
+    [
+      { id: 'P0', title: 'first', owns: ['tools/a.js'] },
+      { id: 'P1', title: 'second', owns: ['tools/b.js'] },
+    ],
+    [
+      { num: 1, fazy: ['P0'], blokuje: 'nie' },
+      { num: 2, fazy: ['P1'], blokuje: 'nie' },
+    ]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const out = r.stdout + r.stderr;
+    assert.ok(/excessive serialization/i.test(out), 'the failure does not say "excessive serialization"');
+    assert.ok(/\b1\b/.test(out) && /\b2\b/.test(out), 'the two wave counts (computed vs declared) are not both named');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('--spec: a "blokuje lidera" phase pins its fala, so a disjoint neighbor is NOT flagged -> exit 0, reports the exclusion', () => {
+  // This spec's own worked case, minimized: a lead-blocking phase (P0) shares its fala with a
+  // non-blocking phase (P1); a later, file-disjoint phase (P2) sits in its own fala. Excessive-
+  // serialization must not fire here, because P0 pins fala 1 as a synchronization boundary — the
+  // exact false positive the old F1.3 design named and the reason the exclusion exists at all.
+  const body = specFixture(
+    [
+      { id: 'P0', title: 'blocks the lead', owns: ['tools/a.js'] },
+      { id: 'P1', title: 'runs alongside P0', owns: ['tools/b.js'] },
+      { id: 'P2', title: 'runs after the STOP', owns: ['tools/c.js'] },
+    ],
+    [
+      { num: 1, fazy: ['P0', 'P1'], blokuje: '**P0: tak** — human reviews a result' },
+      { num: 2, fazy: ['P2'], blokuje: 'nie' },
+    ]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.ok(/P0/.test(r.stdout), 'the excluded phase is not named in the exclusion report');
+    assert.ok(/blok/i.test(r.stdout), 'stdout does not report the exclusion at all');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('--spec: a lone blocking phase (bare "tak", one-phase fala) is recognized and excluded -> exit 0', () => {
+  const body = specFixture(
+    [
+      { id: 'P0', title: 'first', owns: ['tools/a.js'] },
+      { id: 'P1', title: 'second', owns: ['tools/b.js'] },
+      { id: 'P2', title: 'release', owns: ['VERSION'] },
+    ],
+    [
+      { num: 1, fazy: ['P0', 'P1'], blokuje: 'nie' },
+      { num: 2, fazy: ['P2'], blokuje: '**tak** — receipt shown to the human' },
+    ]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.ok(/P2/.test(r.stdout), 'the excluded lone phase P2 is not named in the exclusion report');
+  } finally {
+    rm(dir);
+  }
+});
+
+// ---------------------------------------------------------- P2.4 spec without Owns is loud
+
+test('--spec: "## Fazy" present but a phase has no "Owns:" table -> exit 1, names the phase', () => {
+  // P1 is deliberately left OUT of the Plan wykonania Fazy column, so the only thing that can
+  // catch this fixture is the missing-Owns: check itself — a cross-check on unknown phases
+  // referenced by a fala would otherwise mask a broken missing-Owns: check with the right-looking
+  // exit code for the wrong reason (found while proving detection below).
+  const body = specFixture(
+    [
+      { id: 'P0', title: 'has owns', owns: ['tools/a.js'] },
+      { id: 'P1', title: 'missing owns' /* no owns key at all */ },
+    ],
+    [{ num: 1, fazy: ['P0'], blokuje: 'nie' }]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.ok(/P1/.test(r.stdout + r.stderr), 'the phase missing Owns: is not named in the error');
+    assert.ok(!/Plan wykonania.*references/.test(r.stdout + r.stderr), 'wrong check caught this — should be the missing-Owns: check, not the unknown-phase cross-check');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('--spec: a file with no "## Fazy" section at all -> exit 1', () => {
+  const { dir, file } = tmpSpec('# Not a spec\n\nJust prose, no phases anywhere.\n');
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}`);
+  } finally {
+    rm(dir);
+  }
+});
+
+// ---------------------------------------------------------- CLI plumbing for --spec
+
+test('--spec with no file argument -> exit 1, usage message', () => {
+  const r = spawnSync(process.execPath, [CHECK, '--spec'], { encoding: 'utf8' });
+  assert.strictEqual(r.status, 1);
+  assert.ok(/usage/i.test(r.stdout + r.stderr));
+});
+
+test('--spec on a missing file -> exit 1, names the file', () => {
+  const r = runSpec(path.join(os.tmpdir(), 'sailes-ownership-spec-does-not-exist-2026.md'));
+  assert.strictEqual(r.status, 1);
+  assert.ok(/does-not-exist/.test(r.stdout + r.stderr));
+});
+
+// ---------------------------------------------------------- real artifact (not a fixture)
+
+// ---------------------------------------------------------- F-numbered phase ids (spec 1.35.0 P2 fix)
+//
+// Client specs number phases F1..F5, not P0..P8 — the lead's own dispatch fixture
+// (.ai/eval-runs/2026-09-17-lead-dispatches-workflow/fixture-spec.md) is F-numbered and this tool
+// originally rejected it outright with "no phase headers", because the header/plan-row parser only
+// recognized `P<n>`. These fixtures target that defect directly: an F-numbered header must parse
+// exactly like a P-numbered one, and a spec mixing both must not confuse the phase lookup.
+
+test('--spec: an F-numbered spec (2 fale, one blocking phase) -> exit 0, phases and fala counts named', () => {
+  const body = specFixture(
+    [
+      { id: 'F1', title: 'generator CSV', owns: ['apps/api/csv-export.service.ts'] },
+      { id: 'F2', title: 'szablon e-maila', owns: ['apps/worker/export-ready.tsx'] },
+      { id: 'F3', title: 'endpoint i job', owns: ['apps/api/export.controller.ts'] },
+    ],
+    [
+      { num: 1, fazy: ['F1', 'F2'], blokuje: 'nie' },
+      { num: 2, fazy: ['F3'], blokuje: '**F3: tak** — human decyduje gdzie przechowujemy plik' },
+    ]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.ok(/3 faz/.test(r.stdout), `expected 3 phases in stdout, got: ${r.stdout}`);
+    assert.ok(/2 fal/.test(r.stdout), `expected 2 fale in stdout, got: ${r.stdout}`);
+    assert.ok(/\bF3\b/.test(r.stdout), `expected F3 named as excluded, got: ${r.stdout}`);
+  } finally {
+    rm(dir);
+  }
+});
+
+test('--spec: mixed P- and F-numbered headers in the same spec are both parsed', () => {
+  const body = specFixture(
+    [
+      { id: 'P0', title: 'facts phase', owns: ['tools/measure.js'] },
+      { id: 'F1', title: 'client-numbered phase', owns: ['apps/api/export.ts'] },
+    ],
+    [{ num: 1, fazy: ['P0', 'F1'], blokuje: 'nie' }]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.ok(/2 faz/.test(r.stdout), `expected 2 phases in stdout, got: ${r.stdout}`);
+  } finally {
+    rm(dir);
+  }
+});
+
+test('--spec on the real F-numbered fixture (lead-dispatches-workflow eval) -> exit 0, 3 phases, 2 fale, F3 excluded', () => {
+  const specPath = path.join(
+    REPO_ROOT,
+    '.ai',
+    'eval-runs',
+    '2026-09-17-lead-dispatches-workflow',
+    'fixture-spec.md'
+  );
+  const r = runSpec(specPath);
+  assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+  assert.ok(/3 faz/.test(r.stdout), `expected 3 phases in stdout, got: ${r.stdout}`);
+  assert.ok(/2 fal/.test(r.stdout), `expected 2 fale in stdout, got: ${r.stdout}`);
+  assert.ok(/\bF3\b/.test(r.stdout), `expected F3 named as excluded, got: ${r.stdout}`);
+});
+
+test('--spec on this repo\'s own spec 1.35.0 -> exit 0, 8 phases, 3 fale, P0 and P6 excluded', () => {
+  const specPath = path.join(REPO_ROOT, '.ai', 'specs', 'implemented', '2026-09-16-workflow-first-orchestration.md');
+  const r = runSpec(specPath);
+  assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+  assert.ok(/8 faz/.test(r.stdout), `expected 8 phases in stdout, got: ${r.stdout}`);
+  assert.ok(/3 fal/.test(r.stdout), `expected 3 fale in stdout, got: ${r.stdout}`);
+  assert.ok(/\bP0\b/.test(r.stdout) && /\bP6\b/.test(r.stdout), `expected P0 and P6 named as excluded, got: ${r.stdout}`);
+});
+
+// ================================================================================================
+// tester-derived behavior IDs (spec 1.35.0 P2) — .ai/test-plans/2026-09-16-workflow-first-P2.md
+//
+// Derived from `.ai/specs/implemented/2026-09-16-workflow-first-orchestration.md` sections "### Narzędzia" and
+// "### P2 —" with the implementation UNREAD, before the tests above (be-dev's own) were opened.
+// Fixture shapes and shared helpers are reused from the section above for consistency, but every
+// case here targets a partition named in the frozen plan under its own ID — added, not weakened or
+// deleted, per the tester role's no-mirroring rule.
+// ================================================================================================
+
+test('P2-B1: happy path — parses Owns/Plan wykonania, disjoint files, single already-minimal fala -> exit 0', () => {
+  const body = specFixture(
+    [
+      { id: 'P0', title: 'alpha', owns: ['tools/alpha.js'] },
+      { id: 'P1', title: 'beta', owns: ['tools/beta.js'] },
+    ],
+    [{ num: 1, fazy: ['P0', 'P1'], blokuje: 'nie' }]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.ok(/2 faz/.test(r.stdout), 'phase count missing from stdout');
+    assert.ok(/1 fal/.test(r.stdout), 'fala count missing from stdout');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('P2-B2: shared file across DIFFERENT fale is not a conflict -> exit 0', () => {
+  const body = specFixture(
+    [
+      { id: 'P3', title: 'writer', owns: ['docs/spec-notes.md'] },
+      { id: 'P4', title: 'later writer', owns: ['docs/spec-notes.md'] },
+    ],
+    [
+      { num: 1, fazy: ['P3'], blokuje: 'nie' },
+      { num: 2, fazy: ['P4'], blokuje: 'nie' },
+    ]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+  } finally {
+    rm(dir);
+  }
+});
+
+test('P2-B3: shared file within the SAME fala is a conflict even alongside an unrelated third phase -> exit 1', () => {
+  const body = specFixture(
+    [
+      { id: 'P3', title: 'writer', owns: ['docs/spec-notes.md'] },
+      { id: 'P4', title: 'co-writer', owns: ['docs/spec-notes.md'] },
+      { id: 'P5', title: 'unrelated', owns: ['tools/unrelated.js'] },
+    ],
+    [{ num: 1, fazy: ['P3', 'P4', 'P5'], blokuje: 'nie' }]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const out = r.stdout + r.stderr;
+    assert.ok(/docs\/spec-notes\.md/.test(out), 'the shared path is not named');
+    assert.ok(/\bP3\b/.test(out) && /\bP4\b/.test(out), 'both conflicting phases are not named');
+    assert.ok(!/^\s*$/.test(out), 'no output at all on a conflict');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('P2-B4: three fully disjoint phases declared across three fale (minimal is one) -> exit 1, excessive serialization', () => {
+  const body = specFixture(
+    [
+      { id: 'P0', title: 'a', owns: ['tools/x.js'] },
+      { id: 'P1', title: 'b', owns: ['tools/y.js'] },
+      { id: 'P2', title: 'c', owns: ['tools/z.js'] },
+    ],
+    [
+      { num: 1, fazy: ['P0'], blokuje: 'nie' },
+      { num: 2, fazy: ['P1'], blokuje: 'nie' },
+      { num: 3, fazy: ['P2'], blokuje: 'nie' },
+    ]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const out = r.stdout + r.stderr;
+    assert.ok(/excessive serialization/i.test(out), 'the failure does not say "excessive serialization"');
+    assert.ok(/\b1\b/.test(out) && /\b3\b/.test(out), 'minimum (1) and declared (3) wave counts are not both named');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('P2-B5: a "Blokuje lidera" phase named inside a mixed-fala cell pins that fala, so a disjoint neighbor is NOT flagged -> exit 0, exclusion reported', () => {
+  const body = specFixture(
+    [
+      { id: 'P0', title: 'blocks', owns: ['tools/measure.js'] },
+      { id: 'P1', title: 'alongside P0', owns: ['tools/report.js'] },
+      { id: 'P6', title: 'after the STOP', owns: ['VERSION'] },
+    ],
+    [
+      { num: 1, fazy: ['P0', 'P1'], blokuje: '**P0: tak** — wyniki wchodzą do dalszych faz; reszta nie' },
+      { num: 2, fazy: ['P6'], blokuje: 'nie' },
+    ]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    assert.ok(/\bP0\b/.test(r.stdout), 'the excluded phase P0 is not named in the exclusion report');
+    assert.ok(/blok/i.test(r.stdout), 'stdout does not report the exclusion at all');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('P2-B6: "## Fazy" present but NO phase anywhere carries an "Owns:" table at all -> exit 1', () => {
+  // P0 and P1 are deliberately left OUT of the Plan wykonania Fazy column (only P9 is listed
+  // there) so the ONLY thing that can catch this fixture is the missing-Owns: check itself — a
+  // cross-check on phases the wave table references but "## Fazy" doesn't define would otherwise
+  // mask a broken missing-Owns: check with a right-looking exit code for the wrong reason (same
+  // masking risk the implementer's own P2.4 fixture comment names for the analogous case).
+  const body = specFixture(
+    [
+      { id: 'P0', title: 'no owns key on any phase' /* no owns */ },
+      { id: 'P1', title: 'also none' /* no owns */ },
+      { id: 'P9', title: 'has owns, referenced in the wave table', owns: ['tools/p9.js'] },
+    ],
+    [{ num: 1, fazy: ['P9'], blokuje: 'nie' }]
+  );
+  const { dir, file } = tmpSpec(body);
+  try {
+    const r = runSpec(file);
+    assert.strictEqual(r.status, 1, `expected exit 1, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+    const out = r.stdout + r.stderr;
+    assert.ok(/\bP0\b/.test(out) && /\bP1\b/.test(out), 'neither phase missing Owns: is named when NONE of them have one');
+    assert.ok(!/Plan wykonania.*references/.test(out), 'wrong check caught this — should be the missing-Owns: check, not the unknown-phase cross-check');
+  } finally {
+    rm(dir);
+  }
+});
+
+test('P2-B7: real repo spec 1.35.0 -> exit 0, 8 phases, 3 fale, P0 and P6 named as excluded (acceptance, Done-when)', () => {
+  const specPath = path.join(REPO_ROOT, '.ai', 'specs', 'implemented', '2026-09-16-workflow-first-orchestration.md');
+  const r = runSpec(specPath);
+  assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
+  assert.ok(/8 faz/.test(r.stdout), `expected 8 phases in stdout, got: ${r.stdout}`);
+  assert.ok(/3 fal/.test(r.stdout), `expected 3 fale in stdout, got: ${r.stdout}`);
+  assert.ok(/\bP0\b/.test(r.stdout) && /\bP6\b/.test(r.stdout), `expected P0 and P6 named as excluded, got: ${r.stdout}`);
+});
+
+test('P2-B8: --spec on a nonexistent path -> non-zero exit, stderr names the missing path (exact code unspecified by the spec, see plan A1)', () => {
+  const missing = path.join(os.tmpdir(), 'sailes-ownership-P2-B8-does-not-exist-2026.md');
+  const r = runSpec(missing);
+  assert.notStrictEqual(r.status, 0, `expected a non-zero exit for a missing --spec path, got ${r.status}`);
+  assert.ok(/does-not-exist/.test(r.stdout + r.stderr), 'the missing path is not named in the output');
 });
 
 console.log(failures === 0 ? '\nownership-check: all tests passed' : `\nownership-check: ${failures} failing`);

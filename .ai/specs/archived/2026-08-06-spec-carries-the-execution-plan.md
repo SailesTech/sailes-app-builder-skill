@@ -1,6 +1,7 @@
 # Spec: spec niesie plan wykonania, lider przestaje wykonywać
 
-Status: draft
+Status: superseded
+Superseded-by: .ai/specs/implemented/2026-09-16-workflow-first-orchestration.md
 Framework-Version target: 1.29.0
 Brief: `.ai/briefs/2026-08-06-spec-carries-the-execution-plan.md`
 

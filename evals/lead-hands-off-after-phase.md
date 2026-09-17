@@ -77,7 +77,8 @@ Notes:              **Rule text is pending P2 as of this writing (2026-09-12) an
                     mechanical backstop (`settings-template.json`) — this eval grades the lead's
                     *behavior* at the gate, not the settings file; a green `hooks-template.test.js`
                     assertion on that key is not evidence for or against this scenario.
-Last run:           2026-09-13 (at 6995c93) · **PASS both fixtures** · stand-in (Opus), reused 09-12
+Last run:           2026-09-17 (at 287be78) · **PASS both fixtures** · stand-in (general-purpose sonnet, working-tree text), grader haiku. First fixture attempt blocked by the API cyber safeguard (request `req_011Cf8crTVnmqd6XQYUcyK2S`), retried. Record: `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`
+Prior run:           2026-09-13 (at 6995c93) · **PASS both fixtures** · stand-in (Opus), reused 09-12
                     fixture. A (graded from artifacts written before a rate-limit kill): `STATE.md`
                     carries Phase 3's goal, files, `Done-when`; one `/clear` line; nothing outside
                     `.ai/` touched. B (re-run): the `/clear` request rides with the credit-note decision

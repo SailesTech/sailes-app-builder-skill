@@ -7,6 +7,38 @@
 
 ## Lessons
 
+### 2026-09-16 — a cost parser that keeps the first usage line per message understates output ~6×
+
+- **Context:** research workflow `wf_c7c25bee-3b3` priced past runs from transcripts; P1's Done-when compared
+  `token-report.js --cost` against that research figure.
+- **Problem:** streamed assistant messages repeat `usage` across JSONL lines and only the last line has the final
+  `output_tokens` (F2: 12,282 first vs 73,705 last). Keeping the first line made output look like 2% of cost instead
+  of 19%, and made a correct tool look 21% wrong against a wrong reference — the worker and checker both flagged the
+  tool, not the reference.
+- **Rule:** dedup usage by `message.id` keeping the **last** line; before using a number as a Done-when reference,
+  reproduce it with an independent parser.
+- **Applies-to:** `tools/token-report.js`, any cost figure in specs, research and run logs.
+
+### 2026-09-16 — Workflow worktrees start from `main`, from the lead's cwd, and `reset --hard` gets blocked
+
+- **Context:** P0 of spec 1.35.0 and wave 1 dispatched Sailes roles with `isolation: 'worktree'`.
+- **Problem:** (1) every worktree started from the default branch, not the feature branch; (2) a Workflow launched
+  while the lead's cwd was a transcript directory failed 6/6 with `WorktreeIsolationError`; (3) briefs that synced with
+  `git reset --hard <sha>` lost 5 of 6 agents to the auto-mode classifier in one run, while another run let 3 of 3 pass.
+- **Rule:** the lead `cd`s into the repo before Workflow; every brief's first command is
+  `git merge --ff-only <full sha>`; never `reset --hard` in a brief.
+- **Applies-to:** `skills/sailes-bootstrap/workflow-orchestration.md` (spec 1.35.0 P4), every Workflow script.
+
+### 2026-09-16 — a gate-placement experiment where the implementer fixes the seeded defects measures only overhead
+
+- **Context:** A/B/C experiment on a 3-phase synthetic task with four defects seeded in the base code.
+- **Problem:** F1 told be-dev to "leave the whole module satisfying the rules", so it fixed all four itself; no gate
+  in any of 6 runs had anything to find. The result answers cost and time, not detection.
+- **Rule:** to measure detection, the implementer's scope must exclude the defect (e.g. "do not modify existing
+  functions") and a cross-phase trap must survive the dev chain; check the dev-only commit against the hidden test
+  before crediting gates.
+- **Applies-to:** `evals/`, `.ai/eval-runs/2026-09-16-gate-placement/` round 2.
+
 ### 2026-08-30 — the report had no field for the most valuable test in the pipeline
 
 - **Context:** `sailes-implement` named the implementer's fast check "scaffolding for the step" and

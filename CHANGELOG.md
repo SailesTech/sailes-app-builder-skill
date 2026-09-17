@@ -4,6 +4,103 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.35.0 — 2026-09-17 · Workflow as the execution engine
+
+Source: `.ai/specs/implemented/2026-09-16-workflow-first-orchestration.md`, from a feedback report on *Idealny
+Wzrok* plus a day measuring the Workflow harness. The framework had zero references to `agent()`,
+`agentType`, `StructuredOutput`, `resumeFromRunId` anywhere in `skills/`, `agents/`, `hooks/`: every
+script invented role, model, file split, turn budget and gate from scratch. Measured: cost is driven
+by turn count and context length, not model tier (62% cache read; per-turn cost rose 2.7–5.6x across
+one session); a single Opus lead session ($63.70) cost more than four workflows' subagents combined
+($41.28); both wasted runs were spec-completeness and turn-limit failures, not tier failures.
+
+**1. Workflow doctrine (`skills/sailes-bootstrap/workflow-orchestration.md`, new).** `agentType` is
+always set on every `agent()` call. The pipeline splits on human STOPs (WF1 recognition + contract +
+tester DRAFT → STOP · WF2 phases, gated once per spec rather than once per phase → STOP on a
+decision · WF3 `qa` + docs-delta). A gate's verdict is the `StructuredOutput` schema the script
+returns; the lead persists it to `.ai/` — Workflow refuses a subagent's report-file write, so the
+existing "report is a file" rule does not apply inside it. The lead ends its session after every
+workflow (session-handoff). `agents/team-lead.md` and `agent-team-structure.md` now point to the new
+doctrine file and carry the lead's six-item checklist reference (D5).
+
+**2. Phase fields ready for dispatch.** A phase in a spec **written from 1.35.0 on** carries `Owns:`,
+`Blast-radius:`, `Depends-on:`, `Agent:`, `Human-STOP:`, and a spec with more than one phase requires
+a `## Plan wykonania` wave table (`Fala | Fazy | Równolegle | Blokuje lidera | Workflow`).
+`skills/sailes-spec/SKILL.md` and `spec-writing-template.md` carry the fields; `sailes-pre-implement`
+computes `Blast-radius` per phase and flags one sized past ~60% of a role's `maxTurns` as NOT-READY
+with a split proposal. **Existing live specs are not rewritten** — the fields apply going forward
+only — and `ownership-check --spec` runs only when a lead explicitly invokes it against a spec that
+carries them; it is not a standing gate on specs written before 1.35.0.
+
+**3. `tools/ownership-check.js --spec`.** Parses a spec's `Owns:` blocks and its `## Plan wykonania`
+(reading both `P` and `F` phase ids), flags a file shared inside one wave as a conflict, computes the
+minimal wave split (`exit 1` on over-serialization), excludes and reports lead-blocking phases
+separately from the wave comparison, and exits 1 on a spec with `## Fazy` but no `Owns`.
+
+**4. `tools/token-report.js` understands Workflow layout.** `discoverTranscripts()` now recognizes
+`<session>/subagents/workflows/wf_*/agent-*.jsonl` as subagents of the lead (previously counted as
+zero subagents), and a `wf_*` directory passed directly. The real model comes from the transcript's
+`message.model`, never the invocation's `meta.model` alias. `--cost` prices from one table in the
+file (cache read 0.1x, cache write 1.25x of input) and aggregates per label, per role and per tier.
+
+**5. `PreToolUse` hook `hooks/workflow-agenttype-guard.js` (Q2′, revising the original Q2
+block-always decision).** Reads a `Workflow` tool call's script (inline or via `scriptPath`) and
+finds `agent()` calls missing `agentType`. Measured on 17 real workflow scripts on this machine: 6
+calls the rule would flag, of which 4 carried an explicit `model` (re-read after an initial miscount
+of 5), including non-Sailes scripts such as voxtype's. The system still has to work when the calling
+stack carries no Sailes role for the task, so: a call with `model` set but no `agentType` now passes
+with a strong role suggestion (`additionalContext`, never `permissionDecision`, so a user's own
+approvals are never bypassed); a call with **neither** `agentType` nor `model` still blocks (`exit
+2`), because it silently inherits the lead's Opus. **Wired in `hooks/hooks.json`** (`PreToolUse`, matcher `Workflow`).
+Re-measured under Q2′ on 19 scripts: 2 blocked (both true positives), 4 allowed with a suggestion, 11 undecidable
+(note only), 2 silent (`.ai/eval-runs/2026-09-16-agenttype-guard-fp/VERDICT.md`). The `PreToolUse` payload shape for
+`Workflow` is unmeasured (P0.5); the guard fails open when neither `script` nor `scriptPath` is present.
+
+**6. Model-resolution order corrected to v2.1.251+.** `team-lead.md` and `agent-team-structure.md`
+said `CLAUDE_CODE_SUBAGENT_MODEL` → param → frontmatter; the documented order since Claude Code
+v2.1.251 is param → frontmatter → session → env. Both files corrected; the sentences sit outside the
+synced doctrine blocks (`gate-scaling`, `delegation-threshold`, `session-handoff`), so the fix does
+not touch `sync-blocks`.
+
+**Gates, decided at the end (D8), by cost and time.** Testing per-phase as each one lands, vs. one
+`tester` + one `checker` pass over the whole spec at the end with ≤1 fix round:
+`.ai/eval-runs/2026-09-16-gate-placement/VERDICT-round1.md` measured at-the-end $1.37 / 9.7 min ·
+per-phase $2.61 / 19.1 min · hybrid $2.53 / 11.4 min. At-the-end wins on cost and time.
+**Detectability and the cost of a late fix were not measured** — round 2 is in the backlog, deferred
+by the owner rather than run this release.
+
+The superseded spec `.ai/specs/2026-08-06-spec-carries-the-execution-plan.md` moves to
+`.ai/specs/archived/` with `Status: superseded` and `Superseded-by:`; its still-relevant unimplemented
+items (F2/F3 delegation-reaches-the-session, F8/D12, F10 swarm measurement) go to `.ai/backlog.md`
+with a reference back to it, alongside gate-placement round 2, the P0.5 hook-payload-shape gap, the
+P4.7 eval's sonnet-not-Opus stand-in, and spec B (diagnose/hosting).
+
+Evidence: `.ai/eval-runs/2026-09-16-workflow-facts/`, `.ai/eval-runs/2026-09-16-workflow-research/`,
+`.ai/eval-runs/2026-09-16-gate-placement/`, `.ai/eval-runs/2026-09-16-agenttype-guard-fp/`,
+`.ai/eval-runs/2026-09-17-lead-dispatches-workflow/`.
+
+**What an older-stamped repo is missing** (Upgrade mode, each shown to the human as a diff):
+- `skills/sailes-bootstrap/workflow-orchestration.md` — the whole doctrine file, new;
+- `agents/team-lead.md` / `skills/sailes-bootstrap/agent-team-structure.md`: the pointer to the new
+  doctrine file, the corrected model-resolution-order sentence, and the note that inside Workflow a
+  gate's verdict is the `StructuredOutput` schema the lead persists, not a written report file;
+- `skills/sailes-spec/SKILL.md` / `spec-writing-template.md`: the five phase fields and the required
+  `## Plan wykonania` for specs written from 1.35.0 on — existing live specs are not retrofitted;
+- `tools/ownership-check.js --spec` and `tools/token-report.js --cost` workflow-aware layout — both
+  invoked explicitly by a lead, neither wired into an existing standing gate;
+- `hooks/workflow-agenttype-guard.js` and its `PreToolUse` block in `hooks/hooks.json` — plugin-level, active on every
+  machine with the plugin; nothing to copy into a client repo.
+
+**Evals at release** (`.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`): 12 scenarios whose rules 1.35.0 touched were
+re-run (stand-in sonnet, grader haiku) — 9 PASS; 3 FAIL as written, none a 1.35.0 regression: two known eval defects
+(`lead-spawns-named-roles-not-general-purpose` arm 1, `lead-picks-the-lane-from-the-tier` arm B, same behavior graded
+PASS on 09-13) and `lead-verifies-status-against-worktree` (arm 1 known; arm 3 reproduced on the 1.34.0 text).
+One real regression was caught and fixed before release: the new `Owns:` "Wymuszony przez" column did not require the
+forcing `Done-when` clause (`done-when-covers-the-allowed-files-list` FAIL → fixed `ec34790` → PASS).
+New eval `lead-dispatches-workflow-with-roles`: PASS 3:0 after one doctrine fix (2:1 before). The remaining 24 STALE
+scenarios are an accepted exception by the owner (2026-09-17): their files changed only by additive pointers and
+notes, not the rules they grade.
+
 ## 1.34.0 — 2026-09-13 · measure before the code, spend the gates by risk
 
 Source: a one-day report from `partner-portal-v3`. **No defect that day was found by a document; every one was found

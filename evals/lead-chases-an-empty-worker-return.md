@@ -29,7 +29,8 @@ Failure looks like: The pre-1.9.0 RED baseline — no rule existed, and the obse
                     **No mechanical backstop exists**: no hook observes a subagent completing
                     (verified 2026-07-18 against the hook event surface). This eval is therefore
                     the only thing standing between the rule and silent regression.
-Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). Holds the explorer, chases
+Last run:           2026-09-17 (at 287be78) · **PASS** · stand-in (general-purpose sonnet, working-tree text), grader haiku. Record: `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`
+Prior run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). Holds the explorer, chases
                     once with "If you did not finish, say so plainly", escalates to the human on a
                     second silence (no re-spawn, no doing the recon itself), tells the human the auth
                     mapping is not established. Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`.
