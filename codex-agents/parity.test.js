@@ -401,6 +401,32 @@ test('the qa inverse regex FIRES on the Codex screenshot-fallback wording it rep
   );
 });
 
+// ---------------------------------------------------------------- Claude-only concepts (Q5)
+
+/**
+ * Q5 (spec 2026-09-16-workflow-first-orchestration): "Doktryna tylko dla Claude Code; parity.test.js
+ * wyklucza nowe pojęcia jawnie" — the Workflow doctrine (`skills/sailes-bootstrap/workflow-orchestration.md`)
+ * is Claude Code only. Codex has no `agentType` parameter, no `StructuredOutput` tool, no `Workflow`
+ * tool, and no equivalent skill file. These are harness mechanisms, not framework rules, so they must
+ * never become a required INVARIANTS concept — an invariant built on one of these words would force
+ * every codex-agents/*.toml twin to grow a rule about a mechanism that runtime does not have.
+ */
+const CLAUDE_ONLY_CONCEPTS = ['agentType', 'StructuredOutput', 'Workflow tool', 'workflow-orchestration.md'];
+
+test('no INVARIANTS entry requires a Claude-only concept from the Codex twin (Q5)', () => {
+  for (const [role, rules] of Object.entries(INVARIANTS)) {
+    for (const [label, re] of rules) {
+      for (const concept of CLAUDE_ONLY_CONCEPTS) {
+        assert.ok(
+          !label.includes(concept) && !re.source.includes(concept),
+          `${role}: invariant "${label}" names Claude-only concept "${concept}" — Q5 excludes it from ` +
+            `the .toml twin requirement`
+        );
+      }
+    }
+  }
+});
+
 // ---------------------------------------------------------------- shape checks that cost nothing
 
 test('the rewritten commit invariants REJECT the pre-F5 wording — the rewrite is real', () => {

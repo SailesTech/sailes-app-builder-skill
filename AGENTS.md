@@ -175,7 +175,10 @@ Delegation is the lead's default (`agents/team-lead.md`). Three rules earn their
   roles — `checker`, `qa`, `tester` — whose verdict cannot be reconstructed from disk any other way.**
   Implementer roles — `be-dev`, `fe-dev` — report a message in fixed fields instead, at most 40 lines;
   their narrative goes in the commit message and their declaration (`outcome`/`touched`) in
-  `.claude/status/`.
+  `.claude/status/`. **Inside Workflow** (`skills/sailes-bootstrap/workflow-orchestration.md`), the
+  file rule above does not apply to gate roles either: the gate verdict is the `StructuredOutput`
+  schema the role returns, and the lead persists it to `.ai/` (D3). Outside Workflow, this rule is
+  unchanged.
 
 ## Hard safety rules
 - Never push to `main` without tests green and a CHANGELOG entry — it is a live deploy.
