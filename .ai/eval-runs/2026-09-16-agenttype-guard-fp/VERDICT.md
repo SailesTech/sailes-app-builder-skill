@@ -80,3 +80,78 @@ is a measurement of the hook's logic against real script bodies, not a measureme
 wired into a live Claude Code session; P0.5 remains the phase that closes that gap.
 
 **No acceptance decision is made here.** This is the Q2 Human-STOP measurement only.
+
+## Re-run under Q2′ (2026-09-17)
+
+Spec 1.35.0, decision row Q2′ (`.ai/specs/2026-09-16-workflow-first-orchestration.md`) changes the
+hook: `agentType` absent but `model` present is no longer a block — it is allowed with a role
+suggestion (`hookSpecificOutput.additionalContext` on stdout, no `permissionDecision`). Only
+`agentType` absent **and** `model` absent (including no options object at all) still blocks
+(exit 2). This section re-runs the same measurement — `find ~/.claude/projects -path
+'*workflows/scripts/*.js'`, fed `{"tool_name":"Workflow","tool_input":{"scriptPath":"<path>"}}` on
+stdin — against the updated `hooks/workflow-agenttype-guard.js`.
+
+**N = 19 scripts** (two more than the 2026-09-16 run: `sailes-1350-p2fix-and-eval-p47-wf_c3997ee7-3f6.js`
+and `sailes-1350-hook-q2prime-wf_4fe01078-421.js`, both saved since — both classify as
+"note (undecidable)" below).
+
+### Outcome counts
+
+| Outcome | Count |
+|---|---|
+| blocked (exit 2, class 2 — neither agentType nor model) | 2 |
+| allowed-with-suggestion (exit 0, stdout additionalContext, class 1 — model present, no agentType) | 4 |
+| note (exit 0, stderr note — undecidable: options is a variable/spread) | 11 |
+| silent (exit 0, nothing on either stream) | 2 |
+
+19 = 2 + 4 + 11 + 2. Every script that blocked under the 2026-09-16 (Q2) run and now does not is
+accounted for in "allowed-with-suggestion" below — none dropped silently.
+
+### Blocked (TP/FP, hand-classified)
+
+| Script | Line(s) | TP/FP | Reason |
+|---|---|---|---|
+| `voxtype-notion-spike-and-spec-wf_0824d076-d64.js` | 76, 85, 99 | TP | Three literal options objects (`{ label, phase, schema }` / `{ label, phase }` / `{ label, phase }`) — neither `agentType` nor `model` in any. Non-Sailes repo (omarchy/voxtype); would silently run on the session's Opus. |
+| `medfile-sync-fazy-3-5-wf_3dbc5b63-ac5.js` | 69 | TP | `integruj` helper: `agent(..., { schema: INT_SCHEMA, label: 'Integracja ${etykieta}', phase, effort })` — neither `agentType` nor `model`. Same real defect as the 2026-09-16 run; unaffected by Q2′ because it never carried a `model`. |
+
+Both are the same two scripts flagged as TP in the 2026-09-16 run that lacked a `model` override;
+still correctly block under Q2′.
+
+### Allowed-with-suggestion (previously blocked under Q2, now class 1)
+
+| Script | Line(s) | Note |
+|---|---|---|
+| `voxtype-notion-spike-c-wf_70be6475-565.js` | 54, 63 | `model` present in both (`{ label, phase, schema, model }`, `{ label, phase, model }`) — deliberate override, not drift. |
+| `diagnoza-nakladka-nie-wyskakuje-wf_3227fe3d-ad3.js` | 68 | `{ label, phase: 'Collect', model: 'sonnet' }` — the collector call the original spec's Done-when named as the expected TP under Q2; under Q2′ it is a deliberate `model` override and correctly downgrades to a suggestion, not a block. This is the spec's own worked example of *why* Q2′ exists, not a regression. |
+| `naprawa-sync-medfile-wf_2a2a84d5-da4.js` | 142 | `{ label, phase: 'F0 Diagnostyka', model: 'sonnet', schema: SCHEMA_DIAG }` — `model` present. |
+| `testy-naprawy-sync-medfile-wf_6545c224-6cd.js` | 91, 92, 178 | All three carry `model` (`{ label, phase, model, schema }`). |
+
+Of the six scripts the 2026-09-16 (Q2) run blocked, these four carried an explicit `model` and now
+allow-with-suggestion; the other two (above) carried neither `agentType` nor `model` and still
+block. (The spec's Q2′ decision-row prose says "5 z nich z jawnym model" — this hand re-verification
+of the actual flagged lines on disk finds 4 of 6, with `medfile-sync-fazy-3-5` and
+`voxtype-notion-spike-and-spec` both lacking `model`; noted as a discrepancy against the spec's
+summary figure, not adjudicated here.)
+
+### Note (undecidable, unchanged from Q2 — behavior did not change for this class)
+
+`sailes-1350-p0-rerun-wf_f63f5640-6d1.js`, `medfile-sync-domkniecie-fe-qa-wf_5de2ebe4-eca.js`,
+`medfile-sync-faza5-testy-qa-wf_77d7c353-4d5.js`, `zawsze-popup-auto-przerwa-wf_2fb79243-84e.js`,
+`sailes-1350-hook-q2prime-wf_4fe01078-421.js` (new), `sailes-1350-p0-measure-wf_bd749c00-327.js`,
+`sailes-1350-p2fix-and-eval-p47-wf_c3997ee7-3f6.js` (new), `sailes-1350-wave1-fixes-wf_9f0a06c6-83e.js`,
+`sailes-1350-wave1-impl-wf_176ebaa2-236.js`, `sailes-1350-wave2-wf_3d65db17-b38.js`,
+`sailes-gate-placement-abc-wf_bfef201f-177.js` — each has an `agent(p, opts)` call where `opts` is a
+variable (or the whole call is dynamically built), so the mask cannot tell whether `agentType` is
+present. Same accepted non-blocking gap as P5a.2, not re-adjudicated here.
+
+### Silent (unchanged)
+
+`sailes-workflow-research-wf_c7c25bee-3b3.js`, `medfile-sync-fazy-2-5-wf_b3ebe4a2-47e.js`.
+
+### Conclusion
+
+FP count under Q2′: **0** — both blocks are real drift (no `agentType`, no `model`, would silently
+inherit the session model). Q2′'s intended effect is visible directly: 4 of the 6 real blocks from
+the 2026-09-16 measurement are now allowed-with-suggestion because they already carried a
+deliberate `model` override, leaving only the two genuine silent-fallback cases blocked. No new FP
+introduced by the re-scoped rule. No acceptance decision is made here — this is the measurement only.
