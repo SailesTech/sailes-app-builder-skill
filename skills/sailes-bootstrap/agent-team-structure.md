@@ -102,9 +102,10 @@ Add a role, change a pin or change a lane **here only**.
 
 The `Model · effort` column above is what each role's definition file pins, and it is the default for
 an **ordinary task of that role**. The lead may override it for a single task with the Agent tool's
-`model` / `effort` parameters. Resolution order is `CLAUDE_CODE_SUBAGENT_MODEL` env → the
-per-invocation parameter → the role's frontmatter, so a lead's override beats the file and loses to an
-environment pin the human set deliberately.
+`model` / `effort` parameters. Resolution order since Claude Code v2.1.251 is the per-invocation
+parameter → the role's frontmatter → the session model → `CLAUDE_CODE_SUBAGENT_MODEL` env (before
+v2.1.251 the env var came first), so a lead's override beats the file, and omitting `model` keeps the
+role's pin: `agentType` alone loads the frontmatter model rather than falling back to the session's.
 
 **Model IDs are pinned, not aliases** (`claude-sonnet-5`, not `sonnet`). An alias silently follows
 whatever the tier's default becomes, which makes a run un-reproducible and makes "the framework got
@@ -225,6 +226,14 @@ phase's state is already on disk in `STATE.md` before the turn ends, so nothing 
 <!-- END session-handoff -->
 
 <!-- Generated from session-handoff.md by tools/sync-blocks.js — edit the source, not this copy. -->
+
+7. **Workflow is the default path for a pipeline of more than one phase** — see
+   `skills/sailes-bootstrap/workflow-orchestration.md` for the script shape, `agentType` on every
+   `agent()` call, and the tester/checker/qa verdict schema. Delegating through Workflow does not
+   shrink the lead's job: it still keeps exactly six things itself (D5) — merge/integration,
+   freezing the contract, the run log, `STATE.md`, the gate verdict, and escalation to the human.
+   Everything else (spawning phases, running the gates, deriving the plan) executes inside the
+   Workflow script rather than through the lead's own per-task delegation calls.
 
 ## Isolation — every worker that writes gets a worktree
 
@@ -524,6 +533,7 @@ A verifier grades honestly only on a clean context. The failure mode this sectio
 - **Cheap graders for binary checks:** a phase's `Done-when` (exact commands + expected output) may be verified by a lightweight model (haiku) — it's a pass/fail read, not judgment. Judgment review stays with `checker`.
 - **`checker` never re-checks what the toolchain enforces.** Lint/type/convention-test guarantees (no `any`, tokens-only, import direction — the ratchet, `agentic-first-principles.md` §B.3) are the machine's job; `checker` spends its capacity on what machines can't see: spec fit, naming, design intent, edge cases, scope creep.
 - **ENV-DEFECT, not a skipped proof:** when `qa` cannot run the real flow because the stack won't boot or creds/fixtures are missing, that is a **bootstrap defect**, not a qa judgment call — `qa` reports `ENV-DEFECT` naming what's missing, the lead escalates, and the fix is the seed/boot path (see `repo-done-checklist.md` Environment block). A faked or skipped pass is never the answer to a broken environment.
+- Inside Workflow (`skills/sailes-bootstrap/workflow-orchestration.md`), `tester`/`checker`/`qa` still see only what this section says — the isolation does not relax because dispatch moved into a script.
 
 ## Spawn the named role, not a generic agent wearing its instructions
 
@@ -705,7 +715,7 @@ surfaces at merge time, when it is most expensive.
 
 **Name the delivery mechanism, because the worker cannot infer it.** Measured 2026-07-18: of five background teammates given "your final message IS the deliverable", three produced a correct answer and delivered nothing — one said outright it had written the answer as plain text instead of calling `SendMessage`. The instruction was not ignored; it was *true for a different spawn mode*. A scoped subagent returns its final message automatically; a background teammate must send it, and only the lead knows which it spawned. Telling the worker how to deliver is the lead's job, not the worker's guess.
 
-**For work a gate will grade, name a FILE — not a message.** This is `checker`, `qa`, `tester`: a gate verdict, a review, a findings list, a test-case list — the brief gives the path and says the file is the deliverable ("no file = task not done"), and the lead reads it from disk instead of waiting for a report. Their verdict cannot be reconstructed from disk any other way. Measured 2026-07-25, same session as above: four briefs whose deliverable was the final message produced six empty idle returns and two pointless re-spawns; the one brief that named `VERDICT.md` produced a gradable artifact on the first attempt, with the raw instrument output pasted in. A message is a channel that can drop; a file is an artifact that survives the drop, the context reset, and the worker itself. Ordinary chatter stays on messages — this is about anything whose loss costs a re-run. Implementer roles (`be-dev`, `fe-dev`) do not carry this: their report is a message in fixed fields, at most 40 lines (P5, 1.34.0) — their narrative lands in the commit message and their declaration in `.claude/status/`, both of which already survive the worker.
+**For work a gate will grade, name a FILE — not a message.** This is `checker`, `qa`, `tester`: a gate verdict, a review, a findings list, a test-case list — the brief gives the path and says the file is the deliverable ("no file = task not done"), and the lead reads it from disk instead of waiting for a report. Their verdict cannot be reconstructed from disk any other way. Measured 2026-07-25, same session as above: four briefs whose deliverable was the final message produced six empty idle returns and two pointless re-spawns; the one brief that named `VERDICT.md` produced a gradable artifact on the first attempt, with the raw instrument output pasted in. A message is a channel that can drop; a file is an artifact that survives the drop, the context reset, and the worker itself. Ordinary chatter stays on messages — this is about anything whose loss costs a re-run. Implementer roles (`be-dev`, `fe-dev`) do not carry this: their report is a message in fixed fields, at most 40 lines (P5, 1.34.0) — their narrative lands in the commit message and their declaration in `.claude/status/`, both of which already survive the worker. **Inside Workflow** (`skills/sailes-bootstrap/workflow-orchestration.md`), the file rule above does not apply to gate roles either: the gate verdict is the `StructuredOutput` schema the role returns, and the lead persists it to `.ai/` itself (D3). Outside Workflow, this rule is unchanged.
 
 **And name WHEN the file is written, because the path alone left the hole open.** For the gate roles above, the brief says the report exists **from the worker's first change** and grows by appending — it is not a document composed at the end and saved once. A file promised at the end is a report held in memory, and it dies exactly the way a message does. Measured 2026-08-30: two agent assignments burned; one died together with its process holding an unwritten report, and the second attempt at the same task survived only because it wrote incrementally. `Checkpoint:` already covers the worker's **progress** in the same words; this covers the **deliverable**, and until now nothing said the two obey one rule.
 
