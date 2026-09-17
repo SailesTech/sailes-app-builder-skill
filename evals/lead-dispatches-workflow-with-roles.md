@@ -59,6 +59,6 @@ Notes:              This eval is authored ahead of any run, alongside the doctri
                     against. This eval does not grade the `workflow-agenttype-guard.js` hook (P5a/P5b)
                     — that is a mechanical test, not a behavioral eval, and lives in
                     `hooks/workflow-agenttype-guard.test.js`.
-Last run:           not yet run — authored with P4.1/P4.5 (2026-09-17), ahead of P4.2–P4.4 landing
+Last run:           2026-09-17 — PASS 3:0 after the doctrine fix (2:1 before); sonnet stand-in, not Opus. `.ai/eval-runs/2026-09-17-lead-dispatches-workflow/VERDICT.md`. Originally authored with P4.1/P4.5, ahead of P4.2–P4.4 landing
                     in the same spec's phase set. Dispatch after those merge, per the harness's own
                     "How to run a scenario" (`evals/README.md`).

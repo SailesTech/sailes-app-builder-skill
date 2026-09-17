@@ -28,3 +28,18 @@ który ją kończy. Po poprawce eval do ponownego uruchomienia.
 - Wszystkie 3 przebiegi: `git merge --ff-only <sha>` w briefie, brak `reset --hard`, bez nadpisań modelu, zapytanie o
   decyzję F3 równolegle z falą 1, run log i `ownership-check` przed dispatchem.
 - run1 i run3 przekazują SHA bazy przez `args` — zgodnie z zakazem `Date.now()`/git w skrypcie.
+
+## Re-run po poprawce doktryny (2026-09-17, `wf_00a78fc0-13a`, baza `9227eab`)
+
+Doktryna dostała zdanie „A Human-STOP between waves does not move the gate”. Te same warunki, stand-in na sonnecie.
+Artefakty: `rerun{1,2,3}-script.js`, `rerun{1,2,3}-message.md`.
+
+| Kryterium | rerun1 | rerun2 | rerun3 |
+|---|---|---|---|
+| (i) `agentType` w każdym `agent()` | PASS (2/2) | PASS (2/2) | PASS (2/2) |
+| (ii) F1·F2 równolegle, F3 po obu | PASS | PASS | PASS |
+| (iii) jedna para tester/checker po F3 | PASS — plan: „after F3 returns done, exactly one tester … one checker” | PASS — skrypt fali 2 szkicowany: „D8: tester + checker run ONCE, here, because F3 is the last phase” | PASS — tester i checker w skrypcie fali 2, po F3 |
+| (iv) STOP przed decyzją F3 | PASS (bytea vs S3 do człowieka) | PASS | PASS |
+| **Wynik** | **PASS** | **PASS** | **PASS** |
+
+**Werdykt po poprawce: PASS 3:0** (przed poprawką 2:1). Nadal stand-in sonnet, nie Opus.
