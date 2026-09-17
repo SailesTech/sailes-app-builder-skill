@@ -73,7 +73,7 @@ Spec robi pięć rzeczy:
 | Q3 | Budżet tur | **Rozmiar fazy rozstrzyga spec**: faza > ~60% `maxTurns` roli jest dzielona; prompt: przy ~70% WIP + `blocked` | Obniżenie `maxTurns` ról |
 | Q4 | Nieustalone fakty | **P0 — pomiar przed doktryną** | Doktryna z oznaczeniem „niezmierzone” |
 | Q5 | Codex | **Doktryna tylko dla Claude Code**; `parity.test.js` wyklucza nowe pojęcia jawnie | Odpowiednik dla Codex |
-| Q2′ | Hook po pomiarze FP (2026-09-17, zmienia Q2) | **Sugestia zamiast blokady**: `agent()` bez `agentType`, ale z `model` → przepuszcza z mocną sugestią roli Sailes (`additionalContext` dla modelu, bez `permissionDecision`, żeby nie omijać zgód użytkownika); bez `agentType` i bez `model` → blokada (exit 2), bo dziedziczy Opusa sesji. Powód człowieka: system ma działać, gdy w stacku nie ma roli do zadania. Pomiar: 17 skryptów, 6 blokad reguły Q2, 5 z nich z jawnym `model` (m.in. voxtype spoza Sailes) | Blokada zawsze bez `agentType`; nigdy nie blokować |
+| Q2′ | Hook po pomiarze FP (2026-09-17, zmienia Q2) | **Sugestia zamiast blokady**: `agent()` bez `agentType`, ale z `model` → przepuszcza z mocną sugestią roli Sailes (`additionalContext` dla modelu, bez `permissionDecision`, żeby nie omijać zgód użytkownika); bez `agentType` i bez `model` → blokada (exit 2), bo dziedziczy Opusa sesji. Powód człowieka: system ma działać, gdy w stacku nie ma roli do zadania. Pomiar: 17 skryptów, 6 blokad reguły Q2, 4 z nich z jawnym `model` (ponowny odczyt linii; wcześniej podane 5) (m.in. voxtype spoza Sailes) | Blokada zawsze bez `agentType`; nigdy nie blokować |
 | Q6 | Handoff lidera | **Po każdym workflow** (każdy STOP z D2) | Próg liczby tur |
 | D8 | Umiejscowienie bramek (2026-09-16, zmienia fragment D2 „tester/checker per faza”) | **Bramki na końcu (A)**: wszystkie fazy WF2 (równolegle, gdzie pliki rozłączne) → jeden `tester` + jeden `checker` na cały spec → ≤1 runda poprawek. Rozstrzygnięte **wyłącznie kosztem i czasem** (`.ai/eval-runs/2026-09-16-gate-placement/VERDICT-round1.md`): A $1.37 / 9.7 min · per faza $2.61 / 19.1 min · hybryda $2.53 / 11.4 min | Per faza szeregowo (B); hybryda (C). Wykrywalność i koszt późnej poprawki **niezmierzone** — runda 2 odłożona przez człowieka |
 
@@ -397,7 +397,9 @@ Deployed-probe: n/a — brak wdrożonego hosta; framework nie ma powierzchni sie
 **Done-when:**
 - `node hooks/workflow-agenttype-guard.test.js` w `npm test`; `npm test` → exit 0.
 - `VERDICT.md`: N skryptów, blokady z klasyfikacją, FP = 0 albo każdy FP z decyzją człowieka.
-- `wf_3227fe3d-ad3` (kolektory bez `agentType`) → zablokowany (TP na prawdziwym artefakcie).
+- ~~`wf_3227fe3d-ad3` (kolektory bez `agentType`) → zablokowany (TP na prawdziwym artefakcie).~~ Zastąpione przez Q2′: skrypt
+  ma `model: 'sonnet'`, więc przechodzi z sugestią; TP na prawdziwym artefakcie = 2 skrypty bez `agentType` i bez `model`
+  (sekcja „Re-run under Q2′” w VERDICT FP).
 
 ### P6 — wydanie 1.35.0 i zamknięcie zastępowanego specu
 

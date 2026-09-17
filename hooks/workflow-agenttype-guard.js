@@ -7,7 +7,7 @@
  *
  * Spec 1.35.0, decision Q2′ (2026-09-17, changes Q2 — `.ai/specs/2026-09-16-workflow-first-
  * orchestration.md`): the false-positive measurement in P5b.2 found that most real blocks under
- * the original all-or-nothing Q2 rule (5 of 6 blocked scripts) already passed an explicit
+ * the original all-or-nothing Q2 rule (4 of 6 blocked scripts, hand-verified in `.ai/eval-runs/2026-09-16-agenttype-guard-fp/VERDICT.md`) already passed an explicit
  * `model`, i.e. a deliberate human choice, not a silent fallback to the session's Opus. Only the
  * silent-fallback case is the actual drift `.ai/lessons.md:300` names as enforceable. So:
  *

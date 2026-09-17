@@ -38,12 +38,19 @@ boot e2e once → result into prompts ─▶ WF1  explorer → [designer] → co
 (`.ai/eval-runs/2026-09-16-gate-placement/VERDICT-round1.md`, hidden 24-case acceptance test, n=2 per
 arm): one `tester`+`checker` pass at the end of all phases averaged **$1.37 / 9.7 min**; the same
 gates run serially after every phase averaged **$2.61 / 19.1 min** (2.2–2.6× the cost, ~2× the wall
-time); a hybrid (gate after risky phases only) landed at **$2.53 / 11.4 min** — nearly B's cost with
+time); a hybrid (each phase's gate running in parallel behind the uninterrupted dev chain, one integrator at the end) landed at **$2.53 / 11.4 min** — nearly B's cost with
 A's time. All three scored the hidden test identically (24/24) *when the implementation itself was
 already correct* — **detectability and the cost of a late-caught defect were not measured** in this
 round; round 2 is deferred by human decision. Real-wave evidence
 (`wf_176ebaa2-236`): gates were 55% of total workflow cost, `tester` ≈ $1.7/phase, `checker` ≈ $0.5/phase (per-agent costs in `.ai/runs/2026-09-16-workflow-first.md` § Koszt bramek fali 1)
 — consistent with per-phase gates being the expensive arm, not the cheap one.
+
+**A Human-STOP between waves does not move the gate.** When a phase's `Human-STOP` splits the
+implementation into two workflows (wave 1 runs while the human decides; the blocked phase runs in a
+second script), `tester` and `checker` still run **once, after the last phase of the spec**, in the
+workflow that finishes it — never at the end of wave 1 because that script happens to end there.
+Measured: eval `lead-dispatches-workflow-with-roles`, 2026-09-17, run 2 of 3 put `tester:wave1` +
+`checker:wave1` before the STOP (`.ai/eval-runs/2026-09-17-lead-dispatches-workflow/VERDICT.md`).
 - **Known risk of end-gates:** a cross-phase regression surfaces late. On `wf_4eb1edf7-db8`, real
   regressions from an earlier phase (deleted UI leaving 3 tests red) were not caught until checker's
   **second** round, by which point the fix budget was gone. Mitigation carried into the checker gate:
