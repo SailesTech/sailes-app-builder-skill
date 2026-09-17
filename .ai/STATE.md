@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: b8840d1
+Last-commit: 5a1e08e
 
 > Read at session start — it stays under 20 KB, so that is cheap; history lives verbatim in
 > `.ai/archive/` and is grepped by area, never read whole. Write before walking away. Facts enter **Verified facts** only with
@@ -79,7 +79,9 @@ Last-commit: b8840d1
     experiment → D8.
   - 2026-09-17: wave 2 re-run and integrated; Q2′ hook (suggest, block only without agentType and model); P2 accepts F<n>;
     P6 done (stamps 1.35.0, CHANGELOG, backlog, docs-delta content); eval P4.7 PASS 3:0; 12 at-risk evals re-run — one real
-    regression (Owns column) caught and fixed. Waiting for the owner: merge to `main`.
+    regression (Owns column) caught and fixed. **Released 2026-09-17: merged `--no-ff` to `main` (`5a1e08e`) and pushed**
+    with the owner's yes; `npm test` exit 0 on `main`. Next: re-run eval P4.7 on the named `team-lead` role now that `main`
+    serves the 1.35.0 text; spec B (diagnose/hosting from the Idealny Wzrok feedback).
   - Open next: wave 2 → P5b Human-STOP (hook false-positive rate) → eval P4.7 × 3 → P6 (qa full `npm test`, stamps
     1.35.0, CHANGELOG, docs-delta receipt, superseded spec to `archived/`, backlog, eval-status) → push to `main` only
     with the owner's yes. Then spec B (diagnose/hosting from the same feedback).

@@ -74,8 +74,5 @@ Budowa $5.79 · bramki $7.22 (55%) · razem $13.01.
 - (brak — `npm test` na bazie do uruchomienia przez `qa` w P6)
 
 ## Co zostało
-- Wszystkie fazy P0–P6 zrobione i zintegrowane; `npm test` exit 0; evale P6 w `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`.
-- Czeka na człowieka: receipt docs-delta (`.ai/docs-deltas/2026-09-17-release-1.35.0-notes.md`, dług archify przyjęty) →
-  `git mv` specu do `implemented/` → merge `--no-ff` do `main` i push (= deploy) za zgodą.
-- Po wydaniu: ponowić eval P4.7 na nazwanej roli (main = tekst 1.35.0); sprzątanie worktree `.claude/worktrees/wf_*`,
-  gałęzi `worktree-wf_*`, `wip/1.35.0-p5b`, plików `.claude/status/*`; spec B.
+- **Wydane 2026-09-17:** merge `--no-ff` do `main` (`5a1e08e`), push za zgodą właściciela, `npm test` exit 0 na `main`.
+- Po wydaniu: ponowić eval P4.7 na nazwanej roli `team-lead` (main = tekst 1.35.0); spec B (diagnose/hosting).
