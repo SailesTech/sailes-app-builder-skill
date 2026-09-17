@@ -24,6 +24,19 @@ Last-commit: 6995c93
   write report files"; seen on `findings.md`, `summary.md`, `report.md`, 2026-09-13). Other stand-ins wrote
   `qa-verdict.md`, `tester-report.md` and `verdict.md` without refusal. The trigger is not established (backlog).
 
+- **Workflow tool facts (measured 2026-09-16, `.ai/eval-runs/2026-09-16-workflow-facts/VERDICT.md`):**
+  `agent({agentType})` loads the role's frontmatter model; an explicit `model` alias overrides it; no `agentType` →
+  session model (Opus). `effort` takes effect (high ≈ 2.7× output of low, n=2+2). Worktree base = default branch
+  (`main`), not the lead's branch; worktree is cut from the repo of the lead's cwd at launch; `git reset --hard` is
+  blocked non-deterministically by the auto-mode classifier, `git merge --ff-only <sha>` is not; a worktree agent
+  cannot `git -C` or `Write` into the main checkout (Bash can); commits are visible in the shared `.git` at once.
+  Role `maxTurns` is enforced (F1 stopped at exactly 140).
+- **Gate placement (D8):** tester+checker once at the end beat per-phase on cost and time when implementation is
+  correct — A $1.37/9.7 min, B $2.61/19.1 min, C $2.53/11.4 min (`.ai/eval-runs/2026-09-16-gate-placement/VERDICT-round1.md`).
+  Detection value not measured (round 2 deferred by the owner).
+- **Transcript cost must use the LAST `usage` per `message.id`**: the first streamed line carries partial
+  `output_tokens`; the research parser that took it understated 4 workflows by ~17% ($34.32 vs $41.28).
+
 ## General rules
 - Every framework change lands as: proposal spec (root `.ai/specs/`) → human answers Open
   Questions → edits with binary Done-when outputs pasted → evals updated → CHANGELOG entry →
@@ -58,6 +71,16 @@ Last-commit: 6995c93
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
+- **2026-09-16 → 17 — spec 1.35.0 „Workflow jako silnik wykonania”, branch `feat/1.35.0-workflow-first`
+  (pushed, nothing on `main`).** Resume from `.ai/runs/2026-09-16-workflow-first.md` § „Co zostało”.
+  - Done: research (`.ai/eval-runs/2026-09-16-workflow-research/`, with a cost CORRECTION), spec approved with D1–D8 and
+    Q1–Q6, pre-implement READY-WITH-FIXES, P0 measured, wave 1 (P1 token-report workflow layout + prefix price table,
+    P2 ownership-check `--spec` with waves, P5a agentType guard hook) integrated with gate verdicts, A/B/C gate-placement
+    experiment → D8.
+  - Interrupted: wave 2 (`wf_3d65db17-b38`) died with the session — only P5b left `WIP` `30de3d3`. Relaunch per run log.
+  - Open next: wave 2 → P5b Human-STOP (hook false-positive rate) → eval P4.7 × 3 → P6 (qa full `npm test`, stamps
+    1.35.0, CHANGELOG, docs-delta receipt, superseded spec to `archived/`, backlog, eval-status) → push to `main` only
+    with the owner's yes. Then spec B (diagnose/hosting from the same feedback).
 - **2026-09-13 late, same session — G29: the owner chose to merge 1.34.0 to `main` now, without F5**, "żeby wszyscy
   mogli pracować na tym i zbierać feedback". F5 and G15 are superseded:
   - the 1.33.x saving will be measured mixed with 1.34.0;
