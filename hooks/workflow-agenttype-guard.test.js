@@ -69,10 +69,20 @@ test('agent() with no second argument at all — blocked', () => {
   assert.match(res.stderr, /agentType/);
 });
 
-test('agent(p, opts) with an options object missing agentType — blocked', () => {
+// Q2′ (2026-09-17, .ai/specs/2026-09-16-workflow-first-orchestration.md, decision row Q2′):
+// agentType absent but model present is no longer a block — it is a deliberate model override
+// (P5b.2 measured 5 of 6 real blocked scripts already carried an explicit model), so the hook
+// allows the call and surfaces a role suggestion via stdout additionalContext instead.
+test('Q2′: agent(p, opts) with model but no agentType — allowed, suggestion on stdout, no permissionDecision', () => {
   const res = run(workflowCall("agent('build', { model: 'sonnet' });\n"));
-  assert.strictEqual(res.status, 2);
-  assert.match(res.stderr, /agentType/);
+  assert.strictEqual(res.status, 0);
+  assert.strictEqual(res.stderr, '');
+  const out = JSON.parse(res.stdout);
+  assert.strictEqual(out.hookSpecificOutput.hookEventName, 'PreToolUse');
+  assert.match(out.hookSpecificOutput.additionalContext, /agentType/);
+  assert.match(out.hookSpecificOutput.additionalContext, /line 1/);
+  assert.strictEqual(out.hookSpecificOutput.permissionDecision, undefined);
+  assert.ok(!('permissionDecision' in out.hookSpecificOutput));
 });
 
 test('agent(p, opts) with agentType present in the options object — not blocked', () => {
@@ -81,15 +91,19 @@ test('agent(p, opts) with agentType present in the options object — not blocke
   assert.strictEqual(res.stderr, '');
 });
 
-test('multiple calls — reports the violating line, not the clean one', () => {
+// Q2′: the second call has model but no agentType — class 1 (suggest), not a block, since
+// neither line here is class 2 (both have agentType or model).
+test('multiple calls — clean line silent, model-only line suggested (Q2′), no block', () => {
   const script = [
     "agent('ok one', { agentType: 'be-dev' });",
     "agent('bad one', { model: 'sonnet' });",
   ].join('\n');
   const res = run(workflowCall(script));
-  assert.strictEqual(res.status, 2);
-  assert.match(res.stderr, /line 2/);
-  assert.doesNotMatch(res.stderr, /line 1:/);
+  assert.strictEqual(res.status, 0);
+  assert.strictEqual(res.stderr, '');
+  const out = JSON.parse(res.stdout);
+  assert.match(out.hookSpecificOutput.additionalContext, /line 2/);
+  assert.doesNotMatch(out.hookSpecificOutput.additionalContext, /line 1:/);
 });
 
 test('scriptPath is read from disk and analyzed the same way as inline script', (dir) => {
@@ -172,11 +186,17 @@ test('P5a-B1: agent() with no second argument at all — exit 2, line + rule nam
   assert.match(res.stderr, /agentType/);
 });
 
-test('P5a-B2: agent(p, {...}) options object literal missing agentType key — exit 2, line + rule named', () => {
+// Q2′ (2026-09-17): re-scoped from "options object literal missing agentType key — exit 2" to
+// "missing agentType but model present — allowed with a suggestion". The frozen ID still covers
+// the same source line; only the verdict changed, by deliberate human decision (Q2′), not a
+// weakening of the check.
+test('P5a-B2 (Q2′): agentType missing but model present — exit 0, suggestion on stdout, line named', () => {
   const res = run(workflowCall("agent('build', { model: 'sonnet' });\n"));
-  assert.strictEqual(res.status, 2);
-  assert.match(res.stderr, /line 1/);
-  assert.match(res.stderr, /agentType/);
+  assert.strictEqual(res.status, 0);
+  assert.strictEqual(res.stderr, '');
+  const out = JSON.parse(res.stdout);
+  assert.match(out.hookSpecificOutput.additionalContext, /line 1/);
+  assert.match(out.hookSpecificOutput.additionalContext, /agentType/);
 });
 
 test('P5a-B3: agent(p, { agentType, ... }) valid — baseline negative, exit 0, no stderr', () => {
@@ -185,11 +205,15 @@ test('P5a-B3: agent(p, { agentType, ... }) valid — baseline negative, exit 0, 
   assert.strictEqual(res.stderr, '');
 });
 
-test('P5a-B4: scriptPath file with a call missing agentType — exit 2, same detection as inline', (dir) => {
+// Q2′ (2026-09-17): re-scoped like P5a-B2 above — model present means allowed-with-suggestion,
+// not blocked; scriptPath and inline script are analyzed identically either way.
+test('P5a-B4 (Q2′): scriptPath file, agentType missing but model present — exit 0, suggestion, same detection as inline', (dir) => {
   fs.writeFileSync(path.join(dir, 'wf.js'), "agent('build', { model: 'sonnet' });\n");
   const res = run({ tool_name: 'Workflow', tool_input: { scriptPath: 'wf.js' }, cwd: dir });
-  assert.strictEqual(res.status, 2);
-  assert.match(res.stderr, /agentType/);
+  assert.strictEqual(res.status, 0);
+  assert.strictEqual(res.stderr, '');
+  const out = JSON.parse(res.stdout);
+  assert.match(out.hookSpecificOutput.additionalContext, /agentType/);
 });
 
 test('P5a-B5: scriptPath file fully valid — exit 0, no stderr (file-path parity negative)', (dir) => {
@@ -244,15 +268,19 @@ test('P5a-B11: agent(p, opts) with opts as a variable — statically undecidable
   assert.match(res.stderr, /line 2/);
 });
 
-test('P5a-B12: two calls, only one missing agentType — exit 2, reports the offending line only', () => {
+// Q2′ (2026-09-17): re-scoped like the "multiple calls" test above — the offending line has
+// model set, so it is class 1 (suggest), and with no class-2 line anywhere the call is not blocked.
+test('P5a-B12 (Q2′): two calls, the flagged one has model set — exit 0, suggestion names it only', () => {
   const script = [
     "agent('ok one', { agentType: 'be-dev' });",
     "agent('bad one', { model: 'sonnet' });",
   ].join('\n');
   const res = run(workflowCall(script));
-  assert.strictEqual(res.status, 2);
-  assert.match(res.stderr, /line 2/);
-  assert.doesNotMatch(res.stderr, /line 1:/);
+  assert.strictEqual(res.status, 0);
+  assert.strictEqual(res.stderr, '');
+  const out = JSON.parse(res.stdout);
+  assert.match(out.hookSpecificOutput.additionalContext, /line 2/);
+  assert.doesNotMatch(out.hookSpecificOutput.additionalContext, /line 1:/);
 });
 
 // --- Tester addition, step 4: edge case found only on reading the implementation (resolveScript's
@@ -293,6 +321,75 @@ test('W2-B11: hooks.json wires a PreToolUse entry, matcher "Workflow", to an exi
   const resolvedPath = path.join(__dirname, referenced[1]);
   assert.ok(fs.existsSync(resolvedPath),
     `command references "${referenced[1]}" but no such file exists at ${resolvedPath}`);
+});
+
+// --- Q2′ additions (2026-09-17, .ai/specs/2026-09-16-workflow-first-orchestration.md, decision
+// row Q2′): new partitions this decision introduces — class 2 (neither agentType nor model),
+// the mixed-file precedence rule, and the stdout additionalContext JSON shape. ---
+
+test('Q2′-C1: literal options object with neither agentType nor model — exit 2, blocked (class 2)', () => {
+  const res = run(workflowCall("agent('build', { maxTurns: 5 });\n"));
+  assert.strictEqual(res.status, 2);
+  assert.match(res.stderr, /line 1/);
+  assert.match(res.stderr, /neither agentType nor model|inherits the session model/);
+});
+
+test('Q2′-C2: empty options object — exit 2, blocked (class 2)', () => {
+  const res = run(workflowCall("agent('build', {});\n"));
+  assert.strictEqual(res.status, 2);
+  assert.match(res.stderr, /line 1/);
+});
+
+test('Q2′-C3: no options argument at all — exit 2, blocked (class 2, restated under Q2′)', () => {
+  const res = run(workflowCall("agent('build the widget');\n"));
+  assert.strictEqual(res.status, 2);
+  assert.match(res.stderr, /line 1/);
+});
+
+test('Q2′-M1: mixed file — one class-2 line blocks the whole call; class-1 line reported as a suggestion in the same stderr, not stdout', () => {
+  const script = [
+    "agent('missing both', { maxTurns: 5 });", // class 2 — block
+    "agent('model only', { model: 'sonnet' });", // class 1 — suggest
+  ].join('\n');
+  const res = run(workflowCall(script));
+  assert.strictEqual(res.status, 2);
+  assert.match(res.stderr, /line 1/);
+  assert.match(res.stderr, /line 2/);
+  assert.match(res.stderr, /agentType/);
+  assert.strictEqual(res.stdout, '');
+});
+
+test('Q2′-J1: stdout JSON shape is exactly hookSpecificOutput.{hookEventName,additionalContext}, no permissionDecision key', () => {
+  const res = run(workflowCall("agent('build', { model: 'sonnet' });\n"));
+  assert.strictEqual(res.status, 0);
+  const out = JSON.parse(res.stdout);
+  assert.deepStrictEqual(Object.keys(out), ['hookSpecificOutput']);
+  assert.deepStrictEqual(
+    Object.keys(out.hookSpecificOutput).sort(),
+    ['additionalContext', 'hookEventName']
+  );
+  assert.strictEqual(out.hookSpecificOutput.hookEventName, 'PreToolUse');
+  assert.strictEqual(typeof out.hookSpecificOutput.additionalContext, 'string');
+});
+
+test('Q2′-J2: no suggestions and no violations — stdout stays empty (clean file prints nothing)', () => {
+  const res = run(workflowCall("agent('build', { agentType: 'be-dev' });\n"));
+  assert.strictEqual(res.status, 0);
+  assert.strictEqual(res.stdout, '');
+  assert.strictEqual(res.stderr, '');
+});
+
+test('Q2′-U1: undecidable options plus a class-1 line in the same file — both surfaced (stderr note + stdout suggestion), still exit 0', () => {
+  const script = [
+    "const opts = { agentType: 'be-dev' };",
+    "agent('via variable', opts);",
+    "agent('model only', { model: 'sonnet' });",
+  ].join('\n');
+  const res = run(workflowCall(script));
+  assert.strictEqual(res.status, 0);
+  assert.match(res.stderr, /undecidable|cannot decide/);
+  const out = JSON.parse(res.stdout);
+  assert.match(out.hookSpecificOutput.additionalContext, /line 3/);
 });
 
 if (failures) {

@@ -197,9 +197,16 @@ to the human. Carried forward from the superseded 2026-08-06 spec's D5/Q1 unchan
 | Full resolution order (Claude Code ≥ v2.1.251) | per-invocation `model` → role frontmatter → session model → `CLAUDE_CODE_SUBAGENT_MODEL` env | code.claude.com/docs/en/sub-agents: "Before v2.1.251, `CLAUDE_CODE_SUBAGENT_MODEL` came first" — this doc states the **current** order; `team-lead.md`/`agent-team-structure.md` carry the pre-v2.1.251 order as of this writing and are corrected separately (spec P4.2) |
 
 Rules:
-- **`agentType` is mandatory on every `agent()` call, no exception** — it is what loads the role's
-  pin at all. The hook `hooks/workflow-agenttype-guard.js` (spec P5a/P5b) exists specifically to
-  make this mechanical rather than a thing a script author has to remember.
+- **`agentType` is the default on every `agent()` call** — it is what loads the role's pin at all.
+  The hook `hooks/workflow-agenttype-guard.js` (spec P5a/P5b, re-scoped by decision Q2′ on
+  2026-09-17) enforces the part that is actually a silent failure and no more: a call that carries
+  neither `agentType` nor `model` is **blocked (exit 2)**, because it would silently inherit the
+  session model (Opus). A call missing `agentType` but carrying an explicit `model` is **allowed**
+  — that is a deliberate model override, not drift — but the hook still surfaces a suggestion
+  (`hookSpecificOutput.additionalContext` on stdout, no `permissionDecision`) naming a Sailes role
+  when one fits. Human reason for the split (Q2′): the system has to keep working when the right
+  role for a task is not yet in the stack; P5b.2's false-positive measurement found 5 of the 6
+  scripts the original all-or-blocking rule flagged already carried an explicit `model`.
 - **`model` is only ever a conscious override**, and it goes in the run log with the alias and the
   reason — the same "log the alias" rule the plain `Agent` tool already carries
   (`agents/team-lead.md`).

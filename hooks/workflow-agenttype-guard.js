@@ -2,22 +2,34 @@
 'use strict';
 
 /**
- * PreToolUse guard (matcher `Workflow`, not yet wired — see spec 1.35.0 P5a/P5b): every
- * `agent(...)` call inside a `Workflow` tool script must pass `agentType` explicitly in its
- * options object. A workflow that spawns a subagent without `agentType` silently falls back to
- * whatever default the harness picks, which is exactly the drift `.ai/lessons.md:300` names as
- * enforceable and unfixed until a hook actually refuses the call.
+ * PreToolUse guard (matcher `Workflow`, wired in `hooks/hooks.json`): every `agent(...)` call
+ * inside a `Workflow` tool script is classified by what its options object carries.
  *
- * This phase (P5a) ships the hook and its test ONLY. It is not registered in `hooks/hooks.json`
- * yet — that wiring, plus a false-positive measurement across every saved workflow script on the
- * machine, is P5b, gated on a human sign-off (Q2: hook blocks in every repo on the machine).
+ * Spec 1.35.0, decision Q2′ (2026-09-17, changes Q2 — `.ai/specs/2026-09-16-workflow-first-
+ * orchestration.md`): the false-positive measurement in P5b.2 found that most real blocks under
+ * the original all-or-nothing Q2 rule (5 of 6 blocked scripts) already passed an explicit
+ * `model`, i.e. a deliberate human choice, not a silent fallback to the session's Opus. Only the
+ * silent-fallback case is the actual drift `.ai/lessons.md:300` names as enforceable. So:
+ *
+ *   - `agentType` present               → clean, exit 0, silent.
+ *   - `agentType` absent, `model` present → exit 0, but stdout carries a
+ *     `hookSpecificOutput.additionalContext` suggestion naming the line and recommending a
+ *     Sailes role when one fits. This must NOT set `permissionDecision` — doing so would bypass
+ *     the user's own permission prompt for the call; the hook only adds context to it.
+ *   - `agentType` absent AND `model` absent (including no options object at all) → exit 2,
+ *     blocked: the call would silently inherit the session model (Opus).
+ *   - options passed as a variable or containing `...spread` → statically undecidable regardless
+ *     of `model` (the spread could hide `agentType`); unchanged from P5a — exit 0, note, never
+ *     blocked, because a false positive here breaks every repo on the machine.
+ *
+ * A file mixing classes reports every line; if any line is a hard block, the whole call exits 2
+ * (stderr lists the blocking lines and, in the same message, the suggestion lines) — a single
+ * clean line elsewhere in the script does not soften a real block.
  *
  * Static analysis, not a parser: no framework, no deps (this repo ships none for hooks on
  * purpose — see AGENTS.md Verification). A hand-rolled string/comment mask is enough to answer
- * the one question this hook asks — "does this `agent(` call's options object carry an
- * `agentType` key, statically?" — without pulling in a JS parser for it. Anything the mask
- * cannot decide (options passed as a variable, or built via `...spread`) is reported, not
- * blocked: a false positive here breaks every repo on the machine, so undecidable stays open.
+ * "does this `agent(` call's options object carry an `agentType` key / a `model` key,
+ * statically?" — without pulling in a JS parser for it.
  *
  * Known simplification: template-literal (`` ` ``) interpolation (`${...}`) is treated as
  * string content, not re-entered as code. An `agent(` call written only inside a template
@@ -30,8 +42,14 @@ const path = require('path');
 const { readStdin } = require('./lib/repo-state');
 
 const RULE =
-  'every agent() call must pass an options object with an explicit `agentType` ' +
-  '(spec 1.35.0 P5a.1, hooks/workflow-agenttype-guard.js)';
+  'every agent() call must pass either an explicit `agentType` or a `model` — without either it ' +
+  'silently inherits the session model (spec 1.35.0 Q2′, hooks/workflow-agenttype-guard.js)';
+
+const ROLE_GUIDE =
+  "prefer agentType 'sailes-app-builder:<role>' when a role fits (explorer = read-only " +
+  'recon/haiku; be-dev/fe-dev = implementation; tester = test authoring; checker = review; ' +
+  'qa = behavior proof; designer = UI spec; docs-author = diagrams; researcher = synthesis, ' +
+  'override model to sonnet), otherwise keeping only model is fine.';
 
 /**
  * Replaces the interior of every string literal and comment with spaces, character-for-
@@ -177,14 +195,21 @@ function lineOf(text, index) {
 }
 
 /**
- * Looks at one `agent(...)` call's second argument and decides: has an `agentType` key
- * (clean), definitely does not (violation), or cannot be told statically (undecidable).
+ * Looks at one `agent(...)` call's second argument and classifies it (Q2′):
+ *   - 'ok'          — literal options object with an explicit `agentType` key.
+ *   - 'suggest'      — literal options object with `model` but no `agentType` (class 1: allow,
+ *                      suggest a role).
+ *   - 'block'        — no options object at all, or a literal one with neither `agentType` nor
+ *                      `model` (class 2: would inherit the session model).
+ *   - 'undecidable'  — options is not a literal object (variable, call, ternary), or the literal
+ *                      contains `...spread` that could hide `agentType` — cannot be told
+ *                      statically, regardless of whether `model` is also present.
  */
 function classifySecondArg(part) {
-  if (!part) return 'missing';
+  if (!part) return 'block';
   const trimmedMasked = part.masked.trim();
   const trimmedRaw = part.raw.trim();
-  if (!trimmedRaw) return 'missing';
+  if (!trimmedRaw) return 'block';
   if (trimmedMasked[0] !== '{' || trimmedMasked[trimmedMasked.length - 1] !== '}') {
     // Not a literal options object — a variable, a call, a ternary, a spread reference.
     // Cannot decide statically whether it carries agentType.
@@ -194,6 +219,7 @@ function classifySecondArg(part) {
   const bodyMasked = trimmedMasked.slice(1, -1);
   const entries = splitTopLevel(bodyRaw, bodyMasked);
   let hasSpread = false;
+  let hasModel = false;
   for (const entry of entries) {
     const em = entry.masked.trim();
     if (em.startsWith('...')) {
@@ -201,8 +227,10 @@ function classifySecondArg(part) {
       continue;
     }
     if (/^agentType\s*(:|,|$)/.test(em)) return 'ok';
+    if (/^model\s*(:|,|$)/.test(em)) hasModel = true;
   }
-  return hasSpread ? 'undecidable' : 'violation';
+  if (hasSpread) return 'undecidable';
+  return hasModel ? 'suggest' : 'block';
 }
 
 /**
@@ -213,6 +241,7 @@ function analyze(source) {
   const masked = maskStringsAndComments(source);
   const callRe = /(?<![\w.])agent\s*\(/g;
   const violations = [];
+  const suggestions = [];
   const undecidable = [];
   let match;
   while ((match = callRe.exec(masked))) {
@@ -224,13 +253,15 @@ function analyze(source) {
     const args = splitTopLevel(argsRaw, argsMasked);
     const line = lineOf(source, match.index);
     const verdict = classifySecondArg(args[1]);
-    if (verdict === 'violation' || verdict === 'missing') {
+    if (verdict === 'block') {
       violations.push({ line });
+    } else if (verdict === 'suggest') {
+      suggestions.push({ line });
     } else if (verdict === 'undecidable') {
       undecidable.push({ line });
     }
   }
-  return { violations, undecidable };
+  return { violations, suggestions, undecidable };
 }
 
 function resolveScript(input) {
@@ -282,22 +313,50 @@ function main() {
     process.exit(0);
   }
 
-  const { violations, undecidable } = analyze(text);
+  const { violations, suggestions, undecidable } = analyze(text);
+
+  const suggestionBlock = (list) => {
+    const lines = list
+      .map((v) => `  line ${v.line}: agent() call has no agentType (model is set)`)
+      .join('\n');
+    return `workflow-agenttype-guard: suggestion (Q2′) — ${ROLE_GUIDE}\n${lines}`;
+  };
+  const undecidableBlock = (list) => {
+    const lines = list
+      .map((v) => `  line ${v.line}: agent() options not a literal object — cannot decide statically`)
+      .join('\n');
+    return `workflow-agenttype-guard: not blocking (undecidable) — verify agentType by hand:\n${lines}`;
+  };
 
   if (violations.length) {
-    const lines = violations.map((v) => `  line ${v.line}: agent() call missing agentType`).join('\n');
-    process.stderr.write(
-      `workflow-agenttype-guard: blocked — ${RULE}\n${lines}\n`
-    );
+    // Class 2 (Q2′): at least one call has neither agentType nor model — hard block. Mixed file:
+    // class-1 suggestion lines and undecidable lines are reported in the same stderr message,
+    // never softening the block.
+    const lines = violations
+      .map((v) => `  line ${v.line}: agent() call has neither agentType nor model`)
+      .join('\n');
+    let out = `workflow-agenttype-guard: blocked — ${RULE}\n${lines}\n`;
+    if (suggestions.length) out += `\n${suggestionBlock(suggestions)}\n`;
+    if (undecidable.length) out += `\n${undecidableBlock(undecidable)}\n`;
+    process.stderr.write(out);
     process.exit(2);
   }
 
   if (undecidable.length) {
-    const lines = undecidable
-      .map((v) => `  line ${v.line}: agent() options not a literal object — cannot decide statically`)
-      .join('\n');
-    process.stderr.write(
-      `workflow-agenttype-guard: not blocking (undecidable) — verify agentType by hand:\n${lines}\n`
+    process.stderr.write(`${undecidableBlock(undecidable)}\n`);
+  }
+
+  if (suggestions.length) {
+    // Class 1 (Q2′): agentType absent but model present — never block, never set
+    // permissionDecision (that would bypass the user's own permission prompt). Only
+    // additionalContext, surfaced to the model as a suggestion.
+    process.stdout.write(
+      JSON.stringify({
+        hookSpecificOutput: {
+          hookEventName: 'PreToolUse',
+          additionalContext: suggestionBlock(suggestions),
+        },
+      }) + '\n'
     );
   }
 
