@@ -116,6 +116,15 @@ and `graphify path "<changed thing>" "<suspected dependent>"` for each risky pai
 edge lists into the readiness report as evidence — cited edges, not prose claims. Freshness
 check first (graphify-setup.md); a stale graph is not evidence.
 
+**`Blast-radius` computed and pasted for every phase that removes or changes an export** — a
+`git grep -c` for the changed symbol, **including `tests/`** (the same command shape the spec's
+own `Blast-radius:` field carries, `skills/sailes-spec/SKILL.md`), not the count the spec author
+already wrote down; graphify's edge list stands in when the graph exists and is fresh. A phase
+whose Blast-radius implies touching more than **~60% of the assigned role's `maxTurns`** in one
+phase → verdict **NOT-READY**, with a concrete split proposal (two phases, disjoint files) instead
+of a request to raise the turn budget — a phase that barely fits its budget has no room left for
+the fixes the gate will ask for.
+
 ### Phase 3 — Gap & completeness check
 Against the `sailes-spec` required sections: is anything missing or vague? Specifically — unresolved Open Questions, data model holes, integration contracts undefined, **no integration coverage / tests named**, security section absent for sensitive data, phases that leave the app broken mid-way, source-of-truth undefined for a sync.
 
