@@ -264,6 +264,37 @@ test('P5a-EDGE1: scriptPath naming a file that does not exist — exit 0 with a 
   assert.match(res.stderr, /could not read scriptPath/);
 });
 
+// --- Tester addition, wave2 (P5b.1): the hook is only real protection once it is WIRED. Derived
+// from spec "### P5b —" (P5b.1: "PreToolUse, matcher `Workflow`; suite w `npm test`") with the
+// implementation unread beyond the payload shape already established for P5a above. Frozen ID
+// W2-B11 — do not weaken or delete. ---
+
+test('W2-B11: hooks.json wires a PreToolUse entry, matcher "Workflow", to an existing guard file', () => {
+  const hooksJsonPath = path.join(__dirname, 'hooks.json');
+  const hooksConfig = JSON.parse(fs.readFileSync(hooksJsonPath, 'utf8'));
+  const preToolUse = hooksConfig.hooks && hooksConfig.hooks.PreToolUse;
+  assert.ok(Array.isArray(preToolUse), 'hooks.json has no hooks.PreToolUse array');
+
+  const workflowEntry = preToolUse.find((e) => e.matcher === 'Workflow');
+  assert.ok(workflowEntry, 'no PreToolUse entry has matcher "Workflow"');
+  assert.ok(Array.isArray(workflowEntry.hooks) && workflowEntry.hooks.length > 0,
+    'the "Workflow" PreToolUse entry has no hooks[] commands');
+
+  const command = workflowEntry.hooks[0].command || '';
+  assert.match(command, /workflow-agenttype-guard\.js/,
+    'the "Workflow" PreToolUse command does not reference workflow-agenttype-guard.js');
+
+  // The command is written as `node "${CLAUDE_PLUGIN_ROOT}/hooks/workflow-agenttype-guard.js"` —
+  // resolve the referenced filename against this repo (relative to hooks.json's own directory,
+  // since the command's path is always `hooks/<file>` under the plugin root) and confirm the file
+  // actually exists on disk, not just that the string is present.
+  const referenced = command.match(/(workflow-agenttype-guard\.js)/);
+  assert.ok(referenced, 'could not extract the guard filename from the command string');
+  const resolvedPath = path.join(__dirname, referenced[1]);
+  assert.ok(fs.existsSync(resolvedPath),
+    `command references "${referenced[1]}" but no such file exists at ${resolvedPath}`);
+});
+
 if (failures) {
   console.log(`\n${failures} failing`);
   process.exit(1);
