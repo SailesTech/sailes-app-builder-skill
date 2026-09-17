@@ -1,6 +1,6 @@
 # Eval: the lead dispatches a multi-phase spec as one Workflow script, with named roles and a single end gate
 
-Skill under test:   spec `.ai/specs/2026-09-16-workflow-first-orchestration.md` D2/D3/D5/D8/Q6,
+Skill under test:   spec `.ai/specs/implemented/2026-09-16-workflow-first-orchestration.md` D2/D3/D5/D8/Q6,
                     landed by phase P4 into `skills/sailes-bootstrap/workflow-orchestration.md`
                     (new) / `agents/team-lead.md` / `skills/sailes-bootstrap/agent-team-structure.md`
                     / `skills/sailes-implement/SKILL.md` (Subagent strategy).

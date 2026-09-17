@@ -6,7 +6,7 @@ upgrade-actionable: what a generated/adopted repo would now contain or do differ
 
 ## 1.35.0 — 2026-09-17 · Workflow as the execution engine
 
-Source: `.ai/specs/2026-09-16-workflow-first-orchestration.md`, from a feedback report on *Idealny
+Source: `.ai/specs/implemented/2026-09-16-workflow-first-orchestration.md`, from a feedback report on *Idealny
 Wzrok* plus a day measuring the Workflow harness. The framework had zero references to `agent()`,
 `agentType`, `StructuredOutput`, `resumeFromRunId` anywhere in `skills/`, `agents/`, `hooks/`: every
 script invented role, model, file split, turn budget and gate from scratch. Measured: cost is driven

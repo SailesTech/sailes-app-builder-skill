@@ -1,7 +1,7 @@
 # Running Sailes roles through Workflow — one source
 
 The **only** place that says how the lead drives the `Workflow` tool with Sailes roles. Spec
-`.ai/specs/2026-09-16-workflow-first-orchestration.md` (D1–D8, Q1–Q6). **Claude Code only (Q5)** —
+`.ai/specs/implemented/2026-09-16-workflow-first-orchestration.md` (D1–D8, Q1–Q6). **Claude Code only (Q5)** —
 Codex has no `Workflow` tool and no `agentType`/`StructuredOutput` equivalent; `codex-agents/parity.test.js`
 excludes these concepts from the Codex side explicitly rather than silently drifting.
 

@@ -561,7 +561,7 @@ test('--spec on the real F-numbered fixture (lead-dispatches-workflow eval) -> e
 });
 
 test('--spec on this repo\'s own spec 1.35.0 -> exit 0, 8 phases, 3 fale, P0 and P6 excluded', () => {
-  const specPath = path.join(REPO_ROOT, '.ai', 'specs', '2026-09-16-workflow-first-orchestration.md');
+  const specPath = path.join(REPO_ROOT, '.ai', 'specs', 'implemented', '2026-09-16-workflow-first-orchestration.md');
   const r = runSpec(specPath);
   assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
   assert.ok(/8 faz/.test(r.stdout), `expected 8 phases in stdout, got: ${r.stdout}`);
@@ -572,7 +572,7 @@ test('--spec on this repo\'s own spec 1.35.0 -> exit 0, 8 phases, 3 fale, P0 and
 // ================================================================================================
 // tester-derived behavior IDs (spec 1.35.0 P2) — .ai/test-plans/2026-09-16-workflow-first-P2.md
 //
-// Derived from `.ai/specs/2026-09-16-workflow-first-orchestration.md` sections "### Narzędzia" and
+// Derived from `.ai/specs/implemented/2026-09-16-workflow-first-orchestration.md` sections "### Narzędzia" and
 // "### P2 —" with the implementation UNREAD, before the tests above (be-dev's own) were opened.
 // Fixture shapes and shared helpers are reused from the section above for consistency, but every
 // case here targets a partition named in the frozen plan under its own ID — added, not weakened or
@@ -715,7 +715,7 @@ test('P2-B6: "## Fazy" present but NO phase anywhere carries an "Owns:" table at
 });
 
 test('P2-B7: real repo spec 1.35.0 -> exit 0, 8 phases, 3 fale, P0 and P6 named as excluded (acceptance, Done-when)', () => {
-  const specPath = path.join(REPO_ROOT, '.ai', 'specs', '2026-09-16-workflow-first-orchestration.md');
+  const specPath = path.join(REPO_ROOT, '.ai', 'specs', 'implemented', '2026-09-16-workflow-first-orchestration.md');
   const r = runSpec(specPath);
   assert.strictEqual(r.status, 0, `expected exit 0, got ${r.status}\nstdout: ${r.stdout}\nstderr: ${r.stderr}`);
   assert.ok(/8 faz/.test(r.stdout), `expected 8 phases in stdout, got: ${r.stdout}`);

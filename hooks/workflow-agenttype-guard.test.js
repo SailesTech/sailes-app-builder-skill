@@ -69,7 +69,7 @@ test('agent() with no second argument at all — blocked', () => {
   assert.match(res.stderr, /agentType/);
 });
 
-// Q2′ (2026-09-17, .ai/specs/2026-09-16-workflow-first-orchestration.md, decision row Q2′):
+// Q2′ (2026-09-17, .ai/specs/implemented/2026-09-16-workflow-first-orchestration.md, decision row Q2′):
 // agentType absent but model present is no longer a block — it is a deliberate model override
 // (P5b.2 measured 5 of 6 real blocked scripts already carried an explicit model), so the hook
 // allows the call and surfaces a role suggestion via stdout additionalContext instead.
@@ -323,7 +323,7 @@ test('W2-B11: hooks.json wires a PreToolUse entry, matcher "Workflow", to an exi
     `command references "${referenced[1]}" but no such file exists at ${resolvedPath}`);
 });
 
-// --- Q2′ additions (2026-09-17, .ai/specs/2026-09-16-workflow-first-orchestration.md, decision
+// --- Q2′ additions (2026-09-17, .ai/specs/implemented/2026-09-16-workflow-first-orchestration.md, decision
 // row Q2′): new partitions this decision introduces — class 2 (neither agentType nor model),
 // the mixed-file precedence rule, and the stdout additionalContext JSON shape. ---
 
