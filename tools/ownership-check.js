@@ -252,11 +252,13 @@ function extractSection(text, headingText) {
   return lines.slice(start, end).join('\n');
 }
 
-/** Splits a `## Fazy` section body into per-phase line arrays, keyed by phase id (`P0`, `P5a`, …),
- *  in declaration order. A phase begins at a `### <id> — …` header; everything up to the next such
- *  header (or the end of the section) is that phase's body. */
+/** Splits a `## Fazy` section body into per-phase line arrays, keyed by phase id (`P0`, `P5a`,
+ *  `F1`, `F3b`, …), in declaration order. A phase begins at a `### <id> — …` header, where `<id>`
+ *  is `P` or `F` followed by digits and an optional trailing lowercase letter (client specs number
+ *  phases `F1..F5`, this repo's own specs use `P0..P8` — same grammar, different letter); everything
+ *  up to the next such header (or the end of the section) is that phase's body. */
 function parsePhaseBodies(faziSection) {
-  const phaseHeaderRe = /^###\s+(P[0-9]+[a-z]?)\s+—/;
+  const phaseHeaderRe = /^###\s+([PF][0-9]+[a-z]?)\s+—/;
   const lines = faziSection.split('\n');
   const phases = new Map();
   let current = null;
@@ -450,7 +452,7 @@ function checkSpec(specFile) {
   const phaseBodies = parsePhaseBodies(faziSection);
   if (phaseBodies.size === 0) {
     console.error(
-      `ownership-check: ${specFile} has a "## Fazy" section but no "### P<n> — …" phase headers under it`
+      `ownership-check: ${specFile} has a "## Fazy" section but no "### P<n> — …" or "### F<n> — …" phase headers under it`
     );
     process.exit(1);
   }
