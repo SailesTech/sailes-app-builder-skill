@@ -43,3 +43,12 @@ Artefakty: `rerun{1,2,3}-script.js`, `rerun{1,2,3}-message.md`.
 | **Wynik** | **PASS** | **PASS** | **PASS** |
 
 **Werdykt po poprawce: PASS 3:0** (przed poprawką 2:1). Nadal stand-in sonnet, nie Opus.
+
+## Zastrzeżenie o nośniku (dopisane 2026-09-17, metoda `sailes-eval-runner` krok 2)
+
+Oba podejścia użyły **nazwanej roli** `sailes-app-builder:team-lead` (z nadpisaniem `model: 'sonnet'`), nie stand-ina
+`general-purpose`. Plugin serwuje definicję roli z `main` (1.34.0), więc prompt systemowy agenta niósł `team-lead.md`
+w wersji 1.34.0, a agent dodatkowo czytał z drzewa roboczego `team-lead.md`, `workflow-orchestration.md` i
+`sailes-implement/SKILL.md` w wersji 1.35.0. Werdykt ocenia więc zachowanie przy obu wersjach w kontekście naraz, a nie
+czysty tekst 1.35.0. Po wydaniu 1.35.0 (gdy `main` = ten tekst) nazwana rola i stand-in się zrównają — wtedy
+ponowny przebieg na nazwanej roli da wynik runtime.
