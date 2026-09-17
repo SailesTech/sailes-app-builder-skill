@@ -427,6 +427,36 @@ test('no INVARIANTS entry requires a Claude-only concept from the Codex twin (Q5
   }
 });
 
+// ---------------------------------------------------------------- Tester addition, wave2 (P4.6 inverse case)
+
+/**
+ * W2-B9-INV — inverse case for Q5. The check above ("no INVARIANTS entry requires a Claude-only
+ * concept") proves the list's own SOURCE never encodes such a requirement — a static grep over the
+ * regex text. This test proves the same thing operationally, on a real disk artifact, following
+ * this file's own established preference for fixture-driven proof over synthetic strings (see
+ * `PRE_F5_WORDING` and the two "FIRES on the old wording" tests above): the real
+ * `codex-agents/team-lead.toml` twin carries NONE of the Claude-only concepts at all, and every
+ * `team-lead` invariant nonetheless matches it. A Claude-only concept being absent from a `.toml`
+ * twin is not a parity failure — it is not demanded. Frozen ID — do not weaken or delete.
+ */
+test('W2-B9-INV: team-lead.toml carries no Claude-only concept, and every team-lead invariant still passes (Q5, inverse)', () => {
+  const toml = codexText('team-lead');
+  for (const concept of CLAUDE_ONLY_CONCEPTS) {
+    assert.ok(
+      !toml.includes(normalize(concept)),
+      `codex-agents/team-lead.toml unexpectedly mentions Claude-only concept "${concept}" — this ` +
+        `test's premise (the twin has none of them) no longer holds; re-derive the inverse proof`
+    );
+  }
+  for (const [label, re] of INVARIANTS['team-lead']) {
+    assert.ok(
+      re.test(toml),
+      `team-lead invariant "${label}" fails against the real twin — note this is unrelated to the ` +
+        `absent Claude-only concepts above; a real regression here is a separate defect`
+    );
+  }
+});
+
 // ---------------------------------------------------------------- shape checks that cost nothing
 
 test('the rewritten commit invariants REJECT the pre-F5 wording — the rewrite is real', () => {
