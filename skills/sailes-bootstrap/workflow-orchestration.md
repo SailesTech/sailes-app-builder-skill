@@ -42,7 +42,7 @@ time); a hybrid (gate after risky phases only) landed at **$2.53 / 11.4 min** �
 A's time. All three scored the hidden test identically (24/24) *when the implementation itself was
 already correct* — **detectability and the cost of a late-caught defect were not measured** in this
 round; round 2 is deferred by human decision. Real-wave evidence
-(`wf_176ebaa2-236`): gates were 55% of total workflow cost, `tester` ≈ $1.7/phase, `checker` ≈ $0.5/phase
+(`wf_176ebaa2-236`): gates were 55% of total workflow cost, `tester` ≈ $1.7/phase, `checker` ≈ $0.5/phase (per-agent costs in `.ai/runs/2026-09-16-workflow-first.md` § Koszt bramek fali 1)
 — consistent with per-phase gates being the expensive arm, not the cheap one.
 - **Known risk of end-gates:** a cross-phase regression surfaces late. On `wf_4eb1edf7-db8`, real
   regressions from an earlier phase (deleted UI leaving 3 tests red) were not caught until checker's
@@ -55,7 +55,7 @@ round; round 2 is deferred by human decision. Real-wave evidence
 | Rule | Text to inject | Measured reason |
 |---|---|---|
 | Sync to base | `git merge --ff-only <full lead SHA>` first, `git log --oneline -1` to confirm | worktree base is the **default branch** (`main`), never the lead's own branch — 6/6 worktrees in one run started from `main`, not the feature branch (P0.2a) |
-| No destructive reset | Never `git reset --hard`; use `git merge --ff-only` for the sync above | `git reset --hard` is blocked **non-deterministically** by the auto-mode classifier ("Irreversible Local Destruction") — 5 of 6 callers blocked in one run, but only 0 of 3 blocked (3 of 3 let through) in another, while `git merge --ff-only <sha>` passed 6/6 across both (P0.2b) |
+| No destructive reset | Never `git reset --hard`; use `git merge --ff-only` for the sync above | `git reset --hard` is blocked **non-deterministically** by the auto-mode classifier ("Irreversible Local Destruction") — 5 of 6 callers blocked in one run, but only 0 of 3 blocked (3 of 3 let through) in another, while `git merge --ff-only <sha>` passed 6/6 in the rerun `wf_3163fdd8-fb5` (P0.2b) |
 | Turn budget | "At ~70% of your role's `maxTurns`, commit `WIP:` and immediately return `blocked` via `StructuredOutput`" | `maxTurns` is enforced **inside** Workflow, not just advisory — one phase stopped at exactly 140 turns with no `StructuredOutput` and $6.47 spent finding out; a prompt-level "~70 calls" limit was separately ignored at 157 calls. The spec-time backstop is `Blast-radius`: a phase whose blast radius implies >~60% of the role's `maxTurns` is split in the spec, not patched with a bigger budget |
 | Context economy | Read only the named spec sections/files; grep with line ranges; never read a whole large file you don't edit; never run the full suite mid-phase | same failure class as the turn-budget one — a phase that reads broadly burns the same budget it needs for the actual edit |
 

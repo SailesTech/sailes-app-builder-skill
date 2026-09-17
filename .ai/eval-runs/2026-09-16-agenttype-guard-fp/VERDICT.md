@@ -29,7 +29,7 @@ an arithmetic slip that did not affect the FP=0 conclusion below.
 object is a literal missing the `agentType` key (verified by reading the flagged line in each
 file below). No human override decision was needed for any blocked script.
 
-The 8 "undecidable" scripts (exit 0, note only, never blocked) were not fully hand-verified for
+The 9 "undecidable" scripts (exit 0, note only, never blocked) were not fully hand-verified for
 whether `agentType` is actually present inside the referenced variable — the hook itself
 documents this class as statically unresolvable, and P5a.2 already covers it as an accepted
 non-blocking gap, not a false positive to adjudicate here.

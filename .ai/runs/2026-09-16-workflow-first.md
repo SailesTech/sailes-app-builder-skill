@@ -46,6 +46,16 @@ ownership:
 
 Integracja (lider, `git merge --no-ff` końcowych SHA): P1 `263ce12`, P2 `2b2a585`, P5a `7cff0f0`, poprawki `5d1e14f`/`eba28a4` → `93bf7b3`.
 
+## Koszt bramek fali 1 (`wf_176ebaa2-236`, z transkryptów, ostatnie `usage` per `message.id`, sonnet 2/10)
+
+| Agent | Tury | USD | Min |
+|---|---|---|---|
+| be-dev P1 / P2 / P5a / P5a fix | 103 / 49 / 24 / 25 | 3.06 / 1.80 / 0.66 / 0.27 | 13.2 / 11.6 / 4.6 / 1.4 |
+| tester P1 / P2 / P5a | 61 / 52 / 57 | 1.80 / 1.84 / 1.57 | 7.7 / 9.1 / 8.5 |
+| checker P1 r1 / P2 r1 / P5a r1 / P5a r2 | 33 / 33 / 24 / 12 | 0.64 / 0.55 / 0.47 / 0.34 | 3.8 / 3.1 / 2.7 / 2.6 |
+
+Budowa $5.79 · bramki $7.22 (55%) · razem $13.01.
+
 ## Modele (log także nie-nadpisań)
 - Fala 1, poprawki, fala 2: be-dev / tester / checker — domyślne z roli (sonnet), bez nadpisań.
 - P0.4 ramię A: `model: 'haiku'` na `be-dev` — pomiar A/B (Q4). P0.1: `effort: low|high` na `checker` — pomiar.
