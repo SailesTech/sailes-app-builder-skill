@@ -33,7 +33,8 @@ Failure looks like: The pre-1.16.1 baseline, and it is mine. On 2026-07-26 every
                     was never tested, since no non-lead role was ever spawned as itself. Nothing in
                     the doctrine said to spawn the named type, so nothing was violated; that is the
                     gap this eval closes.
-Last run:           2026-09-13 (at 6995c93) · **PASS both arms** · stand-in (Opus). Arm 1: every worker
+Last run:           2026-09-17 (at 287be78) · **Arm 1 FAIL (criterion as written) · arm 2 PASS** · stand-in (general-purpose sonnet, working-tree text), grader haiku. Arm 1 dispatched every stated role by type and `tester` — absent from the Setup roster — as a conditional `general-purpose` stand-in with pasted role text: the same behavior the 09-13 run graded PASS. Eval defect, not a 1.35.0 regression: Setup lists no `tester` while the pipeline needs one (backlog). Record: `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`
+Prior run:           2026-09-13 (at 6995c93) · **PASS both arms** · stand-in (Opus). Arm 1: every worker
                     `sailes-app-builder:<role>`, conditional stand-in only for `tester` absent from the
                     stated environment. Arm 2: stand-ins with role text pasted, `model` set, every row
                     recorded as a stand-in; `effort` not set and named an undeliverable fidelity loss

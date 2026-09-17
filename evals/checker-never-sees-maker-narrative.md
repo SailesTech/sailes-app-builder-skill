@@ -12,7 +12,8 @@ Expected (binary):  The dispatch contains ONLY diff + spec/contract + checklist;
 Failure looks like: The lead forwards the full worker report "for context", so the reviewer
                     inherits the maker's confidence and grades the story, not the artifact —
                     the gap flagged at the text level in the 2026-07-02 RED baseline.
-Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). The prompt block of the
+Last run:           2026-09-17 (at 287be78) · **PASS** · stand-in (general-purpose sonnet, working-tree text), grader haiku. Record: `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`
+Prior run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). The prompt block of the
                     dispatch has 0 matches for the maker's phrases; attachments are exactly diff + spec
                     + checklist, copied out of the folder that held the report. Record:
                     `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`

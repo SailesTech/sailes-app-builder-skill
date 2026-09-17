@@ -68,7 +68,8 @@ Notes:              Grades the **spawn plan**, not the runtime, so it is runnabl
                     door by `lead-delegates-instead-of-bulk-coding`; this eval grades only what a
                     spawn carries.
 Raw return:         `.ai/eval-runs/2026-07-31-sailerem-lessons/worktree-mandate.md`
-Last run:           2026-09-13 (at 6995c93) · **PASS all three arms** · stand-in (Opus), spawn plans.
+Last run:           2026-09-17 (at 287be78) · **PASS all three arms** · stand-in (general-purpose sonnet, working-tree text), grader haiku. Record: `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`
+Prior run:           2026-09-13 (at 6995c93) · **PASS all three arms** · stand-in (Opus), spawn plans.
                     Arm 1: `be-dev` and the single-file `tester` both `isolation: worktree`, `checker`
                     none, `qa` lock. Arm 2: explorers without worktree. Arm 3: `qa` takes `ENV-LOCK`,
                     migration held. Finding: `checker`/`qa` must deliver a report file with no `Write`

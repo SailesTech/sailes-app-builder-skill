@@ -74,9 +74,8 @@ Budowa $5.79 · bramki $7.22 (55%) · razem $13.01.
 - (brak — `npm test` na bazie do uruchomienia przez `qa` w P6)
 
 ## Co zostało
-- **Fala 2 od nowa** (skrypt: `~/.claude/projects/-home-charlie-Work-Internal-sailes-app-builder-skill/a905693a-d478-428c-9929-031dee83c6f5/workflows/scripts/sailes-1350-wave2-wf_3d65db17-b38.js`, baza `93bf7b3`): P3, P4a, P4b od zera; P5b jako dokończenie od `30de3d3` (sync `git merge --ff-only 30de3d3…`). Lider uruchamia z cwd w repo skilla.
-- P5b Human-STOP: człowiek akceptuje wskaźnik fałszywych pozytywów hooka.
-- Eval P4.7: 3 przebiegi.
-- P6: pełne `npm test` przez `qa`, stemple 1.35.0, CHANGELOG, docs-delta, zastąpiony spec do `archived/`, backlog,
-  `eval-status.js`; push na `main` tylko za zgodą.
-- Sprzątanie: worktree `.claude/worktrees/wf_*` i gałęzie `worktree-wf_*` po integracji; pliki `.claude/status/*` z przebiegów.
+- Wszystkie fazy P0–P6 zrobione i zintegrowane; `npm test` exit 0; evale P6 w `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`.
+- Czeka na człowieka: receipt docs-delta (`.ai/docs-deltas/2026-09-17-release-1.35.0-notes.md`, dług archify przyjęty) →
+  `git mv` specu do `implemented/` → merge `--no-ff` do `main` i push (= deploy) za zgodą.
+- Po wydaniu: ponowić eval P4.7 na nazwanej roli (main = tekst 1.35.0); sprzątanie worktree `.claude/worktrees/wf_*`,
+  gałęzi `worktree-wf_*`, `wip/1.35.0-p5b`, plików `.claude/status/*`; spec B.

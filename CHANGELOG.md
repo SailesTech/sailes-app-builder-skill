@@ -51,8 +51,10 @@ of 5), including non-Sailes scripts such as voxtype's. The system still has to w
 stack carries no Sailes role for the task, so: a call with `model` set but no `agentType` now passes
 with a strong role suggestion (`additionalContext`, never `permissionDecision`, so a user's own
 approvals are never bypassed); a call with **neither** `agentType` nor `model` still blocks (`exit
-2`), because it silently inherits the lead's Opus. **Not yet wired into `hooks.json`** — P5b (wiring
-plus the false-positive measurement) is still open.
+2`), because it silently inherits the lead's Opus. **Wired in `hooks/hooks.json`** (`PreToolUse`, matcher `Workflow`).
+Re-measured under Q2′ on 19 scripts: 2 blocked (both true positives), 4 allowed with a suggestion, 11 undecidable
+(note only), 2 silent (`.ai/eval-runs/2026-09-16-agenttype-guard-fp/VERDICT.md`). The `PreToolUse` payload shape for
+`Workflow` is unmeasured (P0.5); the guard fails open when neither `script` nor `scriptPath` is present.
 
 **6. Model-resolution order corrected to v2.1.251+.** `team-lead.md` and `agent-team-structure.md`
 said `CLAUDE_CODE_SUBAGENT_MODEL` → param → frontmatter; the documented order since Claude Code
@@ -86,8 +88,18 @@ Evidence: `.ai/eval-runs/2026-09-16-workflow-facts/`, `.ai/eval-runs/2026-09-16-
   `## Plan wykonania` for specs written from 1.35.0 on — existing live specs are not retrofitted;
 - `tools/ownership-check.js --spec` and `tools/token-report.js --cost` workflow-aware layout — both
   invoked explicitly by a lead, neither wired into an existing standing gate;
-- `hooks/workflow-agenttype-guard.js` — the hook file ships, but it is **not yet in `hooks/hooks.json`**
-  in this release; an adopting repo gets the file, not the block.
+- `hooks/workflow-agenttype-guard.js` and its `PreToolUse` block in `hooks/hooks.json` — plugin-level, active on every
+  machine with the plugin; nothing to copy into a client repo.
+
+**Evals at release** (`.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`): 12 scenarios whose rules 1.35.0 touched were
+re-run (stand-in sonnet, grader haiku) — 9 PASS; 3 FAIL as written, none a 1.35.0 regression: two known eval defects
+(`lead-spawns-named-roles-not-general-purpose` arm 1, `lead-picks-the-lane-from-the-tier` arm B, same behavior graded
+PASS on 09-13) and `lead-verifies-status-against-worktree` (arm 1 known; arm 3 reproduced on the 1.34.0 text).
+One real regression was caught and fixed before release: the new `Owns:` "Wymuszony przez" column did not require the
+forcing `Done-when` clause (`done-when-covers-the-allowed-files-list` FAIL → fixed `ec34790` → PASS).
+New eval `lead-dispatches-workflow-with-roles`: PASS 3:0 after one doctrine fix (2:1 before). The remaining 24 STALE
+scenarios are an accepted exception by the owner (2026-09-17): their files changed only by additive pointers and
+notes, not the rules they grade.
 
 ## 1.34.0 — 2026-09-13 · measure before the code, spend the gates by risk
 

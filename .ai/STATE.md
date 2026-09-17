@@ -77,7 +77,9 @@ Last-commit: b8840d1
     Q1–Q6, pre-implement READY-WITH-FIXES, P0 measured, wave 1 (P1 token-report workflow layout + prefix price table,
     P2 ownership-check `--spec` with waves, P5a agentType guard hook) integrated with gate verdicts, A/B/C gate-placement
     experiment → D8.
-  - Interrupted: wave 2 (`wf_3d65db17-b38`) died with the session — only P5b left `WIP` `30de3d3`. Relaunch per run log.
+  - 2026-09-17: wave 2 re-run and integrated; Q2′ hook (suggest, block only without agentType and model); P2 accepts F<n>;
+    P6 done (stamps 1.35.0, CHANGELOG, backlog, docs-delta content); eval P4.7 PASS 3:0; 12 at-risk evals re-run — one real
+    regression (Owns column) caught and fixed. Waiting for the owner: merge to `main`.
   - Open next: wave 2 → P5b Human-STOP (hook false-positive rate) → eval P4.7 × 3 → P6 (qa full `npm test`, stamps
     1.35.0, CHANGELOG, docs-delta receipt, superseded spec to `archived/`, backlog, eval-status) → push to `main` only
     with the owner's yes. Then spec B (diagnose/hosting from the same feedback).

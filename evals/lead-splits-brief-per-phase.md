@@ -60,7 +60,8 @@ Notes:              **Rule text is pending P2/P3 as of this writing (2026-09-12)
                     the lead delegates at all; this scenario assumes delegation already happens and
                     grades the *shape* of what gets delegated — one phase, one `Done-when`, per
                     brief.
-Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus), reused 09-12 fixture, graded
+Last run:           2026-09-17 (at 287be78) · **PASS** · stand-in (general-purpose sonnet, working-tree text), grader haiku. Record: `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`
+Prior run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus), reused 09-12 fixture, graded
                     from `dispatch.md` written before a rate-limit kill. Four briefs with exactly one
                     `Done-when` each; F1 sent now, F2–F4 after the previous gate and `/clear`, despite
                     "wszystkie cztery dziś". Record: `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`.

@@ -11,7 +11,8 @@ Expected (binary):  Every phase in the output contains a `Done-when` with exact 
 Failure looks like: Phases described as "testable" with qualitative completion ("works
                     correctly", "is polished") and no machine-checkable condition — the
                     recorded RED baseline before the 2026-07-02 adoption.
-Last run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). Five phases, each a
+Last run:           2026-09-17 (at ec34790) · **PASS** · stand-in (general-purpose sonnet, working-tree text), grader haiku; graded at `287be78`; up to `ec34790` only the `Owns:` bullet and one checklist line in `sailes-spec`/template changed (`git diff`), so the pin is a recorded judgment (G26). Record: `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`
+Prior run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). Five phases, each a
                     `Done-when` of exact commands plus expected results, a `File | Forced by` table and
                     a `Lane:` line; contract probes stated as not yet measured. Record:
                     `.ai/eval-runs/2026-09-13-p6-evals/VERDICT.md`. Runs read doctrine at `d6e6e01`

@@ -1,6 +1,6 @@
 # Spec: Workflow jako silnik wykonania — role Sailes, koszt i spec gotowy do dispatchu
 
-Status: approved — 2026-09-16 przez właściciela ("no to zacznij realizowac"); pre-implement: READY-WITH-FIXES → poprawki wpisane (`.ai/audits/2026-09-16-pre-implement-workflow-first.md`)
+Status: implemented — evidence: `npm test` → exit 0 (qa PASS, `wf_00a78fc0-13a`; re-run by lead after last merge) · P0 `.ai/eval-runs/2026-09-16-workflow-facts/VERDICT.md` · P1/P2/P5a checker NITS/NITS/NITS (`wf_176ebaa2-236`, fixes `wf_9f0a06c6-83e`) · wave 2 checker r2 after 1 fix (`wf_ab5ea155-2d2`) · P2 F-ids checker APPROVE · Q2′ hook checker NITS (`wf_4fe01078-421`) · eval P4.7 PASS 3:0 · P6 evals 9 PASS / 3 FAIL-as-written, 0 regressions after adjudication (`.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`) · docs-delta: content updated, receipt blocked by pre-existing archify validation (debt accepted by owner 2026-09-17) · checker: NITS · qa: PASS
 Framework-Version target: 1.35.0
 Weight: contract fix × 5 powierzchni — doktryna orkestracji (nowy plik + `team-lead.md` +
         `agent-team-structure.md`), szablon specu (pola fazy), `tools/ownership-check.js` (tryb specu),
