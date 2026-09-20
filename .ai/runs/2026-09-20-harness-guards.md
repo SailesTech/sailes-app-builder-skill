@@ -106,9 +106,66 @@ z payloadu z `cwd`, tak jak wysyła go Claude Code. Defekt był w mojej sondzie,
    z 2026-08-06. `team-lead.md:104` mówi, że plik znika razem z wpisem w run logu — nie znikał.
    Niniejszy przebieg zwija i kasuje swoje pięć; reszta zostaje jako cudzy dług.
 
+## P5 — evale (workflow `wf_6774ae16-680`, 12 ramion stand-in, 0 błędów)
+
+Zakres wybrany przez człowieka po pomiarze: **moje cztery + trzy nowe**, dług 1.35.0 do backlogu.
+Wynik: **6 PASS, 3 INCONCLUSIVE, 1 BLOCKED, 0 FAIL**. Pełny zapis z uzasadnieniami:
+`.ai/eval-runs/2026-09-20-harness-guards/VERDICT.md`.
+
+Najważniejsze, bo to jedyny twardy dowód, że A1 robi cokolwiek: na **tym samym diffie** nowy tekst
+`checker` wyniósł nieumocowany styl poza listę findingów („Other notes — non-blocking"), a tekst
+z 1.35.0 wpisał `Naming: doWork / readJob` jako **finding #3**. Oba ramiona znalazły te same dwa realne
+defekty, więc różnica jest przypisywalna doktrynie.
+
+Trzy INCONCLUSIVE, każde z powodem i przepisem na następny przebieg — w tym **jeden mój błąd
+w autorstwie**: rozszerzenie ramienia overfire wymagało APPROVE od fixture'a, o którym z zapisu
+z 2026-09-13 wiadomo, że niesie realny defekt uprawnień. Przeredagowane, nie wyrzucone.
+
+**Warunek zamknięcia P5 spełniony:** lista nieświeżych evali po zmianie jest **bajtowo identyczna**
+z listą sprzed gałęzi (`diff` na wyjściach `eval-status.js` w odłączonym worktree na `1fc781e`).
+Żaden eval nie jest nieświeży z powodu tej zmiany.
+
+## P6 — dokumentacja i stemple
+
+| Krok | Wynik |
+|---|---|
+| Pięć stempli na 1.36.0 | `node release-hygiene.test.js` → exit 0 |
+| `AGENTS.md`: liczba zestawów | 22 → **25** (naprawa dryfu o jeden + dwa nowe) |
+| `AGENTS.md`: opis hooków | dodany — trzy hooki, dwa blokujące, ich zasięgi i pomiar `!` |
+| CHANGELOG | wpis 1.36.0 z jawnym „czego to nie ustala" |
+| `STATE.md`, `lessons.md` | zaktualizowane (patrz niżej) |
+| Delta dokumentacji | **CONTENT UPDATED, RECEIPT BLOCKED** — nie SKIP |
+| `npm test` | exit 0, 25 zestawów |
+
+**Delta dokumentacji, `docs-author`, commit `ec2df12`** (deklaracja zwinięta stąd, plik usunięty):
+base `d0b641c`, `outcome: done`, `touched` zgodne z `git diff --stat`. Zaktualizował kartę „Framework
+Repo" w `architecture.json` o trzy hooki `PreToolUse` z ich zasięgami i wspólnym mechanizmem
+`stderr` + `exit(2)`. Cztery pozostałe diagramy zostawił nietknięte, każdy z dowodem (grep na nazwy
+nowych hooków → brak trafień; poziom abstrakcji już absorbuje tę zmianę).
+
+**Receipt jest zablokowany i powód jest prawdziwy, nie przepisany.** `archify validate --quality
+showcase` → exit 1 na `composition/desktop-readability`; `archify deliver` odmówił nadpisania;
+`archify compare` nie wyprodukował receiptu, bo **sama baza nie przechodzi tego samego floora**.
+`docs-author` odtworzył tę porażkę na **niezmodyfikowanej bazie merge** i na trzech diagramach,
+których ta delta nie dotyka — czyli to dług layoutowy otwarty od 1.33.0, nie coś, co blokuje 1.36.0.
+`archify doctor` → 14/14 `[ok]`, wersja `2.17.0-dev.1`. To dlatego wynik brzmi **RECEIPT BLOCKED,
+a nie SKIP**: narzędzie zadziałało w całości.
+
+## Znalezisko, które prawie weszło do wydania jako nieprawda
+
+`.ai/STATE.md:20` niosło pod **Verified facts** zdanie „This machine has no `graphify`", zmierzone
+2026-09-13. **`graphify 0.9.61` jest zainstalowany.** Gdybym oparł SKIP delty na tym zdaniu — a spec
+wprost dopuszczał SKIP „z cytowanym powodem: brak graphify" — do rekordu wydania trafiłby fałszywy
+powód. Złapane przez własny pomiar przed dispatchem; `docs-author` potwierdził niezależnie.
+Druga połowa tego samego zdania (brak MCP `chrome-devtools`) **nadal jest prawdziwa** — i to jest
+właśnie kształt, który jest groźny: wpis w połowie nieaktualny wygląda na zweryfikowany.
+Poprawione w `STATE.md` z obiema datami, lekcja w `.ai/lessons.md`.
+
 ## Pozostało
 
-- **P5 — evale:** trzy nowe + osiem re-runów unieważnionych przez P1/P2. Blokuje lidera.
-- **P6 — wydanie:** `AGENTS.md` (22 → 25 zestawów, lista hooków), pięć stempli 1.36.0, CHANGELOG,
-  docs-delta (receipt albo SKIP z powodem: brak `graphify` na tej maszynie), backlog. Blokuje lidera.
-- Merge na `main` = deploy na każdą maszynę z pluginem. Decyzja człowieka.
+- **Merge na `main` — decyzja człowieka.** Push na `main` to deploy na każdą maszynę z pluginem, bez
+  kroku instalacji i bez potwierdzenia. Od tego momentu dwa nowe hooki blokujące działają wszędzie.
+- Spec zostaje `in-progress` w katalogu głównym do czasu merge'a; wtedy `Status: implemented`
+  z wklejonymi werdyktami i `git mv` do `implemented/`.
+- Sześć wierszy w backlogu z tego przebiegu, w tym dwa wymagające decyzji człowieka: niescalona delta
+  1.34.0 w osieroconym worktree i przebieg czyszczący 24 zaległe piny evali.

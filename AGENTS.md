@@ -1,7 +1,7 @@
 # Agents Guidelines — sailes-app-builder framework repo
 
 > Single source of truth for how agents work in **this** repo. CLAUDE.md imports this via @AGENTS.md.
-> Framework-Version: 1.35.0
+> Framework-Version: 1.36.0
 >
 > This repo is not a product — it is the framework that generates and governs product repos.
 > `skills/sailes-bootstrap/agents-md-template.md` is what a *client* repo gets; this file is what
@@ -100,7 +100,17 @@ The live plugin does **not** run from this working directory. It runs from a clo
    the human answers (`skills/sailes-bootstrap/spec-writing-template.md`).
 
 ## Verification
-- `npm test` — twenty-two suites: hook tests (`hooks/*.test.js`), the seven **governance tools**
+- **Three hooks ship with the plugin, and two of them BLOCK.** `framework-version-check` and
+  `workflow-router` only ever advise. The blockers are `workflow-agenttype-guard` (`PreToolUse` on
+  `Workflow`), `block-no-verify` (`PreToolUse` on `Bash`, **every repo on the machine** — no escape
+  hatch, deliberately) and `toolchain-guard` (`PreToolUse` on `Edit|Write|MultiEdit`, **Sailes repos
+  only**, released by `SAILES_TOOLCHAIN_GUARD=off`). All three block the house way: `stderr` plus
+  `process.exit(2)`, never `permissionDecision`, which would bypass the human's own permission prompt.
+  Measured 2026-09-20 and worth knowing before you reason about scope: a command the human types with
+  the `!` prefix does **not** go through the `Bash` tool, so no `PreToolUse` hook sees it — these
+  constrain agents and subagents, not the person at the keyboard.
+- `npm test` — twenty-five suites: hook tests (`hooks/*.test.js`, now including
+  `block-no-verify.test.js` and `toolchain-guard.test.js`), the seven **governance tools**
   (`tools/{sync-blocks,ownership-check,worker-status,mcp-toolnames-check,business-logic-check,
   deployed-surface-check,contract-probe-check}.test.js`, the last one with its frozen suite
   `contract-probe-check.frozen.test.js` — `business-logic-check` also asserts byte-parity between the

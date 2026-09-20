@@ -6,6 +6,28 @@
 > `evals/` scenario over more prose.
 
 ## Lessons
+### 2026-09-20 — a `Verified facts` entry decays silently, and a stale one nearly became a release record
+
+- **Context:** the 1.36.0 release gate reached its docs-delta step, whose spec allows a receipt **or** a
+  recorded SKIP with a cited reason. `.ai/STATE.md` carried, under **Verified facts**, the line "This
+  machine has no `graphify` and no chrome-devtools MCP", measured 2026-09-13.
+- **Problem:** `command -v graphify` resolves and prints `graphify 0.9.61`. The fact had been true when
+  written and had quietly stopped being true. It was one step from being copied into
+  `.ai/docs-deltas/2026-09-20-release-1.36.0-notes.md` as the reason a release skipped its documentation
+  step — a **false reason inside a release record**, which is worse than a missing one because it reads
+  as settled and nobody re-checks a cited fact. The chrome-devtools half of the same sentence was still
+  true, which is exactly what makes this shape dangerous: half-stale entries look verified.
+- **Rule:** **re-measure a `Verified facts` entry before citing it** in a release record, a SKIP, a spec
+  decision or a brief. The entry records what was true on the day it was written, not what is true now;
+  `Verified` is a provenance claim, never a freshness claim. When re-measuring contradicts it, correct it
+  in place with both dates and say which half changed — do not delete it, because the decay is the
+  finding. The same discipline the framework already applies to a mocked boundary ("a mock proves the
+  code, never the system") applies to its own memory: a remembered measurement proves the past, never
+  the machine.
+- **Applies-to:** `.ai/STATE.md`, `agents/team-lead.md` (the lead reads STATE at session start and cites
+  it), `skills/sailes-docs` SKIP protocol, `skills/sailes-eval-runner` (step 3 — assert the fixture
+  creates the condition, which is the same rule one layer down).
+
 
 ### 2026-09-16 — a cost parser that keeps the first usage line per message understates output ~6×
 
