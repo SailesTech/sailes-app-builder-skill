@@ -163,6 +163,30 @@ test('a block never carries anything on stdout', (dir) => {
   assert.strictEqual(res.stdout, '');
 });
 
+// --- tester-added edge cases (test plan .ai/test-plans/2026-09-20-harness-guards.md) ------------
+
+test('P4-EDGE-1: tsconfig.build.json in a Sailes repo — blocked (tsconfig* wildcard, not just the bare name)', (dir) => {
+  mkrepo(dir);
+  const target = path.join(dir, 'tsconfig.build.json');
+  const res = run(edit(dir, target));
+  assert.strictEqual(res.status, 2, `stderr: ${res.stderr}`);
+  assert.match(res.stderr, /KEY DECISION/);
+});
+
+test('P4-EDGE-2: relative file_path (.eslintrc.json, cwd=repo root) in a Sailes repo — blocked', (dir) => {
+  mkrepo(dir);
+  const res = run({ tool_name: 'Edit', cwd: dir, tool_input: { file_path: '.eslintrc.json' } });
+  assert.strictEqual(res.status, 2, `stderr: ${res.stderr}`);
+});
+
+test('P4-EDGE-3: repo with .ai/ but no AGENTS.md — still a Sailes repo, blocked (isSailesRepo OR)', (dir) => {
+  fs.mkdirSync(path.join(dir, '.git'), { recursive: true });
+  fs.mkdirSync(path.join(dir, '.ai'), { recursive: true });
+  const target = path.join(dir, '.eslintrc.json');
+  const res = run(edit(dir, target));
+  assert.strictEqual(res.status, 2, `stderr: ${res.stderr}`);
+});
+
 console.log('');
 if (failures) {
   console.log(`${failures} failing`);
