@@ -161,11 +161,19 @@ Druga połowa tego samego zdania (brak MCP `chrome-devtools`) **nadal jest prawd
 właśnie kształt, który jest groźny: wpis w połowie nieaktualny wygląda na zweryfikowany.
 Poprawione w `STATE.md` z obiema datami, lekcja w `.ai/lessons.md`.
 
-## Pozostało
+## Wydane
 
-- **Merge na `main` — decyzja człowieka.** Push na `main` to deploy na każdą maszynę z pluginem, bez
-  kroku instalacji i bez potwierdzenia. Od tego momentu dwa nowe hooki blokujące działają wszędzie.
-- Spec zostaje `in-progress` w katalogu głównym do czasu merge'a; wtedy `Status: implemented`
-  z wklejonymi werdyktami i `git mv` do `implemented/`.
-- Sześć wierszy w backlogu z tego przebiegu, w tym dwa wymagające decyzji człowieka: niescalona delta
-  1.34.0 w osieroconym worktree i przebieg czyszczący 24 zaległe piny evali.
+Scalone `--no-ff` na `main` jako **`94543a1`** i wypchnięte 2026-09-20 za zgodą właściciela
+(`1fc781e..94543a1`). To był deploy — plugin serwuje z `main` z `autoUpdate: true`, bez kroku
+instalacji. Od tego momentu `block-no-verify` działa w każdym repo na maszynie, a `toolchain-guard`
+w repo z `AGENTS.md` albo `.ai/`. `npm test` na `main` po merge → exit 0, 25 zestawów.
+Spec przeniesiony `git mv` do `.ai/specs/implemented/` ze `Status: implemented` i wklejonymi werdyktami.
+
+## Zostało (nie blokuje wydania)
+
+- Przebieg czyszczący **24 zaległe piny evali** z 1.35.0 — decyzja człowieka: osobno, po tym wydaniu.
+  Dopiero potem rozważyć `--strict` jako warunek bramy wydania.
+- Delta dokumentacji 1.34.0 w worktree `agent-a928e3faaa4d4cf6b` (`160a4c8`) — zostaje, **gałęzi nie kasować**.
+- Dług layoutowy `composition/desktop-readability` w czterech diagramach — otwarty od 1.33.0.
+- Cztery pozostałe znaleziska z tego przebiegu (sha w pliku statusu, niedeterministyczna odmowa zapisu,
+  kolizja id workera, nieposprzątane `.claude/status/`) — wiersze w `.ai/backlog.md`.

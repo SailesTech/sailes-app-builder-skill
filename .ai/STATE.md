@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: d0b641c
+Last-commit: 94543a1
 
 > Read at session start — it stays under 20 KB, so that is cheap; history lives verbatim in
 > `.ai/archive/` and is grepped by area, never read whole. Write before walking away. Facts enter **Verified facts** only with
@@ -14,9 +14,10 @@ Last-commit: d0b641c
 > line is a discipline, not an enforced check.
 
 ## Verified facts
-- **1.36.0 w toku na `feat/1.36.0-harness-guards`** (spec `2026-09-20-harness-guards-from-ecc-audit.md`,
-  z audytu ECC). P1–P4 zamknięte i zintegrowane (`a4ea94e`), P5 zamknięte (`d0b641c`), P6 w toku.
-  **Na `main` NIE scalone — merge jest decyzją człowieka**, bo push na `main` to deploy na każdą maszynę.
+- **1.36.0 WYDANE 2026-09-20** — scalone `--no-ff` na `main` jako `94543a1` i wypchnięte za zgodą
+  właściciela; plugin deployuje automatycznie na każdą maszynę. Spec w `.ai/specs/implemented/`
+  (`2026-09-20-harness-guards-from-ecc-audit.md`), run log `.ai/runs/2026-09-20-harness-guards.md`.
+  Gałąź `feat/1.36.0-harness-guards` i worktree `wf_238e2c36-4f6-*` usunięte.
 - **Dwa nowe hooki blokujące:** `block-no-verify` (każde repo) i `toolchain-guard` (tylko repo Sailes,
   furtka `SAILES_TOOLCHAIN_GUARD=off`). `npm test` ma teraz 25 zestawów.
 - **Zmierzone 2026-09-20: `PreToolUse` NIE widzi komendy, którą człowiek wpisał z prefiksem `!`**
