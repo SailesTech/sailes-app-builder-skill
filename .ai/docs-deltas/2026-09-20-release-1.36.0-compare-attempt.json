@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "compare",
+  "type": "architecture",
+  "stage": "check",
+  "error": "Base snapshot failed validation: Validated snapshot failed final artifact checks.",
+  "diagnostics": [
+    {
+      "code": "composition/desktop-readability",
+      "severity": "error",
+      "message": "Base snapshot failed validation: Validated snapshot failed final artifact checks.",
+      "subject": {
+        "side": "base"
+      },
+      "evidence": {
+        "viewportWidth": 1440,
+        "viewportHeight": 900,
+        "availableDiagramWidth": 930,
+        "viewBoxWidth": 2260,
+        "scale": 0.41150442477876104,
+        "text": "STATE.md, lessons.md, backlog.md, archive/",
+        "detail": "context",
+        "sourceFontPx": 6.4,
+        "projectedFontPx": 2.633628318584071,
+        "minimumProjectedFontPx": 6
+      },
+      "supportedFixes": [
+        "reduce the viewBox width, shorten node copy, widen affected nodes, or split the diagram so node context remains at least 6px at a 1440px desktop viewport"
+      ]
+    }
+  ]
+}
