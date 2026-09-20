@@ -147,6 +147,26 @@ test('a block never carries permissionDecision on stdout', () => {
   assert.strictEqual(res.stdout, '');
 });
 
+// --- tester-added edge cases (test plan .ai/test-plans/2026-09-20-harness-guards.md) ------------
+
+test('P3-EDGE-1: git config --global core.hooksPath ... — blocked (scope flag before the key)', () => {
+  const res = run(bash('git config --global core.hooksPath /some/path'));
+  assert.strictEqual(res.status, 2);
+  assert.match(res.stderr, /hooksPath/i);
+});
+
+test('P3-EDGE-2: echo hi | git commit -m x --no-verify — blocked (git mid-pipe, not at start)', () => {
+  const res = run(bash('echo hi | git commit -m x --no-verify'));
+  assert.strictEqual(res.status, 2);
+  assert.match(res.stderr, /no-verify/);
+});
+
+test('P3-EDGE-3: git push -n origin main — allowed (push -n is dry-run, not commit -n/no-verify)', () => {
+  const res = run(bash('git push -n origin main'));
+  assert.strictEqual(res.status, 0);
+  assert.strictEqual(res.stderr, '');
+});
+
 console.log('');
 if (failures) {
   console.log(`${failures} failing`);
