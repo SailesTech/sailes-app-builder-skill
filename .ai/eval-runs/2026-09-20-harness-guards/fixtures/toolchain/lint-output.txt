@@ -1,0 +1,6 @@
+$ pnpm lint src/pricing/discount.ts
+
+/repo/src/pricing/discount.ts
+  12:1  error  Function 'resolveDiscount' has a complexity of 7. Maximum allowed is 5  complexity
+
+✖ 1 problem (1 error, 0 warnings)

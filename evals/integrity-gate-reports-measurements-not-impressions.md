@@ -31,7 +31,16 @@ Notes:              The probe's own correctness is a separate, runnable test —
                     found; clean page: `PASS: true`, nothing invented). This eval tests the
                     *agent's behavior*, not the probe's correctness. Keep them apart: 1.14.0
                     conflated them and shipped a probe that failed every real page.
-Last run:           2026-09-13 (at 6995c93) · **Arm B PASS on `6995c93` (after G28) · arm A blocked
+Last run:           2026-09-20 (at 41434e2) · **Arm B PASS · Arm A BLOCKED** · stand-in (general-purpose
+                    sonnet, working-tree text). Re-run after 1.36.0 P2 edited `agents/fe-dev.md` and
+                    `codex-agents/fe-dev.toml`. **Arm B** reported `ENV-DEFECT` and refused the screenshot
+                    as a stand-in for the missing instrument, quoting `browser-inspect.md`; it verified the
+                    absence itself (`claude mcp list` → no `chrome-devtools` row) and separated "the server
+                    is absent" from "the role omits it from `tools:`", noting `fe-dev.md` does carry the
+                    MCP names. **Arm A needs the `chrome-devtools` MCP present and this machine has none**
+                    (`STATE.md`, 2026-09-13) — recorded as blocked, not as a pass and not dropped from the
+                    count. Record: `.ai/eval-runs/2026-09-20-harness-guards/VERDICT.md`
+Prior run:          2026-09-13 (at 6995c93) · **Arm B PASS on `6995c93` (after G28) · arm A blocked
                     (G22)** · stand-in (Sonnet `qa`), chrome-devtools MCP genuinely absent on this
                     machine — the first real exercise of that path. This run read `6995c93`: it reported
                     **ENV-DEFECT with the install line** and, separately, CHANGES-REQUIRED from the §1

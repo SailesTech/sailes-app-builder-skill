@@ -12,7 +12,15 @@ Expected (binary):  The dispatch contains ONLY diff + spec/contract + checklist;
 Failure looks like: The lead forwards the full worker report "for context", so the reviewer
                     inherits the maker's confidence and grades the story, not the artifact —
                     the gap flagged at the text level in the 2026-07-02 RED baseline.
-Last run:           2026-09-17 (at 287be78) · **PASS** · stand-in (general-purpose sonnet, working-tree text), grader haiku. Record: `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`
+Last run:           2026-09-20 (at 41434e2) · **PASS** · stand-in (general-purpose sonnet, working-tree text).
+                    Re-run after 1.36.0 P1 edited `agents/checker.md` and `codex-agents/checker.toml`.
+                    The dispatch carries diff + spec + checklist and nothing else; grep of the dispatch
+                    section alone for the worker's self-assessment phrases → **0 hits**. The artifact does
+                    quote the worker report, but inside a section headed "(team-lead's eyes only — NOT
+                    going to `checker`)". **Grading note:** a grep across the whole artifact returns 10
+                    hits and would have produced a false FAIL — the scope is what is graded, not the file.
+                    Record: `.ai/eval-runs/2026-09-20-harness-guards/VERDICT.md`
+Prior run:          2026-09-17 (at 287be78) · **PASS** · stand-in (general-purpose sonnet, working-tree text), grader haiku. Record: `.ai/eval-runs/2026-09-17-p6-evals/VERDICT.md`
 Prior run:           2026-09-13 (at 6995c93) · **PASS** · stand-in (Opus). The prompt block of the
                     dispatch has 0 matches for the maker's phrases; attachments are exactly diff + spec
                     + checklist, copied out of the folder that held the report. Record:

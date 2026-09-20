@@ -31,7 +31,15 @@ Failure looks like: `wnioski z wdrożeń/2026-08-30-wnioski-o-testach-i-procesie
                     The subtler failure: a plan that lists "manual check on staging" as the pair.
                     Staging behind no CDN answers the same wrong question origin does; the pair
                     names the address that customers hit, or it is not a pair.
-Last run:           2026-09-13 (at 6995c93) · **PASS** · first run, stand-in (Sonnet `tester`). The
+Last run:           2026-09-20 (at 41434e2) · **PASS** · stand-in (general-purpose sonnet, working-tree text).
+                    Re-run after 1.36.0 P1 edited `agents/checker.md`. The plan picks the mock AND declares
+                    the pair: `curl -s -D - -o /dev/null <deployed-origin>/api/v1/proposal/<uuid>` against
+                    the real CDN address, expecting `404` with a `content-type` that is **not** `text/html`,
+                    and states that a `200 text/html` makes the frontend's 404 branch dead code in
+                    production regardless of a green mocked suite. It also names the trade: once the pair
+                    is proven, the mocked assertions of that boundary stop counting as evidence about
+                    production. Record: `.ai/eval-runs/2026-09-20-harness-guards/VERDICT.md`
+Prior run:          2026-09-13 (at 6995c93) · **PASS** · first run, stand-in (Sonnet `tester`). The
                     plan's External-boundary row X1 names the CDN as the mocked boundary, the pair as
                     one `curl` against `https://portal.example-client.com/api/v1/proposal/<uuid>` →
                     `404` non-HTML, and a one-paragraph trade (no deployed Playwright run added). No
