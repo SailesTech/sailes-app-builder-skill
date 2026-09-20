@@ -174,6 +174,15 @@ const INVARIANTS = {
     // commands run so far (or states none have run yet). Losing this from a twin reintroduces the
     // exact gap G6 exists to close — an interrupted worker with commits but no verification record.
     ['WIP: commit body names verification commands run so far, or states none have run yet', /WIP:? commit, and its body names the verification commands run so far/i],
+    // P2 (spec 2026-09-20-harness-guards-from-ecc-audit, Q4) — the repair-loop STOP condition,
+    // deliberately separate from the substitute-decision rule above: that one is for a blocked
+    // CHOICE between options, this one is for a REPAIR that keeps failing. Three entries mirror the
+    // spec's own three sub-bullets (P2.1): the trigger, what STOP means, and the explicit "not a
+    // substitute decision" disclaimer — losing any one reopens a way to read the other two as
+    // license to keep trying indefinitely as long as *something* changes each round.
+    ['same error survives three repair attempts, or a fix introduces more defects than it removes, is the STOP trigger', /same error survives three (?:distinct )?repair attempts|fix introduces more defects than it removes/i],
+    ['STOP means closing the status file with outcome: blocked, naming three attempts and how they differed', /outcome: blocked[\s\S]{0,150}(?:three attempts[\s\S]{0,60}differed|how they differed)/i],
+    ['explicitly not a substitute decision — nothing here to choose between', /nothing here to substitute|repair loop is not a choice between options/i],
   ],
   'fe-dev': [
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
@@ -191,6 +200,11 @@ const INVARIANTS = {
     ['report is a message in fixed fields, at most 40 lines', /message in fixed fields[\s\S]{0,20}at most 40 lines/i],
     // P5 (G7c) — see be-dev's identical note above.
     ['WIP: commit body names verification commands run so far, or states none have run yet', /WIP:? commit, and its body names the verification commands run so far/i],
+    // P2 (spec 2026-09-20-harness-guards-from-ecc-audit, Q4) — see be-dev's identical three-entry
+    // note above; same doctrine, same reason, applied to the sibling writing role.
+    ['same error survives three repair attempts, or a fix introduces more defects than it removes, is the STOP trigger', /same error survives three (?:distinct )?repair attempts|fix introduces more defects than it removes/i],
+    ['STOP means closing the status file with outcome: blocked, naming three attempts and how they differed', /outcome: blocked[\s\S]{0,150}(?:three attempts[\s\S]{0,60}differed|how they differed)/i],
+    ['explicitly not a substitute decision — nothing here to choose between', /nothing here to substitute|repair loop is not a choice between options/i],
   ],
   tester: [
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
@@ -291,12 +305,22 @@ const REPLACED_1_33_0_WORDING_RE = new RegExp(
   'i'
 );
 
+// P2 (spec 2026-09-20-harness-guards-from-ecc-audit, Q4) — the human explicitly rejected "decyzja
+// zastępcza + marker" for a stuck repair loop, precisely because that reads as license to keep
+// repairing indefinitely as long as each round is marked. Wording that grants an unbounded retry
+// ("keep trying until", "until it works", "retry/fix until ...") is the mirror risk: it must stay
+// absent from both twins even though the three positive INVARIANTS entries above require the
+// three-attempt STOP trigger to be present.
+const UNBOUNDED_REPAIR_LOOP_RE = /keep (?:trying|fixing|repairing|iterating|going)[\s\S]{0,20}until|until it works|retry until|fix until/i;
+
 const INVERSE_INVARIANTS = {
   'be-dev': [
     ['no longer ties the full suite to the OLD per-worker completion commit (1.33.0, replaced by P2.6)', REPLACED_1_33_0_WORDING_RE],
+    ['no unbounded-retry wording for the repair loop ("keep trying until" / "until it works")', UNBOUNDED_REPAIR_LOOP_RE],
   ],
   'fe-dev': [
     ['no longer ties the full suite to the OLD per-worker completion commit (1.33.0, replaced by P2.6)', REPLACED_1_33_0_WORDING_RE],
+    ['no unbounded-retry wording for the repair loop ("keep trying until" / "until it works")', UNBOUNDED_REPAIR_LOOP_RE],
   ],
   // P3 gate (human decision 2026-09-13) — the Codex twin's screenshot fallback for a missing
   // integrity instrument is replaced by ENV-DEFECT, as the Claude twin has said since 2026-07-26.
@@ -409,6 +433,33 @@ test('the be-dev/fe-dev inverse regex FIRES on the 1.33.0 wording it was written
   assert.ok(
     re.test(normalize(OLD_1_33_0_TOML)),
     'inverse regex does not catch the old codex-agents/be-dev.toml wording — it would have gone green on the un-replaced rule'
+  );
+});
+
+// P2 (spec 2026-09-20-harness-guards-from-ecc-audit, Q4) — the new repair-loop inverse regex, proved
+// in both directions on copies (Done-when): it must MATCH unbounded-retry fixture wording for BOTH
+// be-dev and fe-dev (same shared regex, checked separately per role's array slot) and must NOT match
+// the real files (asserted by the INVERSE_INVARIANTS loop above, on real disk content).
+test('the be-dev/fe-dev repair-loop inverse regex FIRES on unbounded-retry wording ("keep trying until" / "until it works")', () => {
+  const UNBOUNDED_A = 'If a fix does not work, keep trying until the error is gone.';
+  const UNBOUNDED_B = 'Iterate on the repair until it works, then commit.';
+  const beDevRe = INVERSE_INVARIANTS['be-dev'][1][1];
+  const feDevRe = INVERSE_INVARIANTS['fe-dev'][1][1];
+  assert.ok(
+    beDevRe.test(normalize(UNBOUNDED_A)),
+    'be-dev inverse regex does not catch "keep trying until" — it would go green on unbounded-retry wording'
+  );
+  assert.ok(
+    beDevRe.test(normalize(UNBOUNDED_B)),
+    'be-dev inverse regex does not catch "until it works" — it would go green on unbounded-retry wording'
+  );
+  assert.ok(
+    feDevRe.test(normalize(UNBOUNDED_A)),
+    'fe-dev inverse regex does not catch "keep trying until" — it would go green on unbounded-retry wording'
+  );
+  assert.ok(
+    feDevRe.test(normalize(UNBOUNDED_B)),
+    'fe-dev inverse regex does not catch "until it works" — it would go green on unbounded-retry wording'
   );
 });
 

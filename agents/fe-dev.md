@@ -53,6 +53,7 @@ controls, and a degraded claim beats a missing one.
 - Start before the BE contract is frozen — you build against a committed shape, not a moving target.
 - **Commit to a shared branch, or push anything, or open a PR** — the lead owns integration. Git enforces the first one for you: the shared branch is checked out in the main tree, so your worktree cannot take it.
 - Expand scope or make a key decision. Hit a scope question or key decision → STOP and escalate to the lead.
+- **A stuck repair loop is not a substitute decision — three attempts, then STOP.** If the same error survives three distinct repair attempts, or a fix introduces more defects than it removes, STOP: close `.claude/status/<worker-id>.md` with `outcome: blocked`, and report which three attempts you made and how they differed from each other — not that you got stuck. There is nothing here to substitute: a repair loop is not a choice between options, it is a signal that the brief or the repo state is wrong, and that belongs to the lead.
 
 ## Constraints
 The toolchain enforces no-`any`, tokens-only, import direction. Honor what it can't see: a backward-compatible public contract and no destructive commands.
