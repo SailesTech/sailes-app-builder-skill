@@ -1,6 +1,6 @@
 # STATE.md — session memory for the sailes-app-builder framework repo
 
-Last-commit: 5a1e08e
+Last-commit: d0b641c
 
 > Read at session start — it stays under 20 KB, so that is cheap; history lives verbatim in
 > `.ai/archive/` and is grepped by area, never read whole. Write before walking away. Facts enter **Verified facts** only with
@@ -14,11 +14,30 @@ Last-commit: 5a1e08e
 > line is a discipline, not an enforced check.
 
 ## Verified facts
+- **1.36.0 w toku na `feat/1.36.0-harness-guards`** (spec `2026-09-20-harness-guards-from-ecc-audit.md`,
+  z audytu ECC). P1–P4 zamknięte i zintegrowane (`a4ea94e`), P5 zamknięte (`d0b641c`), P6 w toku.
+  **Na `main` NIE scalone — merge jest decyzją człowieka**, bo push na `main` to deploy na każdą maszynę.
+- **Dwa nowe hooki blokujące:** `block-no-verify` (każde repo) i `toolchain-guard` (tylko repo Sailes,
+  furtka `SAILES_TOOLCHAIN_GUARD=off`). `npm test` ma teraz 25 zestawów.
+- **Zmierzone 2026-09-20: `PreToolUse` NIE widzi komendy, którą człowiek wpisał z prefiksem `!`**
+  (shell mode omija narzędzie `Bash`), ale **widzi wywołania subagentów**. Blokujące hooki wiążą
+  agentów, nie człowieka. Źródło: docs Claude Code, Interactive mode + Hooks; złożenie dwóch zdań,
+  nie jedno zdanie wprost — potwierdzenie na żywo zostaje jako `Human-STOP` w P3.
+- **Dług evali z 1.35.0: 24 nieświeże piny, `--strict` czerwony JUŻ na `1fc781e`.** Zmierzone
+  w odłączonym worktree. 1.36.0 odnawia tylko cztery, które sam unieważnił; reszta jest w backlogu.
 - Rotated on 2026-09-12 to `.ai/archive/STATE-archive.md` (spec 2026-09-12-token-cost-of-running, P1: this file stays
   under 20 KB). Grep the archive by area keyword before re-deriving a fact. New verified facts go
   here, and rotate out once the file nears the limit again.
-- **This machine has no `graphify` and no chrome-devtools MCP** (`command -v graphify` → not found; `claude mcp list`
-  shows no chrome-devtools; 2026-09-13). Evals needing either cannot create their condition here (G21, G22).
+- **CORRECTED 2026-09-20: this machine HAS `graphify` (0.9.61).** `command -v graphify` resolves and
+  `graphify --version` prints `graphify 0.9.61`. The 2026-09-13 line said it was absent and was still
+  sitting here on 2026-09-20, one step away from becoming the cited reason for a SKIP in the 1.36.0
+  release — a false reason in a release record is worse than a missing one. Whether the *graph* is
+  fresh is a separate question and unanswered: the repo has no `graphify-out/`.
+  **The chrome-devtools half still holds** (`claude mcp list` shows no `chrome-devtools` row,
+  re-verified 2026-09-20 by an eval arm), so evals needing it still cannot create their condition
+  here (G21, G22, and `integrity-gate-reports-measurements-not-impressions` Arm A).
+  **The lesson is not about graphify:** a `Verified facts` entry is true on the day it is measured
+  and decays silently. Re-measure before citing one in a release, a SKIP or a spec.
 - **archify here is `2.17.0-dev.1`** (`package.json`, `skill-release.json`), which the floor check reads as "2.17".
 - **The harness refuses some subagent `Write`s of report-like files** ("Subagents should return findings as text, not
   write report files"; seen on `findings.md`, `summary.md`, `report.md`, 2026-09-13). Other stand-ins wrote

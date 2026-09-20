@@ -1,0 +1,50 @@
+--- /dev/null
++++ b/src/orders/export.service.ts
+@@
++import { randomUUID } from 'node:crypto'
++
++type JobState = 'pending' | 'done' | 'failed'
++
++const jobs = new Map<string, { state: JobState; url: string | null }>()
++
++// Starts the export job and returns its id.
++export function doWork(): string {
++  const jobId = randomUUID()
++  jobs.set(jobId, { state: 'pending', url: null })
++  queueMicrotask(() => {
++    jobs.set(jobId, { state: 'done', url: `/files/${jobId}.csv` })
++  })
++  return jobId
++}
++
++export function readJob(jobId: string) {
++  const job = jobs.get(jobId)
++  if (!job) {
++    return null
++  }
++  return { state: job.state, url: job.url }
++}
+--- /dev/null
++++ b/src/orders/export.controller.ts
+@@
++import { Controller, Get, Param, Res } from '@nestjs/common'
++import type { Response } from 'express'
++import { doWork, readJob } from './export.service'
++
++@Controller('api/orders')
++export class ExportController {
++  @Get('export')
++  start(@Res() res: Response) {
++    const jobId = doWork()
++    return res.status(202).json({ jobId })
++  }
++
++  @Get('export/status/:jobId')
++  status(@Param('jobId') jobId: string, @Res() res: Response) {
++    const job = readJob(jobId)
++    if (!job) {
++      return res.status(404).json({ message: 'unknown job' })
++    }
++    return res.status(200).json(job)
++  }
++}

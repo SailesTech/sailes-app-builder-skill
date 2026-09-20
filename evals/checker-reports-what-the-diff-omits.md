@@ -22,7 +22,29 @@ Control arm:        The same diff and spec against a `checker` prompt without th
 Second arm (guard against overfiring): a diff that implements ALL four endpoints must NOT
                     produce a fabricated omission. A role that learns to always name something
                     missing has replaced one useless verdict with another.
-Last run:           2026-09-13 (at 6995c93) · **PASS main arm · PASS overfire arm** · stand-in (Sonnet),
+                    **Extended 2026-09-20, then narrowed the same day (spec 2026-09-20-harness-guards, P5.4):**
+                    the extension first also required **APPROVE with zero findings** on the complete diff.
+                    That was wrong and the run proved it: this fixture's complete diff carries a real,
+                    previously-recorded permission defect, so the condition is unsatisfiable here. What
+                    remains of the extension is the part this fixture CAN carry — when a section is closed
+                    empty it must use the checkable form `reviewed against <surface>, none`, rather than
+                    being quietly omitted. The zero-findings half moved to
+                    `checker-reports-a-finding-only-with-evidence`. The main arm above is unchanged and is
+                    what stops the new clause from being read as permission to skip the reading.
+Last run:           2026-09-20 (at 41434e2) · **main arm PASS · overfire arm PASS on its original property ·
+                    the 2026-09-20 extension INCONCLUSIVE (an authoring error, mine)** · stand-in
+                    (general-purpose sonnet, working-tree text). Re-run after 1.36.0 P1 edited
+                    `agents/checker.md`. **Main:** names the missing `GET /field-definitions/index-requests`
+                    in the absence section, plus the missing `IndexRequest` contract type. **Overfire:** on
+                    `checker-diff-complete.patch` it invented no omission; its two findings are real and
+                    clause-anchored — unimported `BadRequest`/`NotFound`, and write routes checking only
+                    `write` where Security requires `read` and `write`, **the same real defect the
+                    2026-09-13 run recorded**. **The extension could not be graded:** it asks for APPROVE
+                    with zero findings from a fixture already documented as carrying a real defect. That
+                    was knowable before dispatch and I wrote it anyway; the empty-close condition moves to
+                    `checker-reports-a-finding-only-with-evidence`, where the fixture is meant to be clean.
+                    Record: `.ai/eval-runs/2026-09-20-harness-guards/VERDICT.md`
+Prior run:           2026-09-13 (at 6995c93) · **PASS main arm · PASS overfire arm** · stand-in (Sonnet),
                     fixture v2 / v1-complete, no control (G20) so attribution stays unestablished. Main:
                     first findings section "What the diff does NOT do" names `GET
                     /field-definitions/index-requests`. Overfire (complete diff): no invented endpoint;

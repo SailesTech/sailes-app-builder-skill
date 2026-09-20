@@ -1,0 +1,171 @@
+# Run log: 1.36.0 — cztery strażnicy harnessu z audytu ECC
+
+Spec: `.ai/specs/2026-09-20-harness-guards-from-ecc-audit.md`
+Audyt źródłowy: `.ai/audits/2026-09-20-ecc-comparison.md`
+Pre-implement: `.ai/audits/2026-09-20-pre-implement-harness-guards.md` — READY-WITH-FIXES
+Gałąź: `feat/1.36.0-harness-guards` · baza lidera: `615a306`
+Workflow: `wf_238e2c36-4f6` — 6 agentów, 0 błędów, 0 pustych zwrotów, ~22 min, 541k tokenów subagentów
+
+## Co weszło
+
+| Faza | Rola | Commit | Pliki |
+|---|---|---|---|
+| P1 — A1 `checker`: przegląd ≠ zgłoszenie | be-dev | `8f25ca3` | `agents/checker.md`, `codex-agents/checker.toml`, `codex-agents/parity.test.js` |
+| P3 — A2 hook `block-no-verify` | be-dev | `6dfb385` | `hooks/block-no-verify.{js,test.js}`, `hooks/hooks.json`, `package.json` |
+| P2 — A4 warunek pętli | be-dev | `bfc732b` | `agents/{be-dev,fe-dev}.md`, `codex-agents/{be-dev,fe-dev}.toml`, `codex-agents/parity.test.js` |
+| P4 — A3 hook `toolchain-guard` | be-dev | `7d9589e` | `hooks/toolchain-guard.{js,test.js}`, `hooks/hooks.json`, `package.json` |
+| Bramka | tester | `b9faf77` | `.ai/test-plans/2026-09-20-harness-guards.md` (DERIVED), +6 przypadków w obu suitach |
+
+Integracja: `git merge --no-ff` pięć razy, w kolejności P1 → P3 → P2 → P4 → tester. Zero konfliktów.
+HEAD po integracji: `a4ea94e`.
+
+## Deklaracje workerów (zwinięte z `.claude/status/`, pliki usunięte)
+
+| Worker | Task | Base | outcome | commit | Rozbieżności |
+|---|---|---|---|---|---|
+| `be-dev-238e2c36` | P1 | `615a306` | done | `8f25ca3` | **pole `commit` przy pierwszym zapisie zawierało zmyślony sha**; poprawione dopisaną linią `correction:` |
+| `be-dev-p3-a2` | P3 | `615a306` | done | `6dfb385` | brak |
+| `be-dev-p2-a4` | P2 | `615a306` | done | `bfc732b` | **to samo — zmyślony sha, poprawiony linią `correction:`**. Dodatkowo id `be-dev-238e2c36` było już zajęte przez P1, więc worker nadał sobie nazwę opisową |
+| `be-dev-P4` | P4 | `615a306` | done | `7d9589e` | plik w **fallbacku wewnątrz worktree** — zapis poza worktree odrzucony; zgłoszone w `note`, zgodnie z regułą |
+| `tester-238e2c36-4f6-5` | bramka | `615a306` | done | `b9faf77` | jak wyżej — fallback wewnątrz worktree, zgłoszony |
+
+`touched` każdego workera zgadza się z `git diff --stat` jego commita. Wszystkie bazy prawidłowe.
+
+## Bramki
+
+**`tester` — done, 0 defektów.** Plan `DERIVED` (tor środkowy), 18 ID bazowych z `Done-when` obu faz
+kodowych + 6 nowych przypadków brzegowych. Dla każdego nowego ID podał dowód detekcji przez **mutację
+dokładnej ścieżki kodu**, którą ten przypadek ćwiczy, z potwierdzeniem, że czerwony jest tylko ten jeden
+ID i że rewert jest bajtowo identyczny:
+
+- `P3-EDGE-1` `git config --global core.hooksPath` · `P3-EDGE-2` `git` osiągnięty przez potok, nie na
+  początku komendy · `P3-EDGE-3` `git push -n` (dry-run) **nie** może blokować
+- `P4-EDGE-1` `tsconfig.build.json` (wildcard, nie sama nazwa) · `P4-EDGE-2` ścieżka względna ·
+  `P4-EDGE-3` repo z `.ai/` ale bez `AGENTS.md` — nadal Sailes (`isSailesRepo` to OR)
+
+Trzy kandydatury odrzucone z powodem, nie po cichu: symlink do chronionego configu, wielkość liter,
+`MultiEdit` z wieloma plikami.
+
+**`checker` — NITS.** Obie sekcje obowiązkowe zamknięte formułą `reviewed against <surface>, none`
+— czyli **klauzula A1 zadziałała na samej bramce, która ją wprowadza**. Checker niezależnie
+zweryfikował, że oba koncepty odwrotne w `parity.test.js` faktycznie odpalają na ręcznie skonstruowanej
+negacji semantycznej (nie tylko na fixturze autora), mutując `agents/checker.md` i `agents/be-dev.md`
+w tymczasowym worktree. Potwierdził też, że zasięgi hooków nie są zamienione: `block-no-verify` nie ma
+`isSailesRepo`, `toolchain-guard` ma.
+
+**NITS (przyjęty, nie naprawiany):** 18 ID bazowych z planu jest w suitach obecnych jako pre-existujące
+testy implementerów, odwołane numerem linii, zamiast nieść ID w nazwie testu. Odstępstwo od reguły
+mechanicznej, ale jawne, sprawdzalne i nie ukrywa dziury — `tester` uzasadnił je wprost (duplikowanie
+fixture'a, który implementer już napisał poprawnie, nie dodaje detekcji). Lider przyjmuje.
+
+## Weryfikacja lidera na zintegrowanej całości
+
+- `npm test` → **exit 0, 25 zestawów** (23 → 25, dokładnie „+2" ze specu), 0 `not ok`
+- Oba hooki napędzone tak, jak robi to Claude Code — JSON na stdin:
+
+| Payload | Wynik |
+|---|---|
+| `git commit -m x --no-verify` | exit 2 |
+| `git -c core.hooksPath=/dev/null commit -m x` | exit 2 |
+| `git commit -m "fix the --no-verify bug"` (literał w komunikacie) | exit 0 |
+| `git push` | exit 0 |
+| `Edit` na `tsconfig.json`, cwd = repo Sailes | exit 2 |
+| `Edit` na `package.json`, cwd = repo Sailes | exit 0 |
+| `Edit` na `.eslintrc.json`, cwd = **obce repo git bez `AGENTS.md` i bez `.ai/`** | exit 0, cicho |
+| to samo repo po dodaniu `.ai/` | exit 2 |
+| repo Sailes z `SAILES_TOOLCHAIN_GUARD=off` | exit 0 |
+
+Żaden hook nie pisze na stdout przy blokadzie i żaden nie używa `permissionDecision`.
+
+**Korekta własna:** pierwszy przebieg tych prób dał fałszywy alarm — payload bez pola `cwd`, więc hook
+spadł na `process.cwd()`, czyli na to repo, i „obce repo" czytało się jako Sailes. Wynik powyżej jest
+z payloadu z `cwd`, tak jak wysyła go Claude Code. Defekt był w mojej sondzie, nie w hooku.
+
+## Znaleziska do promocji
+
+1. **Worker wpisuje sha do pliku statusu z pamięci, nie z komendy.** Dwa z trzech plików w głównym
+   drzewie miały w polu `commit` halucynowany hex przy pierwszym zapisie; oba workery złapały to same
+   i dopisały `correction:`. Cała wartość deklaracji polega na tym, że jest wiarygodna — sha, którego
+   nie da się użyć, znosi mechanizm dokładnie tam, gdzie miał działać. Że złapały to same, jest
+   szczęściem, nie zabezpieczeniem. **Kandydat na poprawkę doktryny:** klauzula pliku statusu mówi
+   wprost, że `commit` jest **wklejony z wyjścia `git rev-parse HEAD`**, nigdy wpisany.
+2. **Odmowa zapisu poza worktree jest niedeterministyczna w obrębie jednego przebiegu.** P1, P2 i P3
+   zapisały do `.claude/status/` w głównym drzewie bez problemu; P4 i `tester` dostały odmowę
+   („agent is isolated in the worktree") i użyły fallbacku. Doktryna (`agents/be-dev.md`,
+   `team-lead.md:103`) opisuje to jako **stałą** asymetrię `Bash` vs `Write`. Pięć workerów, ta sama
+   sesja, dwa różne zachowania.
+3. **Kolizja id workera wewnątrz jednego workflow.** P1 i P2 dostały to samo `be-dev-238e2c36`
+   (id pochodzi od run id workflow, nie od agenta). P2 obszedł to nazwą opisową. `workflow-orchestration.md`
+   każe nieść run id w nazwie — ale to za mało, gdy jeden workflow dispatchuje kilku workerów tej samej
+   roli; potrzebny jest sufiks.
+4. **Niescalona praca z 1.34.0 wisi w osieroconym worktree.** `.claude/worktrees/agent-a928e3faaa4d4cf6b`
+   trzyma `160a4c8 docs(1.34.0): architecture delta` — cztery pliki, 293 wstawienia, **nie jest
+   przodkiem HEAD żadnej gałęzi poza własną**. To delta dokumentacji, której 1.34.0 nigdy nie dostało.
+   Nie ruszam jej tym przebiegiem; wymaga decyzji człowieka (scalić do 1.36.0 czy odrzucić).
+5. **`.claude/status/` nie jest sprzątane od sierpnia.** 33 pliki z poprzednich przebiegów, najstarsze
+   z 2026-08-06. `team-lead.md:104` mówi, że plik znika razem z wpisem w run logu — nie znikał.
+   Niniejszy przebieg zwija i kasuje swoje pięć; reszta zostaje jako cudzy dług.
+
+## P5 — evale (workflow `wf_6774ae16-680`, 12 ramion stand-in, 0 błędów)
+
+Zakres wybrany przez człowieka po pomiarze: **moje cztery + trzy nowe**, dług 1.35.0 do backlogu.
+Wynik: **6 PASS, 3 INCONCLUSIVE, 1 BLOCKED, 0 FAIL**. Pełny zapis z uzasadnieniami:
+`.ai/eval-runs/2026-09-20-harness-guards/VERDICT.md`.
+
+Najważniejsze, bo to jedyny twardy dowód, że A1 robi cokolwiek: na **tym samym diffie** nowy tekst
+`checker` wyniósł nieumocowany styl poza listę findingów („Other notes — non-blocking"), a tekst
+z 1.35.0 wpisał `Naming: doWork / readJob` jako **finding #3**. Oba ramiona znalazły te same dwa realne
+defekty, więc różnica jest przypisywalna doktrynie.
+
+Trzy INCONCLUSIVE, każde z powodem i przepisem na następny przebieg — w tym **jeden mój błąd
+w autorstwie**: rozszerzenie ramienia overfire wymagało APPROVE od fixture'a, o którym z zapisu
+z 2026-09-13 wiadomo, że niesie realny defekt uprawnień. Przeredagowane, nie wyrzucone.
+
+**Warunek zamknięcia P5 spełniony:** lista nieświeżych evali po zmianie jest **bajtowo identyczna**
+z listą sprzed gałęzi (`diff` na wyjściach `eval-status.js` w odłączonym worktree na `1fc781e`).
+Żaden eval nie jest nieświeży z powodu tej zmiany.
+
+## P6 — dokumentacja i stemple
+
+| Krok | Wynik |
+|---|---|
+| Pięć stempli na 1.36.0 | `node release-hygiene.test.js` → exit 0 |
+| `AGENTS.md`: liczba zestawów | 22 → **25** (naprawa dryfu o jeden + dwa nowe) |
+| `AGENTS.md`: opis hooków | dodany — trzy hooki, dwa blokujące, ich zasięgi i pomiar `!` |
+| CHANGELOG | wpis 1.36.0 z jawnym „czego to nie ustala" |
+| `STATE.md`, `lessons.md` | zaktualizowane (patrz niżej) |
+| Delta dokumentacji | **CONTENT UPDATED, RECEIPT BLOCKED** — nie SKIP |
+| `npm test` | exit 0, 25 zestawów |
+
+**Delta dokumentacji, `docs-author`, commit `ec2df12`** (deklaracja zwinięta stąd, plik usunięty):
+base `d0b641c`, `outcome: done`, `touched` zgodne z `git diff --stat`. Zaktualizował kartę „Framework
+Repo" w `architecture.json` o trzy hooki `PreToolUse` z ich zasięgami i wspólnym mechanizmem
+`stderr` + `exit(2)`. Cztery pozostałe diagramy zostawił nietknięte, każdy z dowodem (grep na nazwy
+nowych hooków → brak trafień; poziom abstrakcji już absorbuje tę zmianę).
+
+**Receipt jest zablokowany i powód jest prawdziwy, nie przepisany.** `archify validate --quality
+showcase` → exit 1 na `composition/desktop-readability`; `archify deliver` odmówił nadpisania;
+`archify compare` nie wyprodukował receiptu, bo **sama baza nie przechodzi tego samego floora**.
+`docs-author` odtworzył tę porażkę na **niezmodyfikowanej bazie merge** i na trzech diagramach,
+których ta delta nie dotyka — czyli to dług layoutowy otwarty od 1.33.0, nie coś, co blokuje 1.36.0.
+`archify doctor` → 14/14 `[ok]`, wersja `2.17.0-dev.1`. To dlatego wynik brzmi **RECEIPT BLOCKED,
+a nie SKIP**: narzędzie zadziałało w całości.
+
+## Znalezisko, które prawie weszło do wydania jako nieprawda
+
+`.ai/STATE.md:20` niosło pod **Verified facts** zdanie „This machine has no `graphify`", zmierzone
+2026-09-13. **`graphify 0.9.61` jest zainstalowany.** Gdybym oparł SKIP delty na tym zdaniu — a spec
+wprost dopuszczał SKIP „z cytowanym powodem: brak graphify" — do rekordu wydania trafiłby fałszywy
+powód. Złapane przez własny pomiar przed dispatchem; `docs-author` potwierdził niezależnie.
+Druga połowa tego samego zdania (brak MCP `chrome-devtools`) **nadal jest prawdziwa** — i to jest
+właśnie kształt, który jest groźny: wpis w połowie nieaktualny wygląda na zweryfikowany.
+Poprawione w `STATE.md` z obiema datami, lekcja w `.ai/lessons.md`.
+
+## Pozostało
+
+- **Merge na `main` — decyzja człowieka.** Push na `main` to deploy na każdą maszynę z pluginem, bez
+  kroku instalacji i bez potwierdzenia. Od tego momentu dwa nowe hooki blokujące działają wszędzie.
+- Spec zostaje `in-progress` w katalogu głównym do czasu merge'a; wtedy `Status: implemented`
+  z wklejonymi werdyktami i `git mv` do `implemented/`.
+- Sześć wierszy w backlogu z tego przebiegu, w tym dwa wymagające decyzji człowieka: niescalona delta
+  1.34.0 w osieroconym worktree i przebieg czyszczący 24 zaległe piny evali.

@@ -1,0 +1,10 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "complexity": ["error", 5]
+  }
+}

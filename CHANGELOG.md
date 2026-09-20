@@ -4,6 +4,55 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.36.0 — 2026-09-20 · Four harness guards from the ECC audit
+
+Source: `.ai/specs/2026-09-20-harness-guards-from-ecc-audit.md`, derived from
+`.ai/audits/2026-09-20-ecc-comparison.md` — an audit of `affaan-m/ECC` v2.2.2, a 263k-star Claude Code
+plugin whose own doctrine turned out to be mostly unenforced prose, but which carries four mechanisms
+this framework did not have. Each of the four gaps was confirmed by `grep` on disk before it was
+specified, not assumed.
+
+**What a repo on 1.36.0 now has that 1.35.0 did not:**
+
+- **`checker` separates reviewing from reporting.** The two mandatory verdict sections ("what the diff
+  does NOT do that the spec requires" and its mirror) stay mandatory to *review*, and may now be closed
+  with the checkable sentence `reviewed against <surface>, none`. Separately, **a finding must carry the
+  spec clause it violates AND the observation grounding it** — missing either, it is not a finding and
+  does not enter the verdict. Same mechanism as `n/a — <reason>` in `contract-probe-check`: the field is
+  filled or it is not. Why both halves: two mandatory rubrics are a standing pressure to fill them, and
+  a manufactured finding costs the lead a round and teaches them NITS is noise — this repo already has
+  two checks disabled for exactly that.
+- **Writing roles stop a repair loop at three attempts.** `be-dev` and `fe-dev`: if the same error
+  survives three *distinct* repair attempts, or a fix introduces more defects than it removes, STOP —
+  close `.claude/status/<worker-id>.md` with `outcome: blocked` and report which three attempts were
+  made and how they differed. Explicitly **not** a substitute decision: a repair loop is not a choice
+  between options. `maxTurns` remains the backstop it always was, but it is a budget, not a condition.
+- **New blocking hook `block-no-verify`** (`PreToolUse` on `Bash`, **every repo on the machine**):
+  refuses `git commit/push --no-verify`, `git commit -n`, `git -c core.hooksPath=…` and
+  `git config … core.hooksPath …`. No escape hatch, deliberately. A worker commits in its own worktree
+  and `--no-verify` cuts the repo's own hooks out with nothing visible in the diff.
+- **New blocking hook `toolchain-guard`** (`PreToolUse` on `Edit|Write|MultiEdit`, **Sailes repos only**
+  — `AGENTS.md` or `.ai/` present): refuses writes to ESLint, Prettier, Biome, Ruff and `tsconfig*`
+  configs. `package.json` is deliberately NOT protected; phases legitimately edit it. Released for a
+  phase that legitimately changes a rule by `SAILES_TOOLCHAIN_GUARD=off`, which is a human decision and
+  therefore satisfies the standing rule that a worker never substitutes a key decision.
+
+Both hooks block the house way — `stderr` plus `process.exit(2)`, never `permissionDecision`, which
+would bypass the human's own permission prompt. **Scope, measured 2026-09-20:** a command the human
+types with the `!` prefix does not go through the `Bash` tool, so no `PreToolUse` hook sees it. These
+constrain agents and subagents, not the person at the keyboard.
+
+`npm test` is now **twenty-five** suites (was twenty-three in the chain while `AGENTS.md` still said
+twenty-two — a third drift of that sentence, now corrected and filed).
+
+**Evidence, including what it does not establish.** `.ai/eval-runs/2026-09-20-harness-guards/VERDICT.md`:
+6 PASS, 3 INCONCLUSIVE, 1 BLOCKED, 0 FAIL across 12 stand-in arms. The `checker` clause discriminates
+against the 1.35.0 text on the same diff. The repair-loop clause fires and does not over-fire — but the
+control arm reached the same stop by a pre-existing rule, so its *necessity* is unmeasured. The
+toolchain behaviour is already covered by the `Owns` discipline in a role that reasons well, so that
+hook's value is the mechanical block, not the role text. Nothing above is a runtime result: the plugin
+serves from `main` and the arms graded working-tree text.
+
 ## 1.35.0 — 2026-09-17 · Workflow as the execution engine
 
 Source: `.ai/specs/implemented/2026-09-16-workflow-first-orchestration.md`, from a feedback report on *Idealny
