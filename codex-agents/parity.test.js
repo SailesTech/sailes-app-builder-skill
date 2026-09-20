@@ -224,6 +224,16 @@ const INVARIANTS = {
     // P4 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — same rule as qa's above,
     // applied to the phase's own Done-when commands against the phase's cut-from base.
     ['pre-existing red compared by name against the base, never by count', /never by count[\s\S]{0,600}comm -23/i],
+    // P1 (spec 2026-09-20-harness-guards-from-ecc-audit, Q3) — split review from report: the two
+    // mandatory sections stay mandatory to REVIEW, but may close empty with a named surface. Without
+    // this half, "mandatory" reads as "must contain a finding", which is the wolf-crying mode the
+    // human rejected a general "zero findings is OK" clause to avoid encoding blindly.
+    ['mandatory sections may be closed as reviewed and empty, naming the surface read', /reviewed against[\s\S]{0,80}none/i],
+    // P1 (spec 2026-09-20-harness-guards-from-ecc-audit, Q3) — a finding is two fields, not a free
+    // sentence: the spec clause it violates and the observation that grounds it. Losing this from a
+    // twin turns "reviewed and empty is allowed" into license to skip looking, with nothing left
+    // distinguishing a looked-and-found-nothing from a never-looked.
+    ['a finding carries the spec clause it violates and the observation that grounds it', /finding[\s\S]{0,150}clause[\s\S]{0,150}observation/i],
   ],
   qa: [
     ['never fakes a pass', /fake|ENV-DEFECT/i],
@@ -292,6 +302,18 @@ const INVERSE_INVARIANTS = {
   // integrity instrument is replaced by ENV-DEFECT, as the Claude twin has said since 2026-07-26.
   qa: [
     ['no screenshot fallback when the integrity instrument is missing (replaced at the 1.34.0 P3 gate)', /fall back to the screenshot/i],
+  ],
+  // P1 (spec 2026-09-20-harness-guards-from-ecc-audit, Q3) — the human explicitly rejected a bare
+  // "zero findings is acceptable" clause because, read alone, it teaches a gate to manufacture a
+  // finding just to have something to say. This is the mirror risk: wording that FORCES a finding
+  // ("report at least one", "every section must carry a finding") is exactly what a wolf-crying
+  // gate looks like from the inside, and it must stay absent from both twins even though the two
+  // positive INVARIANTS entries above allow a section to close empty.
+  checker: [
+    [
+      'no wording forces a manufactured finding ("report at least one" / "every section must carry a finding")',
+      /report at least one|every section must (?:carry|contain) a finding/i,
+    ],
   ],
 };
 
@@ -387,6 +409,24 @@ test('the be-dev/fe-dev inverse regex FIRES on the 1.33.0 wording it was written
   assert.ok(
     re.test(normalize(OLD_1_33_0_TOML)),
     'inverse regex does not catch the old codex-agents/be-dev.toml wording — it would have gone green on the un-replaced rule'
+  );
+});
+
+test('the checker inverse regex FIRES on wording that forces a manufactured finding', () => {
+  // Two independent phrasings a bad rewrite could introduce — either would turn "mandatory to
+  // review, closeable empty" back into "mandatory to produce a finding", the exact wolf-crying mode
+  // Q3 rejects. The regex must catch either, and must not fire on the real files (asserted by the
+  // INVERSE_INVARIANTS loop above, on real disk content).
+  const FORCED_FINDING_WORDING_A = 'Every verdict must report at least one finding in this section.';
+  const FORCED_FINDING_WORDING_B = 'Every section must carry a finding before the verdict is valid.';
+  const re = INVERSE_INVARIANTS.checker[0][1];
+  assert.ok(
+    re.test(normalize(FORCED_FINDING_WORDING_A)),
+    'inverse regex does not catch "report at least one" — it would go green on wording that forces a finding'
+  );
+  assert.ok(
+    re.test(normalize(FORCED_FINDING_WORDING_B)),
+    'inverse regex does not catch "every section must carry a finding" — it would go green on wording that forces a finding'
   );
 });
 
