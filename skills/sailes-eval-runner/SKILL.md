@@ -26,9 +26,9 @@ A criterion revised in the light of results is not a criterion.
   default: the plugin serves role definitions from `main`, while the text you are grading is usually
   the edit in your working tree. Spawn the real type and you get the deployed prompt plus the file
   you asked it to read — two versions of the doctrine in one context, and a verdict about neither.
-- **The named role** — required when the behaviour under test **is the runtime**: does the pin apply,
-  does the tool allow-list hold, can a gate fan out. A stand-in proves nothing about any of those,
-  because a generic agent runs on the session's model with the session's tools.
+- **The named role** — required when the behaviour under test **is the runtime**: does the default
+  tier apply, does the tool allow-list hold, can a gate fan out. A stand-in proves nothing about any
+  of those, because a generic agent runs on the session's model with the session's tools.
 - **Write which one you used in the verdict.** Not as a footnote. A stand-in run graded the *text*;
   reading it later as a runtime result is the failure this line exists to prevent.
 
@@ -59,6 +59,13 @@ and the note carries the vehicle, the fixture caveat, and anything you could not
 - **Blocked is not run.** A scenario whose environment was unavailable is recorded as blocked, with
   what was missing. Never as a pass, never silently omitted from a count.
 - **Never mark a scenario run when the fixture could not create the condition.**
+- **Record the real alias → model mapping, not just which role you dispatched.** Since 1.37.0 a
+  role's frontmatter is a tier alias; what actually ran depends on the project's `.claude/settings.json`
+  at run time. Before dispatching, note each `ANTHROPIC_DEFAULT_*_MODEL` the run's roles resolve
+  through — or "unset → Anthropic recommended" if the project file doesn't set it — and after the run,
+  the concrete model from the transcript (`message.model`) for any agent you spawned directly. A
+  verdict that names only the role name, not the model that produced it, cannot be reproduced or
+  attributed later.
 
 ## Reading the report
 
@@ -91,6 +98,14 @@ That is the A/B protocol in `evals/harness/README.md` — arms, fixture, and the
 matter most here: **fix the criterion before dispatching**, and **do not touch the material under test
 while a run is in flight** — a file added to the corpus between two arms turned a correct coverage
 claim into a reported falsehood that nothing in the output could have revealed.
+
+**A third thing has to hold still since 1.37.0: the model.** A role's frontmatter is now a tier
+alias, so the same role can resolve to a different concrete model between arms if the project's
+`ANTHROPIC_DEFAULT_*_MODEL` mapping changes mid-run — a real risk on a long-running comparison, not a
+hypothetical one. Pin the mapping for the run's duration before dispatching either arm, and confirm
+after the fact from each arm's transcript (`message.model`) that both actually ran on it. A run that
+did not pin the mapping records its verdict as **non-comparable**, not PASS/FAIL: it may still be
+informative, but it is not evidence that the change and not a model drift produced the difference.
 
 ## Clean up after the run — keep the conclusion and what it rests on, drop the rest
 

@@ -12,7 +12,7 @@ Each file in this directory is a global Codex custom-agent definition. The insta
 | `checker` | `agents/checker.md` | isolated review |
 | `qa` | `agents/qa.md` | browser behavior proof |
 
-The Codex schema intentionally has only `name`, `description`, and `developer_instructions`. The Claude roles' pinned model IDs (`claude-opus-5`, `claude-sonnet-5`, `claude-haiku-4-5`), their `effort:` levels, and their tool allow-lists are not copied: all three are Claude-specific and unsupported here. The role instructions preserve the intended capability split, pipeline order, isolation, and permissions without pinning unavailable model settings.
+The Codex schema intentionally has only `name`, `description`, and `developer_instructions`. The Claude roles' `model:` tier aliases (`opus`, `sonnet`, `haiku`), their `effort:` levels, and their tool allow-lists are not copied: all three are Claude-specific and unsupported here. The role instructions preserve the intended capability split, pipeline order, isolation, and permissions without pinning unavailable model settings.
 
 **Two 1.16.0 features are Claude-harness-only, by nature rather than by omission** — recorded here so a future parity audit reads this as a boundary, not as drift:
 

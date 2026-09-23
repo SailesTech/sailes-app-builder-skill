@@ -4,6 +4,7 @@ Status: approved
 Date: 2026-07-26
 Decisions answered by the human: 2026-07-26 (D1–D4 below; D5–D6 resolved with stated assumptions)
 Supersedes: —
+Superseded in part: D4 (model pins) by 1.37.0 — roles carry tier aliases; see CHANGELOG 1.37.0
 Related: `.ai/lessons.md` 2026-07-25 (context engineering), `.ai/backlog.md` (eval staleness, release hygiene), `.ai/STATE.md` Open failures
 
 ## TLDR & Context

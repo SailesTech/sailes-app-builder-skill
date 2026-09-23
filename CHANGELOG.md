@@ -4,6 +4,65 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.37.0 — 2026-09-23 · Role models are tier aliases, with one versioned mapping
+
+Minor, not patch: this reverses D4 of `.ai/specs/implemented/2026-07-26-measurement-routing-and-subteams.md`
+(full-ID pins in role frontmatter), which is a behavior/doctrine change under this repo's own
+patch-vs-minor convention, not a fix to one.
+
+`agents/*.md` `model:` moved from a pinned full ID (`claude-opus-5`, `claude-sonnet-5`,
+`claude-haiku-4-5`) to Claude Code's supported tier alias (`opus`, `sonnet`, `haiku`) — the same
+mechanism `sub-agents` docs list alongside `fable`/`inherit`. Reason: a pinned ID goes stale
+silently — `team-lead` and `researcher` still named `claude-opus-5` after the tier's current model
+had moved on to Opus 5.5, with nothing in the repo to catch it. The alias→model mapping now sets in
+exactly one place: `ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL` in the repo's own **shared,
+versioned** `.claude/settings.json` — not a per-role file, and not a teammate's personal
+`~/.claude/settings.json`, which only ever affects that one person's sessions (confirmed against
+code.claude.com/docs/en/settings: shared project settings sit above user settings in Claude Code's
+precedence stack, and an `env` block is an ordinary key that follows it). Bumping the pinned model
+is now a one-line PR to that file, reviewed like any other parameter change — the same standing this
+repo already gives a Codex `-m` pin.
+
+**What a repo on 1.37.0 now has that 1.36.0 did not:**
+
+- All ten `agents/*.md` roles (`be-dev`, `checker`, `designer`, `docs-author`, `explorer`, `fe-dev`,
+  `qa`, `researcher`, `team-lead`, `tester`) carry `model: opus|sonnet|haiku` instead of a pinned
+  `claude-*` ID.
+- `agents/validate-frontmatter.test.js` requires the alias outright: `KNOWN_MODELS` is now
+  `opus`/`sonnet`/`haiku`/`fable`/`inherit` only — no dated list of full IDs left to go stale in the
+  validator itself — and `NO_EFFORT_MODELS` tracks the alias (`haiku`) alone. The comment states the
+  same thing the assertion enforces: a concrete version is pinned via `ANTHROPIC_DEFAULT_*_MODEL`,
+  never in frontmatter.
+- `codex-agents/*.toml` is unaffected — Codex has no `model` frontmatter concept, and its own parity
+  test already forbids naming a Claude model there; `codex-agents/README.md` is corrected to
+  describe the roles' `model:` field as a tier alias rather than a pinned ID.
+- This repo's own `.claude/settings.json` now carries the `env` block with the four
+  `ANTHROPIC_DEFAULT_*_MODEL` mappings, because this repo runs evals and needs reproducible runs. `sailes-bootstrap`'s
+  `settings-template.json` and `skeleton.md` gain an EMPTY `env` block for generated/adopted repos:
+  a client repo rides the alias forward instead of freezing a copy of the pin nobody re-reviews, and
+  pins in its own committed settings only when it needs reproducibility.
+- Doctrine describing the mechanism itself is updated throughout: `agents/team-lead.md` and
+  `skills/sailes-bootstrap/agent-team-structure.md` (roster table + Model routing section) describe a
+  role's default as a tier alias resolved via the project's versioned `.claude/settings.json`, not a
+  pinned full ID, and carry D4's reproducibility rule — pin the env var in that file for the run,
+  don't edit a role file. Every remaining "pin" in prose that meant "the frontmatter is a fixed
+  model" (`agentic-first-principles.md`, `workflow-orchestration.md`'s Model rule) now reads
+  "default tier" instead, so the word "pin" is reserved for the one place a pin actually still
+  exists — the project settings.json env var. `skills/sailes-eval-runner/SKILL.md` and
+  `evals/README.md` add the matching rule for evals: record the resolved alias→model mapping (or
+  "unset → Anthropic recommended") and the transcript's `message.model` in every verdict, and an A/B
+  comparison that didn't pin the mapping for its duration reports **non-comparable**, not PASS/FAIL.
+  `.ai/specs/implemented/2026-07-26-measurement-routing-and-subteams.md` is marked superseded in part
+  on D4.
+
+**Left untouched:** the ~250 other full-ID references across the repo — fixtures, historical
+eval-runs/specs/RUN-LOG entries, and dated measurement snippets reporting what a specific past run
+observed — document or reproduce a point in time, not live configuration or current doctrine, and
+touching them would rewrite history for no behavior change. `tools/token-report.js`'s per-full-ID
+pricing table is also untouched: it prices the *actual* model read from a transcript's
+`message.model`, which is exactly the mechanism this release relies on for attribution — it is
+correctly keyed by full ID and never by alias.
+
 ## 1.36.0 — 2026-09-20 · Four harness guards from the ECC audit
 
 Source: `.ai/specs/2026-09-20-harness-guards-from-ecc-audit.md`, derived from

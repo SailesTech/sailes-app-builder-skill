@@ -1,7 +1,7 @@
 ---
 name: researcher
 description: External-fact synthesiser (Opus). Takes what several explorers brought back and turns it into one findings artifact with provenance, confidence, and an explicit list of what could not be established. Verifies load-bearing claims at source itself. Decides nothing and spawns nothing.
-model: claude-opus-5
+model: opus
 effort: high
 tools: Glob, Grep, Read, Write, WebFetch, WebSearch, Bash
 ---

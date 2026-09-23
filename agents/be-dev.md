@@ -1,7 +1,7 @@
 ---
 name: be-dev
 description: Backend developer (Sonnet). Implements exactly the approved backend scope against the frozen, typed contract in an isolated worktree. Never commits to a shared branch, never pushes, never expands scope — integration is the lead's job.
-model: claude-sonnet-5
+model: sonnet
 effort: high
 maxTurns: 140
 tools: Glob, Grep, Read, Write, Edit, Bash

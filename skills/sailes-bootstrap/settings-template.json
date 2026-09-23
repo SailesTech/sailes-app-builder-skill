@@ -1,6 +1,17 @@
 // Copy to a NEW repo as .claude/settings.json (strip these // comments — JSON has no comments).
 // The Claude Code harness guardrails: the mechanical backstop for the AGENTS.md Hard Safety Rules.
-// Adapt the command patterns to the repo's actual package scripts. Two keys: "permissions" + "hooks".
+// Adapt the command patterns to the repo's actual package scripts. Three keys: "permissions" +
+// "hooks" + "env".
+//
+// "env"                — ships EMPTY on purpose. Role frontmatter carries only a tier alias
+//                        (opus/sonnet/haiku), and an unset ANTHROPIC_DEFAULT_*_MODEL follows
+//                        Anthropic's recommendation for the tier forward — a client repo does not
+//                        freeze a model it will never re-review. Pin ONLY when the repo needs
+//                        reproducibility (evals, A/B): add ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU,FABLE}_MODEL
+//                        here, committed, so the whole team runs the same model — shared project
+//                        settings sit above user settings (code.claude.com/docs/en/settings). A pin
+//                        is then a one-line PR to this block, never a role-file edit, and it is
+//                        yours to re-review. See `agent-team-structure.md` §Model routing.
 //
 // "permissions.allow"  — verify commands run without a prompt (fast inner loop). It includes
 //                        git add/commit/log: every writing role is MANDATED to commit in its own
@@ -48,6 +59,7 @@
 // PreToolUse guard. A repo is "Codex-ready" only when BOTH configs exist and point at the scripts.
 {
   "autoCompactWindow": 400000,
+  "env": {},
   "permissions": {
     "allow": [
       "Bash(pnpm test:*)",
