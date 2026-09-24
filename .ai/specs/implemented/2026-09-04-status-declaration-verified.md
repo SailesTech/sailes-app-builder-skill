@@ -1,6 +1,6 @@
 # Spec: a declaration is checked against the tree, and an empty file is not a deliverable
 
-Status: **Proposed** · branch `feat/status-declaration-verified` · base 1.32.0
+Status: implemented — evidence: `npm test` → exit 0 on 1.38.0 (rebased onto 1.37.0) · `node tools/worker-status.test.js` → all passed (+1 case 2026-09-24: files empty by convention) · `--verify` run from a client-shaped repo with no `tools/` via `${CLAUDE_PLUGIN_ROOT}` → flags `declared-not-changed` + `declared-empty`, exit 1 · mcp-toolnames-check against a silent server: 1.37.0 `exit 124`, 1.38.0 exit 0 · checker: **CHANGES-REQUIRED → APPROVE** (design-artifact block collapsed EMPTY into MISS; fixed to OK/EMPTY/MISS, exercised on three fixtures) · qa: **n/a — brak działającej aplikacji w repo frameworka** · release 1.38.0, 2026-09-24 · branch `feat/status-declaration-verified`, base 1.32.0
 Autor: sesja 2026-09-04 (Olaf) · Źródło pomysłu: `github.com/overment/limen` (MIT)
 
 ## Co to realnie zmienia

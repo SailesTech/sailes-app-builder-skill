@@ -35,7 +35,8 @@
  *                                                # and does every declared file hold any content
  *
  * Exit codes: 0 = file is a complete, valid, closed status (or an empty sweep). 1 = anything else
- * — no file, an unclosed file, a closed file with a field missing, or a non-empty sweep. The three
+ * — no file, an unclosed file, a closed file with a field missing, a non-empty sweep, or a
+ * `--verify` that found a discrepancy (reported, never a reason to block integration). The three
  * states above are distinguished by MESSAGE, not by exit code, because the contract this tool
  * implements only ever asks a lead to read the reason, not to branch a script on which failure it
  * was.
@@ -412,6 +413,9 @@ function git(worktree, args) {
   }
 }
 
+/** Files that are empty by design — a worker declaring one is truthful, not hollow. */
+const EMPTY_BY_CONVENTION = new Set(['.gitkeep', '.keep', '__init__.py']);
+
 /**
  * Checks a CLOSED declaration against the tree it describes — the half `evaluateFile` cannot do.
  *
@@ -492,6 +496,7 @@ function verifyAgainstTree(filePath, worktree) {
   for (const relative of touched) {
     const absolute = path.resolve(worktree, String(relative));
     if (!fs.existsSync(absolute)) continue; // absence is already covered by (2)
+    if (EMPTY_BY_CONVENTION.has(path.basename(String(relative)))) continue;
     let content = '';
     try {
       content = fs.readFileSync(absolute, 'utf8');

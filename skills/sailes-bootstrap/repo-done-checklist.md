@@ -53,8 +53,11 @@ for d in apps/web apps/worker .ai/checklists .ai/adr; do
   [ -d "$ROOT/$d" ] && echo "OK   $d/" || echo "MISS $d/"
 done
 echo "== design artifact (one of) =="
-{ [ -s "$ROOT/design-system/MASTER.md" ] || [ -s "$ROOT/.ai/specs/ui-spec.md" ]; } \
-  && echo "OK   design artifact present" || echo "MISS design artifact (run sailes-design)"
+if [ -s "$ROOT/design-system/MASTER.md" ] || [ -s "$ROOT/.ai/specs/ui-spec.md" ]; then
+  echo "OK   design artifact present"
+elif [ -e "$ROOT/design-system/MASTER.md" ] || [ -e "$ROOT/.ai/specs/ui-spec.md" ]; then
+  echo "EMPTY design artifact (exists, holds nothing — finish sailes-design, don't restart it)"
+else echo "MISS design artifact (run sailes-design)"; fi
 echo "== CLAUDE.md points to AGENTS.md =="
 grep -q "@AGENTS.md" "$ROOT/CLAUDE.md" 2>/dev/null && echo "OK   CLAUDE.md → @AGENTS.md" || echo "MISS @AGENTS.md reference"
 echo "== git =="

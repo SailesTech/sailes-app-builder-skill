@@ -604,6 +604,20 @@ test('--verify does NOT flag a file that merely looks small — one character is
   rm(dir);
 });
 
+test('--verify does NOT flag a file that is empty by convention — .gitkeep, .keep, __init__.py', () => {
+  // A worker that adds a package or keeps a directory declares these honestly; flagging them would
+  // be a false alarm on every such worker, and false alarms are how a report gets ignored.
+  const dir = tmpDir();
+  const sha = repoWithCommit(dir, { 'pkg/__init__.py': '', 'logs/.gitkeep': '', 'data/.keep': '', 'report.md': '' });
+  const file = statusFile(dir, {
+    base: 'base-point', commit: sha, touched: ['pkg/__init__.py', 'logs/.gitkeep', 'data/.keep', 'report.md'],
+  });
+  const r = lib.verifyAgainstTree(file, dir);
+  const empties = r.findings.filter((f) => f.kind === 'declared-empty').map((f) => f.detail);
+  assert.deepStrictEqual(empties, ['report.md'], JSON.stringify(r.findings));
+  rm(dir);
+});
+
 test('--verify flags a base that is not an ancestor of the commit', () => {
   const dir = tmpDir();
   const sha = repoWithCommit(dir, { 'a.ts': 'export const a = 1;\n' });
