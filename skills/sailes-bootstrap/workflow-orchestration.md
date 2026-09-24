@@ -198,13 +198,13 @@ to the human. Carried forward from the superseded 2026-08-06 spec's D5/Q1 unchan
 
 | Situation | Resolves to | Source |
 |---|---|---|
-| `agent({agentType})`, no `model` | the role's own frontmatter pin (`explorer` → `claude-haiku-4-5-20251001`, `be-dev` → `claude-sonnet-5`, etc.) | `wf_c7c25bee-3b3` |
-| `agent({agentType, model: 'haiku'})` | the explicit alias wins over the frontmatter pin | `wf_c7c25bee-3b3` (`checker` + `'haiku'` → haiku) |
+| `agent({agentType})`, no `model` | the role's own frontmatter default (`explorer` → `haiku`, `be-dev` → `sonnet`, etc. — since 1.37.0 the frontmatter carries the tier alias, resolved via `ANTHROPIC_DEFAULT_*_MODEL` in the project's shared, versioned `.claude/settings.json`) | `wf_c7c25bee-3b3` |
+| `agent({agentType, model: 'haiku'})` | the explicit alias wins over the frontmatter default | `wf_c7c25bee-3b3` (`checker` + `'haiku'` → haiku) |
 | `agent({})`, no `agentType` at all | the **session model** (Opus in a lead session) — this is the failure mode, not a feature | `wf_3227fe3d-ad3` — 5 collectors dispatched with no `agentType` all ran on Opus and were killed by the human mid-run |
 | Full resolution order (Claude Code ≥ v2.1.251) | per-invocation `model` → role frontmatter → session model → `CLAUDE_CODE_SUBAGENT_MODEL` env | code.claude.com/docs/en/sub-agents: "Before v2.1.251, `CLAUDE_CODE_SUBAGENT_MODEL` came first" — this doc states the **current** order; `team-lead.md`/`agent-team-structure.md` carry the pre-v2.1.251 order as of this writing and are corrected separately (spec P4.2) |
 
 Rules:
-- **`agentType` is the default on every `agent()` call** — it is what loads the role's pin at all.
+- **`agentType` is the default on every `agent()` call** — it is what loads the role's default at all.
   The hook `hooks/workflow-agenttype-guard.js` (spec P5a/P5b, re-scoped by decision Q2′ on
   2026-09-17) enforces the part that is actually a silent failure and no more: a call that carries
   neither `agentType` nor `model` is **blocked (exit 2)**, because it would silently inherit the
@@ -217,12 +217,12 @@ Rules:
 - **`model` is only ever a conscious override**, and it goes in the run log with the alias and the
   reason — the same "log the alias" rule the plain `Agent` tool already carries
   (`agents/team-lead.md`).
-- **`researcher` in Workflow defaults to a `model: 'sonnet'` override.** Its frontmatter pin is Opus,
-  which collides with the standing "no Opus subagents" rule; Opus for `researcher` requires explicit
-  human sign-off, not a default.
+- **`researcher` in Workflow defaults to a `model: 'sonnet'` override.** Its frontmatter default is
+  `opus`, which collides with the standing "no Opus subagents" rule; Opus for `researcher` requires
+  explicit human sign-off, not a default.
 - `effort` takes measurable effect: `'high'` produced ≈2.7× the output tokens of `'low'` on the same
   task, n=2+2 (`.ai/eval-runs/2026-09-16-workflow-facts/VERDICT.md` P0.1). **Haiku 4.5 does not
-  support `effort`** — do not set it on an `explorer` or any haiku-pinned role.
+  support `effort`** — do not set it on an `explorer` or any role whose default tier is `haiku`.
 
 ## Cost measurement
 

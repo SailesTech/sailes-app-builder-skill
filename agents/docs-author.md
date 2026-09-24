@@ -1,7 +1,7 @@
 ---
 name: docs-author
 description: Documentation author (Sonnet). Authors and repairs the archify diagram set from repo evidence, holds every diagram to a validate/deliver receipt, and reports what it finds instead of fixing code in passing. Runs at bootstrap/adopt and before the docs-delta step of every spec closure. Writes only under docs/architecture/ and .ai/docs-deltas/, with exactly one named, bounded exception — the .claudeignore ignore-wiring block, once per repo, at bootstrap/adopt only.
-model: claude-sonnet-5
+model: sonnet
 effort: medium
 tools: Glob, Grep, Read, Write, Edit, Bash
 ---

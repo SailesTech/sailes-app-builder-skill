@@ -37,16 +37,20 @@ const KNOWN_FIELDS = new Set([
   'isolation', 'color',
 ]);
 
-/** Dated allowlist — re-check when the model roster moves. Aliases are legal but we pin. */
-const KNOWN_MODELS = new Set([
-  'claude-opus-5', 'claude-sonnet-5', 'claude-haiku-4-5', 'claude-fable-5',
-  'claude-opus-4-8', 'claude-opus-4-7', 'claude-sonnet-4-6', 'inherit',
-]);
+/**
+ * 1.37.0: roles switched from a pinned full ID to Claude Code's supported tier alias. A pinned ID
+ * goes stale silently — `team-lead`/`researcher` still named `claude-opus-5` after the tier's
+ * current model had moved to Opus 5.5, with nothing here to catch it. 1.37.0 finished the move:
+ * frontmatter MUST carry a tier alias, full stop — no dated list of full IDs to go stale here or
+ * anywhere else. Pinning a concrete version is done through `ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL`
+ * in the project's own versioned `.claude/settings.json`, never in a role file.
+ */
+const KNOWN_MODELS = new Set(['opus', 'sonnet', 'haiku', 'fable', 'inherit']);
 
 const EFFORT_LEVELS = new Set(['low', 'medium', 'high', 'xhigh', 'max']);
 
 /** Models on which the `effort` parameter is not supported. */
-const NO_EFFORT_MODELS = new Set(['claude-haiku-4-5']);
+const NO_EFFORT_MODELS = new Set(['haiku']);
 
 /** Plugin-loaded subagents ignore these fields entirely — we ship as a plugin. */
 const IGNORED_IN_PLUGINS = new Set(['hooks', 'mcpServers', 'permissionMode']);
@@ -170,13 +174,15 @@ for (const file of files) {
     }
   });
 
-  test(`${role}: model is pinned to a known ID`, () => {
+  test(`${role}: model is set to a known tier alias`, () => {
     assert.ok(fm.model, 'missing `model` — would silently inherit the session model');
-    assert.ok(KNOWN_MODELS.has(fm.model), `unknown model "${fm.model}"`);
     assert.ok(
-      fm.model.startsWith('claude-'),
-      `"${fm.model}" is an alias, not a pinned ID — an alias follows whatever the tier default becomes`
+      !fm.model.startsWith('claude-'),
+      `"${fm.model}" is a full model ID — role frontmatter must carry a tier alias ` +
+        '(opus/sonnet/haiku/fable/inherit); pin a concrete version via ' +
+        '`ANTHROPIC_DEFAULT_*_MODEL` in the project\'s `.claude/settings.json`, never in a role file'
     );
+    assert.ok(KNOWN_MODELS.has(fm.model), `unknown model "${fm.model}"`);
   });
 
   test(`${role}: effort is valid, and absent exactly where it is unsupported`, () => {

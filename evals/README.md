@@ -19,11 +19,17 @@ every `Setup:` line here means by "give a fresh subagent the role definition".
 Two obligations, because this is the same stand-in the doctrine otherwise restricts:
 
 - **Say so in the `Last run:` line.** A stand-in run grades the *text*; it does not exercise the role's
-  pinned model, its tool allow-list, or its inability to spawn. Recording "PASS" without that
+  default model, its tool allow-list, or its inability to spawn. Recording "PASS" without that
   qualification is how a text result gets read as a runtime result.
-- **When the behaviour under test IS the runtime** — does the pin apply, does the allow-list hold, can
-  a gate fan out — a stand-in proves nothing. Spawn the real type and accept that you are grading the
-  deployed version. `.ai/eval-runs/2026-07-26-role-runtime-audit/` is what that looks like.
+- **When the behaviour under test IS the runtime** — does the default tier apply, does the allow-list
+  hold, can a gate fan out — a stand-in proves nothing. Spawn the real type and accept that you are
+  grading the deployed version. `.ai/eval-runs/2026-07-26-role-runtime-audit/` is what that looks like.
+- **An A/B comparing two conditions needs the model held constant, not just the same alias.** Since
+  1.37.0 a role's frontmatter is an alias, and the alias can resolve to a different concrete model
+  between arms if the project's `.claude/settings.json` `ANTHROPIC_DEFAULT_*_MODEL` changes mid-run or
+  differs between the machines running each arm. Pin it for the run's duration (same file, same env
+  var) before dispatching either arm; a run that did not pin it records its verdict as
+  **non-comparable**, not PASS/FAIL, and says why.
 
 ## How to run a scenario
 

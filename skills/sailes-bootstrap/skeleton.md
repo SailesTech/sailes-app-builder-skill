@@ -69,7 +69,12 @@ repo/
     copilot-instructions.md  # → one-line pointer to AGENTS.md (Copilot). One source, three harnesses.
 
   .claude/                # Claude Code harness guardrails — structural discipline, not agent goodwill
-    settings.json         #   ONE JSON file with two keys (copy from sailes-bootstrap/settings-template.json):
+    settings.json         #   ONE JSON file with three keys (copy from sailes-bootstrap/settings-template.json):
+                          #   "env" — ships EMPTY: roles carry a tier alias and an unset
+                          #     ANTHROPIC_DEFAULT_*_MODEL follows Anthropic's recommendation forward.
+                          #     Pin here (committed, same model for the whole team) ONLY when the
+                          #     repo needs reproducibility (evals, A/B) — then a bump is a one-line
+                          #     PR, never a role-file edit (agent-team-structure.md §Model routing)
                           #   "permissions" — ALLOW the verify commands (test/lint/typecheck/build/dev)
                           #     AND git add/commit/log (every writing role is mandated to commit in
                           #     its own worktree; a mandate the permission layer prompts on fails);

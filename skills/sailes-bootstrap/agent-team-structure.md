@@ -84,35 +84,50 @@ Role definitions ship with this plugin in `agents/` (auto-discovered on `plugin 
 **This table is the single source of truth for the roster.** `docs/agent-roles.md` and
 `agentic-first-principles.md` used to carry their own copies; on 2026-07-26 all three had drifted and
 two had lost `tester` entirely — a missing gate that reads like a complete list. Both now point here.
-Add a role, change a pin or change a lane **here only**.
+Add a role, change a default tier or change a lane **here only**.
 
 | Role | Model · effort | Does | Never |
 |---|---|---|---|
-| `team-lead` | `claude-opus-5` · high | plan · decompose into one-task units · assign · integrate results · final verdict; reads Task Router + `grep`s `.ai/lessons.md` and `.ai/archive/` by the touched area's keywords before planning | bulk-codes the feature solo on a large task; lets a worker decide a **key** decision |
-| `explorer` | `claude-haiku-4-5` · — | read-only recon → `file:line` findings, contract shapes, prop/value maps; carries `WebSearch`/`WebFetch` for external gathering, reporting the URL and quoted line exactly as it reports `file:line` | propose final code; review quality; judge whether a source is trustworthy (that is `researcher`'s call at synthesis) |
-| `researcher` | `claude-opus-5` · high | synthesise what several explorers brought back into ONE findings artifact — provenance per claim, confidence, an explicit could-not-establish list — and verify load-bearing claims at source with its own cross-cutting sweep. Integrates **to know**, where the lead integrates **to act** | decide anything, recommend an architecture, spawn (it has no `Agent` — see roster spec Q1), or present an unverified claim as verified |
-| `designer` | `claude-sonnet-5` · high | UX/UI spec from design tokens (layout, states, responsive) | write feature code |
-| `be-dev` / `fe-dev` | `claude-sonnet-5` · high | implement exactly the approved scope, per spec / per design | commit, push, or expand scope |
-| `tester` | `claude-sonnet-5` · high | author the phase's suite via `sailes-test`: derive cases from the spec with the code UNREAD → human freezes `.ai/test-plans/<spec>.md` → write → ADD-only from the diff → tiered detection proof (the freeze is `middle`-lane `DERIVED`, no human STOP — `gate-scaling` block above). The **one gate role that writes** | read the implementation before deriving cases; weaken a frozen assertion; lower its own risk tier; commit or push |
-| `checker` | `claude-sonnet-5` · high | independent read-only review of the diff vs. spec → APPROVE / NITS / CHANGES-REQUIRED; input = diff + spec + checklist ONLY (see Gate isolation) | grade on reasoning instead of result; read the maker's narrative; touch code |
-| `qa` | `claude-sonnet-5` · high | run the `tester` suite on the live app as the gate verdict + real-flow proof + screenshots; behavior before diff; vision-verify vs design artifact + `.ai/screens/` baseline (`full` lane only — `middle` is a live run with pasted output, no screenshots, per `gate-scaling` above) | fake a pass when stack/creds are missing |
-| `docs-author` | `claude-sonnet-5` · medium | author the archify diagram set from repo evidence (`sailes-docs`); every diagram held to a validate/deliver receipt; runs at bootstrap/adopt and before the docs-delta step of spec closure — outside the phase order above | edit feature code (findings are reported upward); hand off without a receipt; call a `SKIP archify` a pass |
+| `team-lead` | `opus` · high | plan · decompose into one-task units · assign · integrate results · final verdict; reads Task Router + `grep`s `.ai/lessons.md` and `.ai/archive/` by the touched area's keywords before planning | bulk-codes the feature solo on a large task; lets a worker decide a **key** decision |
+| `explorer` | `haiku` · — | read-only recon → `file:line` findings, contract shapes, prop/value maps; carries `WebSearch`/`WebFetch` for external gathering, reporting the URL and quoted line exactly as it reports `file:line` | propose final code; review quality; judge whether a source is trustworthy (that is `researcher`'s call at synthesis) |
+| `researcher` | `opus` · high | synthesise what several explorers brought back into ONE findings artifact — provenance per claim, confidence, an explicit could-not-establish list — and verify load-bearing claims at source with its own cross-cutting sweep. Integrates **to know**, where the lead integrates **to act** | decide anything, recommend an architecture, spawn (it has no `Agent` — see roster spec Q1), or present an unverified claim as verified |
+| `designer` | `sonnet` · high | UX/UI spec from design tokens (layout, states, responsive) | write feature code |
+| `be-dev` / `fe-dev` | `sonnet` · high | implement exactly the approved scope, per spec / per design | commit, push, or expand scope |
+| `tester` | `sonnet` · high | author the phase's suite via `sailes-test`: derive cases from the spec with the code UNREAD → human freezes `.ai/test-plans/<spec>.md` → write → ADD-only from the diff → tiered detection proof (the freeze is `middle`-lane `DERIVED`, no human STOP — `gate-scaling` block above). The **one gate role that writes** | read the implementation before deriving cases; weaken a frozen assertion; lower its own risk tier; commit or push |
+| `checker` | `sonnet` · high | independent read-only review of the diff vs. spec → APPROVE / NITS / CHANGES-REQUIRED; input = diff + spec + checklist ONLY (see Gate isolation) | grade on reasoning instead of result; read the maker's narrative; touch code |
+| `qa` | `sonnet` · high | run the `tester` suite on the live app as the gate verdict + real-flow proof + screenshots; behavior before diff; vision-verify vs design artifact + `.ai/screens/` baseline (`full` lane only — `middle` is a live run with pasted output, no screenshots, per `gate-scaling` above) | fake a pass when stack/creds are missing |
+| `docs-author` | `sonnet` · medium | author the archify diagram set from repo evidence (`sailes-docs`); every diagram held to a validate/deliver receipt; runs at bootstrap/adopt and before the docs-delta step of spec closure — outside the phase order above | edit feature code (findings are reported upward); hand off without a receipt; call a `SKIP archify` a pass |
 
 ## Model routing — the role default is a default, not a ceiling
 
-The `Model · effort` column above is what each role's definition file pins, and it is the default for
-an **ordinary task of that role**. The lead may override it for a single task with the Agent tool's
-`model` / `effort` parameters. Resolution order since Claude Code v2.1.251 is the per-invocation
-parameter → the role's frontmatter → the session model → `CLAUDE_CODE_SUBAGENT_MODEL` env (before
-v2.1.251 the env var came first), so a lead's override beats the file, and omitting `model` keeps the
-role's pin: `agentType` alone loads the frontmatter model rather than falling back to the session's.
+The `Model · effort` column above is what each role's definition file sets as default, and it is the
+default for an **ordinary task of that role**. The lead may override it for a single task with the
+Agent tool's `model` / `effort` parameters. Resolution order since Claude Code v2.1.251 is the
+per-invocation parameter → the role's frontmatter → the session model → `CLAUDE_CODE_SUBAGENT_MODEL`
+env (before v2.1.251 the env var came first), so a lead's override beats the file, and omitting
+`model` keeps the role's default: `agentType` alone loads the frontmatter model rather than falling
+back to the session's.
 
-**Model IDs are pinned, not aliases** (`claude-sonnet-5`, not `sonnet`). An alias silently follows
-whatever the tier's default becomes, which makes a run un-reproducible and makes "the framework got
-worse" impossible to attribute — the same lesson this repo already applies to pinning `-m` on a Codex
-delegation. The cost is real and accepted: a new model needs a framework release to reach the roles.
-If an org's `availableModels` allowlist excludes a pinned ID, Claude Code skips it and runs the role on
-the inherited model rather than failing.
+**Roles carry a tier alias, not a pinned full ID** (`sonnet`, not `claude-sonnet-5`) — since 1.37.0.
+The alias → model mapping lives in exactly one place: `ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL`
+in the repo's own **shared project** `.claude/settings.json` — committed, versioned, the same for
+everyone who clones the repo, and it wins over a teammate's personal `~/.claude/settings.json`
+because shared project sits above user in Claude Code's settings precedence (an `env` block is an
+ordinary key and follows that same stack). Unset, it falls back to Anthropic's own recommendation for
+that tier, which moves over time. A personal `~/.claude/settings.json` entry is for local
+experimentation only — trying a candidate model before proposing it — never the record of what the
+team runs on. **A model change is a parameter change like any other**, judged by the same process as
+any other framework change rather than treated as a special case that needs its own pin to be safe
+(D4, 2026-09-23) — a newer model is meant to replace the older one, so the default rides forward with
+the alias, and bumping it is a one-line PR to the project's `settings.json` like any other parameter
+change. When a run genuinely needs to be reproducible — an eval, an A/B — pin the model for that run's
+duration via the same env var (in the project file, so the pin is shared, not one runner's local
+override) instead of editing a role file; nothing is lost by not freezing the frontmatter, because the
+token-report already reads the actual model from the transcript (`message.model`), whichever way the
+alias resolved that day. Escalating or downgrading a single worker still goes through the `model`
+parameter on the invocation (an alias), never through rewriting a role's default.
+If an org's `availableModels` allowlist excludes the model an alias resolves to, Claude Code skips it
+and runs the role on the inherited model rather than failing.
 
 **Escalate on judgment, not on volume.** Opus for a contract, data-model, auth or tenancy surface; a
 migration parity judge; a diagnosis with no reproducible mechanism yet; a change too entangled to slice
@@ -128,8 +143,9 @@ measured against the live tool on 2026-07-26 rather than read from documentation
 opposite ways:
 
 - **`model` fails loudly.** It accepts only the tier aliases `sonnet` / `opus` / `haiku` / `fable`; a
-  full ID is rejected with `InputValidationError`. So overriding trades the pinned `claude-sonnet-5`
-  for whatever `sonnet` resolves to at that moment.
+  full ID is rejected with `InputValidationError`. Overriding doesn't trade a pin for an alias — the
+  role's own default is already an alias (above) — it just swaps which tier's current resolution you
+  get, the same as if the frontmatter itself had named a different tier.
 - **`effort` fails silently, which is worse.** It is not among the Agent tool's declared parameters,
   yet passing it raises no error. Whether it takes effect is **unverified** — and a parameter that is
   accepted without applying is exactly the shape of failure this repo keeps recording: the lead
@@ -137,23 +153,28 @@ opposite ways:
   **Treat effort as frontmatter-only.** If a task genuinely needs a different effort, that is not an
   override — it is a role that has outgrown its definition.
 
-The practical consequence: **omitting `model` is how you keep the pin.** Passing it is the deliberate
-act, and the only thing you can change per task.
+The practical consequence: **omitting `model` is how you keep the role's default tier.** Passing it
+is the deliberate act, and the only thing you can change per task.
 
-This is a **decided trade-off, not an oversight** (2026-07-26). The pin's value is on the default
-path, where nearly every run lives and where it stays fully intact; escalations are rare, deliberate
-and already logged with a reason, so attribution survives at the decision level even when exact
-version does not. The alternative — a twin role file per escalated role — reintroduces duplication in
-a repo that has already had one table drift across three copies.
+This is a **decided trade-off, not an oversight** — and it flipped once already. 2026-07-26 froze a
+full ID into each role file, so an override traded a known version for an unknown one and the file
+went stale the moment the tier's model moved on. 2026-09-23 (D4, 1.37.0) reversed that: the
+frontmatter default rides forward with the alias, on the same reasoning as everywhere else in this
+section — a model change is judged like any other framework change, not insured against by freezing a
+role file. What still needs a real pin — reproducibility for an eval or an A/B — gets one from the
+**project's own versioned `.claude/settings.json`**, not from a per-role file and not from anyone's
+personal user settings, which only ever affects that one person's sessions. The alternative to this —
+a twin role file per escalated role, or a full-ID pin nobody remembers to bump — reintroduces exactly
+the duplication and staleness this repo has already been burned by twice.
 
 Two obligations come with taking it:
 
 - **Log the alias, not just the fact.** "Escalated to `opus`" is the record; "escalated" is not.
   Without the alias, a later reader cannot tell which model produced the result, which is the very
-  attribution the pinning exists to protect.
+  attribution the alias mapping exists to protect.
 - **Escalating the same role routinely is a signal, not a habit.** When it recurs, promote that role
-  to its own pinned definition instead of overriding forever — the graduation rule this framework
-  already applies to configuration. Do it on evidence from the run log, not in anticipation.
+  to its own default tier in its frontmatter instead of overriding forever — the graduation rule this
+  framework already applies to configuration. Do it on evidence from the run log, not in anticipation.
 
 **Log the non-overrides too.** Recording only the deviations leaves the volume-misread invisible: a
 reader cannot tell a phase where the escalation axis was considered and rejected from one where nobody
@@ -168,7 +189,7 @@ ceiling on whole-repo recon rather than a price difference. Note also that Claud
 `Explore` agent stopped defaulting to Haiku and now inherits the session model — `explorer` staying on
 Haiku is a deliberate divergence from the platform default, not a match to it.
 
-**A gate can earn an escalation, on a different trigger than a worker.** Most review is a patch read and the pinned tier handles it. Escalate a gate when the defect it guards against is **what the diff omits** rather than what it contains — a tenant filter missing from one of nine access paths, an authorization check absent from a branch nobody wrote. That requires holding the whole surface in mind and asking what *should* be there, which is not the same task as checking that what is there is right. Named 2026-07-26 after a run escalated `checker` on a tenancy diff for exactly this reason while the doctrine had no words for it. Still a judgment trigger, never a size one, and still logged with its outcome.
+**A gate can earn an escalation, on a different trigger than a worker.** Most review is a patch read and the default tier handles it. Escalate a gate when the defect it guards against is **what the diff omits** rather than what it contains — a tenant filter missing from one of nine access paths, an authorization check absent from a branch nobody wrote. That requires holding the whole surface in mind and asking what *should* be there, which is not the same task as checking that what is there is right. Named 2026-07-26 after a run escalated `checker` on a tenancy diff for exactly this reason while the doctrine had no words for it. Still a judgment trigger, never a size one, and still logged with its outcome.
 
 ## Order of work (the pipeline)
 
@@ -539,15 +560,15 @@ A verifier grades honestly only on a clean context. The failure mode this sectio
 
 **Every worker is spawned as its own agent type — `be-dev`, `checker`, `qa`, `team-lead` — never as
 `general-purpose` with the role definition pasted into the brief.** The role file is not a prompt
-template. It carries three things a brief cannot: the pinned `model` and `effort`, the `tools`
+template. It carries three things a brief cannot: the role's default `model` and `effort`, the `tools`
 allow-list, and the name that hooks and the run log see. A generic agent handed the same prose has
 none of them.
 
 What is silently lost when a generic agent stands in for a role:
 
 - **The model routing does not happen.** A `general-purpose` agent runs on the session's inherited
-  model at the session's effort. `be-dev`'s `claude-sonnet-5 · high` and `team-lead`'s
-  `claude-opus-5 · high` are never consulted, so the routing rule above is bypassed in the exact
+  model at the session's effort. `be-dev`'s `sonnet · high` and `team-lead`'s
+  `opus · high` are never consulted, so the routing rule above is bypassed in the exact
   place it was supposed to apply — and nothing reports it.
 - **The tool restrictions do not apply.** `checker` is read-only *because its definition says so*;
   a generic stand-in can write. The invariant that no non-lead role can spawn subagents holds
@@ -575,7 +596,10 @@ matters because two of these properties carry safety arguments, and one of them 
 **Enforced by configuration** — the runtime makes these true whatever the prose says:
 
 - **The model pin.** `explorer` reported `claude-haiku-4-5` and `checker` reported `claude-sonnet-5`,
-  each matching its frontmatter. The routing above is real, not aspirational.
+  each matching what its frontmatter pinned at the time (a full ID). Since 1.37.0 the frontmatter
+  carries the tier alias instead (`haiku`, `sonnet`, resolved via `ANTHROPIC_DEFAULT_*_MODEL`); the
+  property this audit established — a role runs on its own configured model, not the session's
+  inherited one — is what the routing above depends on, and it survived the move to aliases.
 - **The tool allow-list.** `checker` had exactly `Glob, Grep, Read, Bash` — no `Write`, no `Edit`,
   not merely unused but absent from its schema, so there is nothing to resist.
 - **The absence of `Agent`.** Neither role could spawn anything; the tool does not exist for them.

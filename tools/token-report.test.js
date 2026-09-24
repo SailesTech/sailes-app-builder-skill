@@ -422,6 +422,16 @@ async function run() {
     assert.strictEqual(newer.tier, 'sonnet', 'both still bucket into the same "sonnet" tier for aggregation');
   });
 
+  await test('1.37.0: claude-opus-5-5 prices at its own $4/$20, not the shorter claude-opus-5 row ' +
+    '($5/$25) it also prefix-matches — the repo pins OPUS to it in .claude/settings.json', () => {
+    const usageMessages = [{ input: 1_000_000, cacheCreate: 0, cacheRead: 0, output: 1_000_000 }];
+    const opus55 = costUsdForTranscript(usageMessages, 'claude-opus-5-5', PRICE_TABLE_USD_PER_MTOK);
+    const opus5 = costUsdForTranscript(usageMessages, 'claude-opus-5', PRICE_TABLE_USD_PER_MTOK);
+    assert.strictEqual(opus55.usd, 4 + 20, 'claude-opus-5-5: $4 in + $20 out per MTok');
+    assert.strictEqual(opus5.usd, 5 + 25, 'claude-opus-5 keeps $5 in + $25 out per MTok');
+    assert.strictEqual(opus55.tier, 'opus');
+  });
+
   await test('P1: a model matching no prefix is counted, never guessed at — costUsdForTranscript ' +
     'reports it as unpriced (tested above); summarizeCost surfaces it per-model, not folded into $0 silently', async () => {
     const c = costUsdForTranscript(
