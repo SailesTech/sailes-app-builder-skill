@@ -38,17 +38,26 @@ Every item MUST exist on disk. The manifest decides *optional packages*, never t
 ```bash
 ROOT="$(pwd)"   # the project root
 echo "== mandatory files =="
+# A mandatory file is one that HOLDS something. `-e` passes on a file created and left empty,
+# which is how a repo certifies as done while an agent reads a blank AGENTS.md and asks what to do.
+# `-s` is the same one-character test for "has bytes"; EMPTY is its own outcome, never MISS —
+# the fix differs (write it vs create it) and so must the word.
 for f in AGENTS.md CLAUDE.md README.md .gitignore package.json pnpm-workspace.yaml \
          .ai/skills/spec-writing/SKILL.md .ai/adr/template.md; do
-  [ -e "$ROOT/$f" ] && echo "OK   $f" || echo "MISS $f"
+  if [ ! -e "$ROOT/$f" ]; then echo "MISS $f"
+  elif [ ! -s "$ROOT/$f" ]; then echo "EMPTY $f (exists, holds nothing)"
+  else echo "OK   $f"; fi
 done
 echo "== mandatory dirs =="
 for d in apps/web apps/worker .ai/checklists .ai/adr; do
   [ -d "$ROOT/$d" ] && echo "OK   $d/" || echo "MISS $d/"
 done
 echo "== design artifact (one of) =="
-{ [ -e "$ROOT/design-system/MASTER.md" ] || [ -e "$ROOT/.ai/specs/ui-spec.md" ]; } \
-  && echo "OK   design artifact present" || echo "MISS design artifact (run sailes-design)"
+if [ -s "$ROOT/design-system/MASTER.md" ] || [ -s "$ROOT/.ai/specs/ui-spec.md" ]; then
+  echo "OK   design artifact present"
+elif [ -e "$ROOT/design-system/MASTER.md" ] || [ -e "$ROOT/.ai/specs/ui-spec.md" ]; then
+  echo "EMPTY design artifact (exists, holds nothing — finish sailes-design, don't restart it)"
+else echo "MISS design artifact (run sailes-design)"; fi
 echo "== CLAUDE.md points to AGENTS.md =="
 grep -q "@AGENTS.md" "$ROOT/CLAUDE.md" 2>/dev/null && echo "OK   CLAUDE.md → @AGENTS.md" || echo "MISS @AGENTS.md reference"
 echo "== git =="
@@ -56,7 +65,9 @@ git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 && echo "OK   git
 echo "first commit: $(git -C "$ROOT" rev-list --all --count 2>/dev/null || echo 0) commit(s)"
 echo "== full .ai/ structure (idempotent: pre-existing files are fine, never overwritten) =="
 for f in .ai/specs .ai/specs/implemented .ai/specs/archived .ai/backlog.md .ai/lessons.md .ai/STATE.md .ai/business-logic.md; do
-  [ -e "$ROOT/$f" ] && echo "OK   $f" || echo "MISS $f (scaffold it; do not overwrite if it appears later)"
+  if [ ! -e "$ROOT/$f" ]; then echo "MISS $f (scaffold it; do not overwrite if it appears later)"
+  elif [ -f "$ROOT/$f" ] && [ ! -s "$ROOT/$f" ]; then echo "EMPTY $f (scaffolded, never written)"
+  else echo "OK   $f"; fi
 done
 echo "== harness guardrails + client status =="
 for f in .claude/settings.json STATUS.md; do

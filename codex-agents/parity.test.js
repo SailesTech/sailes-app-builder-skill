@@ -100,6 +100,9 @@ const INVARIANTS = {
     ['no file / unclosed file / closed file are the three lifecycle states', /no file means it never started/i],
     ['the claim write can fail — worker falls back to its own worktree path', /write can fail/i],
     ['acceptance folds the status file into the run log, then removes it', /fold.{0,40}run log/i],
+    // Added 2026-09-04 with `--verify`: the declaration is checked against the tree, and a declared
+    // file that holds nothing is a discrepancy. Losing this from a twin loses it for that harness.
+    ['the declaration is verified against the tree, content included', /worker-status\.js --verify|holds? any content/i],
     // D8 — the WIP: checkpoint-versus-declaration convention. Inventoried 2026-08-02 (.ai/backlog.md)
     // as present on both sides with no invariant, surviving by luck rather than by a gate.
     ["the WIP commit is a checkpoint, not the worker's declaration of completion", /non-WIP:?\s*commit is the worker.s declaration/i],

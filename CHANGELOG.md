@@ -4,6 +4,28 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.38.0 — 2026-09-24 · A worker's declaration is checked against the tree
+
+Source: `.ai/specs/implemented/2026-09-04-status-declaration-verified.md` (PR #14, rebased onto 1.37.0).
+
+**What a repo on 1.38.0 now has that 1.37.0 did not:**
+
+- `tools/worker-status.js --verify <file> --worktree <path>` reads a CLOSED `.claude/status/` declaration
+  against the repository: the `commit` exists, `touched` matches `git diff --name-only base..commit`
+  **in both directions**, `base` is an ancestor of the commit, and every declared file holds at least one
+  non-whitespace character. Files empty by convention (`.gitkeep`, `.keep`, `__init__.py`) are not flagged.
+  It reports and never blocks — exit 1 names each discrepancy by kind; a git call that fails reads
+  "could not establish", never "no". The three manual checks `agents/team-lead.md` put on the lead are
+  now this command, invoked through `${CLAUDE_PLUGIN_ROOT}` like the other modes
+  (`worker-status-template.md`), in both twins; `codex-agents/parity.test.js` carries it as an invariant.
+- `repo-done-checklist.md` separates `EMPTY` (exists, holds nothing) from `MISS` for mandatory files, the
+  `.ai/` scaffold and the design artifact — the fix differs, so the word does.
+- `tools/mcp-toolnames-check.js` no longer hangs or orphans a server. With `shell: true` the server is the
+  shell's grandchild, so `child.kill()` left it holding four stdio pipes and the event loop; `npm test`
+  chains with `&&`, so one hang stopped the whole suite. The spawn is now `detached` off Windows and the
+  kill targets the process group we created; pipes are closed as a second line. Reproduced 2026-09-24 on
+  Linux against 1.37.0: a server that never answers → `exit 124` (hang); on 1.38.0 → exit 0.
+
 ## 1.37.0 — 2026-09-23 · Role models are tier aliases, with one versioned mapping
 
 Minor, not patch: this reverses D4 of `.ai/specs/implemented/2026-07-26-measurement-routing-and-subteams.md`

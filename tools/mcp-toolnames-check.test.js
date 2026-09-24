@@ -364,6 +364,63 @@ async function runDiscoveryTests() {
     assert.strictEqual(result.ok, false);
     assert.ok(/timed out/i.test(result.reason), `reason should say it timed out, got: ${result.reason}`);
   });
+
+  await testAsync('queryServerTools leaves no open pipe behind — the hang that stopped the whole suite', async () => {
+    // Killing the child is not enough: its three stdio pipes stay open as libuv handles and hold
+    // the event loop, so this file printed "all tests passed" and then never exited. Because
+    // `npm test` chains with `&&`, that hang stopped every test after this one — and the run read
+    // as "still going", not as failed. Measured on a clean `main` (WSL) 2026-09-04: exit 124 under
+    // `timeout`, with `getActiveResourcesInfo()` reporting four `PipeWrap` and nothing else.
+    //
+    // Asserted on the resource table rather than on elapsed time: a timing assertion on a machine
+    // this slow is a flake generator, and the defect is not slowness — it is a handle that is
+    // never released.
+    const pipesBefore = process.getActiveResourcesInfo().filter((r) => r === 'PipeWrap').length;
+    const cmd = `${JSON.stringify(process.execPath)} -e "setInterval(()=>{}, 1000)"`;
+    await mod.queryServerTools(cmd, { timeoutMs: 500 });
+    await new Promise((r) => setTimeout(r, 200)); // let the destroy() land
+    const pipesAfter = process.getActiveResourcesInfo().filter((r) => r === 'PipeWrap').length;
+    assert.ok(
+      pipesAfter <= pipesBefore,
+      `a spawned server left ${pipesAfter - pipesBefore} pipe(s) open; the event loop cannot drain and the suite stops here`
+    );
+  });
+
+  await testAsync('queryServerTools leaves no ORPHAN PROCESS behind — the grandchild `sh` hides', async () => {
+    // The cause under the hang. `shell: true` means the direct child is `sh -c "<command>"` and the
+    // server is its GRANDCHILD, so `child.kill()` signalled only the shell and the grandchild kept
+    // running — holding the pipes that held the event loop. Measured 2026-09-04: one orphan per
+    // call on WSL. Windows never showed it, because `taskkill /t` already walks the tree; the two
+    // branches of killSpawnedTree differ for exactly this reason.
+    //
+    // Closing the pipes alone would have removed the SYMPTOM and left a process leak, which is the
+    // worse failure: a hang is visible, a leaked process is not.
+    if (process.platform === 'win32') {
+      console.log('       SKIP on win32 — taskkill /t already walks the tree, and `ps -eo args` is not available');
+      return;
+    }
+    const marker = `sailes-mcp-orphan-probe-${process.pid}`;
+    const alive = () =>
+      Number(
+        require('child_process')
+          .execSync(`ps -eo args | grep -F ${marker} | grep -v grep | wc -l`, { encoding: 'utf8' })
+          .trim()
+      );
+    const before = alive();
+    const cmd = `${JSON.stringify(process.execPath)} -e "setInterval(()=>{},1000)" ${marker}`;
+    await mod.queryServerTools(cmd, { timeoutMs: 600 });
+    await new Promise((r) => setTimeout(r, 1200)); // let the group signal land
+    const after = alive();
+    try {
+      assert.strictEqual(after, before, `queryServerTools left ${after - before} process(es) running after it returned`);
+    } finally {
+      try {
+        require('child_process').execSync(`pkill -f ${marker} 2>/dev/null || true`);
+      } catch {
+        // best-effort cleanup; the assertion above already reported the truth
+      }
+    }
+  });
 }
 
 // ================================================================== role-file parsing edge cases via CLI

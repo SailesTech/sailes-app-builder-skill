@@ -103,6 +103,7 @@ Field notes:
 ```
 node "${CLAUDE_PLUGIN_ROOT}/tools/worker-status.js" .claude/status/be-dev-3.md      # one file, exit 0/1, names what's wrong
 node "${CLAUDE_PLUGIN_ROOT}/tools/worker-status.js" --sweep .claude/status/          # every file still open or still present
+node "${CLAUDE_PLUGIN_ROOT}/tools/worker-status.js" --verify .claude/status/be-dev-3.md --worktree <path>  # closed declaration vs the tree: sha, touched both ways, base, empty files
 ```
 
 `tools/` ships with the plugin, not the client repo's working tree — `${CLAUDE_PLUGIN_ROOT}` is how

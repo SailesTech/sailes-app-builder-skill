@@ -28,9 +28,15 @@
  *                                                # .claude/worktrees/<name>/.claude/status/
  *   node tools/worker-status.js --sweep <dir>   # list every file still open or still present in
  *                                                # exactly that directory — no worktree walk
+ *   node tools/worker-status.js --verify <file> --worktree <path>
+ *                                                # check the CLOSED declaration against the tree it
+ *                                                # describes: does the sha exist, does `touched`
+ *                                                # match the diff both ways, was `base` an ancestor,
+ *                                                # and does every declared file hold any content
  *
  * Exit codes: 0 = file is a complete, valid, closed status (or an empty sweep). 1 = anything else
- * — no file, an unclosed file, a closed file with a field missing, or a non-empty sweep. The three
+ * — no file, an unclosed file, a closed file with a field missing, a non-empty sweep, or a
+ * `--verify` that found a discrepancy (reported, never a reason to block integration). The three
  * states above are distinguished by MESSAGE, not by exit code, because the contract this tool
  * implements only ever asks a lead to read the reason, not to branch a script on which failure it
  * was.
@@ -42,6 +48,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 const REQUIRED_OPEN_FIELDS = ['worker', 'task', 'base', 'claimed', 'opened'];
 const REQUIRED_CLOSE_FIELDS = ['closed', 'outcome', 'touched'];
@@ -393,6 +400,127 @@ function sweep(dir, opts = {}) {
   return 1;
 }
 
+/**
+ * Runs `git` inside a worktree and returns stdout, or `null` when the command fails. Every caller
+ * treats `null` as "could not establish", never as "no". A verification that reports absence when
+ * it merely failed to look is the silent-instrument shape this repo keeps recording.
+ */
+function git(worktree, args) {
+  try {
+    return execFileSync('git', args, { cwd: worktree, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch {
+    return null;
+  }
+}
+
+/** Files that are empty by design — a worker declaring one is truthful, not hollow. */
+const EMPTY_BY_CONVENTION = new Set(['.gitkeep', '.keep', '__init__.py']);
+
+/**
+ * Checks a CLOSED declaration against the tree it describes — the half `evaluateFile` cannot do.
+ *
+ * `evaluateFile` grades the file against itself: is `commit` shaped like a sha, is `outcome` a
+ * known token, is `touched` a list. Every one of those passes on a declaration that is internally
+ * perfect and factually false, because nothing in it ever reads the repository. `agents/team-lead.md`
+ * (Agent lifecycle) already puts that reading on the lead — *"does `commit` exist, does `touched`
+ * match `git diff --stat`, was `base` current"* — as three manual steps. This is those three steps,
+ * plus the one the doctrine does not name: **a declared file can exist and be empty.**
+ *
+ * Contract, unchanged from the tool's Q3: it REPORTS, it never blocks. Every finding is a line for
+ * the lead's judgment and the run log, and the doctrine is explicit that a discrepancy here is
+ * reported loudly and integration proceeds — this repo has two documented checks disabled for
+ * crying wolf.
+ *
+ * Returns { ok, messages, findings } where `findings` names each discrepancy by kind.
+ */
+function verifyAgainstTree(filePath, worktree) {
+  const base = evaluateFile(filePath);
+  if (base.state === 'never-started' || base.state === 'died-mid-run') {
+    return {
+      ok: false,
+      findings: [{ kind: 'not-closed', detail: base.state }],
+      messages: [...base.messages, '  nothing to verify: a declaration is only checkable once it is closed'],
+    };
+  }
+  if (!fs.existsSync(worktree)) {
+    return {
+      ok: false,
+      findings: [{ kind: 'worktree-missing', detail: worktree }],
+      messages: [`worker-status: ${filePath} — cannot verify: worktree ${worktree} does not exist`],
+    };
+  }
+
+  const fields = base.fields || {};
+  const findings = [];
+  const messages = [];
+  const commit = typeof fields.commit === 'string' ? fields.commit.trim().split(/\s+/)[0] : '';
+  const declaredBase = typeof fields.base === 'string' ? fields.base.trim().split(/\s+/)[0] : '';
+  const touched = Array.isArray(fields.touched) ? fields.touched : [];
+
+  // (1) Does the sha exist at all? A `done` pointing at nothing is the failure `commit:` exists to
+  //     make impossible, and it survives every shape check because it is shaped correctly.
+  if (commit) {
+    const exists = git(worktree, ['cat-file', '-e', `${commit}^{commit}`]) !== null;
+    if (!exists) findings.push({ kind: 'commit-missing', detail: commit });
+  }
+
+  // (2) Does `touched` match what the commit actually changed — in BOTH directions. A file changed
+  //     and not declared is as much a discrepancy as one declared and not changed; only one of the
+  //     two gets noticed by a human skimming, which is why both are named here.
+  let changed = null;
+  if (commit && !findings.some((f) => f.kind === 'commit-missing')) {
+    const range = declaredBase ? `${declaredBase}..${commit}` : `${commit}^..${commit}`;
+    const out = git(worktree, ['diff', '--name-only', range]);
+    if (out !== null) changed = out.split('\n').map((l) => l.trim()).filter(Boolean);
+  }
+  if (changed === null) {
+    findings.push({ kind: 'diff-unreadable', detail: 'could not read the range; touched is unverified' });
+  } else {
+    const norm = (p) => String(p).replace(/\\/g, '/').replace(/^\.\//, '');
+    const declared = new Set(touched.map(norm));
+    const actual = new Set(changed.map(norm));
+    for (const p of declared) if (!actual.has(p)) findings.push({ kind: 'declared-not-changed', detail: p });
+    for (const p of actual) if (!declared.has(p)) findings.push({ kind: 'changed-not-declared', detail: p });
+  }
+
+  // (3) Was `base` current — i.e. is it an ancestor of the commit? A worker that branched from a
+  //     stale base produces a diff that reads clean and merges into something else.
+  if (declaredBase && commit && !findings.some((f) => f.kind === 'commit-missing')) {
+    const ancestor = git(worktree, ['merge-base', '--is-ancestor', declaredBase, commit]) !== null;
+    if (!ancestor) findings.push({ kind: 'base-not-ancestor', detail: `${declaredBase} is not an ancestor of ${commit}` });
+  }
+
+  // (4) The one the doctrine does not name: a declared file can exist and hold nothing. Existence
+  //     is what `-e` tests and what a diff line proves; neither says a single character was
+  //     written. An empty artifact satisfies "no file = task not done" by the letter alone.
+  for (const relative of touched) {
+    const absolute = path.resolve(worktree, String(relative));
+    if (!fs.existsSync(absolute)) continue; // absence is already covered by (2)
+    if (EMPTY_BY_CONVENTION.has(path.basename(String(relative)))) continue;
+    let content = '';
+    try {
+      content = fs.readFileSync(absolute, 'utf8');
+    } catch {
+      findings.push({ kind: 'unreadable', detail: String(relative) });
+      continue;
+    }
+    if (content.replace(/\s/g, '').length === 0) {
+      findings.push({ kind: 'declared-empty', detail: String(relative) });
+    }
+  }
+
+  const worker = fields.worker || '(worker not recorded)';
+  if (findings.length === 0) {
+    messages.push(`worker-status: ${filePath} — verified: ${worker}'s declaration matches the tree (${touched.length} file(s), commit ${commit || 'n/a'})`);
+    return { ok: true, findings, messages };
+  }
+
+  messages.push(`worker-status: ${filePath} — ${findings.length} discrepancy(ies) between declaration and tree:`);
+  for (const f of findings) messages.push(`  ${f.kind}: ${f.detail}`);
+  messages.push('  REPORT this into the verdict and the run log; do NOT block integration on it');
+  return { ok: false, findings, messages };
+}
+
 function main(argv) {
   if (argv[0] === '--sweep') {
     const explicitDir = argv[1];
@@ -402,10 +530,24 @@ function main(argv) {
     return sweep(dir, { walkWorktrees: !explicitDir });
   }
 
+  if (argv[0] === '--verify') {
+    const filePath = argv[1];
+    const flagIndex = argv.indexOf('--worktree');
+    const worktree = flagIndex === -1 ? '.' : argv[flagIndex + 1];
+    if (!filePath || filePath === '--worktree' || (flagIndex !== -1 && !worktree)) {
+      console.error('usage: node tools/worker-status.js --verify <file> [--worktree <path>]');
+      return 2;
+    }
+    const result = verifyAgainstTree(filePath, worktree);
+    for (const m of result.messages) (result.ok ? console.log : console.error)(m);
+    return result.ok ? 0 : 1;
+  }
+
   const filePath = argv[0];
   if (!filePath) {
     console.error('usage: node tools/worker-status.js <file>');
     console.error('       node tools/worker-status.js --sweep <dir>');
+    console.error('       node tools/worker-status.js --verify <file> [--worktree <path>]');
     return 2;
   }
 
@@ -422,6 +564,7 @@ if (require.main === module) {
 
 module.exports = {
   evaluateFile,
+  verifyAgainstTree,
   sweep,
   parseStatus,
   main,
