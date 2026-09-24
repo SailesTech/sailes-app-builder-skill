@@ -59,9 +59,11 @@ repo already gives a Codex `-m` pin.
 eval-runs/specs/RUN-LOG entries, and dated measurement snippets reporting what a specific past run
 observed — document or reproduce a point in time, not live configuration or current doctrine, and
 touching them would rewrite history for no behavior change. `tools/token-report.js`'s per-full-ID
-pricing table is also untouched: it prices the *actual* model read from a transcript's
+pricing table keeps its full-ID keys: it prices the *actual* model read from a transcript's
 `message.model`, which is exactly the mechanism this release relies on for attribution — it is
 correctly keyed by full ID and never by alias.
+It gains one row, `claude-opus-5-5` at $4/$20 per MTok: the repo now pins the Opus tier to it, and
+without its own row it prefix-matched `claude-opus-5` and was priced 25% high.
 
 ## 1.36.0 — 2026-09-20 · Four harness guards from the ECC audit
 
