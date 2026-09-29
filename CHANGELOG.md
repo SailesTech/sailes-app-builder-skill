@@ -4,6 +4,38 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.38.1 — 2026-09-28 · Sonnet tier pinned to Claude Sonnet 5.5
+
+A parameter change under the 1.37.0 doctrine: one line in the repo's shared, versioned
+`.claude/settings.json`, reviewed like any other. No spec — 1.37.0 built the alias mapping exactly so
+that this bump would not need one.
+
+**What a repo on 1.38.1 now has that 1.38.0 did not:**
+
+- `ANTHROPIC_DEFAULT_SONNET_MODEL` in this repo's `.claude/settings.json` is `claude-sonnet-5-5` (was
+  `claude-sonnet-5`). The seven `model: sonnet` roles — `be-dev`, `checker`, `designer`, `docs-author`,
+  `fe-dev`, `qa`, `tester` — now resolve to it here; their frontmatter is untouched. A generated/adopted
+  repo, whose `env` block ships empty, was already riding the alias forward and changes nothing.
+  Verified 2026-09-28 before the push: `claude -p --model claude-sonnet-5-5` on Claude Code 2.1.284
+  answers, reporting `canonicalModel: claude-sonnet-5-5`, a 1M context window and 128K max output.
+  Same list price as Sonnet 5 ($2/$10 per MTok), same tokenizer.
+- `tools/token-report.js` gains its own `claude-sonnet-5-5` row at $2/$10. Unlike the Opus pair in
+  1.37.0 the longest-prefix match was not mispricing anything today — the two prices are equal — so
+  the row exists for the day they split, and `token-report.test.js` asserts by row identity that the
+  own row is the one that resolves.
+- `effort: high` on every Sonnet role is deliberately **kept**. Sonnet 5.5 recalibrates effort levels
+  (the same `high` no longer means the same amount of thinking as on Sonnet 5) and Anthropic's
+  migration guidance starts agentic coding at `medium` — but at lower effort the model more often
+  reports a code change done without running a check that exercises it, which is the failure VERIFIED
+  exists to catch. An effort sweep on this repo's own evals is a separate follow-up, not bundled
+  here, so that any regression stays attributable to one change.
+
+**Left untouched:** two live evals name `claude-sonnet-5` in their expected-behavior text
+(`evals/lead-escalates-a-model-on-judgment-not-volume.md`, `evals/docs-skip-is-explicit-never-silent.md`).
+The doctrine they test — escalate on judgment, skip explicitly — does not depend on which Sonnet the
+alias resolves to, and 1.37.0 already left such point-in-time references alone. No `docs/architecture/`
+diagram names the model or the mapping, so this release has no docs delta.
+
 ## 1.38.0 — 2026-09-24 · A worker's declaration is checked against the tree
 
 Source: `.ai/specs/implemented/2026-09-04-status-declaration-verified.md` (PR #14, rebased onto 1.37.0).

@@ -432,6 +432,19 @@ async function run() {
     assert.strictEqual(opus55.tier, 'opus');
   });
 
+  await test('1.38.1: claude-sonnet-5-5 resolves to its OWN row, not the shorter claude-sonnet-5 one it ' +
+    'also prefix-matches — same $2/$10 today, so only row identity proves it; the repo pins SONNET to it', () => {
+    const own = priceForModel('claude-sonnet-5-5', PRICE_TABLE_USD_PER_MTOK);
+    assert.strictEqual(own, PRICE_TABLE_USD_PER_MTOK['claude-sonnet-5-5'],
+      'the longest-prefix rule must land on the claude-sonnet-5-5 row itself');
+    assert.notStrictEqual(own, PRICE_TABLE_USD_PER_MTOK['claude-sonnet-5'],
+      'not on the claude-sonnet-5 row, which would misprice silently the day the two prices split');
+    const usageMessages = [{ input: 1_000_000, cacheCreate: 0, cacheRead: 0, output: 1_000_000 }];
+    const sonnet55 = costUsdForTranscript(usageMessages, 'claude-sonnet-5-5', PRICE_TABLE_USD_PER_MTOK);
+    assert.strictEqual(sonnet55.usd, 2 + 10, 'claude-sonnet-5-5: $2 in + $10 out per MTok');
+    assert.strictEqual(sonnet55.tier, 'sonnet');
+  });
+
   await test('P1: a model matching no prefix is counted, never guessed at — costUsdForTranscript ' +
     'reports it as unpriced (tested above); summarizeCost surfaces it per-model, not folded into $0 silently', async () => {
     const c = costUsdForTranscript(

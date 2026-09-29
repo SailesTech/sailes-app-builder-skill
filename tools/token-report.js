@@ -173,6 +173,7 @@ function isUnprefixedSpawn(subagentType) {
  * Source: Anthropic API pricing, claude-api skill model table cached 2026-06-24 (lead-supplied,
  * spec 2026-09-16 P1 — this file's own knowledge cutoff has no visibility into current list
  * prices, and the spec's own price reference, `research/costs.md`, lives outside this repo).
+ * The `claude-sonnet-5-5` row (1.38.1) is from the same skill's table cached 2026-09-25.
  */
 const PRICE_TABLE_USD_PER_MTOK = {
   'claude-fable-5': { input: 10, output: 50 },
@@ -181,6 +182,10 @@ const PRICE_TABLE_USD_PER_MTOK = {
   'claude-opus-4-8': { input: 5, output: 25 },
   'claude-opus-4-7': { input: 5, output: 25 },
   'claude-opus-4-6': { input: 5, output: 25 },
+  // 1.38.1: same price as claude-sonnet-5 today, so the shorter row was pricing it correctly by
+  // accident. Its own row exists so the longest-prefix rule keeps pricing it correctly on the day
+  // the two prices split — the Opus pair above was 25% off before it got one (1.37.0).
+  'claude-sonnet-5-5': { input: 2, output: 10 },
   'claude-sonnet-5': { input: 2, output: 10 },
   'claude-sonnet-4-6': { input: 3, output: 15 },
   'claude-haiku-4-5': { input: 1, output: 5 },
