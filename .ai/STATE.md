@@ -91,6 +91,27 @@ Last-commit: 94543a1
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
+- **2026-10-01 — audyt pracy arXiv 2609.37725 (CLM) + spec 1.39.0 w szkicu, branch
+  `claude/arxiv-2609-37725-framework-2ce5de` (worktree), NIC nie scommitowane, `main` nietknięty.**
+  - Done: `.ai/audits/2026-10-01-clm-paper-vs-framework.md` (T1–T9 → mapa → propozycje A/G/E/F/D);
+    `.ai/specs/2026-10-01-context-memory-from-clm-paper.md` — Q1–Q4 zamknięte przez człowieka
+    (wszystkie rekomendacje), 4 fazy, `ownership-check`/`deployed-surface-check`/`contract-probe-check`
+    → exit 0. Zakres D0 = A + G + E; F do backlogu (wpisuje P3.d).
+  - Pre-implement: `.ai/audits/2026-10-01-pre-implement-context-memory.md` → READY-WITH-FIXES, R2–R6
+    wpisane w spec. **Znalezisko:** `feat/1.39.0-design-tournament` (in-progress, 30.09, nie wypchnięta)
+    już wprowadza `Dead-ends:` w run logu/raporcie i zajmuje 1.39.0 → ten spec = 1.40.0, etykieta
+    ujednolicona, P1.e usunięte, P1 czeka na tamten merge; P2/P3 mogą iść od razu.
+  - Dead-ends: `Dead ends:` (ze spacją) jako etykieta · spec 2026-09-30 ma już `Dead-ends:` z myślnikiem,
+    dwie etykiety = zgubiony handoff (`lessons.md:80-81`) · poprawione w specu i tu.
+  - R1 rozstrzygnięta (człowiek, 2026-10-01): osobny spec 1.40.0. **Bramka pre-implement zamknięta →
+    handoff.** Następna sesja: `sailes-implement` na specu, **fala 1 = P2 · P3** (Workflow; brief per
+    faza z sekcji P2/P3 speca — pliki, Done-when, testy są tam kompletne), na obecnej bazie `9c8575e`.
+  - Untried (priority): 1. fala 1 = P2 (hook) · P3 (`--board`) równolegle; 2. po merge'u
+    `feat/1.39.0-design-tournament` na `main`: `git merge main` + `sync-blocks --check` → P1 (+ eval
+    P1.g, dyspozycja leada); 3. P4 wydanie 1.40.0 (push = deploy, zgoda właściciela).
+  - Nic nie scommitowane z decyzji właściciela (2026-10-01); pliki: audyt ×2, spec, STATE.md.
+  - Baseliny zmierzone do Done-when: `P1a-*` testów = 26, `worker-status.test.js` testów = 38.
+  - Poza zakresem, zgłoszone chipem: `lessons.md` 43 656 B > 40 KB — rotacja do `.ai/archive/`.
 - **2026-09-16 → 17 — spec 1.35.0 „Workflow jako silnik wykonania”, branch `feat/1.35.0-workflow-first`
   (pushed, nothing on `main`).** Resume from `.ai/runs/2026-09-16-workflow-first.md` § „Co zostało”.
   - Done: research (`.ai/eval-runs/2026-09-16-workflow-research/`, with a cost CORRECTION), spec approved with D1–D8 and
