@@ -39,8 +39,8 @@
         "url": "https://github.com/SailesTech/claude-mods.git",
         "path": "czytelnie"
       },
-      "description": "Kolorowe ramki w odpowiedziach: bloki > [!WARNING], [!DECYZJA], [!REKOMENDACJA] i pokrewne",
-      "version": "0.1.0"
+      "description": "Kolorowe ramki w odpowiedziach (> [!WARNING], [!DECYZJA], [!REKOMENDACJA]) i czytelny Notion: karty wyników narzędzi, mention, zadania, callout",
+      "version": "0.2.1"
     },
     {
       "name": "moj-dzien",
@@ -70,7 +70,7 @@
         "path": "kokpit"
       },
       "description": "Kokpit sesji: orbita cache i agentów (grafika), tętno tur, kontekst, limit, koszt, zdarzenia; /kokpit",
-      "version": "0.1.2"
+      "version": "0.1.4"
     },
     {
       "name": "os-dnia",
@@ -80,7 +80,7 @@
         "path": "os-dnia"
       },
       "description": "Oś dnia: plan z Google Calendar obok czasu z Clockify, luki bez wpisu i linia „teraz” — grafika w panelu /os (tylko odczyt)",
-      "version": "0.1.2"
+      "version": "0.1.3"
     },
     {
       "name": "sterowanie",
@@ -90,7 +90,7 @@
         "path": "sterowanie"
       },
       "description": "Panel /praca: tor faz aktywnego specu, tory agentów w czasie, kolejka decyzji i warunki odbioru fazy (grafika + tekst)",
-      "version": "0.1.2"
+      "version": "0.1.4"
     },
     {
       "name": "zadania",
@@ -100,7 +100,7 @@
         "path": "zadania"
       },
       "description": "Panel /zadania: tydzień zadań z Notion jako tablica chipów (grafika), lista Dziś / Czekam / Skrzynka, zapisy po potwierdzeniu w panelu",
-      "version": "0.2.1"
+      "version": "0.2.3"
     },
     {
       "name": "czas",
@@ -110,7 +110,7 @@
         "path": "czas"
       },
       "description": "Czas z Clockify: zegar wpisu w toku, przełączanie projektu, tydzień słupkami vs 8h i uzupełnianie luk — grafika w panelu /czas (zapisy tylko po potwierdzeniu w panelu)",
-      "version": "0.1.2"
+      "version": "0.1.5"
     }
   ]
 }
