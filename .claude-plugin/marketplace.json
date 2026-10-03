@@ -39,8 +39,8 @@
         "url": "https://github.com/SailesTech/claude-mods.git",
         "path": "czytelnie"
       },
-      "description": "Kolorowe ramki w odpowiedziach (> [!WARNING], [!DECYZJA], [!REKOMENDACJA]) i czytelny Notion: karty wyników narzędzi, mention, zadania, callout",
-      "version": "0.2.1"
+      "description": "Kolorowe ramki i Markdown w odpowiedziach (nagłówki, tabele, KPI jako obrazy, > [!WARNING], [!DECYZJA]) i czytelny Notion: karty wyników narzędzi, mention, zadania, callout",
+      "version": "0.3.0"
     },
     {
       "name": "moj-dzien",
