@@ -61,6 +61,56 @@
       },
       "description": "Czas z Clockify w linii statusu (tylko odczyt) i panel /clockify z dzisiejszymi wpisami",
       "version": "0.1.0"
+    },
+    {
+      "name": "kokpit",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "kokpit"
+      },
+      "description": "Kokpit sesji: orbita cache i agentów (grafika), tętno tur, kontekst, limit, koszt, zdarzenia; /kokpit",
+      "version": "0.1.0"
+    },
+    {
+      "name": "os-dnia",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "os-dnia"
+      },
+      "description": "Oś dnia: plan z Google Calendar obok czasu z Clockify, luki bez wpisu i linia „teraz” — grafika w panelu /os (tylko odczyt)",
+      "version": "0.1.0"
+    },
+    {
+      "name": "sterowanie",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "sterowanie"
+      },
+      "description": "Panel /praca: tor faz aktywnego specu, tory agentów w czasie, kolejka decyzji i warunki odbioru fazy (grafika + tekst)",
+      "version": "0.1.0"
+    },
+    {
+      "name": "zadania",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "zadania"
+      },
+      "description": "Panel /zadania: tydzień zadań z Notion jako tablica chipów (grafika), lista Dziś / Czekam / Skrzynka, zapisy po potwierdzeniu w panelu",
+      "version": "0.1.0"
+    },
+    {
+      "name": "czas",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "czas"
+      },
+      "description": "Czas z Clockify: zegar wpisu w toku, przełączanie projektu, tydzień słupkami vs 8h i uzupełnianie luk — grafika w panelu /czas (zapisy tylko po potwierdzeniu w panelu)",
+      "version": "0.1.0"
     }
   ]
 }
