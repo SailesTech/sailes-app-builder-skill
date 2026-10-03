@@ -40,7 +40,7 @@
         "path": "czytelnie"
       },
       "description": "Kolorowe ramki i Markdown w odpowiedziach (nagłówki, tabele, KPI jako obrazy, > [!WARNING], [!DECYZJA]) obrazy z plików w rozmowie (Read, ![](ścieżka), /pokaz) i czytelny Notion: karty wyników narzędzi, mention, zadania, callout",
-      "version": "0.4.0"
+      "version": "0.4.2"
     },
     {
       "name": "moj-dzien",
