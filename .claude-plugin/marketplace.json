@@ -11,6 +11,106 @@
       "source": "./",
       "description": "Sailes app-builder skills — two tracks for custom B2B web apps. BUILD: wayfinder → discovery → bootstrap → design → spec → pre-implement → database → async → hosting → implement. DIAGNOSE: sailes-diagnose, for when a running system is broken rather than missing. Plus sailes-pipedrive, sailes-migrate and sailes-docs (archify diagrams, delta-gated at every spec closure).",
       "version": "1.38.1"
+    },
+    {
+      "name": "cache-meter",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "cache-meter"
+      },
+      "description": "Licznik życia prompt cache w linii statusu, panel /cache i podtrzymanie cache",
+      "version": "0.1.0"
+    },
+    {
+      "name": "agent-view",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "agent-view"
+      },
+      "description": "Pasek nad promptem i panel /agenci: podagenci i agenci workflow na żywo (status, czas, narzędzia, tokeny)",
+      "version": "0.1.0"
+    },
+    {
+      "name": "czytelnie",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "czytelnie"
+      },
+      "description": "Kolorowe ramki w odpowiedziach: bloki > [!WARNING], [!DECYZJA], [!REKOMENDACJA] i pokrewne",
+      "version": "0.1.0"
+    },
+    {
+      "name": "moj-dzien",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "moj-dzien"
+      },
+      "description": "Mój dzień z Notion (DBTasks) w terminalu: panel /dzien, linia statusu, przycisk „weź” (tylko odczyt)",
+      "version": "0.1.0"
+    },
+    {
+      "name": "clockify-bar",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "clockify-bar"
+      },
+      "description": "Czas z Clockify w linii statusu (tylko odczyt) i panel /clockify z dzisiejszymi wpisami",
+      "version": "0.1.0"
+    },
+    {
+      "name": "kokpit",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "kokpit"
+      },
+      "description": "Kokpit sesji: orbita cache i agentów (grafika), tętno tur, kontekst, limit, koszt, zdarzenia; /kokpit",
+      "version": "0.1.0"
+    },
+    {
+      "name": "os-dnia",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "os-dnia"
+      },
+      "description": "Oś dnia: plan z Google Calendar obok czasu z Clockify, luki bez wpisu i linia „teraz” — grafika w panelu /os (tylko odczyt)",
+      "version": "0.1.0"
+    },
+    {
+      "name": "sterowanie",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "sterowanie"
+      },
+      "description": "Panel /praca: tor faz aktywnego specu, tory agentów w czasie, kolejka decyzji i warunki odbioru fazy (grafika + tekst)",
+      "version": "0.1.0"
+    },
+    {
+      "name": "zadania",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "zadania"
+      },
+      "description": "Panel /zadania: tydzień zadań z Notion jako tablica chipów (grafika), lista Dziś / Czekam / Skrzynka, zapisy po potwierdzeniu w panelu",
+      "version": "0.1.0"
+    },
+    {
+      "name": "czas",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "czas"
+      },
+      "description": "Czas z Clockify: zegar wpisu w toku, przełączanie projektu, tydzień słupkami vs 8h i uzupełnianie luk — grafika w panelu /czas (zapisy tylko po potwierdzeniu w panelu)",
+      "version": "0.1.0"
     }
   ]
 }
