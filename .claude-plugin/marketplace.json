@@ -20,7 +20,7 @@
         "path": "cache-meter"
       },
       "description": "Licznik życia prompt cache w linii statusu, panel /cache i podtrzymanie cache",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     {
       "name": "agent-view",
@@ -40,7 +40,7 @@
         "path": "czytelnie"
       },
       "description": "Kolorowe ramki i Markdown w odpowiedziach (nagłówki, tabele, KPI jako obrazy, > [!WARNING], [!DECYZJA]) obrazy z plików w rozmowie (Read, ![](ścieżka), /pokaz) i czytelny Notion: karty wyników narzędzi, mention, zadania, callout",
-      "version": "0.4.2"
+      "version": "0.4.3"
     },
     {
       "name": "moj-dzien",
@@ -60,7 +60,7 @@
         "path": "clockify-bar"
       },
       "description": "Czas z Clockify w linii statusu (tylko odczyt) i panel /clockify z dzisiejszymi wpisami",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     {
       "name": "kokpit",
@@ -70,7 +70,7 @@
         "path": "kokpit"
       },
       "description": "Kokpit sesji: orbita cache i agentów (grafika), tętno tur, kontekst, limit, koszt, zdarzenia; /kokpit",
-      "version": "0.1.4"
+      "version": "0.1.5"
     },
     {
       "name": "os-dnia",
@@ -80,7 +80,7 @@
         "path": "os-dnia"
       },
       "description": "Oś dnia: plan z Google Calendar obok czasu z Clockify, luki bez wpisu i linia „teraz” — grafika w panelu /os (tylko odczyt)",
-      "version": "0.1.3"
+      "version": "0.1.4"
     },
     {
       "name": "sterowanie",
@@ -90,7 +90,7 @@
         "path": "sterowanie"
       },
       "description": "Panel /praca: tor faz aktywnego specu, tory agentów w czasie, kolejka decyzji i warunki odbioru fazy (grafika + tekst)",
-      "version": "0.1.4"
+      "version": "0.1.5"
     },
     {
       "name": "zadania",
@@ -100,7 +100,7 @@
         "path": "zadania"
       },
       "description": "Panel /zadania: tydzień zadań z Notion jako tablica chipów (grafika), lista Dziś / Czekam / Skrzynka, zapisy po potwierdzeniu w panelu",
-      "version": "0.2.3"
+      "version": "0.2.5"
     },
     {
       "name": "czas",
@@ -110,7 +110,7 @@
         "path": "czas"
       },
       "description": "Czas z Clockify: zegar wpisu w toku, przełączanie projektu, tydzień słupkami vs 8h i uzupełnianie luk — grafika w panelu /czas (zapisy tylko po potwierdzeniu w panelu)",
-      "version": "0.1.5"
+      "version": "0.1.7"
     }
   ]
 }
