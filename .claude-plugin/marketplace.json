@@ -40,7 +40,7 @@
         "path": "czytelnie"
       },
       "description": "Kolorowe ramki i Markdown w odpowiedziach (nagłówki, tabele, KPI jako obrazy, > [!WARNING], [!DECYZJA]) obrazy z plików w rozmowie (Read, ![](ścieżka), /pokaz) i czytelny Notion: karty wyników narzędzi, mention, zadania, callout",
-      "version": "0.4.3"
+      "version": "0.4.6"
     },
     {
       "name": "moj-dzien",
@@ -111,6 +111,46 @@
       },
       "description": "Czas z Clockify: zegar wpisu w toku, przełączanie projektu, tydzień słupkami vs 8h i uzupełnianie luk — grafika w panelu /czas (zapisy tylko po potwierdzeniu w panelu)",
       "version": "0.1.7"
+    },
+    {
+      "name": "rdzen",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "rdzen"
+      },
+      "description": "Rdzeń modów Sailes v2: kolorowa linia statusu pod promptem, tło paneli /tlo, /zamknij, /panele, /ustawienia. Wymagany przez dzis, sesja, praca, czytelnie.",
+      "version": "0.2.0"
+    },
+    {
+      "name": "dzis",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "dzis"
+      },
+      "description": "Dziś (/dzis): zadania z Notion jak w „Mój dzień” (Dziś, Skrzynka, Czekam), oś dnia ze spotkaniami i timer Clockify; dla osoby zalogowanej w Notion.",
+      "version": "0.1.1"
+    },
+    {
+      "name": "sesja",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "sesja"
+      },
+      "description": "Sesja (/sesja): czas życia prompt cache, kontekst, limit 5 h, koszt i agenci.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "praca",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "praca"
+      },
+      "description": "Praca (/praca): tor faz aktywnego specu, „czeka na Ciebie”, agenci i warunki odbioru.",
+      "version": "0.1.0"
     }
   ]
 }
