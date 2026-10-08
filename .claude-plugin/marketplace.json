@@ -120,7 +120,7 @@
         "path": "rdzen"
       },
       "description": "Rdzeń modów Sailes v2: kolorowa linia statusu pod promptem, tło paneli /tlo, /zamknij, /panele, /ustawienia. Wymagany przez dzis, sesja, praca, czytelnie.",
-      "version": "0.2.0"
+      "version": "0.2.1"
     },
     {
       "name": "dzis",
@@ -131,6 +131,16 @@
       },
       "description": "Dziś (/dzis): zadania z Notion jak w „Mój dzień” (Dziś, Skrzynka, Czekam), oś dnia ze spotkaniami i timer Clockify; dla osoby zalogowanej w Notion.",
       "version": "0.1.1"
+    },
+    {
+      "name": "dzis-desktop",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/SailesTech/claude-mods.git",
+        "path": "dzis-desktop"
+      },
+      "description": "Dziś w aplikacji desktop Claude (Code tab): zadania z Notion, spotkania, timer Clockify w jednej zakładce; /dzis-desktop. Wersja terminalowa to `dzis`.",
+      "version": "0.1.0"
     },
     {
       "name": "sesja",
