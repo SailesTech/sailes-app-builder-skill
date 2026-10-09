@@ -69,6 +69,9 @@ const SNAPSHOT = `
  1500   800  1000 1000 node /tmp/claude-1000/x/scratchpad/audit.mjs
  1501   800   100 1000 node /tmp/claude-1000/x/scratchpad/audit2.mjs
  1502   800  5000 1000 python3 /tmp/claude-1000/x/scratchpad/shot.py
+ 1503   500  5000 1000 node /tmp/claude-1000/y/scratchpad/left-behind.mjs
+ 1700  1600  5000 1000 bash /home/u/proj/scripts/smoke.sh
+ 1701  1700  5000 1000 /usr/lib/chromium/chromium --headless=new --user-data-dir=/tmp/smoke-profile
  1600   700  9000 1000 node /home/u/proj/node_modules/.bin/next dev
  2000     1  5000 1001 /usr/lib/chromium/chromium --headless --user-data-dir=/tmp/other-user
 `;
@@ -83,7 +86,7 @@ const ALL = pick({ all: true });
 test('parsePs reads pid, ppid, age, uid and the full command line; drops what does not parse', () => {
   const r = parsePs('  42   1  77 1000 /usr/bin/chrome --headless --foo bar\nnot a ps line\n');
   assert.deepStrictEqual(r, [{ pid: 42, ppid: 1, age: 77, uid: 1000, args: '/usr/bin/chrome --headless --foo bar' }]);
-  assert.strictEqual(rows.length, 25);
+  assert.strictEqual(rows.length, 28);
 });
 
 test('parseArgs: flags parse, --ps-file forces a dry run, bad input throws', () => {
@@ -140,18 +143,25 @@ test('an MCP server whose host is gone is selected — through the npx launcher 
   assert.ok(DEFAULT.includes(1400), 'parent pid absent from the table');
 });
 
-test('stale scratch scripts (node and python) are selected by age', () => {
-  assert.ok(DEFAULT.includes(1500) && DEFAULT.includes(1502));
+test('stale scratch scripts: by default only when their host is gone; --all takes them on age', () => {
+  assert.ok(DEFAULT.includes(1503), 'host gone (systemd --user)');
+  assert.ok(!DEFAULT.includes(1500) && !DEFAULT.includes(1502), 'a live session keeps its scratch scripts by default');
+  assert.ok(ALL.includes(1500) && ALL.includes(1502));
+});
+
+test("an agent-looking browser under a live shell script or test runner stays, by default", () => {
+  assert.ok(!DEFAULT.includes(1701), `selected: ${DEFAULT}`);
+  assert.ok(ALL.includes(1701));
 });
 
 test('default mode selects exactly the orphan set — nothing more', () => {
-  assert.deepStrictEqual(DEFAULT, [1100, 1101, 1200, 1300, 1301, 1400, 1500, 1502]);
+  assert.deepStrictEqual(DEFAULT, [1100, 1101, 1200, 1300, 1301, 1400, 1503]);
 });
 
 // ---------------------------------------------------------------- --all
 
-test('--all adds the agent browsers with a live driver, and nothing else', () => {
-  assert.deepStrictEqual(ALL, [810, 820, 1100, 1101, 1200, 1300, 1301, 1400, 1500, 1502]);
+test('--all adds agent browsers with a live driver and live-session stale scratch scripts, nothing else', () => {
+  assert.deepStrictEqual(ALL, [810, 820, 1100, 1101, 1200, 1300, 1301, 1400, 1500, 1502, 1503, 1701]);
 });
 
 test('a headed agent browser is flagged HEADED — the window on the desktop is the incident', () => {
@@ -172,7 +182,7 @@ test('CLI --ps-file lists candidates as "would kill", reports a dry run and the 
   assert.strictEqual(r.status, 0, r.stderr);
   assert.ok(!/^kill /m.test(r.stdout), 'a snapshot run must never print a real kill');
   assert.match(r.stdout, /^would kill 820 \(agent browser \(--all\), HEADED\)/m);
-  assert.match(r.stdout, /cleanup: 10 process\(es\) \(dry run/);
+  assert.match(r.stdout, /cleanup: 12 process\(es\) \(dry run/);
   assert.match(r.stdout, /WARN headed agent browser 820/);
 });
 

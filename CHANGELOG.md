@@ -44,12 +44,15 @@ server processes outlived the agents.
   only:
   - Chrome-family main processes that carry an agent marker (`--headless`, a `/tmp` profile,
     `--remote-debugging-pipe`, playwright/puppeteer/chrome-devtools-mcp paths) and whose driver is
-    gone.
+    gone: above it stand only launchers, dead-host MCP servers, init or a systemd subreaper. A live
+    shell script or test runner keeps its browser.
   - Playwright/chrome-devtools MCP servers whose host is gone. The tool walks past the npx/npm/sh
     launcher chain to find the host.
-  - node/python/bun/deno/tsx scripts under a `/scratchpad/` path older than `--max-age` (900 s).
+  - node/python/bun/deno/tsx scripts under a `/scratchpad/` path older than `--max-age` (900 s)
+    whose host is gone.
 
-  `--all` also stops agent browsers whose driver is still alive, `--dry` lists without killing, and
+  `--all` also stops agent browsers whose driver is still alive and stale scratch scripts of a live
+  session (which may be its preview server, hence `--all` only once no agent is working), `--dry` lists without killing, and
   `--only <pids>` restricts the run to the given pids. **One deliberate difference from the source
   script:** `--all` never kills a live MCP server. A live server belongs to a live session, so
   killing it would break the rule above. The browser, by contrast, comes back on the next tool call.

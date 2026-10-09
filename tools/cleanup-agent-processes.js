@@ -26,7 +26,8 @@
  *      agent marker: `--headless`, a `--user-data-dir` under /tmp, `--remote-debugging-pipe`, or a
  *      path naming playwright / puppeteer / chrome-devtools-mcp. The human's everyday browser has
  *      none of these and is never selected, in any mode. Default mode: only when its driver is gone
- *      (parent is pid 1, missing, or not a node/python/playwright-type driver). `--all`: also when the
+ *      (walking up past launchers and dead-host MCP servers reaches pid 1, a systemd subreaper, or
+ *      nothing — a live shell, test runner or node driver keeps it). `--all`: also when the
  *      driver is alive — the MCP server relaunches its browser on the next tool call, so this is
  *      recoverable for a session that is still running.
  *   2. ORPHANED MCP SERVER — a playwright / chrome-devtools MCP server whose host is gone: walking up
@@ -35,7 +36,9 @@
  *      session and the framework rule is never to kill one. This is the deliberate difference from
  *      the personal script it grew from, whose `--all` killed live servers too.
  *   3. STALE SCRATCH SCRIPT — node/python/bun/deno/tsx running a file under a `/scratchpad/` path,
- *      older than `--max-age` seconds (default 900). Same threshold in both modes.
+ *      older than `--max-age` seconds (default 900). Default mode: only when its host is gone (same
+ *      walk as above). `--all`: on age alone — it may be a live session's preview server, which is
+ *      why `--all` waits until no agent is still working.
  *
  * Kill is SIGTERM, a re-check that the pid still has the command line we selected (pid reuse), then
  * SIGKILL for whatever survives 3 s. The run ends with a fresh `ps` pass: agent browsers still alive
@@ -52,7 +55,6 @@ const { spawnSync } = require('child_process');
 
 const BROWSER_BIN = /^(chrome|chromium|chromium-browser|google-chrome(?:-stable|-beta|-unstable)?|chrome-headless-shell|headless_shell)$/;
 const AGENT_BROWSER_MARKER = /--headless|--user-data-dir[= ]\/tmp\/|--remote-debugging-pipe|ms-playwright|playwright|puppeteer|chrome-devtools-mcp/i;
-const BROWSER_DRIVER = /(^|[\s/])(node|nodejs|bun|deno|python[0-9.]*|playwright|puppeteer|chrome-devtools-mcp)(\s|$)|playwright|puppeteer|chrome-devtools-mcp/i;
 const MCP_SERVER = /@playwright\/mcp|playwright-mcp|mcp-server-playwright|chrome-devtools-mcp/i;
 const LAUNCHER = /^(npm|npx|sh|bash|dash|zsh|uv|uvx|pnpm|yarn|corepack)$|^node$/;
 const SCRATCH_SCRIPT = /(^|[\s/])(node|bun|deno|tsx|python[0-9.]*)\s+\S*\/scratchpad\/\S+/;
@@ -101,11 +103,15 @@ function hostIsGone(row, byPid) {
   return false;
 }
 
+/**
+ * A browser's driver is gone when nothing but launchers, MCP servers whose own host is gone, init or
+ * a systemd subreaper stands above it. A live shell script, test runner or `node` driver in a tmux
+ * pane is somebody's work in progress, so it keeps its browser (reviewed 2026-10-09: the earlier
+ * "parent is not a node/python driver" test selected a headless browser started by a live `bash`
+ * wrapper in tmux).
+ */
 function driverIsGone(row, byPid) {
-  if (row.ppid <= 1) return true;
-  const parent = byPid.get(row.ppid);
-  if (!parent) return true;
-  return !BROWSER_DRIVER.test(parent.args);
+  return hostIsGone(row, byPid);
 }
 
 /**
@@ -131,7 +137,12 @@ function classify(rows, opts) {
       continue;
     }
     if (SCRATCH_SCRIPT.test(row.args) && row.age > maxAge) {
-      out.push({ pid: row.pid, why: `scratch script ${row.age}s old (> ${maxAge}s)`, args: row.args });
+      // Default mode is "orphans only, safe any time": a scratch script whose session is alive may be
+      // that session's preview server or monitor, so only `--all` takes it on age alone.
+      const orphan = hostIsGone(row, byPid);
+      if (orphan || all) {
+        out.push({ pid: row.pid, why: `scratch script ${row.age}s old (> ${maxAge}s)${orphan ? ', host gone' : ' (--all)'}`, args: row.args });
+      }
     }
   }
   return out;
