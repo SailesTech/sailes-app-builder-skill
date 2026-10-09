@@ -49,8 +49,9 @@ on the project:
 
 ```jsonc
 // .mcp.json — project-scoped, committed. Machine prereq: a Chrome/Chromium install.
+// --headless --isolated: no browser window on the human's desktop, no shared profile (1.38.2).
 { "mcpServers": { "chrome-devtools": {
-    "command": "npx", "args": ["-y", "chrome-devtools-mcp@latest"] } } }
+    "command": "npx", "args": ["-y", "chrome-devtools-mcp@latest", "--headless", "--isolated"] } } }
 ```
 
 **No longer a decision card for repos with a UI — human decision, 2026-07-26.** On any repo with a
@@ -66,7 +67,7 @@ nothing in the repo saying which run you were reading.
 
 **What absence now means: `ENV-DEFECT`, not `SKIP`.** On a UI repo where the server is unavailable,
 the agent reports `ENV-DEFECT` with the one-line install
-(`claude mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@latest`) and the UI
+(`claude mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@latest --headless --isolated`) and the UI
 verification gate does **not** pass. It does not fall back to a screenshot and it does not proceed.
 This is the same shape as the missing-test-infrastructure rule in `sailes-test`: the agent does not
 stand up the tooling itself, because installing it is the human's call — but it also does not

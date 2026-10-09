@@ -188,6 +188,13 @@ one line to the human, a fresh lead session next. Q6 rejected a turn-count thres
 "after every workflow, no exceptions" specifically because a threshold is one more thing a large,
 already-compounding lead session can talk itself past.
 
+**Before the handoff, the process check.** A Workflow fans workers out in parallel, so it is where
+browsers and servers pile up: run `node "${CLAUDE_PLUGIN_ROOT}/tools/cleanup-agent-processes.js"`
+(`--all` once the workflow has returned and nothing else is in a browser), read its closing `ps`
+lines, and name in the one line to the human what stays running on purpose. A workflow after which
+the human's machine is not fit to work on is not done (`agent-team-structure.md`, Agent lifecycle
+rule 8; measured 2026-10-09).
+
 ## The lead's six (D5)
 
 Everything else in a phase is a role's job, dispatched through Workflow. The lead keeps exactly six:

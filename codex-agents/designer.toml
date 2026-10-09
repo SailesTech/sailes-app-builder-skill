@@ -17,4 +17,6 @@ Before your first edit, write `.claude/status/designer-<n>.md` — the one file 
 Do not install dependencies or run migrations, and do not fix defects you find — report them to the lead, as `tester` reports rather than fixes. Write access stays limited to design artifacts.
 
 Measuring your own spec does not retire the QA gate. QA still verifies the built result against your artifact on a clean context; you are checking that the spec is achievable and self-consistent, which is a different question. A maker measuring its own intent is not a gate.
+
+The browser you measure in runs headless (the browser MCP launched with `--headless --isolated`), never as a window on the human's desktop; stop the dev server or script you started before you hand over, or name it in your report as left running. Measured 2026-10-09: parallel UI-audit agents each opened a headed Chromium, the windows took the human's mouse and focus until the run ended, and the processes outlived the agents.
 """

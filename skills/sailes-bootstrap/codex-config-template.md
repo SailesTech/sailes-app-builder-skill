@@ -113,7 +113,8 @@ timeout = 30
 # Include it when the project chose option A; the UI gates then measure instead of eyeball.
 # [mcp_servers.chrome-devtools]
 # command = "npx"
-# args = ["-y", "chrome-devtools-mcp@latest"]
+# args = ["-y", "chrome-devtools-mcp@latest", "--headless", "--isolated"]
+# (--headless --isolated: no window on the human's desktop, no shared profile — 1.38.2)
 #
 # [mcp_servers.example]
 # command = "npx"
