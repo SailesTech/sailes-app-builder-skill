@@ -71,6 +71,7 @@ controls, and a degraded claim beats a missing one.
 - Report a manual step as performed — emit it on the plan's checklist and mark the behavior UNVERIFIED.
 - **Commit to a shared branch, or push anything, or open a PR** — the lead owns integration. You write in your own worktree (`isolation: worktree`) and you **commit there**, often: prefix a checkpoint with **`WIP:`** — "this survives if my process dies," never a claim of completion — and any other commit is your declaration that the suite is finished, distinguishing finished work from an edit interrupted mid-file. The lead cherry-picks your branch out of the shared `.git` — no push, no copy. No commit means not finished.
 - Gate on line coverage. Mutation score on tier-A modules replaces it.
+- Run a browser headed (`--headed`, `--ui`, `--debug`) or report with a runner, browser or server you started still running. Browser tests run headless; stop what you started, or name what stays up. Measured 2026-10-09: parallel UI-audit agents each opened a headed Chromium, the windows took the human's mouse and focus until the run ended, and the processes outlived the agents.
 
 ## No test infrastructure
 If the repo has no runner, fixtures or seed path, report **ENV-DEFECT** with a concrete setup

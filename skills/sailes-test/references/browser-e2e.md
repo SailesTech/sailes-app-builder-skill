@@ -56,6 +56,27 @@ as cleanup afterwards.
    intermittent bug from environmental flake. If a test is flaky, fix it or delete it — a retried
    test is a test that reports success for a reason other than the one claimed.
 
+## Headless, and closed — the human's machine is not the test bench
+
+Agents run browser tests on the human's own computer, often several at once. A headed browser there
+takes the mouse and the keyboard focus, and the machine cannot be used until the run ends — measured
+2026-10-09, when parallel UI-audit agents each opened a Chromium window and the processes then
+outlived the agents. So, for every browser an agent starts:
+
+1. **Headless, always.** Playwright's runner is headless by default — never add `--headed`, `--ui`
+   or `--debug` in an agent run. A script calls `chromium.launch({ headless: true })` explicitly.
+   A browser MCP server is launched with `--headless --isolated` (`../../sailes-design/browser-inspect.md`
+   §Availability).
+2. **Closed in `finally`.** `const browser = await chromium.launch(...); try { … } finally { await
+   browser.close(); }` — a test that throws must not leave its browser behind. Give the run a
+   timeout (`--timeout`, `--global-timeout`) so a hung page cannot hold a process forever.
+3. **Stop what you started.** The dev server you booted for the run, the `webServer` Playwright
+   started (it stops it unless `reuseExistingServer` handed you someone else's), a watcher — stopped
+   before you report, or named in the report as left running on purpose.
+4. **The lead checks.** After browser work the lead runs
+   `node "${CLAUDE_PLUGIN_ROOT}/tools/cleanup-agent-processes.js"` and reads its closing lines; a
+   headed agent browser in that list is a defect in the brief, not a style note.
+
 ## Selectors
 
 Prefer what a user perceives — role, label, visible text — over structure. `getByRole('button',

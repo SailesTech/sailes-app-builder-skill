@@ -4,6 +4,88 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.38.2 — 2026-10-09 · Clean up the processes you started
+
+A patch that adds a rule the framework already implied and nobody had written down: an agent stops
+what it started before it reports. There is no spec for it. The human set the rule directly
+("dbaj też o to, żeby czyścił te procesy po sobie", "to ma być ogólna zasada"), and it extends the
+1.26.0 process rule (never kill what you have not identified) without changing it. **Measured
+2026-10-09, Linux/Hyprland:** parallel UI-audit agents in one Workflow each started their own
+Chromium through a Playwright MCP server launched without `--headless`. The windows took the mouse
+and the keyboard focus, so the machine could not be used until the run ended, and the browser and
+server processes outlived the agents.
+
+**What a repo on 1.38.2 now has that 1.38.1 did not:**
+
+- **`AGENTS.md` Hard Safety Rules** (`agents-md-template.md`). The process bullet now has two
+  halves. **Stop what you started, before you report:** browsers run headless (MCP servers with
+  `--headless --isolated`, scripts close the browser in `finally`), and nothing opens a window,
+  terminal or virtual monitor on the human's desktop. Servers, watchers and background loops are
+  stopped, with a timeout where the command takes one. After browser or Workflow work the lead runs
+  the cleanup tool and reads its `ps` lines, and the report names whatever is left running on
+  purpose. A run that leaves the machine unusable is not done. **The limit stays as it was:** never
+  kill a process you have not identified by its command line, never an editor process or a live MCP
+  server, and an orphan only when its parent is dead. The two halves were merged into one bullet,
+  so the template stays inside its line budget. **Upgrade action:** replace the old single-purpose
+  process bullet in the repo's `AGENTS.md` with the template's.
+- **The browser MCP server is launched headless and isolated.** `.mcp.json` (`decision-engine.md`
+  Q21) is now `"args": ["-y", "chrome-devtools-mcp@latest", "--headless", "--isolated"]`. The
+  one-line install everywhere it appears (`browser-inspect.md`, `qa.md`, `decision-engine.md`) is
+  `… chrome-devtools-mcp@latest --headless --isolated`, and the Codex `[mcp_servers.chrome-devtools]`
+  example carries the same args. `repo-done-checklist.md`'s `.mcp.json` row names the flags.
+  **Upgrade action:** add both flags to the committed `.mcp.json` (and `.codex/config.toml`). A
+  machine with the user-scope server installed without them runs
+  `claude mcp remove chrome-devtools --scope user`, then the new install line.
+  `browser-inspect.md` §Availability explains why both flags are needed. `@playwright/mcp` takes the
+  same flags under the same names.
+- **`tools/cleanup-agent-processes.js`** is new in the plugin and invoked as
+  `node "${CLAUDE_PLUGIN_ROOT}/tools/cleanup-agent-processes.js"`. It grew from a personal script
+  (`~/.claude/scripts/sprzataj-agentow.sh`) and keeps that script's three selections, current user
+  only:
+  - Chrome-family main processes that carry an agent marker (`--headless`, a `/tmp` profile,
+    `--remote-debugging-pipe`, playwright/puppeteer/chrome-devtools-mcp paths) and whose driver is
+    gone.
+  - Playwright/chrome-devtools MCP servers whose host is gone. The tool walks past the npx/npm/sh
+    launcher chain to find the host.
+  - node/python/bun/deno/tsx scripts under a `/scratchpad/` path older than `--max-age` (900 s).
+
+  `--all` also stops agent browsers whose driver is still alive, `--dry` lists without killing, and
+  `--only <pids>` restricts the run to the given pids. **One deliberate difference from the source
+  script:** `--all` never kills a live MCP server. A live server belongs to a live session, so
+  killing it would break the rule above. The browser, by contrast, comes back on the next tool call.
+  Each kill sends SIGTERM, re-checks the command line in case the pid was reused, and sends SIGKILL
+  after 3 s. The run ends with a fresh `ps` pass that lists agent browsers still alive and warns
+  about any running **headed**. **Linux and macOS only.** On Windows the tool prints `SKIP:` and
+  exits 0. A PowerShell twin is a follow-up: `tools/` has no `.ps1` tooling today, and this patch
+  does not invent it.
+- **The process check is a lead gate.** It appears in `sailes-implement` §Subagent strategy,
+  `agents/team-lead.md` (Agent lifecycle), `agent-team-structure.md` (Agent lifecycle, **new rule
+  8**) and `workflow-orchestration.md`. The last one runs the check before the handoff after every
+  workflow, because parallel fan-out is where browsers pile up. Every brief that can start a
+  browser, server or loop says three things: headless only, stop what you started, name what
+  stays up.
+- **Browser-using roles carry the rule in their own voice:** `qa`, `designer`, `fe-dev` and `tester`
+  (no `--headed`/`--ui`/`--debug` in an agent run), with their Codex twins.
+  `sailes-test/references/browser-e2e.md` gains §Headless, and closed: launch headless, close in
+  `finally`, set a run timeout, and stop the `webServer` or dev server you started.
+- **Gates.** `codex-agents/parity.test.js` gains invariants on `team-lead` (the "not fit to work on
+  is not done" rule and the tool) and on `qa`/`designer`/`fe-dev`/`tester` (headless + stop). A
+  mutation that stripped the sentence from `qa.toml` turned the suite red.
+  `tools/cleanup-agent-processes.test.js` joins `npm test` (26 suites, up from 25). It runs 18
+  cases: snapshot fixtures cover both directions of every selection (the human's Chromium and Chrome
+  are never picked in either mode, and neither are live MCP servers, another user's processes, a
+  dev server or a young script). Two more cases use a real `sleep` disguised as a headless agent
+  Chromium: `--dry` lists it and leaves it alive, and `--all --only <its pid>` stops it. Every
+  non-dry run in the file is restricted to that one pid. `evals/lead-cleans-up-processes-before-reporting.md`
+  covers the model-behavior half and ships **unrun**.
+
+**Left untouched:** `evals/fixtures/browser-probe/run-probe.mjs` and `tools/mcp-toolnames-check.js`
+were already headless (`--headless=new` / `--isolated --headless`) and already close their browser.
+Historical CHANGELOG entries and eval fixtures that quote the old install line record a point in
+time. The `architecture.json` `tools/` card gains the new tool's bullet. `architecture.html` is not
+re-rendered, because the receipt is still blocked by `composition/desktop-readability`, as in
+1.33.0–1.36.0 (`.ai/docs-deltas/2026-10-09-release-1.38.2-notes.md`).
+
 ## 1.38.1 — 2026-09-28 · Sonnet tier pinned to Claude Sonnet 5.5
 
 A parameter change under the 1.37.0 doctrine: one line in the repo's shared, versioned

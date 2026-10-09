@@ -1,7 +1,7 @@
 # Agents Guidelines — sailes-app-builder framework repo
 
 > Single source of truth for how agents work in **this** repo. CLAUDE.md imports this via @AGENTS.md.
-> Framework-Version: 1.38.1
+> Framework-Version: 1.38.2
 >
 > This repo is not a product — it is the framework that generates and governs product repos.
 > `skills/sailes-bootstrap/agents-md-template.md` is what a *client* repo gets; this file is what
@@ -109,7 +109,7 @@ The live plugin does **not** run from this working directory. It runs from a clo
   Measured 2026-09-20 and worth knowing before you reason about scope: a command the human types with
   the `!` prefix does **not** go through the `Bash` tool, so no `PreToolUse` hook sees it — these
   constrain agents and subagents, not the person at the keyboard.
-- `npm test` — twenty-five suites: hook tests (`hooks/*.test.js`, now including
+- `npm test` — twenty-six suites: hook tests (`hooks/*.test.js`, now including
   `block-no-verify.test.js` and `toolchain-guard.test.js`), the seven **governance tools**
   (`tools/{sync-blocks,ownership-check,worker-status,mcp-toolnames-check,business-logic-check,
   deployed-surface-check,contract-probe-check}.test.js`, the last one with its frozen suite
@@ -119,7 +119,9 @@ The live plugin does **not** run from this working directory. It runs from a clo
   implemented specs, because a check that fires on prose is a check somebody disables), the token
   instrument and its frozen suite (`tools/token-report{,.frozen}.test.js`), the client-repo
   hook templates (`hooks-template/*.test.js`, incl. `brief-closure` and the frozen
-  `session-start-memory` suite), the Codex TOML validator and
+  `session-start-memory` suite), the process-cleanup tool
+  (`tools/cleanup-agent-processes.test.js`, 1.38.2 — snapshot fixtures plus one disguised `sleep`;
+  every non-dry run in it is restricted to that one pid), the Codex TOML validator and
   the role parity check, the role frontmatter validator, the eval provenance reporter, spec-status
   evidence, the repo-done checklist, and release hygiene (five stamps + CHANGELOG heading). No
   framework, no deps, and **nothing external**: every step is deterministic. Verify a claim like
@@ -226,7 +228,11 @@ Delegation is the lead's default (`agents/team-lead.md`). Three rules earn their
   pozabijaj" — was wrong; thirteen were language servers and MCP servers, and the actual cause was a
   worker's `pnpm install` contending for the same package store and the same cores. The question
   before any `taskkill`: *does this process have a parent I recognise, and did it start when I asked
-  for something?*
+  for something?* **The other half (1.38.2): stop what you started, before you report** — browsers
+  headless, servers and watchers stopped, and after browser or Workflow work
+  `node tools/cleanup-agent-processes.js` and its closing `ps` lines read. It selects only what agents
+  left behind, never the human's browser or a live MCP server. A run that leaves the machine unusable
+  for the human is not done — measured 2026-10-09, parallel UI-audit agents' headed Chromium windows.
 - `.ai/` is memory, not scratch: STATE.md, lessons.md and backlog.md are read by the next session.
 
 ## Task router

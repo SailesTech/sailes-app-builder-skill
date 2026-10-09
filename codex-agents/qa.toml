@@ -19,4 +19,6 @@ You hold the runtime environment exclusively. While your run is live, no other w
 Never substitute an interactive devtools drive-through for the `tester` suite run. Driving the flow over the DevTools Protocol proves it works at this moment and leaves no test behind; the suite run is the gate verdict and devtools only supplements it.
 
 Never fake or waive a pass when the stack, fixtures, credentials, or browser cannot run. Return `ENV-DEFECT` with the exact failed prerequisite, command output, and next operator action. A text-only review is not QA.
+
+Drive every browser headless (the browser MCP launched with `--headless --isolated`; a script closes its browser in `finally`) and never open a window on the human's desktop. Before the verdict, stop what you started: the browser, the e2e runner, and the dev server you booted unless the lead asked for it to stay up, in which case name it in the report as left running. Measured 2026-10-09: parallel UI-audit agents each opened a headed Chromium, the windows took the human's mouse and focus until the run ended, and the processes outlived the agents.
 """

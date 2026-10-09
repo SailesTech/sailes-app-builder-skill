@@ -125,6 +125,11 @@ const INVARIANTS = {
     // entries below) — losing this scoping from a twin reinstates the file mandate for implementer
     // roles too, which is the exact 1.34.0 P4 cost this split was written to remove.
     ['the report-FILE-from-first-change rule is scoped to the gate roles (checker, qa, tester)', /gate roles?[\s\S]{0,10}checker,\s*qa,\s*tester/i],
+    // 1.38.2 — process hygiene is a lead gate. Measured 2026-10-09: parallel UI-audit agents each
+    // opened a headed Chromium that took the human's mouse and focus and outlived the agents. Losing
+    // either half from a twin loses the gate for that harness.
+    ['a run that leaves the human\'s machine unfit to work on is not done', /machine is not fit to work on/i],
+    ['the lead runs the cleanup tool after browser work and reads the ps lines', /cleanup-agent-processes\.js/],
   ],
   explorer: [
     ['strictly read-only', /read-only/i],
@@ -144,6 +149,8 @@ const INVARIANTS = {
     ['never writes feature code', /never[\s\S]{0,300}?write feature code|write feature code[\s\S]{0,60}?fe-dev/i],
     ['uses tokens on disk, invents no palette', /do not invent|never invent/i],
     ['measuring its own spec is not a gate', /is not a gate/i],
+    // 1.38.2 — see team-lead's process-hygiene note above.
+    ['browser headless; stops what it started before reporting', /headless[\s\S]{0,300}?\bstop/i],
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
     ['commits inside its own worktree', /own worktree/i],
     // Added retroactively — a mutation stripping every `.claude/status/` line (8,069 bytes across
@@ -191,6 +198,8 @@ const INVARIANTS = {
     ['never commits to a SHARED branch, never pushes', /shared branch/i],
     ['commits inside its own worktree', /own worktree/i],
     ['works against the frozen contract', /frozen|contract/i],
+    // 1.38.2 — see team-lead's process-hygiene note above.
+    ['browser headless; stops what it started before reporting', /headless[\s\S]{0,300}?\bstop/i],
     ['claims `.claude/status/fe-dev-<n>.md` before the first edit', /\.claude\/status\/fe-dev/i],
     ['a task is one phase with one Done-when', /phase with one .{0,3}Done-when/i],
     // See be-dev's P2.6 note above — same replacement, same reason.
@@ -214,6 +223,8 @@ const INVARIANTS = {
     ['commits inside its own worktree', /own worktree/i],
     ['derives cases before reading the implementation', /before reading|code UNREAD|unread/i],
     ['never weakens a frozen assertion', /weaken/i],
+    // 1.38.2 — see team-lead's process-hygiene note above.
+    ['browser headless; stops what it started before reporting', /headless[\s\S]{0,300}?\bstop/i],
     ['reports a code defect rather than fixing it', /report/i],
     ['claims `.claude/status/tester-<n>.md` before the first edit', /\.claude\/status\/tester/i],
     // P3.6 (spec 2026-09-13-quality-gates-from-the-partner-portal-report) — middle lane: no human
@@ -259,6 +270,8 @@ const INVARIANTS = {
     // clone, so this rule has no structural backstop anywhere — losing it from a twin loses it
     // entirely for that harness.
     ['holds the runtime environment exclusively', /exclusiv/i],
+    // 1.38.2 — see team-lead's process-hygiene note above.
+    ['browser headless; stops what it started before reporting', /headless[\s\S]{0,300}?\bstop/i],
     // P2.4 (spec 2026-09-13-quality-gates-from-the-partner-portal-report, R1) — qa alone runs the
     // full suite + e2e, exactly once, before push, on the integrated branch.
     ['runs full suite + e2e once, before push, on the integrated branch', /full suite[\s\S]{0,100}(before push|once)/i],

@@ -41,18 +41,30 @@ ratchet.
 Machine prerequisite — an MCP server, installed once per machine:
 
 ```bash
-claude mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@latest
+claude mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@latest --headless --isolated
 # No Chrome Stable on the machine? Point it at a dedicated browser instead of installing one:
 #   npx -y @puppeteer/browsers install chrome@stable --path ~/.cache/puppeteer
 #   ...then add --executablePath "<printed path>" to the args above.
 ```
+
+**`--headless --isolated` are not optional (1.38.2).** Without `--headless` every agent that calls
+a browser tool opens a window on the human's desktop; with several agents in parallel the windows
+take the mouse and the focus and the machine is unusable until the run ends — measured 2026-10-09
+with a Playwright MCP server launched without the flag. `--isolated` gives each server a temporary
+profile that is deleted when the browser closes, so parallel agents do not fight over one profile
+lock and leave no profile behind. The same two flags apply to any other browser MCP server
+(`@playwright/mcp` takes them under the same names). A machine already configured without them:
+`claude mcp remove chrome-devtools --scope user`, then the line above. **Close what you opened:**
+`close_page` the pages you created, and when the work is done the lead runs
+`node "${CLAUDE_PLUGIN_ROOT}/tools/cleanup-agent-processes.js"`, which also reports any agent
+browser still running headed.
 
 The `.mcp.json` is **committed on any repo with a UI** (bootstrap Q21; human decision 2026-07-26 —
 it stopped being a card for UI repos), so every agent and developer on that project gets the same
 instrument and no machine is mutated behind anyone's back.
 
 **If it is not installed on a UI repo:** report **`ENV-DEFECT`** with the one-line install
-(`claude mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@latest`) and **do not
+(`claude mcp add chrome-devtools --scope user -- npx -y chrome-devtools-mcp@latest --headless --isolated`) and **do not
 pass the gate.** The screenshot is no longer a fallback: these checks are stated as categorical, and
 a model reading a PNG delivers an impression instead. Do not install it yourself — that is the
 human's call, exactly as with missing test infrastructure.
