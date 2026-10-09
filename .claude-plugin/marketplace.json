@@ -43,16 +43,6 @@
       "version": "0.4.6"
     },
     {
-      "name": "moj-dzien",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/SailesTech/claude-mods.git",
-        "path": "moj-dzien"
-      },
-      "description": "Mój dzień z Notion (DBTasks) w terminalu: panel /dzien, linia statusu, przycisk „weź” (tylko odczyt)",
-      "version": "0.1.0"
-    },
-    {
       "name": "clockify-bar",
       "source": {
         "source": "git-subdir",
@@ -93,16 +83,6 @@
       "version": "0.1.5"
     },
     {
-      "name": "zadania",
-      "source": {
-        "source": "git-subdir",
-        "url": "https://github.com/SailesTech/claude-mods.git",
-        "path": "zadania"
-      },
-      "description": "Panel /zadania: tydzień zadań z Notion jako tablica chipów (grafika), lista Dziś / Czekam / Skrzynka, zapisy po potwierdzeniu w panelu",
-      "version": "0.2.5"
-    },
-    {
       "name": "czas",
       "source": {
         "source": "git-subdir",
@@ -120,7 +100,7 @@
         "path": "rdzen"
       },
       "description": "Rdzeń modów Sailes v2: kolorowa linia statusu pod promptem, tło paneli /tlo, /zamknij, /panele, /ustawienia. Wymagany przez dzis, sesja, praca, czytelnie.",
-      "version": "0.2.0"
+      "version": "0.3.0"
     },
     {
       "name": "dzis",
@@ -129,8 +109,8 @@
         "url": "https://github.com/SailesTech/claude-mods.git",
         "path": "dzis"
       },
-      "description": "Dziś (/dzis): zadania z Notion jak w „Mój dzień” (Dziś, Skrzynka, Czekam), oś dnia ze spotkaniami i timer Clockify; dla osoby zalogowanej w Notion.",
-      "version": "0.1.1"
+      "description": "Dziś (/dzis): zadania z Notion („Mój dzień → Dziś”, Skrzynka, Czekam), oś dnia ze spotkaniami i timer Clockify — jeden widok w aplikacji desktop i w terminalu; „Weź do sesji” przy zadaniu, znaczniki agentów; zapisy po potwierdzeniu.",
+      "version": "0.2.0"
     },
     {
       "name": "sesja",
