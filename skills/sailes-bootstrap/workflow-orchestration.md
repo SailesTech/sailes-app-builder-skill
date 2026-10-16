@@ -226,7 +226,8 @@ Rules:
   (`agents/team-lead.md`).
 - **`researcher` in Workflow defaults to a `model: 'sonnet'` override.** Its frontmatter default is
   `opus`, which collides with the standing "no Opus subagents" rule; Opus for `researcher` requires
-  explicit human sign-off, not a default.
+  explicit human sign-off, not a default. The same applies when the lead spawns it with the Agent
+  tool; the spawns with no named role are covered in `agent-team-structure.md`, Model routing.
 - `effort` takes measurable effect: `'high'` produced ≈2.7× the output tokens of `'low'` on the same
   task, n=2+2 (`.ai/eval-runs/2026-09-16-workflow-facts/VERDICT.md` P0.1). **Haiku 4.5 does not
   support `effort`** — do not set it on an `explorer` or any role whose default tier is `haiku`.

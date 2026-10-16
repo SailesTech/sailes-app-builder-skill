@@ -129,6 +129,20 @@ parameter on the invocation (an alias), never through rewriting a role's default
 If an org's `availableModels` allowlist excludes the model an alias resolves to, Claude Code skips it
 and runs the role on the inherited model rather than failing.
 
+**Spawns the role file does not settle** — two cases where "omit `model`" is the wrong move, and the
+override is an alias, never a full ID:
+
+- **`researcher` through the Agent tool takes `model: 'sonnet'`**, exactly as in Workflow
+  (`workflow-orchestration.md`, Model rule). Its frontmatter default is `opus`, which collides with
+  the standing "no Opus subagents" rule; Opus for `researcher` needs explicit human sign-off.
+- **A spawn with no named role** (`general-purpose`, `fork`, `Explore`, `agent()` without
+  `agentType`) takes an explicit alias — `sonnet` unless the task earns an escalation. With none it
+  inherits the session model, which in a lead session is Opus (the failure mode measured in
+  `wf_3227fe3d-ad3`). Do not put `model: 'sonnet'` on a **named role** to be safe: that spawn
+  trades the role's tier (`explorer` → `haiku`) for a dearer one. Measured 2026-10-16 from
+  subagent transcripts: `explorer` ran on `sonnet` for weeks because a blanket `model: 'sonnet'`
+  overrode its `haiku`; with `model` omitted it ran on `claude-haiku-5-5`.
+
 **Escalate on judgment, not on volume.** Opus for a contract, data-model, auth or tenancy surface; a
 migration parity judge; a diagnosis with no reproducible mechanism yet; a change too entangled to slice
 cleanly. A large but mechanical change is a Sonnet task — reaching for the expensive tier because the
