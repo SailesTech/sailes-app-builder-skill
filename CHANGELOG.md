@@ -4,6 +4,26 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.38.3 — 2026-10-16 · Model routing for spawns outside a named role
+
+A docs-only patch. Two spawn cases were not written down, and the gap cost money: a lead that
+put a blanket `model: 'sonnet'` on every spawn overrode `explorer`'s `haiku`. **Measured
+2026-10-16** from subagent transcripts (`message.model`): `explorer` ran on `sonnet` for weeks;
+spawned with `model` omitted it ran on `claude-haiku-5-5`. The aliases themselves were already
+right, and so are the roles' frontmatter tiers.
+
+**What a repo on 1.38.3 now has that 1.38.2 did not:**
+
+- **`agent-team-structure.md`, Model routing.** A new paragraph, "Spawns the role file does not
+  settle": `researcher` spawned with the Agent tool takes `model: 'sonnet'` (as it already did in
+  Workflow); a spawn with no named role takes an explicit alias, `sonnet` by default; a named role
+  keeps its frontmatter tier, so a lead does not add a blanket `model` to it.
+- **`workflow-orchestration.md`, Model rule.** The `researcher` bullet points at the same rule for
+  the Agent tool.
+
+**Upgrade action:** none for adopted repos. If a repo's own lead instructions say "always pass
+`model: 'sonnet'`", reword them to "omit `model` on named roles".
+
 ## 1.38.2 — 2026-10-09 · Clean up the processes you started
 
 A patch that adds a rule the framework already implied and nobody had written down: an agent stops
