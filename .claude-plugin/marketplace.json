@@ -131,6 +131,14 @@
       },
       "description": "Praca (/praca): tor faz aktywnego specu, „czeka na Ciebie”, agenci i warunki odbioru.",
       "version": "0.1.0"
+    },
+    {
+      "name": "sailes-procesy",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/SailesTech/sailes-procesy.git"
+      },
+      "description": "Skille procesów Sailes: oferta v4, kickoff na portalu, dokumentacja wdrożenia, inspiracje, filmy w brandzie, instrukcja testów, protokół odbioru, podsumowania miesięczne, humanizer. Treść synchronizowana z Notion (Prompty)."
     }
   ]
 }
