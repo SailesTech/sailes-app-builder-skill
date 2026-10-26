@@ -33,6 +33,7 @@ For each element below, classify it **PRESENT** (exists and matches the current 
 | 11 | **doc freshness** | every path & command referenced in AGENTS.md / Task Router exists / runs (`repo-done-checklist.md` Freshness check) | doc drift — fix the references (or the missing artifact); a doc that lies actively misleads every future agent |
 | 12 | **Framework-Version stamp** | AGENTS.md header carries `Framework-Version:`; compare against the current framework `VERSION` | absent → stamp the current version; older → run **Upgrade mode** below |
 | 13 | **harness parity (Codex twin)** | `.codex/config.toml` present (twin of `.claude/settings.json`, reusing `.claude/hooks/*.sh`); `.github/copilot-instructions.md` points at AGENTS.md — see `codex-config-template.md` | add the Codex twin + Copilot pointer additively so the repo runs *guarded* under Codex too; commonly MISSING on repos adopted before Codex support existed |
+| 14 | **`REVIEW.md` in repo root** | exists at the root; sections match `review-md-template.md` (what Important means here, nit cap, what not to report, always-check list, evidence, summary); `checker` reads it from the diff's base commit | absent → **propose** it from the template, filled from the repo's real stack and active modules; the repo may decline (decision Q4, 2026-10-26) — record the decline, never write it unasked |
 
 ```bash
 ROOT="$(pwd)"
@@ -50,6 +51,9 @@ grep -q "@AGENTS.md" "$ROOT/CLAUDE.md" 2>/dev/null && echo "PRESENT CLAUDE→AGE
 grep -qi "Task Router" "$ROOT/AGENTS.md" 2>/dev/null && echo "PRESENT Task-Router section" || echo "DRIFTED/MISSING Task-Router section"
 for f in .codex/config.toml .github/copilot-instructions.md; do
   [ -e "$ROOT/$f" ] && echo "PRESENT $f" || echo "MISSING $f (Codex/Copilot parity)"
+done
+for f in REVIEW.md .github/pull_request_template.md; do
+  [ -e "$ROOT/$f" ] && echo "PRESENT $f" || echo "MISSING $f (propose from template; the repo may decline)"
 done
 ls "$ROOT/.ai/adr/"*stack* "$ROOT/.ai/adr/"*ADR-001* 2>/dev/null | head -1 | grep -q . && echo "PRESENT stack ADR" || echo "MISSING stack ADR"
 ```
@@ -105,6 +109,13 @@ The framework improves between projects; without an upgrade path, improvements o
      A local file whose name is **not** one of the ten role names (e.g. `be-checker.md`) does not
      shadow anything by bare-name resolution and is **not** auto-deleted: Upgrade mode lists it and
      asks the human what to do with it.
+   - **(d) `REVIEW.md` and PR template — proposals, never auto-written.** When the repo has no
+     root `REVIEW.md` (row 14), PROPOSE one from `review-md-template.md`, filled from the repo's real
+     stack and active modules, and show it to the human as a new file before writing. The repo may
+     decline (it has its own review rules, or does not want the file): record the decline and move
+     on — a missing `REVIEW.md` only means `checker` states that in its verdict and gates without
+     it. Do the same for `.github/pull_request_template.md` (`pr-template.md`) when absent; an
+     existing PR template is never overwritten.
 3. **The human approves the delta** before it is applied (upgrades are a key decision — the
    repo may have deliberately diverged; documented drift wins over forced alignment).
 4. Apply, re-run the Step 0 audit + the freshness check, update the `Framework-Version:` stamp,

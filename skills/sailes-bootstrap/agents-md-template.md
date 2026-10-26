@@ -113,6 +113,7 @@ Length is not thoroughness — complete and unreadable delivered nothing. Rule 3
 ## Conventions
 - DB tables/columns: snake_case, tables plural. JS/TS identifiers: camelCase. UUID PKs.
 - Common columns: id, created_at, updated_at, deleted_at (+ organization_id if multi-tenant).
+- **Split rule:** code conventions live here in `AGENTS.md`; what a reviewer reports and how severe lives in `REVIEW.md` (repo root, read by `checker` from the diff's base commit).
 - No hardcoded user-facing strings. No inline comments — self-documenting code. **A deferral recorded only in a code comment does not exist:** it goes to `.ai/backlog.md` with the blocking dependency named as its trigger ("when `packages/files` exists"), so delivering that dependency fires the return. A comment is read only by someone already in that file — the last person who needs the reminder.
 
 ## Key Commands
@@ -174,5 +175,5 @@ Length is not thoroughness — complete and unreadable delivered nothing. Rule 3
 | Write / update a spec | .ai/skills/spec-writing (or global sailes-spec) |
 | Analyze a spec before coding (BC/risk/readiness) | sailes-pre-implement |
 | Implement a spec / its phases | sailes-implement |
-| Review a change (architecture/security/quality) | .ai/skills/code-review (or /code-review) |
+| Review a change (architecture/security/quality) | REVIEW.md (what to report, how severe) |
 ```

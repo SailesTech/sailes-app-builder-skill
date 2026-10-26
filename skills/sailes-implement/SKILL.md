@@ -52,7 +52,7 @@ For each **Phase** (story) in order, and each **Step** (testable task) within it
 
 ## Test → Review → Behavior gate (before "done")
 - **Test authoring in a fresh context** — `tester` (`sailes-test`) derives the phase's expected behavior from the spec *with the implementation unread*, the human freezes the case list to `.ai/test-plans/<spec>.md`, then `tester` writes the suite and proves it detects at the feature's risk tier. This runs **per phase**, after the code and before `checker`. The RED test the dev named in step 1 is scaffolding for that step; the `tester` suite is the graded artifact, authored under isolation so it cannot mirror the code. **In the `middle` lane** (the phase's `Lane:` line, tier B/C) the plan goes straight to `Status: DERIVED` and `tester` writes immediately — no human freeze STOP.
-- **Adversarial review in a fresh context** — a reviewer subagent / `checker` reads the diff (incl. the tests) against the spec + the code-review checklist (correctness, contracts, security, scope creep) and confirms every frozen behavior ID has a covering test. (`sailes-bootstrap/agentic-first-principles.md` §C.)
+- **Adversarial review in a fresh context** — a reviewer subagent / `checker` reads the diff (incl. the tests) against the spec + the repo's `REVIEW.md` (correctness, contracts, security, scope creep) and confirms every frozen behavior ID has a covering test. (`sailes-bootstrap/agentic-first-principles.md` §C.)
 - **Behavior proof** — `qa` runs the `tester` suite against the live app as the gate verdict, then drives the real flow. Address findings; re-verify. Don't mark done with open Critical findings.
 
 ## On completion

@@ -153,7 +153,7 @@ The agent must work git predictably and safely. Generate these as the repo's git
 |---|---|
 | A. Verifiable dev, build/test commands | `AGENTS.md` (commands) + test setup + CI |
 | B. Guardrails (validation, RBAC, encryption, isolation) | `AGENTS.md` "Critical Rules" + validators + acl + lint/hooks |
-| C. Adversarial review | `.ai/skills/code-review` (or `/code-review`) + reviewer subagent/checker role |
+| C. Adversarial review | `REVIEW.md` (repo root) + reviewer subagent/checker role |
 | D. Context hygiene | agent behavior + concise `CLAUDE.md`→`@AGENTS.md` |
 | E. Modularity / ports & adapters / events | `AGENTS.md` "Architecture" + module layout convention |
 | F. DX / builds | `AGENTS.md` "Key Commands" + task runner config |

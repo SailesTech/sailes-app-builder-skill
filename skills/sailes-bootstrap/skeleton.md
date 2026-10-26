@@ -66,6 +66,7 @@ repo/
     pre-commit            # lint + typecheck (+ format/i18n) — deterministic gate before commit
   .github/
     workflows/ci.yml      # lint → typecheck → unit → integration → e2e → security scan
+    pull_request_template.md  # Testing / Risk / How to revert — content from pr-template.md
     copilot-instructions.md  # → one-line pointer to AGENTS.md (Copilot). One source, three harnesses.
 
   .claude/                # Claude Code harness guardrails — structural discipline, not agent goodwill
@@ -104,6 +105,9 @@ repo/
                           #   readable. Caveat: some Codex versions fire PreToolUse only for Bash.
 
   AGENTS.md               # concise; see agents-md-template.md (incl. Git Workflow + PR Workflow)
+  REVIEW.md               # what `checker` reports and how severe — from review-md-template.md, filled
+                          #   from the active modules; read from the diff's BASE commit. Conventions
+                          #   stay in AGENTS.md, report-and-severity rules live here
   CLAUDE.md               # → @AGENTS.md   (Claude Code entry point)
   STATUS.md               # client-readable progress derived from live specs (header-only to start;
                           #   updated at each phase gate — never contains effort/pricing data)
