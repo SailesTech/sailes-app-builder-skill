@@ -1,8 +1,7 @@
 # Spec: `REVIEW.md` jako checklista bramki i kąty poprawności w `checker` — review według Anthropic
 
 Status: in-progress — P1 NITS, P2 APPROVE (2 rundy), P3 APPROVE; evale 5/5 PASS `(at ba29d79)`, log
-        `.ai/runs/2026-10-26-review-md.md`. Czeka: Human-STOP P2 (brzmienie `checker.md`) i P3 (treść
-        szablonu), potem P4 (bloker: kolejka 1.39/1.40 niedostępna na tej maszynie) i P5.
+        `.ai/runs/2026-10-26-review-md.md`. Human-STOP P2 i P3 zamknięte 2026-10-26. Dalej P4 (bloker: kolejka 1.39/1.40 niedostępna na tej maszynie) i P5.
 Framework-Version target: osobna minor **po 1.40.0** (Q5) — dziś w kolejce 1.39.0 (design tournament) i
         1.40.0 (`2026-10-01-context-memory-from-clm-paper.md`); numer = następny wolny w chwili merge'u.
 Weight: contract fix × 3 powierzchnie — definicja roli `checker` (+ bliźniak Codex), bootstrap repo
@@ -436,3 +435,4 @@ leada). P2 czeka na czerwone evale. P4 czeka na P2, P3 i merge 1.40.0. P5 kończ
 | 2026-10-26 | D1–D4 (kąty w `checker`, bez Code Review, Sonnet, 3 rundy) | właściciel |
 | 2026-10-26 | Q1–Q5 (korzeń, baza diffu, druga instancja `checker`, propozycja w Upgrade, osobna minor po 1.40.0) | właściciel |
 | 2026-10-26 | Po P1.g (stary tekst wykrywa 4/4, różnica w etykietach): zawężony P2 | właściciel |
+| 2026-10-26 | Human-STOP P2: brzmienie `checker.md` zaakceptowane. Human-STOP P3: szablon `REVIEW.md` przyjęty ze zmianą — styl, nazwy i refaktor **nie są zgłaszane**, także jako Nit (było „Nit at most”; spójne z regułą Nit w `checker.md` i z evalem e) | właściciel |

@@ -41,7 +41,7 @@ Reserve Important for findings that would break behavior the spec promises, leak
 rollback: incorrect logic, a removed guard or permission check, a caller broken by a changed
 signature or return shape, unscoped database queries, PII in logs or error messages, migrations
 that are not backward compatible, and a change to a frozen contract without a spec. Style, naming
-and refactoring suggestions are Nit at most. A defect that was already in the code before this diff
+and refactoring preferences are not reported, not even as Nits. A defect that was already in the code before this diff
 is Pre-existing, never Important.
 
 ## Cap the nits
