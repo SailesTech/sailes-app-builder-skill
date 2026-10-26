@@ -30,8 +30,11 @@ nadmiar wobec specu, uruchomione `Done-when`, pokrycie planu testów — ale:
 1. **Nie ma checklisty, którą ma dostawać.** `checker.md:10` i `:15` każą recenzować „against the
    spec/contract and the checklist”; `agents-md-template.md:177` i `agentic-first-principles.md:156`
    odsyłają do `.ai/skills/code-review`, którego bootstrap nie tworzy.
-2. **Nie wolno mu zgłosić zwykłego błędu.** `checker.md:22`: znalezisko bez klauzuli specu nie wchodzi
-   do werdyktu. Null deref, usunięty guard, zepsuty wywołujący w innym pliku nie mają klauzuli.
+2. **Reguła nie dopuszcza zwykłego błędu, a model ją obchodzi.** `checker.md:22`: znalezisko bez
+   klauzuli specu nie wchodzi do werdyktu. Pomiar 2026-10-26 (P1.g, 4 ramiona kontrolne): stary tekst
+   na Sonnecie **wykrył 4/4 defekty bez klauzuli**, podpinając je pod sekcję nadmiaru albo klauzulę
+   Behaviour, i sam czytał `REVIEW.md` z bazy. Zachowanie jest dobre, ale stoi na interpretacji
+   wbrew literze tekstu — zmiana zapisuje to, co model już robi, zamiast dokładać nowe mechanizmy.
 3. **Nie odróżnia błędu sprzed diffu**, więc każdy zastany defekt w dotkniętej funkcji jest
    CHANGES-REQUIRED i napędza pętlę (u Anthropic 59% uwag w zapętlonym PR to kod sprzed pierwszej rundy).
 4. **Pętla `checker` ↔ worker nie ma limitu.**
@@ -79,6 +82,7 @@ Anthropic rozwiązał tę samą parę napięć (znajdź więcej / nie zmyślaj) 
 | Q3 | **Weryfikator = druga instancja `checker` z briefem „verify”** — zero nowych ról, bez nowego bliźniaka Codex | nowa rola `verifier` |
 | Q4 | **Upgrade proponuje `REVIEW.md`** istniejącym repo, repo może odmówić | brak; zapis automatyczny |
 | Q5 | **Osobna minor po 1.40.0** | dołączenie do 1.39.0 / 1.40.0 |
+| P2-zakres (po P1.g) | **Zawężony P2**: tylko to, czego brakowało w pomiarze — wagi Important/Nit/Pre-existing (Pre-existing nie blokuje), `category`, `REVIEW.md` z bazy jako reguła, trzy podstawy znaleziska, zdanie o tym, co przebiegło, weryfikacja w lane `full`; kąty A/B/C **jedną linią**, nie trzema akapitami. Evale a/b/d = kontrakt formatu, c = strażnik regresji; żaden nie dowodzi lepszego wykrywania | utwardzenie fixture przed P2; P2 bez zmian; wstrzymanie P2 |
 
 ## Proposed Solution
 
@@ -223,7 +227,8 @@ Lane: middle — tier B: tekst roli i test parity.
 - **P2.a.** `agents/checker.md`:
   - `:10` i `:15` — wejście: diff + spec + `REVIEW.md` z bazy diffu (`git show <base>:REVIEW.md`);
     brak pliku → jedno zdanie w werdykcie; diff zmieniający `REVIEW.md` → osobna uwaga.
-  - nowy punkt po `:21` — trzy kąty (A, B, C) w brzmieniu z Proposed Solution.
+  - nowy punkt po `:21` — kąty A/B/C **jedną linią** (zawężenie po P1.g: stary tekst już je stosuje;
+    linia utrwala zachowanie, nie wprowadza go).
   - `:22` — trzy dopuszczalne podstawy znaleziska + obserwacja z zacytowaną linią; mechanizm „pole
     wypełnione albo nie” zostaje.
   - `:24` — „edge cases” wskazuje na kąty.
@@ -430,3 +435,4 @@ leada). P2 czeka na czerwone evale. P4 czeka na P2, P3 i merge 1.40.0. P5 kończ
 |---|---|---|
 | 2026-10-26 | D1–D4 (kąty w `checker`, bez Code Review, Sonnet, 3 rundy) | właściciel |
 | 2026-10-26 | Q1–Q5 (korzeń, baza diffu, druga instancja `checker`, propozycja w Upgrade, osobna minor po 1.40.0) | właściciel |
+| 2026-10-26 | Po P1.g (stary tekst wykrywa 4/4, różnica w etykietach): zawężony P2 | właściciel |

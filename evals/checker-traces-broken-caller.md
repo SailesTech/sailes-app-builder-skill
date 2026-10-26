@@ -31,5 +31,4 @@ Control arm:        The same repo, diff and spec against the CURRENT `agents/che
                     does not include the export; `checker.md:22` then discards any finding that has no
                     clause. There is no instruction to search for callers of a changed function. If the
                     control names `csv.js` the fixture leaks (a spec mention, or a red test) — fix it.
-Last run:           not yet run. Control arm (P1.g) and treatment arm (P2.d) are dispatched by
-                    the lead per `sailes-eval-runner`; each run file names the `checker.md` SHA graded.
+Last run:           2026-10-26 · CONTROL FAIL (etykieta) · `checker.md`@381bbda, stand-in sonnet: wykrycie TAK (`csv.js:10`, CR, Important), brak `category: correctness`. Eval mierzy kontrakt formatu, nie wykrycie. `.ai/eval-runs/2026-10-26-review-md/control-b-*.md`. Treatment (P2.d): pending.

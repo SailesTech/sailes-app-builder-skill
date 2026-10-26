@@ -35,5 +35,4 @@ Control arm:        The same repo, diff and spec against the CURRENT `agents/che
                     control catches it as CHANGES-REQUIRED with the guard named, the fixture is too easy
                     (the guard is mentioned in the spec or the suite is red) — fix the fixture, not the
                     doctrine.
-Last run:           not yet run. Control arm (P1.g) and treatment arm (P2.d) are dispatched by
-                    the lead per `sailes-eval-runner`; each run file names the `checker.md` SHA graded.
+Last run:           2026-10-26 · CONTROL FAIL (etykieta) · `checker.md`@381bbda, stand-in sonnet: wykrycie TAK (CR, Important), brak `category: correctness`. Eval mierzy kontrakt formatu, nie wykrycie. `.ai/eval-runs/2026-10-26-review-md/control-a-*.md`. Treatment (P2.d): pending.

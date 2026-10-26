@@ -37,5 +37,4 @@ Control arm:        The same repo, diff and spec against the CURRENT `agents/che
                     lack of a clause even if it noticed one; and there is no severity to call it
                     Important. It cannot satisfy (1) with a quoted rule, and it has no reason to produce
                     (3).
-Last run:           not yet run. Control arm (P1.g) and treatment arm (P2.d) are dispatched by
-                    the lead per `sailes-eval-runner`; each run file names the `checker.md` SHA graded.
+Last run:           2026-10-26 · CONTROL PASS → INCONCLUSIVE dla dyskryminacji · `checker.md`@381bbda, stand-in sonnet sam zastosował `REVIEW.md` z bazy i spełnił (1)–(3). Eval zostaje jako **strażnik regresji** (nowy tekst nie może tego zepsuć), nie jako dowód zmiany. `.ai/eval-runs/2026-10-26-review-md/control-c-*.md`. Treatment (P2.d): pending.

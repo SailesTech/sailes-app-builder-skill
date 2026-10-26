@@ -34,5 +34,4 @@ Control arm:        The same repo, diff and spec against the CURRENT `agents/che
                     line at all it is an unlabelled defect and the verdict becomes CHANGES-REQUIRED,
                     failing (1); if it reports nothing — `checker.md:22` requires a spec clause and the
                     spec has none about pagination — the finding is missing, failing (2).
-Last run:           not yet run. Control arm (P1.g) and treatment arm (P2.d) are dispatched by
-                    the lead per `sailes-eval-runner`; each run file names the `checker.md` SHA graded.
+Last run:           2026-10-26 · CONTROL FAIL (etykieta) · `checker.md`@381bbda, stand-in sonnet: APPROVE (warunek 1 OK), off-by-one wykryty jako „not a finding” bez poziomu Pre-existing. Eval mierzy kontrakt formatu. `.ai/eval-runs/2026-10-26-review-md/control-d-*.md`. Treatment (P2.d): pending.
