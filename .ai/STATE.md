@@ -91,6 +91,17 @@ Last-commit: 94543a1
 - See `.ai/lessons.md` (framework-level lessons; project-level ones live in each client repo).
 
 ## Last session
+- **2026-10-26 — 1.39.0 przygotowane lokalnie: `REVIEW.md` jako checklista bramki, wagi i Pre-existing w
+  `checker`.** Branch `docs/claude-review-porownanie` (worktree `~/Work/Internal/sailes-app-builder-skill-review`),
+  ostatni commit integracji przed tym wpisem `a78b682`; **nie wypchnięte** — push na `main` czeka na zgodę właściciela.
+  - Done: spec `.ai/specs/2026-10-26-review-md-i-katy-poprawnosci.md` (P1 NITS, P2 APPROVE po 2 rundach, P3 APPROVE,
+    P5.a–c), log `.ai/runs/2026-10-26-review-md.md`, evale 5/5 PASS `(at ba29d79)`, delta `CONTENT UPDATED, RECEIPT
+    BLOCKED` (dług `composition/desktop-readability` od 1.33.0).
+  - Pomiar: stary `checker` wykrywał 4/4 defekty bez klauzuli → zmiana kodyfikuje i dodaje etykiety; lekcja w
+    `.ai/lessons.md` (2026-10-26).
+  - Otwarte: **P4** (limit 3 rund, lead uruchamia tryb weryfikacji — do tego czasu uśpiony) po merge'u speca pamięci
+    kontekstu; `feat/1.39.0-design-tournament` i spec 1.40 (nie ma ich na tej maszynie) dostają kolejne numery.
+    `lessons.md` ponad limit 40 KB — rotacja zgłoszona wcześniej, nadal otwarta.
 - **2026-10-01 — audyt pracy arXiv 2609.37725 (CLM) + spec 1.39.0 w szkicu, branch
   `claude/arxiv-2609-37725-framework-2ce5de` (worktree), NIC nie scommitowane, `main` nietknięty.**
   - Done: `.ai/audits/2026-10-01-clm-paper-vs-framework.md` (T1–T9 → mapa → propozycje A/G/E/F/D);

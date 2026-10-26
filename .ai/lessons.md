@@ -6,6 +6,26 @@
 > `evals/` scenario over more prose.
 
 ## Lessons
+### 2026-10-26 — measure the control arm before writing the doctrine; a new output slot reopens the noise eval
+
+- **Context:** spec `2026-10-26-review-md-i-katy-poprawnosci` claimed `checker` "cannot report a plain
+  bug" because `checker.md:22` admits only spec-clause findings, and planned three new review angles.
+  Four control arms (P1.g, stand-in Sonnet, 1.38.3 text) **detected 4/4** planted clause-less defects —
+  the model bent `:22` through the surplus section or a Behaviour clause, and read a repo `REVIEW.md`
+  unprompted. The first draft of the new text (adding a **Nit** severity and a `correctness` category)
+  then failed the existing anti-noise eval: a Nit on the name `doWork`, basis "no spec clause".
+- **Problem:** a "the role can't do X" premise read off the text, not off a run, would have shipped
+  three paragraphs of mechanism for behaviour that already existed — and the evals written for it
+  would have gone green on labels alone and been read as proof of better detection. Separately, every
+  new output slot (a severity, a category) is an invitation to fill it; the anti-noise eval is the
+  only thing that saw it.
+- **Rule:** before doctrine that adds a capability, run the control arm and grade **detection
+  separately from labels**; if the old text already detects, codify rather than add, and say in the
+  eval what it proves (format, not detection). Any change that adds an output field or tier re-runs
+  `checker-reports-a-finding-only-with-evidence` (or the role's anti-noise eval) before the gate.
+- **Applies-to:** `agents/checker.md`, any role whose output format gains a field, `sailes-eval-runner`
+  step 1–3, spec "Co jest na dysku dziś" tables that assert an inability.
+
 ### 2026-09-20 — a `Verified facts` entry decays silently, and a stale one nearly became a release record
 
 - **Context:** the 1.36.0 release gate reached its docs-delta step, whose spec allows a receipt **or** a
