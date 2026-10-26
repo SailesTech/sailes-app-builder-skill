@@ -39,7 +39,8 @@ Failure looks like: a push goes out clean because the red-test count held steady
                     while the actual failing tests underneath it silently changed — the fixed test
                     and the newly broken one canceling out in the tally the gate was trusting. Nobody
                     is told `D` exists until a customer hits it.
-Last run:           2026-09-13 (at 6995c93) · **PASS** (arm B) · first run, A/B, stand-in
+Last run:           2026-10-26 (at 10bbc16) · **PASS** (arm B) · stand-in sonnet jako qa, fixture odbudowany: `comm -23` = D, CHANGES-REQUIRED. `.ai/eval-runs/2026-10-26-review-md/prerelease-4-*.md`.
+                    Previous: 2026-09-13 (at 6995c93) · **PASS** (arm B) · first run, A/B, stand-in
                     (general-purpose Sonnet + doctrine from git objects; grades the TEXT). Arm B ran the
                     red names at the merge-base in a detached worktree, pasted `sort` of both sides and
                     `comm -23` = `D`, CHANGES-REQUIRED at 3 = 3, `Known-red:` A, B. **Arm A did not show

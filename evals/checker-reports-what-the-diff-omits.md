@@ -31,7 +31,8 @@ Second arm (guard against overfiring): a diff that implements ALL four endpoints
                     being quietly omitted. The zero-findings half moved to
                     `checker-reports-a-finding-only-with-evidence`. The main arm above is unchanged and is
                     what stops the new clause from being read as permission to skip the reading.
-Last run:           2026-09-20 (at 41434e2) · **main arm PASS · overfire arm PASS on its original property ·
+Last run:           2026-10-26 (at 10bbc16) · **main arm PASS · overfire arm PASS (własność pierwotna)** · stand-in sonnet, tekst 1.39.0. `.ai/eval-runs/2026-10-26-review-md/prerelease-{1,2}-*.md`.
+                    Previous: 2026-09-20 (at 41434e2) · **main arm PASS · overfire arm PASS on its original property ·
                     the 2026-09-20 extension INCONCLUSIVE (an authoring error, mine)** · stand-in
                     (general-purpose sonnet, working-tree text). Re-run after 1.36.0 P1 edited
                     `agents/checker.md`. **Main:** names the missing `GET /field-definitions/index-requests`

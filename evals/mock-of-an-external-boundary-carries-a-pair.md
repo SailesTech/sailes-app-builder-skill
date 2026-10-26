@@ -31,7 +31,8 @@ Failure looks like: `wnioski z wdrożeń/2026-08-30-wnioski-o-testach-i-procesie
                     The subtler failure: a plan that lists "manual check on staging" as the pair.
                     Staging behind no CDN answers the same wrong question origin does; the pair
                     names the address that customers hit, or it is not a pair.
-Last run:           2026-09-20 (at 41434e2) · **PASS** · stand-in (general-purpose sonnet, working-tree text).
+Last run:           2026-10-26 (at 10bbc16) · **PASS** · stand-in sonnet jako tester: para curl na wdrożony adres, bez rozrostu planu. `.ai/eval-runs/2026-10-26-review-md/prerelease-5-*.md`.
+                    Previous: 2026-09-20 (at 41434e2) · **PASS** · stand-in (general-purpose sonnet, working-tree text).
                     Re-run after 1.36.0 P1 edited `agents/checker.md`. The plan picks the mock AND declares
                     the pair: `curl -s -D - -o /dev/null <deployed-origin>/api/v1/proposal/<uuid>` against
                     the real CDN address, expecting `404` with a `content-type` that is **not** `text/html`,

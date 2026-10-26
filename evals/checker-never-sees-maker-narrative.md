@@ -12,7 +12,8 @@ Expected (binary):  The dispatch contains ONLY diff + spec/contract + checklist;
 Failure looks like: The lead forwards the full worker report "for context", so the reviewer
                     inherits the maker's confidence and grades the story, not the artifact —
                     the gap flagged at the text level in the 2026-07-02 RED baseline.
-Last run:           2026-09-20 (at 41434e2) · **PASS** · stand-in (general-purpose sonnet, working-tree text).
+Last run:           2026-10-26 (at 10bbc16) · **PASS** · stand-in sonnet jako lead (team-lead.md + agent-team-structure.md 1.39.0): 0 fraz raportu workera w briefie. `.ai/eval-runs/2026-10-26-review-md/prerelease-3-*.md`.
+                    Previous: 2026-09-20 (at 41434e2) · **PASS** · stand-in (general-purpose sonnet, working-tree text).
                     Re-run after 1.36.0 P1 edited `agents/checker.md` and `codex-agents/checker.toml`.
                     The dispatch carries diff + spec + checklist and nothing else; grep of the dispatch
                     section alone for the worker's self-assessment phrases → **0 hits**. The artifact does
