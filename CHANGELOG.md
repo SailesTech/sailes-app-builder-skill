@@ -4,6 +4,59 @@ The standard delta between versions. `adopt-existing-repo.md` **Upgrade mode** r
 to compute what a repo stamped with an older `Framework-Version:` is missing. Keep entries
 upgrade-actionable: what a generated/adopted repo would now contain or do differently.
 
+## 1.39.0 — 2026-10-26 · `REVIEW.md` as the gate's checklist; severity, Pre-existing and verify mode in `checker`
+
+Spec `.ai/specs/2026-10-26-review-md-i-katy-poprawnosci.md` (P1–P3; P4 — the three-round cap and the
+lead dispatching verify mode — ships later). Source: Anthropic's managed Code Review and `REVIEW.md`
+docs, the Claude Code team's 2026-10-15 post on how they review, their SDK `REVIEW.md`, and the
+`/code-review` recipe in Claude Code 2.1.300 (`skile do inspiracji/claude-code-review/`).
+
+**Measured before the change (P1.g, 4 control arms, stand-in Sonnet on the 1.38.3 text):** the old
+`checker` already *detected* all four planted defects with no spec clause behind them (removed guard,
+broken caller in an untouched file, unscoped query against a base `REVIEW.md` rule, a pre-existing
+off-by-one) — by bending `checker.md:22`. What it lacked was the labels. So 1.39.0 **codifies** what
+the role already did and adds only severity, category and the base-read rule; it does not claim
+better detection. One run per arm.
+
+**What a repo on 1.39.0 now has that 1.38.3 did not:**
+
+- **`REVIEW.md` at the repo root** (`skills/sailes-bootstrap/review-md-template.md`), Anthropic's
+  format with Sailes defaults: what Important means here (broken spec behaviour, data leak, blocked
+  rollback, removed guard, broken caller, unscoped query, PII in logs, non-backward-compatible
+  migration, frozen contract changed without a spec); at most five Nits; do not report what the
+  toolchain enforces, generated files, lockfiles, `graphify-out/`, **nor style, naming or refactoring
+  preferences — not even as Nits**; always check (filled from the active modules); evidence is
+  `file:line`; the summary starts with a count. Bootstrap Case B writes it; `skeleton.md` lists it.
+- **`.github/pull_request_template.md`** (`pr-template.md`): Testing / Risk / How to revert.
+- **`checker` reads `REVIEW.md` from the diff's base** (`git show <base>:REVIEW.md`), so a diff
+  cannot loosen the rules it is graded by; a diff that edits it gets its own remark. `AGENTS.md`
+  quoted as a basis is read from the base too.
+- **Three angles in one pass:** the whole enclosing function; every removed line → the invariant it
+  enforced and where it lives now; the callers of every changed function, including files the diff
+  never touched.
+- **A finding's basis is one of three** — spec clause, a quoted `REVIEW.md`/`AGENTS.md` rule, or a
+  failure scenario (input/state → wrong result) — plus a quoted line. A Nit needs a basis like any
+  finding; a naming/length/comment preference is not a finding unless `REVIEW.md` names it.
+- **Severity per finding:** Important → CHANGES-REQUIRED; Nit → NITS within the `REVIEW.md` cap;
+  **Pre-existing** (present on the base) is reported with `file:line`, never blocks, and the lead
+  moves it to `.ai/backlog.md`. A `category` per finding and one sentence stating what ran.
+- **Verify mode (lane `full`)** in `checker.md`: CONFIRMED / PLAUSIBLE / REFUTED, REFUTED only with a
+  quoted line or a proof. Dormant until the lead's dispatch lands (spec P4).
+- The dead `.ai/skills/code-review` pointers in `agents-md-template.md`, `agentic-first-principles.md`
+  and `sailes-implement` now point at `REVIEW.md`.
+
+**Upgrade action:** Upgrade mode **proposes** `REVIEW.md` and the PR template from the templates
+(`adopt-existing-repo.md`, row 14 and item (d)); the repo may decline, and an existing PR template is
+never overwritten. Without a `REVIEW.md` the gate says so in one sentence and runs as before.
+
+**Evals:** `checker-catches-removed-guard`, `checker-traces-broken-caller`, `checker-follows-review-md`,
+`checker-pre-existing-does-not-block` (new) and `checker-reports-a-finding-only-with-evidence`
+(criterion widened to three bases) — 5/5 PASS `(at ba29d79)`. The first draft of the new text failed
+the last one (a Nit on the name `doWork` with no basis); the fix is the Nit sentence above.
+
+**Version note:** 1.39.0 was earmarked for `feat/1.39.0-design-tournament`, which was never pushed
+and is not on this machine; that branch and the 1.40.0 spec take the next numbers.
+
 ## 1.38.3 — 2026-10-16 · Model routing for spawns outside a named role
 
 A docs-only patch. Two spawn cases were not written down, and the gap cost money: a lead that

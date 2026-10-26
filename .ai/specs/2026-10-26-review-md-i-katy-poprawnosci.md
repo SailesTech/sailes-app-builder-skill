@@ -2,7 +2,8 @@
 
 Status: in-progress — P1 NITS, P2 APPROVE (2 rundy), P3 APPROVE; evale 5/5 PASS `(at ba29d79)`, log
         `.ai/runs/2026-10-26-review-md.md`. Human-STOP P2 i P3 zamknięte 2026-10-26. Dalej P4 (bloker: kolejka 1.39/1.40 niedostępna na tej maszynie) i P5.
-Framework-Version target: osobna minor **po 1.40.0** (Q5) — dziś w kolejce 1.39.0 (design tournament) i
+Framework-Version target: **1.39.0** dla P1–P3 (Q5 zmienione 2026-10-26); P4 w kolejnym wydaniu po merge'u
+        speca 1.40 (pamięć kontekstu). Pierwotnie: osobna minor po 1.40.0 — dziś w kolejce 1.39.0 (design tournament) i
         1.40.0 (`2026-10-01-context-memory-from-clm-paper.md`); numer = następny wolny w chwili merge'u.
 Weight: contract fix × 3 powierzchnie — definicja roli `checker` (+ bliźniak Codex), bootstrap repo
         klienta (nowy szablon `REVIEW.md`, dwa martwe odwołania, szablon PR), pętla bramki
@@ -369,13 +370,13 @@ Owns:
 
 Blast-radius: pięć stempli (`release-hygiene.test.js:9-12`); `AGENTS.md` tylko w linii
 `Framework-Version:`. Diagramy: `lifecycle` (pętla bramki) — `docs-author` potwierdza albo zawęża.
-Depends-on: `wynik: P1`, `wynik: P2`, `wynik: P3`, `wynik: P4`, `wynik: 1.40.0 na main` (Q5).
+Depends-on: `wynik: P1`, `wynik: P2`, `wynik: P3` (Q5 zmienione 2026-10-26: bez P4 i bez 1.40.0).
 Agent: `team-lead` (stemple, CHANGELOG, PR) + `docs-author` (P5.c) · tier C · —.
 Human-STOP: **tak — `git push` na `main` jest deployem** (`AGENTS.md` § `main` is production);
 PR otwiera lead, scala człowiek.
 Lane: middle — tier C: pliki wersji i dokumentacja.
 
-- **P5.a.** Pięć stempli → następna wolna minor po 1.40.0.
+- **P5.a.** Pięć stempli → `1.39.0`.
 - **P5.b.** `CHANGELOG.md` — wpis upgrade-actionable: repo z niższym `Framework-Version` po Upgrade
   dostaje propozycję `REVIEW.md` i szablonu PR; `checker` czyta `REVIEW.md`, gdy jest.
 - **P5.c.** Delta dokumentacji i paragon (`CONTENT UPDATED, RECEIPT BLOCKED` jawnie, jeśli dług
@@ -435,4 +436,5 @@ leada). P2 czeka na czerwone evale. P4 czeka na P2, P3 i merge 1.40.0. P5 kończ
 | 2026-10-26 | D1–D4 (kąty w `checker`, bez Code Review, Sonnet, 3 rundy) | właściciel |
 | 2026-10-26 | Q1–Q5 (korzeń, baza diffu, druga instancja `checker`, propozycja w Upgrade, osobna minor po 1.40.0) | właściciel |
 | 2026-10-26 | Po P1.g (stary tekst wykrywa 4/4, różnica w etykietach): zawężony P2 | właściciel |
+| 2026-10-26 | **Q5 zmienione:** gałęzi `feat/1.39.0-design-tournament` i speca 1.40 nie ma na tej maszynie (nigdy niewypchnięte) → P1–P3 wydane teraz jako 1.39.0, tamte dostają kolejne numery; **P4 odłożone** do wydania po merge'u speca pamięci kontekstu (wspólne pliki `team-lead.md`, `agent-team-structure.md`); tryb weryfikacji w `checker.md` do tego czasu uśpiony | właściciel |
 | 2026-10-26 | Human-STOP P2: brzmienie `checker.md` zaakceptowane. Human-STOP P3: szablon `REVIEW.md` przyjęty ze zmianą — styl, nazwy i refaktor **nie są zgłaszane**, także jako Nit (było „Nit at most”; spójne z regułą Nit w `checker.md` i z evalem e) | właściciel |
