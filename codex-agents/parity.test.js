@@ -261,7 +261,16 @@ const INVARIANTS = {
     // sentence: the spec clause it violates and the observation that grounds it. Losing this from a
     // twin turns "reviewed and empty is allowed" into license to skip looking, with nothing left
     // distinguishing a looked-and-found-nothing from a never-looked.
-    ['a finding carries the spec clause it violates and the observation that grounds it', /finding[\s\S]{0,150}clause[\s\S]{0,150}observation/i],
+    // Widened 2026-10-26 (spec 2026-10-26-review-md-i-katy-poprawnosci, P2): the basis is now one of
+    // three (clause / quoted rule / failure scenario), so more words sit between the three tokens.
+    ['a finding carries a basis (the spec clause it violates, among others) and the observation that grounds it', /finding[\s\S]{0,300}clause[\s\S]{0,300}observation/i],
+    // P2 (spec 2026-10-26-review-md-i-katy-poprawnosci) — REVIEW.md is the checklist, read from the
+    // diff's base so a diff cannot loosen the rules it is graded by.
+    ['reads REVIEW.md from the diff base (git show <base>:REVIEW.md)', /git show <base>:REVIEW\.md/i],
+    // P2 — a defect present before the diff is reported but never drives the fix loop.
+    ['Pre-existing findings never block', /pre-existing[\s\S]{0,300}never blocks?/i],
+    // P2 — lane `full`: a fresh instance re-derives one finding; refutation needs proof, not absence.
+    ['verify mode returns CONFIRMED / PLAUSIBLE / REFUTED', /verify mode[\s\S]{0,500}CONFIRMED[\s\S]{0,200}PLAUSIBLE[\s\S]{0,200}REFUTED/i],
   ],
   qa: [
     ['never fakes a pass', /fake|ENV-DEFECT/i],
@@ -353,6 +362,14 @@ const INVERSE_INVARIANTS = {
     [
       'no wording forces a manufactured finding ("report at least one" / "every section must carry a finding")',
       /report at least one|every section must (?:carry|contain) a finding/i,
+    ],
+    // P2 (spec 2026-10-26-review-md-i-katy-poprawnosci) — the mirror of the 2026-09-20 rule: a spec
+    // clause is ONE admissible basis (with a quoted REVIEW.md/AGENTS.md rule and a failure scenario),
+    // never the only one. The pre-P2 wording defined a finding as "the spec clause ... and the
+    // observation", which a model had to bend (4/4 defects, measured 2026-10-26) to report a plain bug.
+    [
+      'no wording in which the spec clause is the ONLY admissible basis of a finding',
+      /finding is two things, not one: the spec clause|(?:only|sole|solely)\s+(?:admissible\s+|valid\s+|acceptable\s+)?(?:basis|ground)|without a spec clause[\s\S]{0,60}(?:not a finding|does not enter)/i,
     ],
   ],
 };
@@ -495,6 +512,16 @@ test('the checker inverse regex FIRES on wording that forces a manufactured find
     re.test(normalize(FORCED_FINDING_WORDING_B)),
     'inverse regex does not catch "every section must carry a finding" — it would go green on wording that forces a finding'
   );
+});
+
+test('the checker spec-clause-only inverse regex FIRES on the pre-P2 wording and on a paraphrase', () => {
+  // Verbatim opening of the pre-P2 finding rule (agents/checker.md:22 and checker.toml:11 at e99f732),
+  // plus a paraphrase a bad rewrite could introduce. Must not fire on the real files (loop above).
+  const PRE_P2_MD = 'A finding is two things, not one: the spec clause it violates or omits, and the observation that grounds it.';
+  const PARAPHRASE = 'The spec clause is the only admissible basis; a finding without a spec clause does not enter the verdict.';
+  const re = INVERSE_INVARIANTS.checker[1][1];
+  assert.ok(re.test(normalize(PRE_P2_MD)), 'inverse regex does not catch the pre-P2 finding wording');
+  assert.ok(re.test(normalize(PARAPHRASE)), 'inverse regex does not catch a spec-clause-only paraphrase');
 });
 
 test('the qa inverse regex FIRES on the Codex screenshot-fallback wording it replaced', () => {
