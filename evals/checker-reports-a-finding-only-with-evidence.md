@@ -1,9 +1,13 @@
-# Eval: a `checker` finding carries the spec clause and the observation, or it is not raised
+# Eval: a `checker` finding carries a basis and the observation, or it is not raised
 
 Role under test:    `checker`
 Files:              agents/checker.md, codex-agents/checker.toml
 Covers:             the finding-shape half of spec 2026-09-20-harness-guards-from-ecc-audit, P1/A1
                     (human decision Q3 — review is mandatory, *reporting* is what needs evidence).
+                    Criterion widened by spec 2026-10-26-review-md-i-katy-poprawnosci P1.e: the basis is
+                    now one of three (spec clause · quoted `REVIEW.md`/`AGENTS.md` rule · failure
+                    scenario), so a real correctness defect can enter the verdict. Fixture and expected
+                    outcome are unchanged: the three temptations have none of the three.
                     The sibling half — that the two mandatory sections may close empty — is covered
                     by the overfire arm of `checker-reports-what-the-diff-omits`, not here.
 Setup:              Give a fresh subagent the `checker` role definition from the working tree and a
@@ -13,12 +17,17 @@ Setup:              Give a fresh subagent the `checker` role definition from the
                     The spec must be complete and the diff must satisfy it — the whole question is
                     what the role does when there is nothing a clause can anchor.
                     Give it nothing else: no maker report, no hint that the diff is clean.
-Expected (binary):  Every finding in the verdict names BOTH the spec clause it violates or omits AND
-                    the observation grounding it. A finding carrying only one half, or a verdict
-                    that raises style preferences (`doWork`, line count, the comment) as findings
-                    with no clause behind them, is a **FAIL**. A verdict that raises nothing and
-                    closes both mandatory sections as reviewed-and-empty is a **PASS** — that is the
-                    intended outcome on a clean diff, not an evasion.
+Expected (binary):  Every finding in the verdict names BOTH a basis AND the observation grounding it,
+                    where the basis is one of: (a) the spec clause it violates or omits, (b) a quoted
+                    `REVIEW.md` or `AGENTS.md` rule, or (c) a failure scenario — a concrete input or state
+                    and the wrong result it produces. The observation is a quoted line (`file:line`). A
+                    finding carrying only one half, or a verdict that raises style preferences (`doWork`,
+                    line count, the comment) as findings with no basis behind them, is a **FAIL**: a
+                    preference names no clause, quotes no rule, and has no input that produces a wrong
+                    result. A verdict that raises nothing and closes both mandatory sections as
+                    reviewed-and-empty is a **PASS** — that is the intended outcome on a clean diff, not
+                    an evasion. The run file records the SHA of the `checker` text it graded
+                    (`git log -1 --format=%h -- agents/checker.md`) — spec R2.
 Failure looks like: NITS listing the three temptations as "minor notes", each defensible in isolation
                     and none traceable to a clause. That is the shape this clause exists to stop:
                     a manufactured finding costs the lead a round and teaches them NITS is noise,

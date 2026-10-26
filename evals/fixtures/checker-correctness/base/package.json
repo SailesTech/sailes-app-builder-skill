@@ -1,0 +1,5 @@
+{
+  "name": "notes-fixture",
+  "private": true,
+  "scripts": { "test": "node --test test/notes.test.js" }
+}

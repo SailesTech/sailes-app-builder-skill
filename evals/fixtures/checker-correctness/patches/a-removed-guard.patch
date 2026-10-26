@@ -1,0 +1,39 @@
+diff --git a/src/notes/notes.service.js b/src/notes/notes.service.js
+index 47b9ea7..250b76e 100644
+--- a/src/notes/notes.service.js
++++ b/src/notes/notes.service.js
+@@ -1,7 +1,7 @@
+ 'use strict';
+ 
+ const { db } = require('../db');
+-const { NotFound, Forbidden } = require('../errors');
++const { NotFound } = require('../errors');
+ 
+ function createNote(user, { title, body }) {
+   const note = {
+@@ -29,7 +29,7 @@ function getNote(user, noteId) {
+ function archiveNote(user, noteId) {
+   const note = db.notes.get(noteId);
+   if (!note) throw new NotFound(`note ${noteId}`);
+-  if (note.ownerId !== user.id) throw new Forbidden('not your note');
++  if (note.archivedAt !== null) return note;
+   note.archivedAt = new Date().toISOString();
+   return db.notes.put(note);
+ }
+diff --git a/test/notes.test.js b/test/notes.test.js
+index 1e45658..640990b 100644
+--- a/test/notes.test.js
++++ b/test/notes.test.js
+@@ -21,6 +21,12 @@ test('archiveNote stamps archivedAt', () => {
+   assert.match(archived.archivedAt, /^\d{4}-\d{2}-\d{2}T/);
+ });
+ 
++test('archiveNote keeps the original archivedAt when called twice', () => {
++  const { id } = createNote(ann, { title: 'plan', body: 'x' });
++  const first = archiveNote(ann, id).archivedAt;
++  assert.equal(archiveNote(ann, id).archivedAt, first);
++});
++
+ test('archiveNote on an unknown id throws NotFound', () => {
+   assert.throws(() => archiveNote(ann, 'nope'), NotFound);
+ });

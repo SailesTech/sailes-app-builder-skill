@@ -1,0 +1,39 @@
+diff --git a/src/notes/notes.service.js b/src/notes/notes.service.js
+index 47b9ea7..04001f7 100644
+--- a/src/notes/notes.service.js
++++ b/src/notes/notes.service.js
+@@ -22,7 +22,7 @@ function getNote(user, noteId) {
+     id: note.id,
+     title: note.title,
+     body: note.body,
+-    archived: note.archivedAt !== null,
++    archivedAt: note.archivedAt,
+   };
+ }
+ 
+diff --git a/test/notes.test.js b/test/notes.test.js
+index 1e45658..f8e0a25 100644
+--- a/test/notes.test.js
++++ b/test/notes.test.js
+@@ -12,7 +12,7 @@ beforeEach(() => db.reset());
+ 
+ test('getNote returns the note view', () => {
+   const { id } = createNote(ann, { title: 'plan', body: 'x' });
+-  assert.deepEqual(getNote(ann, id), { id, title: 'plan', body: 'x', archived: false });
++  assert.deepEqual(getNote(ann, id), { id, title: 'plan', body: 'x', archivedAt: null });
+ });
+ 
+ test('archiveNote stamps archivedAt', () => {
+@@ -21,6 +21,12 @@ test('archiveNote stamps archivedAt', () => {
+   assert.match(archived.archivedAt, /^\d{4}-\d{2}-\d{2}T/);
+ });
+ 
++test('getNote exposes archivedAt once archived', () => {
++  const { id } = createNote(ann, { title: 'plan', body: 'x' });
++  const stamp = archiveNote(ann, id).archivedAt;
++  assert.equal(getNote(ann, id).archivedAt, stamp);
++});
++
+ test('archiveNote on an unknown id throws NotFound', () => {
+   assert.throws(() => archiveNote(ann, 'nope'), NotFound);
+ });

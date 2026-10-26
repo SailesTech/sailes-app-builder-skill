@@ -1,0 +1,65 @@
+diff --git a/REVIEW.md b/REVIEW.md
+index 3efbbde..60afd0f 100644
+--- a/REVIEW.md
++++ b/REVIEW.md
+@@ -2,8 +2,6 @@
+ 
+ ## What Important means here
+ 
+-- A read query on `notes` that is not scoped to the caller's `tenantId`: another tenant's data
+-  becomes visible. Always Important.
+ - Behaviour the spec requires that no longer works.
+ 
+ Naming, structure and refactors are at most a Nit.
+diff --git a/src/gen/queries.js b/src/gen/queries.js
+index 7559e29..2b25e6e 100644
+--- a/src/gen/queries.js
++++ b/src/gen/queries.js
+@@ -5,4 +5,7 @@ const { db } = require('../db');
+ 
+ const selectNoteById = (id) => db.notes.get(id);
+ 
+-module.exports = { selectNoteById };
++const selectNotesByTitle = (term) =>
++  db.notes.listAll().filter((n) => n.title.toLowerCase().includes(term.toLowerCase()));
++
++module.exports = { selectNoteById, selectNotesByTitle };
+diff --git a/src/notes/notes.service.js b/src/notes/notes.service.js
+index 47b9ea7..7cc8674 100644
+--- a/src/notes/notes.service.js
++++ b/src/notes/notes.service.js
+@@ -45,4 +45,10 @@ function listNotes(user, { page = 1, pageSize = 20 } = {}) {
+   return mine.slice(offset, offset + pageSize - 1);
+ }
+ 
+-module.exports = { createNote, getNote, archiveNote, listNotes };
++/** Notes whose title contains `term`, case-insensitively. */
++function searchNotes(user, term) {
++  const needle = term.toLowerCase();
++  return db.notes.listAll().filter((n) => n.title.toLowerCase().includes(needle));
++}
++
++module.exports = { createNote, getNote, archiveNote, listNotes, searchNotes };
+diff --git a/test/notes.test.js b/test/notes.test.js
+index 1e45658..4583c44 100644
+--- a/test/notes.test.js
++++ b/test/notes.test.js
+@@ -4,7 +4,7 @@ const { test, beforeEach } = require('node:test');
+ const assert = require('node:assert/strict');
+ const { db } = require('../src/db');
+ const { NotFound } = require('../src/errors');
+-const { createNote, getNote, archiveNote, listNotes } = require('../src/notes/notes.service');
++const { createNote, getNote, archiveNote, listNotes, searchNotes } = require('../src/notes/notes.service');
+ 
+ const ann = { id: 'u1', tenantId: 't1' };
+ 
+@@ -30,3 +30,9 @@ test('listNotes returns only the caller\'s own notes', () => {
+   createNote({ id: 'u2', tenantId: 't1' }, { title: 'theirs', body: '' });
+   assert.deepEqual(listNotes(ann).map((n) => n.title), ['mine']);
+ });
++
++test('searchNotes matches the title case-insensitively', () => {
++  createNote(ann, { title: 'Quarterly Plan', body: '' });
++  createNote(ann, { title: 'groceries', body: '' });
++  assert.deepEqual(searchNotes(ann, 'plan').map((n) => n.title), ['Quarterly Plan']);
++});
