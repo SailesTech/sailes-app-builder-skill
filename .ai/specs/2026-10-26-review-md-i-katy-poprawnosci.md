@@ -1,8 +1,8 @@
 # Spec: `REVIEW.md` jako checklista bramki i kąty poprawności w `checker` — review według Anthropic
 
-Status: approved — 2026-10-26 przez właściciela („ok no to wdrożmy to”); Open Questions Q1–Q5 zamknięte
-        tego samego dnia. Pre-implement: READY-WITH-FIXES, poprawki R1–R2 wpisane
-        (`.ai/audits/2026-10-26-pre-implement-review-md.md`).
+Status: in-progress — P1 NITS, P2 APPROVE (2 rundy), P3 APPROVE; evale 5/5 PASS `(at ba29d79)`, log
+        `.ai/runs/2026-10-26-review-md.md`. Czeka: Human-STOP P2 (brzmienie `checker.md`) i P3 (treść
+        szablonu), potem P4 (bloker: kolejka 1.39/1.40 niedostępna na tej maszynie) i P5.
 Framework-Version target: osobna minor **po 1.40.0** (Q5) — dziś w kolejce 1.39.0 (design tournament) i
         1.40.0 (`2026-10-01-context-memory-from-clm-paper.md`); numer = następny wolny w chwili merge'u.
 Weight: contract fix × 3 powierzchnie — definicja roli `checker` (+ bliźniak Codex), bootstrap repo

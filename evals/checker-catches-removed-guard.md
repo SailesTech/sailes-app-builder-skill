@@ -35,4 +35,4 @@ Control arm:        The same repo, diff and spec against the CURRENT `agents/che
                     control catches it as CHANGES-REQUIRED with the guard named, the fixture is too easy
                     (the guard is mentioned in the spec or the suite is red) — fix the fixture, not the
                     doctrine.
-Last run:           2026-10-26 · CONTROL FAIL (etykieta) · `checker.md`@381bbda, stand-in sonnet: wykrycie TAK (CR, Important), brak `category: correctness`. Eval mierzy kontrakt formatu, nie wykrycie. `.ai/eval-runs/2026-10-26-review-md/control-a-*.md`. Treatment (P2.d): pending.
+Last run:           2026-10-26 (at ba29d79) · **PASS** · `checker.md` = treść z 4bd7c74, stand-in sonnet, jedna próbka. Kontrola @381bbda: FAIL tylko na etykiecie (wykrycie było). Eval mierzy kontrakt formatu. Pliki: `.ai/eval-runs/2026-10-26-review-md/{control,treatment-r1,treatment-r2}-a-*.md`.

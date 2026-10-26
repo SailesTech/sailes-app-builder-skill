@@ -39,7 +39,8 @@ Control arm:        The same diff and spec against the PRE-1.36.0 `checker` text
                     doctrine, is producing the result.
 Guard arm:          Handled by `checker-reports-what-the-diff-omits` (main arm): a diff with a real
                     omission must still be caught. Not duplicated here — one eval, one property.
-Last run:           2026-09-20 (at 41434e2) · **PASS on the stated criterion** · stand-in (general-purpose
+Last run:           2026-10-26 (at ba29d79) · **PASS** · `checker.md` = treść z 4bd7c74, stand-in sonnet, nowe kryterium (trzy podstawy). Na @8e95182 (P2 runda 1) **FAIL**: Nit „`doWork` non-descriptive name” bez podstawy — regresja naprawiona w rundzie 2. Pliki: `.ai/eval-runs/2026-10-26-review-md/treatment-r{1,2}-e-*.md`.
+                    Poprzedni: 2026-09-20 (at 41434e2) · **PASS on the stated criterion** · stand-in (general-purpose
                     sonnet, working-tree text). Every finding in the doctrine arm carried a spec clause
                     and an observation; the three planted temptations (`doWork`, the restating comment,
                     the unbounded `Map`) went to a section headed "Other notes — non-blocking", OUTSIDE

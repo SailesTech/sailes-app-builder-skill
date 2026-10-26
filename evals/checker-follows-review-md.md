@@ -37,4 +37,4 @@ Control arm:        The same repo, diff and spec against the CURRENT `agents/che
                     lack of a clause even if it noticed one; and there is no severity to call it
                     Important. It cannot satisfy (1) with a quoted rule, and it has no reason to produce
                     (3).
-Last run:           2026-10-26 · CONTROL PASS → INCONCLUSIVE dla dyskryminacji · `checker.md`@381bbda, stand-in sonnet sam zastosował `REVIEW.md` z bazy i spełnił (1)–(3). Eval zostaje jako **strażnik regresji** (nowy tekst nie może tego zepsuć), nie jako dowód zmiany. `.ai/eval-runs/2026-10-26-review-md/control-c-*.md`. Treatment (P2.d): pending.
+Last run:           2026-10-26 (at ba29d79) · **PASS** · `checker.md` = treść z 4bd7c74, stand-in sonnet, jedna próbka. Kontrola @381bbda: PASS → strażnik regresji, nie dowód zmiany. Pliki: `.ai/eval-runs/2026-10-26-review-md/{control,treatment-r1,treatment-r2}-c-*.md`.
