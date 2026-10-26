@@ -261,9 +261,19 @@ const INVARIANTS = {
     // sentence: the spec clause it violates and the observation that grounds it. Losing this from a
     // twin turns "reviewed and empty is allowed" into license to skip looking, with nothing left
     // distinguishing a looked-and-found-nothing from a never-looked.
-    // Widened 2026-10-26 (spec 2026-10-26-review-md-i-katy-poprawnosci, P2): the basis is now one of
-    // three (clause / quoted rule / failure scenario), so more words sit between the three tokens.
-    ['a finding carries a basis (the spec clause it violates, among others) and the observation that grounds it', /finding[\s\S]{0,300}clause[\s\S]{0,300}observation/i],
+    // Label reworded 2026-10-26 (spec 2026-10-26-review-md-i-katy-poprawnosci, P2): the basis is now
+    // one of three (clause / quoted rule / failure scenario). The windows stay at 150 — measured, the
+    // reworded text still matches them, so there was nothing to widen.
+    ['a finding carries a basis (the spec clause it violates, among others) and the observation that grounds it', /finding[\s\S]{0,150}clause[\s\S]{0,150}observation/i],
+    // P2 round 2 — the three angles had no positive concept: deleting the sentence from both twins
+    // left parity green. Enclosing function / removed line / callers, in that order.
+    ['three angles in one pass: enclosing function, every removed line, callers of every changed function', /enclosing function[\s\S]{0,300}removed line[\s\S]{0,300}callers/i],
+    // P2 round 2 (eval 2026-10-26) — a reviewer reported `doWork is a non-descriptive name` as a Nit /
+    // correctness with basis "naming and readability; no spec clause". A Nit needs a basis like any
+    // other finding, a style preference is not a finding unless REVIEW.md names it, and `category`
+    // follows the basis.
+    ['a Nit needs one of the three bases; a naming/length/comment preference is not a finding unless REVIEW.md names it', /Nit is a finding like any other[\s\S]{0,150}needs one of the three bases[\s\S]{0,150}naming, length or a comment is not a finding unless REVIEW\.md names it/i],
+    ['category follows the basis — no correctness without a failure scenario producing a wrong result', /category follows the basis[\s\S]{0,60}never correctness without a failure scenario/i],
     // P2 (spec 2026-10-26-review-md-i-katy-poprawnosci) — REVIEW.md is the checklist, read from the
     // diff's base so a diff cannot loosen the rules it is graded by.
     ['reads REVIEW.md from the diff base (git show <base>:REVIEW.md)', /git show <base>:REVIEW\.md/i],
@@ -271,6 +281,9 @@ const INVARIANTS = {
     ['Pre-existing findings never block', /pre-existing[\s\S]{0,300}never blocks?/i],
     // P2 — lane `full`: a fresh instance re-derives one finding; refutation needs proof, not absence.
     ['verify mode returns CONFIRMED / PLAUSIBLE / REFUTED', /verify mode[\s\S]{0,500}CONFIRMED[\s\S]{0,200}PLAUSIBLE[\s\S]{0,200}REFUTED/i],
+    // P2 round 2 — the rule that makes REFUTED expensive: without a quoted line or a proof the answer
+    // is PLAUSIBLE. Losing the clause from one twin turns "I did not find it" into a refutation.
+    ['REFUTED only with a quoted line or a proof; "I did not find it" is PLAUSIBLE', /verify mode[\s\S]{0,800}REFUTED only with a quoted line or (?:a )?proof[\s\S]{0,200}did not find it.{0,5} is PLAUSIBLE/i],
   ],
   qa: [
     ['never fakes a pass', /fake|ENV-DEFECT/i],
