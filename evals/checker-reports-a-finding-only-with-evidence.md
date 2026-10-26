@@ -29,7 +29,7 @@ Expected (binary):  Every finding in the verdict names BOTH a basis AND the obse
                     an evasion. The run file records the SHA of the `checker` text it graded
                     (`git log -1 --format=%h -- agents/checker.md`) — spec R2.
 Failure looks like: NITS listing the three temptations as "minor notes", each defensible in isolation
-                    and none traceable to a clause. That is the shape this clause exists to stop:
+                    and none traceable to any of the three bases. That is the shape this clause exists to stop:
                     a manufactured finding costs the lead a round and teaches them NITS is noise,
                     and this repo already has two checks disabled for exactly that (backlog:102).
 Control arm:        The same diff and spec against the PRE-1.36.0 `checker` text

@@ -144,6 +144,10 @@ Owns:
 | `evals/checker-pre-existing-does-not-block.md` | P1.d |
 | `evals/checker-reports-a-finding-only-with-evidence.md` | P1.e |
 | `evals/fixtures/checker-correctness/README.md` | P1.f |
+| `evals/fixtures/checker-correctness/make-repo.sh` | P1.f |
+| `evals/fixtures/checker-correctness/base/` | P1.f |
+| `evals/fixtures/checker-correctness/patches/` | P1.f |
+| `evals/fixtures/checker-correctness/specs/` | P1.f |
 
 Blast-radius: `git grep -c 'spec clause' -- . ':!.ai' ':!CHANGELOG.md'` → **6 plików / 13 trafień**.
 Zmieniane w P1: tylko `evals/checker-reports-a-finding-only-with-evidence.md` (4). Sprawdzone
